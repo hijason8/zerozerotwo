@@ -833,7 +833,7 @@
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script type="module">
     import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     // Global App State
     const STATE = {
@@ -1681,8 +1681,7 @@
       const n = playersList.length;
       if (n < 4) return [];
 
-      const extraMins = parseInt(document.getElementById("create-extra-mins")?.value) || 0;
-      const totalMinutes = Math.round(durationHours * 60) + extraMins;
+      const totalMinutes = Math.round(durationHours * 60);
       const rawTargetGames = Math.floor(totalMinutes / estMinsPerGame);
 
       // 優先使用使用者手動選定的公平方案局數，否則自動計算
@@ -1926,11 +1925,12 @@
       // Render plan cards
       if (optionsContainer) {
         optionsContainer.classList.remove("hidden");
+        const gridColsClass = plans.length >= 3 ? 'sm:grid-cols-3' : plans.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1';
         optionsContainer.innerHTML = `
           <div class="text-[11px] font-bold sub-text uppercase tracking-wider mb-1 flex items-center gap-1">
             <span>推薦公平排賽方案（點選直接套用）：</span>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-${Math.min(plans.length, 3)} gap-2">
+          <div class="grid grid-cols-1 ${gridColsClass} gap-2">
             ${plans.map((p, idx) => {
           const isSelected = p.totalGames === selectedGames;
           return `
@@ -2874,7 +2874,7 @@
                   <div class="truncate">${m.blue[1] || ''}</div>
                 </div>
                 <div class="flex items-center pt-1">
-                  <input type="number" min="0" max="99" id="score-blue-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? m.blueScore : ''}" placeholder="0" class="w-full bg-slate-900 input-bg border border-blue-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-blue-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? m.blueScore : ''}" placeholder="0" class="w-full bg-slate-900 input-bg border border-blue-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-blue-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
                 </div>
               </div>
 
@@ -2885,7 +2885,7 @@
                   <div class="truncate">${m.red[1] || ''}</div>
                 </div>
                 <div class="flex items-center pt-1">
-                  <input type="number" min="0" max="99" id="score-red-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? m.redScore : ''}" placeholder="0" class="w-full bg-slate-900 input-bg border border-rose-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-rose-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? m.redScore : ''}" placeholder="0" class="w-full bg-slate-900 input-bg border border-rose-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-rose-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
                 </div>
               </div>
             </div>
