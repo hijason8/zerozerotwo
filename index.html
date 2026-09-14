@@ -1580,6 +1580,21 @@
           const isOnline = snap.val() === true;
           updateDbStatusBadge(isOnline);
         });
+
+        // 跨裝置成員庫即時同步：電腦建立的社團成員手機端也能看到
+        const membersRef = ref(STATE.db, "club_members");
+        onValue(membersRef, (snap) => {
+          if (snap.exists()) {
+            const cloudMembers = snap.val();
+            const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
+            Object.keys(cloudMembers).forEach(safeKey => {
+              const decodedClub = decodeURIComponent(safeKey);
+              local[decodedClub] = cloudMembers[safeKey];
+            });
+            localStorage.setItem("pb_club_members", JSON.stringify(local));
+            if (typeof renderClubMemberChips === 'function') renderClubMemberChips();
+          }
+        });
       } catch (err) {
         console.error("Firebase init error:", err);
         updateDbStatusBadge(false);
@@ -2053,7 +2068,7 @@
 
       if (STATE.db && clubName) {
         try {
-          set(ref(STATE.db, `club_members/${encodeURIComponent(clubName)}`), members);
+          set(ref(STATE.db, `club_members/${encodeClubKey(clubName)}`), members);
         } catch (e) {
           console.error("Firebase save club members error:", e);
         }
@@ -2093,7 +2108,7 @@
         return;
       }
       container.innerHTML = players.map(name => {
-        const escaped = name.replace(/'/g, "\\'");
+        const escaped = safeEscape(name);
         return `
           <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500 text-white dark:text-slate-950 shadow-sm transition hover:scale-[1.02]">
             <i data-lucide="user" class="w-3 h-3"></i>
@@ -2131,7 +2146,7 @@
 
       chipsContainer.innerHTML = members.map(name => {
         const isSelected = selectedNames.includes(name);
-        const escapedName = name.replace(/'/g, "\\'");
+        const escapedName = safeEscape(name);
         return `
           <div class="group inline-flex items-center rounded-lg border text-xs transition select-none ${isSelected
             ? 'bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold shadow-sm'
@@ -2874,7 +2889,7 @@
                   <div class="truncate">${m.blue[1] || ''}</div>
                 </div>
                 <div class="flex items-center pt-1">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? m.blueScore : ''}" placeholder="0" class="w-full bg-slate-900 input-bg border border-blue-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-blue-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? m.blueScore : ''}" placeholder="0" class="w-full input-bg border border-blue-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-blue-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
                 </div>
               </div>
 
@@ -2885,7 +2900,7 @@
                   <div class="truncate">${m.red[1] || ''}</div>
                 </div>
                 <div class="flex items-center pt-1">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? m.redScore : ''}" placeholder="0" class="w-full bg-slate-900 input-bg border border-rose-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-rose-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? m.redScore : ''}" placeholder="0" class="w-full input-bg border border-rose-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-rose-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
                 </div>
               </div>
             </div>
@@ -3888,6 +3903,13 @@
       return encodeURIComponent(clubName.trim()).replace(/\./g, '%2E');
     }
 
+    // 通用安全跳脫：防止 inline onclick 因單/雙引號或反斜線導致 SyntaxError
+    function safeEscape(str) {
+      return (str || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'");
+    }
+
     async function getClubPassword(clubName) {
       if (!clubName || !clubName.trim()) return null;
       if (STATE.db) {
@@ -4034,7 +4056,7 @@
             const displayName = isGeneral ? (STATE.lang === "zh-TW" ? "臨打通用成員庫" : "General / Casual Roster") : club;
             const hasPwd = !!clubPasswordMap[club];
             const members = getClubMembersList(club);
-            const escapedClub = club.replace(/'/g, "\\'");
+            const escapedClub = safeEscape(club);
             const safeClubId = encodeURIComponent(club).replace(/%/g, "_");
             return `
               <div class="p-3 rounded-xl card-inner border space-y-2.5 ${isGeneral ? 'border-emerald-500/30 bg-emerald-500/5' : ''}">
@@ -4078,7 +4100,7 @@
                     ${members.length === 0
                 ? `<span class="sub-text text-[11px] italic py-0.5">${t("adminNoMembers")}</span>`
                 : members.map(m => {
-                  const escapedM = m.replace(/'/g, "\\'");
+                  const escapedM = safeEscape(m);
                   return `
                           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                             <span>${m}</span>
@@ -4184,8 +4206,8 @@
 
         if (STATE.db) {
           try {
-            await set(ref(STATE.db, `club_members/${encodeURIComponent(cleanNew)}`), oldMembers);
-            await remove(ref(STATE.db, `club_members/${encodeURIComponent(oldName)}`));
+            await set(ref(STATE.db, `club_members/${encodeClubKey(cleanNew)}`), oldMembers);
+            await remove(ref(STATE.db, `club_members/${encodeClubKey(oldName)}`));
           } catch (e) {
             console.error("Migrate club members error:", e);
           }
