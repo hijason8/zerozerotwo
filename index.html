@@ -3446,7 +3446,7 @@
           const count = completedAll.filter(t => (t.clubName || '').trim() === club).length;
           const isActive = STATE.historyCategory === club;
           tabsHTML += `
-            <button onclick="setHistoryCategory('${club}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 ${isActive ? 'bg-amber-500 text-white dark:text-slate-950 shadow-sm' : 'card-inner border sub-text hover:text-amber-500'}">
+            <button data-club-tab="${club.replace(/"/g, '&quot;')}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 ${isActive ? 'bg-amber-500 text-white dark:text-slate-950 shadow-sm' : 'card-inner border sub-text hover:text-amber-500'}">
               <i data-lucide="shield" class="w-3.5 h-3.5"></i>
               <span>${club}</span>
               <span class="px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-black/20 text-white dark:text-slate-950' : 'card-inner'}">${count}</span>
@@ -3455,6 +3455,13 @@
         });
 
         clubFilterContainer.innerHTML = tabsHTML;
+
+        // Event delegation: 使用 data-club-tab 避免 inline onclick 引號跳脫問題
+        clubFilterContainer.querySelectorAll('[data-club-tab]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            setHistoryCategory(btn.getAttribute('data-club-tab'));
+          });
+        });
       }
 
       // If Casual is selected
@@ -3876,11 +3883,16 @@
     // ----------------------------------------------------
     // FEATURE 3: CLUB PASSWORD PROTECTION
     // ----------------------------------------------------
+    // Firebase RTDB key-safe encoding for club names (禁止 . $ # [ ] / 等字元)
+    function encodeClubKey(clubName) {
+      return encodeURIComponent(clubName.trim()).replace(/\./g, '%2E');
+    }
+
     async function getClubPassword(clubName) {
       if (!clubName || !clubName.trim()) return null;
       if (STATE.db) {
         try {
-          const snap = await get(ref(STATE.db, `club_passwords/${clubName.trim()}`));
+          const snap = await get(ref(STATE.db, `club_passwords/${encodeClubKey(clubName)}`));
           return snap.exists() ? snap.val() : null;
         } catch (e) {
           console.error("getClubPassword error:", e);
@@ -3894,6 +3906,7 @@
     async function setClubPasswordDB(clubName, password) {
       if (!clubName || !clubName.trim()) return;
       const key = clubName.trim();
+      const safeKey = encodeClubKey(clubName);
       // Save to localStorage
       const passwords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
       if (password) {
@@ -3906,9 +3919,9 @@
       if (STATE.db) {
         try {
           if (password) {
-            await set(ref(STATE.db, `club_passwords/${key}`), password);
+            await set(ref(STATE.db, `club_passwords/${safeKey}`), password);
           } else {
-            await remove(ref(STATE.db, `club_passwords/${key}`));
+            await remove(ref(STATE.db, `club_passwords/${safeKey}`));
           }
         } catch (e) {
           console.error("setClubPassword error:", e);
