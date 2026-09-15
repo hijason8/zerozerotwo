@@ -835,6 +835,19 @@
     import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+    // ============================================================
+    // SECURITY: SHA-256 helper (Web Crypto API, no deps)
+    // ============================================================
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str || ''));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // SECURITY: Admin session protected by closure, prevents console `STATE.isAdmin = true` bypass
+    let _adminAuthenticated = false;
+    const getIsAdmin = () => _adminAuthenticated;
+    const setIsAdmin = (val) => { _adminAuthenticated = !!val; };
+
     // Global App State
     const STATE = {
       firebaseApp: null,
@@ -852,9 +865,11 @@
       expandedHistoryTournaments: {},
       allTournamentsCache: [],
       authenticatedClubs: new Set(),
-      isAdmin: false,
+      masterPinHash: null, // loaded from Firebase on init
       lang: localStorage.getItem("pb_lang") || "zh-TW",
       theme: localStorage.getItem("pb_theme") || "dark",
+      // isAdmin is now protected: use getIsAdmin() / setIsAdmin()
+      get isAdmin() { return getIsAdmin(); },
     };
 
     // Built-in Hardcoded Firebase Config
@@ -1595,6 +1610,12 @@
             if (typeof renderClubMemberChips === 'function') renderClubMemberChips();
           }
         });
+
+        // 載入 Master PIN hash（hash 存在 Firebase，原始碼不含明文 PIN）
+        try {
+          const pinSnap = await get(ref(STATE.db, "app_config/master_pin_hash"));
+          if (pinSnap.exists()) STATE.masterPinHash = pinSnap.val();
+        } catch(e) { console.warn("Could not load master pin hash", e); }
       } catch (err) {
         console.error("Firebase init error:", err);
         updateDbStatusBadge(false);
@@ -2559,8 +2580,6 @@
     window.enterTournament = enterTournament;
 
     async function deleteTournament(id) {
-      const MASTER_PIN = "19851108";
-
       // Find tournament object to check club
       let tObj = (STATE.allTournamentsCache || []).find(t => t.id === id);
       if (!tObj) {
@@ -2569,11 +2588,11 @@
       }
 
       const clubName = tObj ? (tObj.clubName || '').trim() : '';
-      const clubPwd = clubName ? await getClubPassword(clubName) : null;
+      const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
       const tournamentName = tObj ? tObj.name : id;
 
       // If the club has a password and user hasn't authenticated it in session
-      if (clubPwd && !STATE.isAdmin && !STATE.authenticatedClubs.has(clubName)) {
+      if (clubPwdHash && !STATE.isAdmin && !STATE.authenticatedClubs.has(clubName)) {
         const promptMsg = STATE.lang === "zh-TW"
           ? `🗑️ 確定刪除賽事「${tournamentName}」(${id}) 嗎？\n請輸入社團「${clubName}」密碼或管理員 PIN：`
           : `🗑️ Delete tournament "${tournamentName}" (${id})?\nEnter password for "${clubName}" or Master PIN:`;
@@ -2581,8 +2600,10 @@
         const input = prompt(promptMsg);
         if (input === null) return;
         const cleanInput = input.trim();
+        const inputHash = await sha256(cleanInput);
+        const masterHash = STATE.masterPinHash;
 
-        const isValid = (cleanInput === clubPwd) || (cleanInput === MASTER_PIN);
+        const isValid = (inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
         if (!isValid) {
           showToast(STATE.lang === "zh-TW" ? "❌ 密碼不符，無法刪除！" : "❌ Password Incorrect!", "error");
           return;
@@ -2684,12 +2705,11 @@
       }
 
       // Unlock Admin Mode
-      const MASTER_PIN = "19851108";
       const clubName = (tData.clubName || '').trim();
-      const clubPwd = clubName ? await getClubPassword(clubName) : null;
+      const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
 
       // If the club has NO password, unlock directly without prompt!
-      if (!clubPwd) {
+      if (!clubPwdHash) {
         STATE.activeTournamentAdmin = tData.id;
         showToast(STATE.lang === "zh-TW" ? "🔓 管理模式已開啟" : "🔓 Admin Mode Enabled", "success");
         renderLiveUI(tData);
@@ -2703,9 +2723,10 @@
 
       const input = prompt(promptMsg);
       if (input === null) return;
-      const cleanInput = input.trim();
+      const inputHash = await sha256(input.trim());
+      const masterHash = STATE.masterPinHash;
 
-      const isValid = (cleanInput === clubPwd) || (cleanInput === MASTER_PIN);
+      const isValid = (inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
       if (!isValid) {
         showToast(STATE.lang === "zh-TW" ? "❌ 密碼錯誤，無法開啟管理模式！" : "❌ Password Incorrect!", "error");
         return;
@@ -3929,10 +3950,12 @@
       if (!clubName || !clubName.trim()) return;
       const key = clubName.trim();
       const safeKey = encodeClubKey(clubName);
+      // Hash password before storing (empty string = remove password)
+      const hashToStore = password ? await sha256(password) : null;
       // Save to localStorage
       const passwords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
-      if (password) {
-        passwords[key] = password;
+      if (hashToStore) {
+        passwords[key] = hashToStore;
       } else {
         delete passwords[key];
       }
@@ -3940,8 +3963,8 @@
       // Save to Firebase
       if (STATE.db) {
         try {
-          if (password) {
-            await set(ref(STATE.db, `club_passwords/${safeKey}`), password);
+          if (hashToStore) {
+            await set(ref(STATE.db, `club_passwords/${safeKey}`), hashToStore);
           } else {
             await remove(ref(STATE.db, `club_passwords/${safeKey}`));
           }
@@ -3956,14 +3979,15 @@
       if (STATE.isAdmin) return true;
       if (STATE.authenticatedClubs.has(clubName.trim())) return true;
 
-      const storedPwd = await getClubPassword(clubName);
-      if (!storedPwd) return true; // No password set
+      const storedHash = await getClubPassword(clubName);
+      if (!storedHash) return true; // No password set
 
-      const MASTER_PIN = "19851108";
       const input = prompt(t("clubPasswordPrompt").replace("{club}", clubName));
       if (input === null) return false;
 
-      if (input.trim() === storedPwd || input.trim() === MASTER_PIN) {
+      const inputHash = await sha256(input.trim());
+      const masterHash = STATE.masterPinHash;
+      if (inputHash === storedHash || (masterHash && inputHash === masterHash)) {
         STATE.authenticatedClubs.add(clubName.trim());
         return true;
       }
@@ -3975,19 +3999,20 @@
     // ----------------------------------------------------
     // FEATURE 2: ADMIN PAGE
     // ----------------------------------------------------
-    function navigateToAdmin() {
+    async function navigateToAdmin() {
       if (STATE.isAdmin) {
         navigateTo("admin");
         return;
       }
-      const MASTER_PIN = "19851108";
       const pin = prompt(t("adminPinPrompt"));
       if (pin === null) return;
-      if (pin.trim() !== MASTER_PIN) {
+      const inputHash = await sha256(pin.trim());
+      const masterHash = STATE.masterPinHash;
+      if (!masterHash || inputHash !== masterHash) {
         showToast(t("adminPinWrong"), "error");
         return;
       }
-      STATE.isAdmin = true;
+      setIsAdmin(true);
       navigateTo("admin");
     }
     window.navigateToAdmin = navigateToAdmin;
