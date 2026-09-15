@@ -1559,7 +1559,7 @@
     // ----------------------------------------------------
     // FIREBASE INITIALIZATION
     // ----------------------------------------------------
-    function initFirebase(cfg) {
+    async function initFirebase(cfg) {
       try {
         if (!getApps().length) {
           STATE.firebaseApp = initializeApp(cfg);
