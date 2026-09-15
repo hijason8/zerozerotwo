@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
+<html lang="zh-TW" class="light">
 
 <head>
   <meta charset="UTF-8" />
@@ -237,16 +237,6 @@
           <!-- Dropdown Menu -->
           <div id="settings-dropdown-menu"
             class="hidden absolute right-0 mt-2 w-44 rounded-2xl glass-card border border-stone-200 dark:border-slate-800 shadow-2xl p-1.5 space-y-1 z-50 text-xs">
-            <!-- Theme Toggle -->
-            <button type="button" onclick="toggleTheme(); closeSettingsDropdown();"
-              class="w-full px-3 py-2 rounded-xl hover:bg-stone-500/10 transition flex items-center justify-between text-left font-semibold">
-              <span class="flex items-center gap-2">
-                <i id="theme-icon" data-lucide="moon" class="w-4 h-4 text-amber-500"></i>
-                <span id="t-dropdown-theme">外觀主題</span>
-              </span>
-              <span id="theme-mode-label" class="sub-text text-[11px] font-mono">切換</span>
-            </button>
-
             <!-- Language Toggle -->
             <button type="button" onclick="toggleLanguage(); closeSettingsDropdown();"
               class="w-full px-3 py-2 rounded-xl hover:bg-stone-500/10 transition flex items-center justify-between text-left font-semibold">
@@ -867,7 +857,7 @@
       authenticatedClubs: new Set(),
       masterPinHash: null, // loaded from Firebase on init
       lang: localStorage.getItem("pb_lang") || "zh-TW",
-      theme: localStorage.getItem("pb_theme") || "dark",
+      theme: "light",
       // isAdmin is now protected: use getIsAdmin() / setIsAdmin()
       get isAdmin() { return getIsAdmin(); },
     };
@@ -1282,37 +1272,11 @@
     };
 
     // ----------------------------------------------------
-    // THEME SWITCHER (黑底 ↔ 白底)
-    // ----------------------------------------------------
-    function toggleTheme() {
-      STATE.theme = STATE.theme === "dark" ? "light" : "dark";
-      localStorage.setItem("pb_theme", STATE.theme);
-      applyThemeUI();
-      showToast(STATE.theme === "dark"
-        ? (STATE.lang === "zh-TW" ? "已切換至【黑底】" : "Switched to Dark Mode")
-        : (STATE.lang === "zh-TW" ? "已切換至【白底】" : "Switched to Light Mode"), "info");
-    }
-    window.toggleTheme = toggleTheme;
-
     function applyThemeUI() {
+      // 固定白底主題，不再支援切換
       const html = document.documentElement;
-      const themeIcon = document.getElementById("theme-icon");
-
-      if (STATE.theme === "light") {
-        html.classList.remove("dark");
-        html.classList.add("light");
-        if (themeIcon) {
-          themeIcon.setAttribute("data-lucide", "sun");
-          themeIcon.className = "w-4 h-4 text-orange-500";
-        }
-      } else {
-        html.classList.remove("light");
-        html.classList.add("dark");
-        if (themeIcon) {
-          themeIcon.setAttribute("data-lucide", "moon");
-          themeIcon.className = "w-4 h-4 text-amber-400";
-        }
-      }
+      html.classList.remove("dark");
+      html.classList.add("light");
       lucide.createIcons();
     }
 
@@ -4004,11 +3968,15 @@
         navigateTo("admin");
         return;
       }
+      // 等待 masterPinHash 從 Firebase 載入（網速慢時可能尚未就緒）
+      if (!STATE.masterPinHash) {
+        showToast(STATE.lang === "zh-TW" ? "⏳ 正在連線，請稍後再試..." : "⏳ Connecting, please try again...", "info");
+        return;
+      }
       const pin = prompt(t("adminPinPrompt"));
       if (pin === null) return;
       const inputHash = await sha256(pin.trim());
-      const masterHash = STATE.masterPinHash;
-      if (!masterHash || inputHash !== masterHash) {
+      if (inputHash !== STATE.masterPinHash) {
         showToast(t("adminPinWrong"), "error");
         return;
       }
