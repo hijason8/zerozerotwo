@@ -4076,6 +4076,9 @@
                     ${!isGeneral ? `
                     <button onclick="adminRenameClub('${escapedClub}')" class="px-2.5 py-1 card-inner border hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95" title="Rename Club">
                       ${t("adminRenameBtn")}
+                    </button>
+                    <button onclick="adminDeleteClub('${escapedClub}')" class="px-2 py-1 border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold rounded-lg text-[11px] transition shadow-sm active:scale-95" title="刪除社團">
+                      <i data-lucide="trash-2" class="w-3 h-3"></i>
                     </button>` : ''}
                     <button onclick="adminToggleClubMembers('${safeClubId}')" class="px-2.5 py-1 card-inner border hover:border-blue-500 text-blue-600 dark:text-blue-400 font-bold rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95">
                       ${t("adminMembersBtn")} (${members.length})
@@ -4293,6 +4296,43 @@
       renderAdminPage();
     }
     window.adminRemoveClubPassword = adminRemoveClubPassword;
+
+    async function adminDeleteClub(clubName) {
+      if (!clubName || clubName === '__general__') return;
+      const confirmMsg = STATE.lang === 'zh-TW'
+        ? `確定要刪除社團「${clubName}」嗎？\n此操作會刺除該社團的所有成員和密碼記錄，且無法復原。`
+        : `Delete club "${clubName}"?\nThis will remove all members and password records permanently.`;
+      if (!confirm(confirmMsg)) return;
+
+      const safeKey = encodeClubKey(clubName);
+
+      // Remove from localStorage
+      const members = JSON.parse(localStorage.getItem('pb_club_members') || '{}');
+      delete members[clubName];
+      localStorage.setItem('pb_club_members', JSON.stringify(members));
+
+      const passwords = JSON.parse(localStorage.getItem('pb_club_passwords') || '{}');
+      delete passwords[clubName];
+      localStorage.setItem('pb_club_passwords', JSON.stringify(passwords));
+
+      // Remove from Firebase
+      if (STATE.db) {
+        try {
+          await remove(ref(STATE.db, `club_members/${safeKey}`));
+          await remove(ref(STATE.db, `club_passwords/${safeKey}`));
+        } catch (e) {
+          console.error('adminDeleteClub Firebase error:', e);
+        }
+      }
+
+      STATE.authenticatedClubs.delete(clubName);
+      showToast(
+        STATE.lang === 'zh-TW' ? `✅ 社團「${clubName}」已删除` : `✅ Club "${clubName}" deleted`,
+        'success'
+      );
+      renderAdminPage();
+    }
+    window.adminDeleteClub = adminDeleteClub;
 
     async function adminForceComplete(tId) {
       if (!confirm(t("adminForceCompleteConfirm"))) return;
