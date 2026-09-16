@@ -2462,9 +2462,14 @@
               <button onclick="enterTournament('${tData.id}')" class="flex-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
                 <i data-lucide="play" class="w-3.5 h-3.5"></i> ${t("enterTournament")}
               </button>
-              <button onclick="deleteTournament('${tData.id}')" class="p-2 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-              </button>
+              ${isFinished && !STATE.isAdmin
+                ? `<button disabled title="${STATE.lang === 'zh-TW' ? '完賽賽事需進入管理員後台才能刪除' : 'Admin required to delete completed tournaments'}" class="p-2 rounded-xl card-inner sub-text border opacity-30 cursor-not-allowed">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                  </button>`
+                : `<button onclick="deleteTournament('${tData.id}')" class="p-2 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>`
+              }
             </div>
           </div>
         `;
@@ -2565,6 +2570,18 @@
       if (!tObj) {
         const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
         tObj = local[id];
+      }
+
+      // 完賽賽事只有 Admin 才能刪除
+      const total = tObj?.matches ? tObj.matches.length : 0;
+      const done = tObj?.matches ? tObj.matches.filter(m => m.completed || m.voided).length : 0;
+      const isFinished = tObj?.status === "completed" || (total > 0 && done === total);
+      if (isFinished && !STATE.isAdmin) {
+        showToast(
+          STATE.lang === "zh-TW" ? "🔒 完賽賽事需進入管理員後台才能刪除" : "🔒 Admin required to delete completed tournaments",
+          "error"
+        );
+        return;
       }
 
       const clubName = tObj ? (tObj.clubName || '').trim() : '';
