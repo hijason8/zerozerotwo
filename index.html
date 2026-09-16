@@ -563,6 +563,11 @@
             <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-500" id="icon-toggle-live-admin"></i>
             <span id="text-toggle-live-admin">管理模式</span>
           </button>
+          <!-- Copy Report Button -->
+          <button onclick="copyTournamentReport(STATE.currentTournamentId)" id="btn-live-copy-report"
+            class="px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-semibold flex items-center justify-center gap-1 shadow-sm active:scale-95">
+            <span id="text-live-copy-report">複製賽報</span>
+          </button>
           <button onclick="openShareModal()" id="t-share-btn"
             class="px-3 py-2 rounded-xl card-inner border transition text-xs font-semibold flex items-center justify-center gap-1 shadow-sm">
             <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i> 分享 / QR Code
@@ -623,7 +628,7 @@
                     <th id="th-rank" class="py-2.5 px-2 text-center w-10">名次</th>
                     <th id="th-player" class="py-2.5 px-2">選手名稱</th>
                     <th id="th-wl" class="py-2.5 px-1.5 text-center">勝/敗</th>
-                    <th id="th-diff" class="py-2.5 px-1.5 text-center">淨勝</th>
+                    <th id="th-diff" class="py-2.5 px-1.5 text-center">淨勝分</th>
                     <th id="th-pf-pa" class="py-2.5 px-2 text-center">得分/失分</th>
                   </tr>
                 </thead>
@@ -921,8 +926,8 @@
         navBackHub: "賽事大廳",
         expandDetails: "📊 展開完整對戰與排行",
         collapseDetails: "▲ 收合詳細對戰",
-        copyReportBtn: "📋 複製完賽戰報",
-        copiedReportToast: "📋 完整戰報成績單已複製！可直接貼至 LINE 群組",
+        copyReportBtn: "複製賽報",
+        copiedReportToast: "複製完成",
         noCompletedTournaments: "目前尚無已完賽的歷史賽事記錄",
         podiumChampion: "冠軍",
         podiumRunnerUp: "亞軍",
@@ -980,7 +985,7 @@
         thRank: "名次",
         thPlayer: "選手名稱",
         thWl: "勝/敗",
-        thDiff: "淨勝",
+        thDiff: "淨勝分",
         thPfPa: "得分/失分",
 
         // Leaderboard Rules Box
@@ -1133,8 +1138,8 @@
         navBackHub: "Back to Hub",
         expandDetails: "📊 View Matches & Leaderboard",
         collapseDetails: "▲ Collapse Details",
-        copyReportBtn: "📋 Copy Tournament Report",
-        copiedReportToast: "📋 Final report copied to clipboard!",
+        copyReportBtn: "Copy Tournament Report",
+        copiedReportToast: "Copied to Clipboard",
         noCompletedTournaments: "No completed tournament archives yet",
         podiumChampion: "Champion",
         podiumRunnerUp: "2nd Place",
@@ -1402,6 +1407,8 @@
       const hubCompToggle = document.getElementById("hub-completed-toggle-text");
       const isHubCompOpen = !document.getElementById("hub-completed-tournaments-wrap")?.classList.contains("hidden");
       if (hubCompToggle) hubCompToggle.innerText = isHubCompOpen ? t("collapseText") : t("expandText");
+      const liveCopyReportText = document.getElementById("text-live-copy-report");
+      if (liveCopyReportText) liveCopyReportText.innerText = t("copyReportBtn");
 
       // History Page
       const histTitle = document.getElementById("t-history-title");
@@ -2625,6 +2632,10 @@
 
       if (STATE.db) {
         try {
+          if (STATE.currentTournamentId === id && STATE.dbUnsubscribe) {
+            STATE.dbUnsubscribe();
+            STATE.dbUnsubscribe = null;
+          }
           await remove(ref(STATE.db, `tournaments/${id}`));
         } catch (e) {
           console.error("Firebase delete error:", e);
@@ -3864,7 +3875,7 @@
 
               <!-- Copy Report Button -->
               <button onclick="copyTournamentReport('${tData.id}')" class="w-full card-inner border px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:border-amber-500/50 text-amber-600 dark:text-amber-400 transition">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i> ${t("copyReportBtn")}
+                ${t("copyReportBtn")}
               </button>
             </div>
           `;
@@ -3925,8 +3936,14 @@
     window.toggleHistoryTournament = toggleHistoryTournament;
 
     function copyTournamentReport(tId) {
-      const allT = STATE.allTournamentsCache || [];
-      const tData = allT.find(t => t.id === tId);
+      let tData = (STATE.allTournamentsCache || []).find(t => t.id === tId);
+      if (!tData && STATE.tournamentData && STATE.tournamentData.id === tId) {
+        tData = STATE.tournamentData;
+      }
+      if (!tData) {
+        const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+        tData = local[tId];
+      }
       if (!tData) return;
 
       const matches = tData.matches || [];
@@ -3934,39 +3951,55 @@
       const leaderboard = calculateLeaderboard(players, matches);
       const dateStr = formatTournamentDate(tData.createdAt);
 
+      const totalMatches = matches.length;
+      const completedCount = matches.filter(m => m.completed && !m.voided).length;
+      const voidedCount = matches.filter(m => m.voided).length;
+
       const isZh = STATE.lang === "zh-TW";
       let report = "";
 
-      report += `🏆 ${tData.name}\n`;
-      report += `📅 ${dateStr}`;
-      if (tData.clubName) report += ` | 🛡️ ${tData.clubName}`;
-      report += `\n👥 ${players.length} ${isZh ? "人" : "players"} · 🏸 ${matches.length} ${isZh ? "局" : "games"}\n`;
-      report += `${"─".repeat(28)}\n`;
+      const countBadgeStr = isZh
+        ? `共 ${totalMatches} 場｜完賽 ${completedCount} 場${voidedCount > 0 ? `｜流局 ${voidedCount} 場` : ''}`
+        : `${totalMatches} games | ${completedCount} completed${voidedCount > 0 ? ` | ${voidedCount} voided` : ''}`;
 
-      // Podium
-      report += `\n🏅 ${isZh ? "榮譽榜" : "PODIUM"}\n`;
-      if (leaderboard[0]?.played > 0) report += `  🥇 ${isZh ? "冠軍" : "Champion"}: ${leaderboard[0].name} (${leaderboard[0].wins}${isZh ? "勝" : "W"}${leaderboard[0].losses}${isZh ? "敗" : "L"}, +${leaderboard[0].diff})\n`;
-      if (leaderboard[1]?.played > 0) report += `  🥈 ${isZh ? "亞軍" : "2nd"}: ${leaderboard[1].name} (${leaderboard[1].wins}${isZh ? "勝" : "W"}${leaderboard[1].losses}${isZh ? "敗" : "L"}, ${leaderboard[1].diff > 0 ? '+' : ''}${leaderboard[1].diff})\n`;
-      if (leaderboard[2]?.played > 0) report += `  🥉 ${isZh ? "季軍" : "3rd"}: ${leaderboard[2].name} (${leaderboard[2].wins}${isZh ? "勝" : "W"}${leaderboard[2].losses}${isZh ? "敗" : "L"}, ${leaderboard[2].diff > 0 ? '+' : ''}${leaderboard[2].diff})\n`;
+      report += `【${isZh ? "賽事名稱" : "Tournament"}】${tData.name}\n`;
+      report += `${isZh ? "日期" : "Date"}：${dateStr}`;
+      if (tData.clubName && tData.clubName.trim()) {
+        report += ` | ${isZh ? "社團" : "Club"}：${tData.clubName.trim()}`;
+      }
+      report += `\n${isZh ? "參賽人數" : "Players"}：${players.length} ${isZh ? "人" : "players"} | ${isZh ? "對局統計" : "Progress"}：${countBadgeStr}\n`;
+      report += `${"-".repeat(32)}\n\n`;
 
-      // Full leaderboard
-      report += `\n📊 ${isZh ? "完整積分榜" : "FINAL STANDINGS"}\n`;
-      report += `${"─".repeat(28)}\n`;
+      // Podium / Top 3
+      if (leaderboard.some(p => p.played > 0)) {
+        report += `【${isZh ? "榮譽榜" : "PODIUM"}】\n`;
+        if (leaderboard[0]?.played > 0) report += `  1. ${isZh ? "冠軍" : "Champion"}：${leaderboard[0].name} (${leaderboard[0].wins}${isZh ? "勝" : "W"} ${leaderboard[0].losses}${isZh ? "敗" : "L"}, ${isZh ? "淨勝分" : "Diff"} +${leaderboard[0].diff})\n`;
+        if (leaderboard[1]?.played > 0) report += `  2. ${isZh ? "亞軍" : "Runner-up"}：${leaderboard[1].name} (${leaderboard[1].wins}${isZh ? "勝" : "W"} ${leaderboard[1].losses}${isZh ? "敗" : "L"}, ${isZh ? "淨勝分" : "Diff"} ${leaderboard[1].diff > 0 ? '+' : ''}${leaderboard[1].diff})\n`;
+        if (leaderboard[2]?.played > 0) report += `  3. ${isZh ? "季軍" : "3rd Place"}：${leaderboard[2].name} (${leaderboard[2].wins}${isZh ? "勝" : "W"} ${leaderboard[2].losses}${isZh ? "敗" : "L"}, ${isZh ? "淨勝分" : "Diff"} ${leaderboard[2].diff > 0 ? '+' : ''}${leaderboard[2].diff})\n`;
+        report += `\n`;
+      }
+
+      // Full Standings
+      report += `【${isZh ? "完整戰報" : "STANDINGS"}】\n`;
       leaderboard.forEach((row, idx) => {
         const rank = idx + 1;
-        report += `  ${rank}. ${row.name}  ${row.wins}${isZh ? "勝" : "W"}${row.losses}${isZh ? "敗" : "L"}  ${row.diff > 0 ? '+' : ''}${row.diff}  (${row.pf}/${row.pa})\n`;
+        const diffStr = row.diff > 0 ? `+${row.diff}` : `${row.diff}`;
+        report += `  ${rank}. ${row.name}  ${row.wins}${isZh ? "勝" : "W"} ${row.losses}${isZh ? "敗" : "L"}  ${isZh ? "淨勝分" : "Diff"} ${diffStr}  (得失分 ${row.pf}/${row.pa})\n`;
       });
+      report += `\n`;
 
       // Match log
-      report += `\n⚔️ ${isZh ? "對戰記錄" : "MATCH LOG"}\n`;
-      report += `${"─".repeat(28)}\n`;
+      report += `【${isZh ? "全輪次對戰紀錄" : "MATCH LOG"}】\n`;
       matches.forEach(m => {
-        const winner = m.blueScore > m.redScore ? "🔵" : "🔴";
-        report += `  #${m.id} ${m.blue.join('&')} ${m.blueScore}:${m.redScore} ${m.red.join('&')} ${winner}\n`;
+        if (m.voided) {
+          report += `  #${m.id} ${m.blue.join(' & ')} [${isZh ? "流局" : "Voided"}] ${m.red.join(' & ')}\n`;
+        } else {
+          report += `  #${m.id} ${m.blue.join(' & ')}  ${m.blueScore} : ${m.redScore}  ${m.red.join(' & ')}\n`;
+        }
       });
 
-      report += `\n${"─".repeat(28)}\n`;
-      report += `Powered by ZeroZeroTwo `;
+      report += `\n${"-".repeat(32)}\n`;
+      report += `ZeroZeroTwo 匹克球賽事系統`;
 
       navigator.clipboard.writeText(report).then(() => {
         showToast(t("copiedReportToast"), "success");
