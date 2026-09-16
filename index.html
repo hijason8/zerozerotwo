@@ -543,8 +543,8 @@
           </div>
         </div>
 
-        <!-- Divider: 資訊區 / 功能區 -->
-        <div class="w-full border-t border-stone-200 dark:border-slate-800 mt-1"></div>
+        <!-- Divider: 資訊區 / 功能區 (手機才顯示) -->
+        <div class="w-full border-t border-stone-200 dark:border-slate-800 mt-1 sm:hidden"></div>
 
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           <!-- Complete Tournament & Return to Hub (Admin Only) -->
@@ -721,10 +721,16 @@
           </h2>
           <p id="t-admin-desc" class="text-xs sub-text mt-0.5">社團密碼管理 · 賽事管理 · 成員管理</p>
         </div>
-        <button onclick="navigateTo('hub')"
-          class="card-inner border px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 sub-text hover:text-emerald-500 transition shadow-sm">
-          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span id="t-admin-back">返回大廳</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="navigateTo('hub')"
+            class="card-inner border px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 sub-text hover:text-emerald-500 transition shadow-sm">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span id="t-admin-back">返回大廳</span>
+          </button>
+          <button onclick="exitAdminMode()"
+            class="card-inner border px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 text-rose-500 hover:bg-rose-500/10 border-rose-500/30 transition shadow-sm">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i> 退出管理員
+          </button>
+        </div>
       </div>
       <!-- Admin content rendered dynamically -->
       <div id="admin-content" class="space-y-6">
@@ -2465,7 +2471,7 @@
               <button onclick="enterTournament('${tData.id}')" class="flex-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
                 <i data-lucide="play" class="w-3.5 h-3.5"></i> ${t("enterTournament")}
               </button>
-              ${(!isFinished || STATE.isAdmin)
+              ${STATE.isAdmin
             ? `<button onclick="deleteTournament('${tData.id}')" class="p-2 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                   </button>`
@@ -4188,6 +4194,9 @@
                   <span class="text-[10px] px-1.5 py-0.5 rounded font-medium ${isFinished ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'} border">${isFinished ? '🏆' : '🔥'} ${done}/${total}</span>
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
+                  <button onclick="adminRenameTournament('${tData.id}', '${(tData.name || '').replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg card-inner hover:bg-emerald-500/20 sub-text hover:text-emerald-500 border transition" title="${STATE.lang === 'zh-TW' ? '修改賽事名稱' : 'Rename Tournament'}">
+                    <i data-lucide="edit-3" class="w-3 h-3"></i>
+                  </button>
                   ${!isFinished ? `<button onclick="adminForceComplete('${tData.id}')" class="px-2 py-1 border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-bold rounded-lg text-[11px] transition">${t("adminForceComplete")}</button>` : ''}
                   <button onclick="deleteTournament('${tData.id}')" class="p-1.5 rounded-lg card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition">
                     <i data-lucide="trash-2" class="w-3 h-3"></i>
@@ -4370,7 +4379,39 @@
     }
     window.adminDeleteClub = adminDeleteClub;
 
+    function exitAdminMode() {
+      setIsAdmin(false);
+      navigateTo('hub');
+      showToast(STATE.lang === "zh-TW" ? "已退出管理員模式" : "Admin mode exited", "warning");
+    }
+    window.exitAdminMode = exitAdminMode;
+
+    async function adminRenameTournament(tId, currentName) {
+      const newName = prompt(STATE.lang === "zh-TW" ? `✏️ 修改賽事名稱：` : `✏️ Rename tournament:`, currentName);
+      if (newName === null) return;
+      const clean = newName.trim();
+      if (!clean || clean === currentName) return;
+
+      const allT = STATE.allTournamentsCache || [];
+      const tData = allT.find(t => t.id === tId);
+      if (!tData) return;
+      tData.name = clean;
+
+      saveToLocalTournaments(tData);
+      if (STATE.db) {
+        try {
+          await set(ref(STATE.db, `tournaments/${tId}/name`), clean);
+        } catch (e) {
+          console.error("Rename tournament error:", e);
+        }
+      }
+      showToast(STATE.lang === "zh-TW" ? `賽事已改名為「${clean}」` : `Renamed to "${clean}"`, "success");
+      renderAdminPage();
+    }
+    window.adminRenameTournament = adminRenameTournament;
+
     async function adminForceComplete(tId) {
+
       if (!confirm(t("adminForceCompleteConfirm"))) return;
 
       const allT = STATE.allTournamentsCache || [];
