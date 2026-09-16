@@ -432,7 +432,7 @@
             <!-- Row 1: Single Unified Input Bar + Live Count Badge -->
             <div class="flex items-center gap-2">
               <div class="relative flex-1">
-                <input type="text" id="quick-add-player-input" placeholder="輸入姓名或貼上名單 (按 Enter / 點新增)..."
+                <input type="text" id="quick-add-player-input" placeholder="姓名 / 多行名單..."
                   class="w-full input-bg border rounded-xl pl-3 pr-20 sm:pr-24 py-2 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none shadow-inner"
                   onkeydown="if(event.key==='Enter'){event.preventDefault(); quickAddPlayer();}" />
                 <button type="button" onclick="quickAddPlayer()" id="t-quick-add-btn"
@@ -1466,7 +1466,7 @@
       const btnAddPersonEl = document.getElementById("t-btn-add-person");
       if (btnAddPersonEl) btnAddPersonEl.innerText = t("btnAddPerson");
       const quickAddInputEl = document.getElementById("quick-add-player-input");
-      if (quickAddInputEl) quickAddInputEl.placeholder = STATE.lang === "zh-TW" ? "輸入姓名或貼上名單 (按 Enter / 點新增)..." : "Enter name or paste roster (Press Enter)...";
+      if (quickAddInputEl) quickAddInputEl.placeholder = STATE.lang === "zh-TW" ? "姓名 / 多行名單..." : "Name / multi-line roster...";
 
       renderSelectedPlayerChips();
       renderClubMemberChips();
