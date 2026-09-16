@@ -2426,8 +2426,11 @@
       // Helper to render tournament card
       const renderCard = (tData) => {
         const total = tData.matches ? tData.matches.length : 0;
-        const done = tData.matches ? tData.matches.filter(m => m.completed || m.voided).length : 0;
+        const completedCount = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
+        const voidedCount = tData.matches ? tData.matches.filter(m => m.voided).length : 0;
+        const done = completedCount + voidedCount;
         const isFinished = tData.status === "completed" || (total > 0 && done === total);
+        const dateStr = formatTournamentDate(tData.createdAt);
 
         const clubBadge = tData.clubName && tData.clubName.trim() ? `
           <span class="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
@@ -2449,11 +2452,12 @@
               </div>
               <h3 class="text-base font-bold mt-1.5 font-display line-clamp-1">${tData.name}</h3>
               <p class="text-xs sub-text mt-1 flex items-center gap-1">
-                <i data-lucide="clock" class="w-3 h-3 text-amber-500"></i> ${tData.tournamentMode === "free" ? (STATE.lang === "zh-TW" ? "自由模式" : "Free Play") : (t("estPrefix") + ' ' + (tData.durationHours || 2) + t("hrsUnit"))}
+                <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
+                ${tData.tournamentMode !== "free" ? `<span class="ml-1 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-amber-500"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>` : `<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`}
               </p>
-              <div class="flex items-center gap-3 text-xs mt-2 pt-2 border-t border-stone-200 dark:border-slate-800/80 sub-text">
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mt-2 pt-2 border-t border-stone-200 dark:border-slate-800/80 sub-text">
                 <span>👥 ${tData.players ? tData.players.length : 0} ${t("playersCountLabel")}</span>
-                <span class="flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500"></i> ${done}/${total} ${t("gamesDoneLabel")}</span>
+                <span class="flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500"></i> ${STATE.lang === "zh-TW" ? `共 ${total} 場｜完賽 ${completedCount} 場${voidedCount > 0 ? `｜流局 ${voidedCount} 場` : ''}` : `${total} games｜${completedCount} done${voidedCount > 0 ? `｜${voidedCount} voided` : ''}`}</span>
               </div>
             </div>
 
@@ -3709,6 +3713,8 @@
         const players = tData.players || [];
         const leaderboard = calculateLeaderboard(players, matches);
         const totalMatches = matches.length;
+        const completedMatches = matches.filter(m => m.completed && !m.voided).length;
+        const voidedMatches = matches.filter(m => m.voided).length;
         const isExpanded = STATE.expandedHistoryTournaments[tData.id];
 
         // Podium
@@ -3829,10 +3835,10 @@
             </div>
 
             <!-- Stats row -->
-            <div class="flex items-center gap-3 text-xs sub-text pt-1 border-t border-stone-200 dark:border-slate-800/80">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sub-text pt-1 border-t border-stone-200 dark:border-slate-800/80">
               <span>👥 ${players.length} ${t("playersCountLabel")}</span>
-              <span>🏸 ${totalMatches} ${STATE.lang === "zh-TW" ? "局" : "games"}</span>
-              <span>⏱️ ${tData.durationHours || 2}${t("hrsUnit")}</span>
+              <span>🏸 ${STATE.lang === "zh-TW" ? `共 ${totalMatches} 場｜完賽 ${completedMatches} 場${voidedMatches > 0 ? `｜流局 ${voidedMatches} 場` : ''}` : `${totalMatches} games｜${completedMatches} done${voidedMatches > 0 ? `｜${voidedMatches} voided` : ''}`}</span>
+              ${tData.tournamentMode !== "free" ? `<span>⏱️ ${tData.durationHours || 2}${t("hrsUnit")}</span>` : `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`}
             </div>
 
             <!-- Expand / Collapse & Enter View -->
