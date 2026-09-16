@@ -559,18 +559,20 @@
 
           <!-- Mode Switch Button (Viewer vs Admin) -->
           <button onclick="toggleTournamentAdminMode()" id="btn-toggle-live-admin"
-            class="px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm">
+            class="px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-500" id="icon-toggle-live-admin"></i>
             <span id="text-toggle-live-admin">管理模式</span>
           </button>
           <!-- Copy Report Button -->
-          <button onclick="copyTournamentReport(STATE.currentTournamentId)" id="btn-live-copy-report"
-            class="px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-semibold flex items-center justify-center gap-1 shadow-sm active:scale-95">
-            <span id="text-live-copy-report">複製賽報</span>
+          <button onclick="liveCopyReport()" id="btn-live-copy-report"
+            class="px-3 py-2 rounded-xl card-inner border hover:border-blue-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-500"></i>
+            <span id="text-live-copy-report">文字賽報</span>
           </button>
           <button onclick="openShareModal()" id="t-share-btn"
-            class="px-3 py-2 rounded-xl card-inner border transition text-xs font-semibold flex items-center justify-center gap-1 shadow-sm">
-            <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i> 分享 / QR Code
+            class="px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
+            <span>分享 / QR Code</span>
           </button>
         </div>
       </div>
@@ -886,6 +888,7 @@
       // isAdmin is now protected: use getIsAdmin() / setIsAdmin()
       get isAdmin() { return getIsAdmin(); },
     };
+    window.STATE = STATE;
 
     // Built-in Hardcoded Firebase Config
     const DEFAULT_FIREBASE_CONFIG = {
@@ -926,7 +929,7 @@
         navBackHub: "賽事大廳",
         expandDetails: "展開排行",
         collapseDetails: "收合排行",
-        copyReportBtn: "複製賽報",
+        copyReportBtn: "文字賽報",
         copiedReportToast: "複製完成",
         noCompletedTournaments: "目前尚無已完賽的歷史賽事記錄",
         podiumChampion: "冠軍",
@@ -1138,7 +1141,7 @@
         navBackHub: "Back to Hub",
         expandDetails: "Expand Standings",
         collapseDetails: "Collapse Standings",
-        copyReportBtn: "Copy Tournament Report",
+        copyReportBtn: "Text Report",
         copiedReportToast: "Copied to Clipboard",
         noCompletedTournaments: "No completed tournament archives yet",
         podiumChampion: "Champion",
@@ -2825,11 +2828,11 @@
       const adminIcon = document.getElementById("icon-toggle-live-admin");
       if (adminBtn && adminText) {
         if (hasAdmin) {
-          adminBtn.className = "px-3 py-2 rounded-xl border-2 border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm";
+          adminBtn.className = "px-3 py-2 rounded-xl border border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none";
           adminText.innerText = STATE.lang === "zh-TW" ? "管理模式" : "Admin Mode";
           if (adminIcon) adminIcon.setAttribute("data-lucide", "unlock");
         } else {
-          adminBtn.className = "px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm sub-text hover:text-amber-500";
+          adminBtn.className = "px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none hover:text-amber-500";
           adminText.innerText = STATE.lang === "zh-TW" ? "管理模式" : "Admin Mode";
           if (adminIcon) adminIcon.setAttribute("data-lucide", "lock");
         }
@@ -3815,7 +3818,7 @@
           }).join("");
 
           expandedHTML = `
-            <div class="mt-4 space-y-4 animate-in">
+            <div class="mt-4 animate-in">
               <!-- Final Leaderboard -->
               <div class="glass-card rounded-xl overflow-hidden border">
                 <div class="px-3 py-2 card-inner border-b flex items-center gap-1.5 text-xs font-bold">
@@ -3836,11 +3839,6 @@
                   </table>
                 </div>
               </div>
-
-              <!-- Copy Report Button -->
-              <button onclick="copyTournamentReport('${tData.id}')" class="w-full card-inner border px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:border-amber-500/50 text-amber-600 dark:text-amber-400 transition">
-                ${t("copyReportBtn")}
-              </button>
             </div>
           `;
         }
@@ -3969,6 +3967,13 @@
       });
     }
     window.copyTournamentReport = copyTournamentReport;
+
+    function liveCopyReport() {
+      if (STATE.currentTournamentId) {
+        copyTournamentReport(STATE.currentTournamentId);
+      }
+    }
+    window.liveCopyReport = liveCopyReport;
 
     // ----------------------------------------------------
     // FEATURE 3: CLUB PASSWORD PROTECTION
