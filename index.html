@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Pickleball Hub - 匹克球個人雙打輪播賽事管理系統</title>
+  <title>ZeroZeroTwo - 匹克球自動排賽計分系統</title>
 
   <!-- PWA & Apple iOS Web App Support -->
   <link rel="manifest" href="manifest.json" />
@@ -13,12 +13,12 @@
   <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="PickleballHub" />
+  <meta name="apple-mobile-web-app-title" content="ZeroZeroTwo" />
   <meta name="theme-color" content="#10b981" />
 
   <!-- SEO Meta Tags -->
-  <meta name="description" content="專業的匹克球（Pickleball）個人雙打輪播賽事管理系統，手機直螢幕優化、支援黑白主題切換與即時比分同步。" />
-  <meta name="keywords" content="Pickleball, 匹克球, 雙打輪播賽, 排賽系統" />
+  <meta name="description" content="ZeroZeroTwo — 匹克球自動排賽計分系統。" />
+  <meta name="keywords" content="Pickleball 匹克球, 雙打輪播賽, 排賽系統" />
 
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -185,9 +185,11 @@
       background-color: #ffffff;
       border-color: #d6c7b2;
     }
+
     html.light header .sub-text {
       color: #44403c;
     }
+
     html.light header #btn-settings-toggle {
       color: #292524;
     }
@@ -1598,7 +1600,7 @@
         try {
           const pinSnap = await get(ref(STATE.db, "app_config/master_pin_hash"));
           if (pinSnap.exists()) STATE.masterPinHash = pinSnap.val();
-        } catch(e) { console.warn("Could not load master pin hash", e); }
+        } catch (e) { console.warn("Could not load master pin hash", e); }
       } catch (err) {
         console.error("Firebase init error:", err);
         updateDbStatusBadge(false);
@@ -2466,11 +2468,11 @@
                 <i data-lucide="play" class="w-3.5 h-3.5"></i> ${t("enterTournament")}
               </button>
               ${(!isFinished || STATE.isAdmin)
-                ? `<button onclick="deleteTournament('${tData.id}')" class="p-2 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
+            ? `<button onclick="deleteTournament('${tData.id}')" class="p-2 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                   </button>`
-                : ''
-              }
+            : ''
+          }
             </div>
           </div>
         `;
