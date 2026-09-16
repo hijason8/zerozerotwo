@@ -377,7 +377,7 @@
             <button type="button" id="btn-mode-fair" onclick="setCreateMode('fair')"
               class="mode-btn-active px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
               <div class="text-xs sm:text-sm font-display font-extrabold" id="t-mode-fair-title">平均模式</div>
-              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-fair-desc">自動排定每人場次均等的公平賽程</p>
+              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-fair-desc">自動排定每位選手/隊伍場次均等的公平賽程</p>
             </button>
             <button type="button" id="btn-mode-free" onclick="setCreateMode('free')"
               class="mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
@@ -388,15 +388,33 @@
           <input type="hidden" id="create-tournament-mode" value="fair" />
         </div>
 
-        <!-- 4. Duration (Shown in Fair Mode) -->
-        <div id="wrap-fair-duration">
-          <label id="t-label-duration" class="block text-xs sm:text-sm font-semibold mb-1">4. 預計比賽總時間</label>
-          <div class="relative">
-            <input type="number" id="create-duration" min="0.5" max="24" step="0.5" value="2.0" required
-              onchange="resetSelectedPlan(); calculateTimeEstimate();"
-              oninput="resetSelectedPlan(); calculateTimeEstimate();"
-              class="w-full input-bg border rounded-xl p-2.5 pr-10 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none font-mono" />
-            <span id="t-unit-hours" class="absolute right-2.5 top-2.5 text-xs sub-text font-semibold">小時</span>
+        <!-- 4. Fair Mode Strategy & Duration (Shown in Fair Mode) -->
+        <div id="wrap-fair-duration" class="space-y-3">
+          <div>
+            <label class="block text-xs sm:text-sm font-semibold mb-1.5">4. 排賽目標與時間限制</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="btn-strategy-time" onclick="setFairStrategy('time')"
+                class="px-3 py-2 rounded-xl border-2 text-xs font-bold transition text-center flex items-center justify-center gap-1.5 bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i> 按比賽時間排賽
+              </button>
+              <button type="button" id="btn-strategy-full" onclick="setFairStrategy('full-cycle')"
+                class="px-3 py-2 rounded-xl border-2 text-xs font-bold transition text-center flex items-center justify-center gap-1.5 card-inner border-stone-200 dark:border-slate-800 sub-text hover:border-amber-500/50">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 打滿一輪全循環
+              </button>
+            </div>
+            <input type="hidden" id="create-fair-strategy" value="time" />
+          </div>
+
+          <!-- Time Input (Shown when strategy === 'time') -->
+          <div id="wrap-time-input">
+            <label id="t-label-duration" class="block text-xs font-semibold mb-1 sub-text">預計比賽總時間</label>
+            <div class="relative">
+              <input type="number" id="create-duration" min="0.5" max="24" step="0.5" value="2.0" required
+                onchange="resetSelectedPlan(); calculateTimeEstimate();"
+                oninput="resetSelectedPlan(); calculateTimeEstimate();"
+                class="w-full input-bg border rounded-xl p-2.5 pr-10 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none font-mono" />
+              <span id="t-unit-hours" class="absolute right-2.5 top-2.5 text-xs sub-text font-semibold">小時</span>
+            </div>
           </div>
         </div>
 
@@ -412,7 +430,7 @@
         <div class="space-y-2">
           <!-- Header Bar -->
           <div class="flex items-center justify-between">
-            <label id="t-label-players" class="block text-xs sm:text-sm font-semibold">5. 參賽選手名單</label>
+            <label id="t-label-players" class="block text-xs sm:text-sm font-semibold">5. 參賽單位 (選手 / 隊伍名單)</label>
             <div class="flex items-center gap-2 text-[11px]">
               <button type="button" onclick="selectAllClubMembers()"
                 class="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
@@ -428,7 +446,7 @@
             <!-- Row 1: Single Unified Input Bar + Live Count Badge -->
             <div class="flex items-center gap-2">
               <div class="relative flex-1">
-                <input type="text" id="quick-add-player-input" placeholder="姓名 / 多行名單..."
+                <input type="text" id="quick-add-player-input" placeholder="姓名 / 隊伍 / 多行名單..."
                   class="w-full input-bg border rounded-xl pl-3 pr-20 sm:pr-24 py-2 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none shadow-inner"
                   onkeydown="if(event.key==='Enter'){event.preventDefault(); quickAddPlayer();}" />
                 <button type="button" onclick="quickAddPlayer()" id="t-quick-add-btn"
@@ -440,14 +458,14 @@
               <span id="player-count-badge"
                 class="px-2.5 sm:px-3 py-2 rounded-xl font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 font-mono shrink-0 shadow-sm">
                 <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                <span><b id="roster-count-num">0</b> 位選手</span>
+                <span><b id="roster-count-num">0</b> 個單位 (人/隊)</span>
               </span>
             </div>
 
             <!-- Row 2: Selected Players (Active Chips Area) -->
             <div class="space-y-1.5">
               <div class="flex items-center justify-between text-[11px] font-bold sub-text">
-                <span id="t-selected-roster-heading">👥 本次參賽選手：</span>
+                <span id="t-selected-roster-heading">👥 本次參賽單位 (人/隊伍)：</span>
               </div>
               <div id="selected-players-chips"
                 class="flex flex-wrap gap-1.5 min-h-[38px] p-2.5 rounded-xl bg-stone-500/5 border border-dashed border-stone-300 dark:border-slate-800 items-center">
@@ -458,7 +476,7 @@
             <!-- Row 3: Club Common Members (Toggle chips) -->
             <div id="club-members-section" class="space-y-1.5 pt-2 border-t border-stone-200 dark:border-slate-800/60">
               <div class="flex items-center justify-between text-[11px] font-bold sub-text">
-                <span id="t-club-members-title">🛡️ 社團常用成員名單（點擊加入/取消）：</span>
+                <span id="t-club-members-title">🛡️ 社團常用成員 / 隊伍名單（點擊加入/取消）：</span>
               </div>
               <div id="club-members-chips" class="flex flex-wrap gap-1.5 pt-0.5">
                 <!-- Dynamically rendered club members -->
@@ -468,9 +486,9 @@
             <!-- Row 4: Test Players Quick Generate (Compact Bar) -->
             <div
               class="flex items-center justify-between gap-2 pt-2 border-t border-stone-200 dark:border-slate-800/40 text-[11px]">
-              <span id="t-auto-gen-label" class="sub-text text-[11px]">自動生成：</span>
+              <span id="t-auto-gen-label" class="sub-text text-[11px]">自動生成單位數：</span>
               <div class="flex items-center gap-1.5">
-                <input type="number" id="quick-generate-count" min="4" max="30" placeholder="人數"
+                <input type="number" id="quick-generate-count" min="4" max="30" placeholder="數量"
                   class="w-14 input-bg border rounded-md px-1.5 py-1 text-xs text-center focus:border-amber-500 focus:outline-none"
                   onkeydown="if(event.key==='Enter'){event.preventDefault(); quickGeneratePlayers();}" />
                 <button type="button" onclick="quickGeneratePlayers()" id="t-quick-gen-btn"
@@ -1719,8 +1737,13 @@
       const rawTargetGames = Math.floor(totalMinutes / estMinsPerGame);
 
       // 優先使用使用者手動選定的公平方案局數，否則自動計算
+      function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+      const blockSize = n / gcd(4, n);
+
       let totalRounds = 0;
-      if (customTotalGames && customTotalGames > 0) {
+      if (scheduleMode === "round-robin") {
+        totalRounds = customTotalGames || blockSize;
+      } else if (customTotalGames && customTotalGames > 0) {
         totalRounds = customTotalGames;
       } else if (scheduleMode === "max") {
         totalRounds = getMaxTotalGames(rawTargetGames);
@@ -1801,16 +1824,18 @@
       const wrapNotice = document.getElementById("wrap-free-notice");
       const timeBox = document.getElementById("time-estimate-box");
 
+      const activeCls = "mode-btn-active px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5";
+      const inactiveCls = "mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5";
+
+      if (btnFair) btnFair.className = mode === "fair" ? activeCls : inactiveCls;
+      if (btnFree) btnFree.className = mode === "free" ? activeCls : inactiveCls;
+
       if (mode === "fair") {
-        if (btnFair) btnFair.className = "mode-btn-active px-3.5 py-3 rounded-xl border-2 text-xs font-bold transition text-left space-y-1";
-        if (btnFree) btnFree.className = "mode-btn-inactive px-3.5 py-3 rounded-xl border-2 text-xs font-bold transition text-left space-y-1";
         if (wrapDuration) wrapDuration.classList.remove("hidden");
         if (wrapNotice) wrapNotice.classList.add("hidden");
         if (timeBox) timeBox.classList.remove("hidden");
         calculateTimeEstimate();
       } else {
-        if (btnFair) btnFair.className = "mode-btn-inactive px-3.5 py-3 rounded-xl border-2 text-xs font-bold transition text-left space-y-1";
-        if (btnFree) btnFree.className = "mode-btn-active px-3.5 py-3 rounded-xl border-2 text-xs font-bold transition text-left space-y-1";
         if (wrapDuration) wrapDuration.classList.add("hidden");
         if (wrapNotice) wrapNotice.classList.remove("hidden");
         if (timeBox) timeBox.classList.add("hidden");
@@ -1818,6 +1843,31 @@
       lucide.createIcons();
     }
     window.setCreateMode = setCreateMode;
+
+    function setFairStrategy(strategy) {
+      const input = document.getElementById("create-fair-strategy");
+      if (input) input.value = strategy;
+
+      const btnTime = document.getElementById("btn-strategy-time");
+      const btnFull = document.getElementById("btn-strategy-full");
+      const wrapTime = document.getElementById("wrap-time-input");
+
+      const timeActiveCls = "px-3 py-2 rounded-xl border-2 text-xs font-bold transition text-center flex items-center justify-center gap-1.5 bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400";
+      const inactiveCls = "px-3 py-2 rounded-xl border-2 text-xs font-bold transition text-center flex items-center justify-center gap-1.5 card-inner border-stone-200 dark:border-slate-800 sub-text hover:border-amber-500/50";
+
+      if (btnTime) btnTime.className = strategy === "time" ? timeActiveCls : inactiveCls;
+      if (btnFull) btnFull.className = strategy === "full-cycle" ? timeActiveCls : inactiveCls;
+
+      if (wrapTime) {
+        if (strategy === "time") wrapTime.classList.remove("hidden");
+        else wrapTime.classList.add("hidden");
+      }
+
+      resetSelectedPlan();
+      calculateTimeEstimate();
+      lucide.createIcons();
+    }
+    window.setFairStrategy = setFairStrategy;
 
     function resetSelectedPlan() {
       const el = document.getElementById("create-selected-total-games");
@@ -1834,7 +1884,7 @@
       const el = document.getElementById("create-selected-total-games");
       if (el) el.value = games;
       calculateTimeEstimate();
-      showToast(STATE.lang === "zh-TW" ? `🎯 已選定 ${games} 局公平排賽方案` : `🎯 Selected ${games}-game fair plan`, "info");
+      showToast(STATE.lang === "zh-TW" ? `🎯 已選定 ${games} 局排賽方案` : `🎯 Selected ${games}-game plan`, "info");
     }
     window.selectFairPlan = selectFairPlan;
 
@@ -1846,7 +1896,7 @@
       if (num) num.innerText = players.length;
       if (badge) {
         const isZh = STATE.lang === "zh-TW";
-        badge.innerHTML = `<i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500"></i> <span><b id="roster-count-num">${players.length}</b> ${isZh ? "位選手" : "Players"}</span>`;
+        badge.innerHTML = `<i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500"></i> <span><b id="roster-count-num">${players.length}</b> ${isZh ? "個單位 (人/隊)" : "Units"}</span>`;
       }
       lucide.createIcons();
     }
@@ -1860,9 +1910,11 @@
       const optionsContainer = document.getElementById("fair-schedule-options");
       const selectedGamesInput = document.getElementById("create-selected-total-games");
       const badge = document.getElementById("fair-plan-selected-badge");
+      const mode = document.getElementById("create-tournament-mode")?.value || "fair";
+      const strategy = document.getElementById("create-fair-strategy")?.value || "time";
 
       if (players.length < 4) {
-        hintText.innerText = STATE.lang === "zh-TW" ? "請輸入至少 4 位參賽選手姓名。" : "Please enter at least 4 player names.";
+        hintText.innerText = STATE.lang === "zh-TW" ? "請輸入至少 4 位參賽單位 (人/隊伍)。" : "Please enter at least 4 units/players.";
         if (optionsContainer) {
           optionsContainer.innerHTML = "";
           optionsContainer.classList.add("hidden");
@@ -1871,16 +1923,61 @@
         return;
       }
 
-      const totalMinutes = Math.round(durationHours * 60);
       const n = players.length;
 
-      // 雙打公平輪播計算：
+      // 雙打全循環/公平輪播計算：
       function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
       const g = gcd(4, n);
-      const blockSize = n / g;       // 最小總局數單位 (例如 4 人為 1 局, 7 人為 7 局, 8 人為 2 局)
-      const gamesPerBlock = 4 / g;   // 每人每區塊出場場數 (例如 4 人為 1 場, 7 人為 4 場, 8 人為 1 場)
+      const blockSize = n / g;       // 1 輪全循環總局數
+      const gamesPerBlock = 4 / g;   // 每人/隊每輪出場場數
 
-      // 計算符合合理單局時間（下限 8 分鐘，上限 25 分鐘）的所有公平排賽方案
+      // 策略：打滿一輪全循環 (Full Cycle Strategy)
+      if (strategy === "full-cycle") {
+        const restEach = blockSize - gamesPerBlock;
+        const estMins = Math.round(blockSize * 14);
+
+        if (selectedGamesInput) selectedGamesInput.value = blockSize;
+
+        if (badge) {
+          badge.innerText = STATE.lang === "zh-TW"
+            ? `全循環：共 ${blockSize} 局 (每單位 ${gamesPerBlock} 場)`
+            : `Full Cycle: ${blockSize} games (${gamesPerBlock} g/u)`;
+          badge.classList.remove("hidden");
+        }
+
+        if (STATE.lang === "zh-TW") {
+          hintText.innerHTML = `平均模式 (全循環) · 強制打滿 1 輪共 <strong class="text-emerald-500">${blockSize} 局賽程</strong>，<strong class="text-amber-500">每單位(人/隊)各打 ${gamesPerBlock} 場</strong> (休 ${restEach} 場)，預估總耗時約 <strong>${estMins} 分鐘</strong> (${(estMins / 60).toFixed(1)}h)。`;
+        } else {
+          hintText.innerHTML = `Fair Mode (Full Cycle) · Total <strong class="text-emerald-500">${blockSize} games</strong> — <strong class="text-amber-500">each unit plays ${gamesPerBlock} games</strong> (rest ${restEach}), est. <strong>${estMins} mins</strong>.`;
+        }
+
+        if (optionsContainer) {
+          optionsContainer.classList.remove("hidden");
+          optionsContainer.innerHTML = `
+            <div class="text-[11px] font-bold sub-text uppercase tracking-wider mb-1">
+              <span>全循環賽程排案：</span>
+            </div>
+            <div class="rounded-xl p-3 border-2 border-amber-500 bg-amber-500/10 shadow-sm space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-amber-600 dark:text-amber-400 font-display">
+                  ✅ 完整 1 輪全循環：共 ${blockSize} 局
+                </span>
+                <span class="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                  每人/隊各打 ${gamesPerBlock} 場
+                </span>
+              </div>
+              <div class="text-[10.5px] sub-text flex items-center justify-between">
+                <span>各休 ${restEach} 場</span>
+                <span>不受時間限制，強制打滿 1 輪</span>
+              </div>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // 平均模式邏輯 (Fair Mode - 依時間試算)
+      const totalMinutes = Math.round(durationHours * 60);
       const allValidPlans = [];
       const maxB = Math.max(15, Math.ceil(totalMinutes / (8 * blockSize)) + 2);
 
@@ -1889,7 +1986,6 @@
         if (totalGames > 45) break;
 
         const avgMinsIfFit = parseFloat((totalMinutes / totalGames).toFixed(1));
-        // 嚴格限制：單局最短 8 分鐘，最長 25 分鐘
         if (avgMinsIfFit >= 8.0 && avgMinsIfFit <= 25.0) {
           const gamesEach = b * gamesPerBlock;
           const restEach = totalGames - gamesEach;
@@ -1899,12 +1995,11 @@
             gamesEach,
             restEach,
             avgMins: avgMinsIfFit,
-            diffFromIdeal: Math.abs(avgMinsIfFit - 14.0) // 理想節奏約 14 分鐘
+            diffFromIdeal: Math.abs(avgMinsIfFit - 14.0)
           });
         }
       }
 
-      // 若時間特殊找不到方案，提供基礎 fallback
       let plans = allValidPlans;
       if (plans.length === 0) {
         for (let b = 1; b <= 4; b++) {
@@ -1921,11 +2016,9 @@
         }
       }
 
-      // 取最接近理想節奏的 3~4 個方案，並依總局數由少到多排序
       plans.sort((a, b) => a.diffFromIdeal - b.diffFromIdeal);
       plans = plans.slice(0, 4).sort((a, b) => a.totalGames - b.totalGames);
 
-      // 決定目前選中的方案
       let selectedGames = parseInt(selectedGamesInput?.value);
       if (!selectedGames || !plans.some(p => p.totalGames === selectedGames)) {
         let bestPlan = plans[0];
@@ -1942,21 +2035,19 @@
 
       const activePlan = plans.find(p => p.totalGames === selectedGames) || plans[0];
 
-      // Update badge
       if (badge) {
         badge.innerText = STATE.lang === "zh-TW"
-          ? `已選：${activePlan.totalGames} 局 (每人 ${activePlan.gamesEach} 場)`
-          : `Selected: ${activePlan.totalGames} games (${activePlan.gamesEach} g/p)`;
+          ? `已選：${activePlan.totalGames} 局 (每單位 ${activePlan.gamesEach} 場)`
+          : `Selected: ${activePlan.totalGames} games (${activePlan.gamesEach} g/u)`;
         badge.classList.remove("hidden");
       }
 
       if (STATE.lang === "zh-TW") {
-        hintText.innerHTML = `總時間 <strong>${totalMinutes} 分鐘</strong> (${durationHours}h) · 目前選定 <strong class="text-emerald-500">${activePlan.totalGames} 局賽程</strong>，<strong class="text-amber-500">每人各打 ${activePlan.gamesEach} 場</strong> (休 ${activePlan.restEach} 場，單局約 ${activePlan.avgMins} 分鐘)。`;
+        hintText.innerHTML = `總時間 <strong>${totalMinutes} 分鐘</strong> (${durationHours}h) · 目前選定 <strong class="text-emerald-500">${activePlan.totalGames} 局賽程</strong>，<strong class="text-amber-500">每單位(人/隊)各打 ${activePlan.gamesEach} 場</strong> (休 ${activePlan.restEach} 場，單局約 ${activePlan.avgMins} 分鐘)。`;
       } else {
-        hintText.innerHTML = `Total <strong>${totalMinutes} mins</strong> (${durationHours}h) · Selected <strong class="text-emerald-500">${activePlan.totalGames} games</strong> — <strong class="text-amber-500">each player plays ${activePlan.gamesEach} games</strong> (rest ${activePlan.restEach}, ~${activePlan.avgMins}m/game).`;
+        hintText.innerHTML = `Total <strong>${totalMinutes} mins</strong> (${durationHours}h) · Selected <strong class="text-emerald-500">${activePlan.totalGames} games</strong> — <strong class="text-amber-500">each unit plays ${activePlan.gamesEach} games</strong> (rest ${activePlan.restEach}, ~${activePlan.avgMins}m/game).`;
       }
 
-      // Render plan cards
       if (optionsContainer) {
         optionsContainer.classList.remove("hidden");
         const gridColsClass = plans.length >= 3 ? 'sm:grid-cols-3' : plans.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1';
@@ -1975,7 +2066,7 @@
                       ${isSelected ? '✅' : '📌'} 方案 ${idx + 1}：共 ${p.totalGames} 局
                     </span>
                     <span class="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                      每人 ${p.gamesEach} 場
+                      每人/隊 ${p.gamesEach} 場
                     </span>
                   </div>
                   <div class="text-[10.5px] sub-text flex items-center justify-between">
@@ -2302,8 +2393,14 @@
       const players = rawPlayers.split("\n").map(s => s.trim()).filter(Boolean);
       const uniquePlayers = [...new Set(players)];
 
+      const strategy = document.getElementById("create-fair-strategy")?.value || "time";
+      let effectiveMode = mode;
+      if (mode === "fair" && strategy === "full-cycle") {
+        effectiveMode = "round-robin";
+      }
+
       if (mode === "fair" && uniquePlayers.length < 4) {
-        showToast(STATE.lang === "zh-TW" ? "平均模式參賽選手至少需 4 位！" : "At least 4 players required for Fair mode!", "error");
+        showToast(STATE.lang === "zh-TW" ? "平均模式參賽單位至少需 4 個 (人/隊伍)！" : "At least 4 units required for Fair mode!", "error");
         return;
       }
 
@@ -2325,12 +2422,12 @@
       const tournamentId = "T-" + Math.floor(100000 + Math.random() * 900000);
       let matches = [];
       if (mode === "fair") {
-        matches = generateRoundRobinSchedule(uniquePlayers, duration, 15, "fair", customTotalGames);
+        matches = generateRoundRobinSchedule(uniquePlayers, duration, 15, effectiveMode, customTotalGames);
       }
 
       const tournamentObj = {
         id: tournamentId,
-        tournamentMode: mode,
+        tournamentMode: effectiveMode,
         name: name,
         clubName: clubName,
         durationHours: duration,
@@ -2472,7 +2569,7 @@
               <h3 class="text-base font-bold mt-1.5 font-display line-clamp-1">${tData.name}</h3>
               <p class="text-xs sub-text mt-1 flex items-center gap-1">
                 <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
-                ${tData.tournamentMode !== "free" ? `<span class="ml-1 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-amber-500"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>` : `<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`}
+                ${tData.tournamentMode === "free" ? `<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>` : tData.tournamentMode === "round-robin" ? `<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>` : `<span class="ml-1 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-amber-500"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`}
               </p>
               <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mt-2 pt-2 border-t border-stone-200 dark:border-slate-800/80 sub-text">
                 <span>👥 ${tData.players ? tData.players.length : 0} ${t("playersCountLabel")}</span>
@@ -3869,7 +3966,7 @@
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sub-text pt-1 border-t border-stone-200 dark:border-slate-800/80">
               <span>👥 ${players.length} ${t("playersCountLabel")}</span>
               <span>🏸 ${STATE.lang === "zh-TW" ? `共 ${totalMatches} 場｜完賽 ${completedMatches} 場${voidedMatches > 0 ? `｜流局 ${voidedMatches} 場` : ''}` : `${totalMatches} games｜${completedMatches} done${voidedMatches > 0 ? `｜${voidedMatches} voided` : ''}`}</span>
-              ${tData.tournamentMode !== "free" ? `<span>⏱️ ${tData.durationHours || 2}${t("hrsUnit")}</span>` : `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`}
+              ${tData.tournamentMode === "free" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>` : tData.tournamentMode === "round-robin" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>` : `<span>⏱️ ${tData.durationHours || 2}${t("hrsUnit")}</span>`}
             </div>
 
             <!-- Expand / Collapse & Enter View -->
