@@ -295,9 +295,7 @@
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <h3 id="t-hub-active-heading"
-            class="text-sm sm:text-base font-bold flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-            <i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> <span>進行中賽事</span>
-          </h3>
+            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">進行中賽事</h3>
           <span id="hub-active-count" class="text-xs sub-text font-semibold"></span>
         </div>
         <div id="hub-active-tournaments-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
@@ -307,21 +305,19 @@
 
       <!-- Section 2: Completed Tournaments (已完賽賽事 - 可折疊收合) -->
       <div class="space-y-3 pt-2">
-        <button type="button" onclick="toggleHubCompletedCollapse()"
-          class="w-full flex items-center justify-between p-3.5 rounded-2xl card-inner border hover:border-amber-500/50 transition cursor-pointer text-left shadow-sm">
-          <div class="flex items-center gap-2 font-bold text-xs sm:text-sm text-stone-800 dark:text-slate-200">
-            <i data-lucide="check-circle" class="w-4 h-4 text-amber-500"></i>
-            <span id="t-hub-completed-heading">已完賽賽事</span>
-            <span id="hub-completed-count"
-              class="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-mono">0
-              場</span>
+        <div onclick="toggleHubCompletedCollapse()"
+          class="flex items-center justify-between cursor-pointer select-none group">
+          <h3 id="t-hub-completed-heading"
+            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">已完賽賽事</h3>
+          <div class="flex items-center gap-2 text-xs sub-text font-semibold">
+            <span id="hub-completed-count"></span>
+            <div class="flex items-center gap-1 card-inner border px-2 py-0.5 rounded-lg text-[11px] group-hover:border-emerald-500/50 transition shadow-sm">
+              <span id="hub-completed-toggle-text">展開</span>
+              <i id="hub-completed-chevron" data-lucide="chevron-down"
+                class="w-3.5 h-3.5 transition-transform duration-200"></i>
+            </div>
           </div>
-          <div class="flex items-center gap-1.5 sub-text text-xs font-semibold">
-            <span id="hub-completed-toggle-text">展開</span>
-            <i id="hub-completed-chevron" data-lucide="chevron-down"
-              class="w-4 h-4 transition-transform duration-200"></i>
-          </div>
-        </button>
+        </div>
 
         <div id="hub-completed-tournaments-wrap" class="hidden space-y-3 pt-1">
           <div id="hub-completed-tournaments-list"
@@ -1043,7 +1039,7 @@
         hubActiveTitle: "進行中賽事",
         hubCompletedTitle: "已完賽賽事",
         hubActiveCountSuffix: "場進行中",
-        hubCompletedCountSuffix: "場",
+        hubCompletedCountSuffix: "場已完賽",
         expandText: "展開",
         collapseText: "闔上",
         noActiveTournaments: "目前無進行中的賽事",
@@ -1122,7 +1118,7 @@
         hubActiveTitle: "Active Tournaments",
         hubCompletedTitle: "Completed Tournaments",
         hubActiveCountSuffix: "Active",
-        hubCompletedCountSuffix: "Games",
+        hubCompletedCountSuffix: "Completed",
         expandText: "Expand",
         collapseText: "Collapse",
         noActiveTournaments: "No active tournaments",
@@ -1400,7 +1396,7 @@
       const createNewBtnEl = document.getElementById("t-create-new-btn");
       if (createNewBtnEl) createNewBtnEl.innerText = t("createNewBtn");
       const hubActHeading = document.getElementById("t-hub-active-heading");
-      if (hubActHeading) hubActHeading.innerHTML = `<i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> <span>${t("hubActiveTitle")}</span>`;
+      if (hubActHeading) hubActHeading.innerText = t("hubActiveTitle");
       const hubCompHeading = document.getElementById("t-hub-completed-heading");
       if (hubCompHeading) hubCompHeading.innerText = t("hubCompletedTitle");
       const hubCompToggle = document.getElementById("hub-completed-toggle-text");
@@ -2662,6 +2658,7 @@
     // ----------------------------------------------------
     async function loadLiveTournament(tId, pushHistory = true) {
       STATE.currentTournamentId = tId;
+      STATE.activeTournamentAdmin = null; // 預設進入為瀏覽模式
       navigateTo("live", false);
       if (pushHistory) {
         window.history.pushState({}, "", `${window.location.pathname}?t=${tId}`);
