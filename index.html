@@ -235,9 +235,9 @@
         <!-- Nav: Create (建立賽事) -->
         <button id="nav-btn-create" onclick="navigateTo('create')"
           class="px-2.5 sm:px-3.5 py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95"
-          title="建立賽事">
+          title="新增賽事">
           <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-          <span id="t-nav-create" class="hidden xs:inline sm:inline">建立賽事</span>
+          <span id="t-nav-create">新增賽事</span>
         </button>
 
         <!-- Settings Gear Dropdown Button -->
@@ -283,18 +283,10 @@
 
     <!-- ==================== PAGE B: TOURNAMENT HUB ==================== -->
     <section id="page-hub" class="space-y-4 sm:space-y-6">
-      <div class="flex items-center justify-between border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
-        <div class="text-left">
-          <h2 id="t-hub-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2 text-left">
-            <i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500 dark:text-emerald-400"></i> 賽事大廳
-          </h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="navigateTo('create')" id="t-create-new-btn"
-            class="card-inner border text-stone-800 dark:text-slate-200 font-semibold px-3 py-2 rounded-xl text-xs shadow-sm hover:border-stone-400 dark:hover:border-slate-600 flex items-center gap-1">
-            ➕ 建立新賽事
-          </button>
-        </div>
+      <div class="border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
+        <h2 id="t-hub-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2 text-left">
+          <i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500 dark:text-emerald-400"></i> 賽事大廳
+        </h2>
       </div>
 
       <!-- Section 1: Active Tournaments (進行中賽事) -->
@@ -893,7 +885,7 @@
         appSubtitle: "排賽系統",
         navHub: "賽事大廳",
         navHistory: "歷史紀錄",
-        navCreate: "建立賽事",
+        navCreate: "新增賽事",
         dbConnected: "已連線",
 
         // Hub
