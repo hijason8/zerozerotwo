@@ -511,7 +511,7 @@
 
         <button type="submit" id="t-submit-create-btn"
           class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white dark:text-slate-950 font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-1.5 mt-2">
-          <i data-lucide="zap" class="w-4 h-4"></i> 自動生成賽程並發布
+          確認並開賽
         </button>
       </form>
     </section>
@@ -944,7 +944,7 @@
         labelPlayers: "5. 參賽選手名單 (每列一位)",
         playersBadge: "位選手",
         timeCalcTitle: "時間預估試算：",
-        submitCreateBtn: "⚡ 自動生成賽程並發布",
+        submitCreateBtn: "確認並開賽",
 
         // Club Member Roster
         clubMembersTitle: "社團常用成員名單 (點擊選取)",
@@ -1172,7 +1172,7 @@
         labelPlayers: "5. Player Roster (One per line)",
         playersBadge: "Players",
         timeCalcTitle: "Estimated Time Calculation:",
-        submitCreateBtn: "⚡ Generate & Publish Schedule",
+        submitCreateBtn: "Confirm & Start",
 
         // Club Member Roster
         clubMembersTitle: "Club Members (Click to select)",
@@ -1474,7 +1474,7 @@
       const timeCalcTitleEl = document.getElementById("t-time-calc-title");
       if (timeCalcTitleEl) timeCalcTitleEl.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i> ${t("timeCalcTitle")}`;
       const submitCreateBtnEl = document.getElementById("t-submit-create-btn");
-      if (submitCreateBtnEl) submitCreateBtnEl.innerHTML = `<i data-lucide="zap" class="w-4 h-4"></i> ${t("submitCreateBtn")}`;
+      if (submitCreateBtnEl) submitCreateBtnEl.innerHTML = t("submitCreateBtn");
 
       // Placeholders translation
       const createNameInput = document.getElementById("create-name");
