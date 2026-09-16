@@ -1572,19 +1572,23 @@
           updateDbStatusBadge(isOnline);
         });
 
-        // 跨裝置成員庫即時同步：電腦建立的社團成員手機端也能看到
+        // 跨裝置成員庫即時同步：以雲端為主，覆蓋本地（刪除操作才會跨裝置生效）
         const membersRef = ref(STATE.db, "club_members");
         onValue(membersRef, (snap) => {
           if (snap.exists()) {
             const cloudMembers = snap.val();
-            const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
+            // 直接以雲端資料覆蓋本地，確保刪除操作同步到所有裝置
+            const synced = {};
             Object.keys(cloudMembers).forEach(safeKey => {
               const decodedClub = decodeURIComponent(safeKey);
-              local[decodedClub] = cloudMembers[safeKey];
+              synced[decodedClub] = cloudMembers[safeKey];
             });
-            localStorage.setItem("pb_club_members", JSON.stringify(local));
-            if (typeof renderClubMemberChips === 'function') renderClubMemberChips();
+            localStorage.setItem("pb_club_members", JSON.stringify(synced));
+          } else {
+            // 雲端完全沒有成員資料，清空本地
+            localStorage.setItem("pb_club_members", JSON.stringify({}));
           }
+          if (typeof renderClubMemberChips === 'function') renderClubMemberChips();
         });
 
         // 載入 Master PIN hash（hash 存在 Firebase，原始碼不含明文 PIN）
