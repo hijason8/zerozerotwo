@@ -3758,6 +3758,18 @@
           }).join("");
 
           const matchRows = matches.map(m => {
+            if (m.voided) {
+              return `
+                <div class="flex items-center justify-between py-1.5 text-xs border-b border-stone-200/50 dark:border-slate-800/50 last:border-0 opacity-60">
+                  <span class="font-mono text-[10px] sub-text w-8 shrink-0">#${m.id}</span>
+                  <div class="flex-1 flex items-center justify-center gap-1.5">
+                    <span class="sub-text text-[11px] truncate max-w-[35%] text-right">${m.blue.join(' & ')}</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">${STATE.lang === "zh-TW" ? "流局" : "Voided"}</span>
+                    <span class="sub-text text-[11px] truncate max-w-[35%] text-left">${m.red.join(' & ')}</span>
+                  </div>
+                </div>
+              `;
+            }
             const blueWon = m.blueScore > m.redScore;
             return `
               <div class="flex items-center justify-between py-1.5 text-xs border-b border-stone-200/50 dark:border-slate-800/50 last:border-0">
