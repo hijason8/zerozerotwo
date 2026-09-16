@@ -551,7 +551,14 @@
           <button onclick="completeTournamentAndReturn()" id="btn-complete-and-return"
             class="hidden px-3 py-2 rounded-xl card-inner border hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
-            <span id="t-btn-complete-and-return">完賽並返回大廳</span>
+            <span id="t-btn-complete-and-return">結束賽事</span>
+          </button>
+
+          <!-- Delete Tournament (Admin Only) -->
+          <button onclick="liveDeleteTournament()" id="btn-live-delete-tournament"
+            class="hidden px-3 py-2 rounded-xl card-inner border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span id="t-btn-live-delete">刪除賽事</span>
           </button>
 
           <!-- Mode Switch Button (Viewer vs Admin) -->
@@ -598,7 +605,7 @@
             <button type="button" onclick="completeTournamentAndReturn()" id="btn-complete-and-return-bottom"
               class="w-full py-2.5 px-3 rounded-xl card-inner border hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
               <i data-lucide="check-circle-2" class="w-4 h-4"></i> <span
-                id="t-btn-complete-and-return-bottom">完賽並返回大廳</span>
+                id="t-btn-complete-and-return-bottom">結束賽事</span>
             </button>
           </div>
         </div>
@@ -1042,8 +1049,8 @@
         noActiveTournaments: "目前無進行中的賽事",
         noCompletedTournamentsHub: "尚無已完賽的賽事記錄",
         createTournamentDirect: "建立新賽事",
-        finishAndReturnBtn: "完賽並返回大廳",
-        confirmFinishPrompt: "確定將賽事結算完賽並返回大廳？\n（此操作將把賽事歸檔至完賽紀錄）",
+        finishAndReturnBtn: "結束賽事",
+        confirmFinishPrompt: "確定將賽事結束歸檔並返回大廳？\n（此操作將把賽事歸檔至完賽紀錄）",
 
         // History Page & Standings
         casualPlay: "臨打賽事",
@@ -1121,8 +1128,8 @@
         noActiveTournaments: "No active tournaments",
         noCompletedTournamentsHub: "No completed tournaments yet",
         createTournamentDirect: "Create Tournament",
-        finishAndReturnBtn: "Finish & Return to Hub",
-        confirmFinishPrompt: "Complete this tournament and return to hub?\n(This will archive the tournament to History)",
+        finishAndReturnBtn: "End Tournament",
+        confirmFinishPrompt: "End this tournament and return to hub?\n(This will archive the tournament to History)",
 
         // History Page
         historyTitle: "Completed Match Archives",
@@ -2635,10 +2642,20 @@
       STATE.allTournamentsCache = (STATE.allTournamentsCache || []).filter(t => t.id !== id);
 
       showToast(STATE.lang === "zh-TW" ? `賽事「${tournamentName}」已成功刪除` : `Tournament "${tournamentName}" deleted`, "success");
-      displayHubTournamentsList(STATE.allTournamentsCache);
-      renderHubTournaments();
+      if (STATE.currentPage === "live") {
+        navigateTo("hub");
+      } else {
+        displayHubTournamentsList(STATE.allTournamentsCache);
+        renderHubTournaments();
+      }
     }
     window.deleteTournament = deleteTournament;
+
+    async function liveDeleteTournament() {
+      if (!STATE.currentTournamentId) return;
+      await deleteTournament(STATE.currentTournamentId);
+    }
+    window.liveDeleteTournament = liveDeleteTournament;
 
     // ----------------------------------------------------
     // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
@@ -2712,8 +2729,8 @@
       const clubName = (tData.clubName || '').trim();
       const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
 
-      // If the club has NO password, unlock directly without prompt!
-      if (!clubPwdHash) {
+      // If already authenticated or club has no password -> grant access
+      if ((clubName && STATE.authenticatedClubs.has(clubName)) || !clubPwdHash) {
         STATE.activeTournamentAdmin = tData.id;
         showToast(STATE.lang === "zh-TW" ? "🔓 管理模式已開啟" : "🔓 Admin Mode Enabled", "success");
         renderLiveUI(tData);
@@ -2736,6 +2753,7 @@
         return;
       }
 
+      if (clubName) STATE.authenticatedClubs.add(clubName);
       STATE.activeTournamentAdmin = tData.id;
       showToast(STATE.lang === "zh-TW" ? "🔓 管理模式已解鎖！可輸入比分與流局" : "🔓 Admin Mode Unlocked!", "success");
       renderLiveUI(tData);
@@ -2800,24 +2818,49 @@
       if (adminBtn && adminText) {
         if (hasAdmin) {
           adminBtn.className = "px-3 py-2 rounded-xl border-2 border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm";
-          adminText.innerText = STATE.lang === "zh-TW" ? "管理模式 (點擊鎖定)" : "Admin (Click to lock)";
+          adminText.innerText = STATE.lang === "zh-TW" ? "管理模式" : "Admin Mode";
           if (adminIcon) adminIcon.setAttribute("data-lucide", "unlock");
         } else {
           adminBtn.className = "px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm sub-text hover:text-amber-500";
-          adminText.innerText = STATE.lang === "zh-TW" ? "切換管理模式" : "Unlock Admin";
+          adminText.innerText = STATE.lang === "zh-TW" ? "管理模式" : "Admin Mode";
           if (adminIcon) adminIcon.setAttribute("data-lucide", "lock");
         }
       }
 
-      // Complete & Return to Hub Button (visible if hasAdmin)
+      const totalMatches = data.matches ? data.matches.length : 0;
+      const doneMatches = data.matches ? data.matches.filter(m => m.completed || m.voided).length : 0;
+      const isFinished = data.status === "completed" || (totalMatches > 0 && doneMatches === totalMatches);
+
+      // Complete & Return to Hub Button (visible if hasAdmin and NOT finished)
       const completeBtn = document.getElementById("btn-complete-and-return");
       if (completeBtn) {
-        if (hasAdmin) {
+        if (hasAdmin && !isFinished) {
           completeBtn.classList.remove("hidden");
           completeBtn.classList.add("flex");
         } else {
           completeBtn.classList.add("hidden");
           completeBtn.classList.remove("flex");
+        }
+      }
+
+      const completeBtnBottom = document.getElementById("btn-complete-and-return-bottom");
+      if (completeBtnBottom) {
+        if (hasAdmin && !isFinished) {
+          completeBtnBottom.classList.remove("hidden");
+        } else {
+          completeBtnBottom.classList.add("hidden");
+        }
+      }
+
+      // Delete Tournament Button (visible if hasAdmin and NOT finished, unless Master Admin)
+      const deleteLiveBtn = document.getElementById("btn-live-delete-tournament");
+      if (deleteLiveBtn) {
+        if (hasAdmin && (!isFinished || STATE.isAdmin)) {
+          deleteLiveBtn.classList.remove("hidden");
+          deleteLiveBtn.classList.add("flex");
+        } else {
+          deleteLiveBtn.classList.add("hidden");
+          deleteLiveBtn.classList.remove("flex");
         }
       }
 
