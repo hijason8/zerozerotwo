@@ -924,8 +924,8 @@
         historyTitle: "完賽紀錄",
         historyDesc: "",
         navBackHub: "賽事大廳",
-        expandDetails: "📊 展開完整對戰與排行",
-        collapseDetails: "▲ 收合詳細對戰",
+        expandDetails: "展開排行",
+        collapseDetails: "收合排行",
         copyReportBtn: "複製賽報",
         copiedReportToast: "複製完成",
         noCompletedTournaments: "目前尚無已完賽的歷史賽事記錄",
@@ -1136,8 +1136,8 @@
         historyTitle: "Completed Match Archives",
         historyDesc: "Full archive of finished tournaments, podium & head-to-head breakdown",
         navBackHub: "Back to Hub",
-        expandDetails: "📊 View Matches & Leaderboard",
-        collapseDetails: "▲ Collapse Details",
+        expandDetails: "Expand Standings",
+        collapseDetails: "Collapse Standings",
         copyReportBtn: "Copy Tournament Report",
         copiedReportToast: "Copied to Clipboard",
         noCompletedTournaments: "No completed tournament archives yet",
@@ -3814,34 +3814,6 @@
             `;
           }).join("");
 
-          const matchRows = matches.map(m => {
-            if (m.voided) {
-              return `
-                <div class="flex items-center justify-between py-1.5 text-xs border-b border-stone-200/50 dark:border-slate-800/50 last:border-0 opacity-60">
-                  <span class="font-mono text-[10px] sub-text w-8 shrink-0">#${m.id}</span>
-                  <div class="flex-1 flex items-center justify-center gap-1.5">
-                    <span class="sub-text text-[11px] truncate max-w-[35%] text-right">${m.blue.join(' & ')}</span>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">${STATE.lang === "zh-TW" ? "流局" : "Voided"}</span>
-                    <span class="sub-text text-[11px] truncate max-w-[35%] text-left">${m.red.join(' & ')}</span>
-                  </div>
-                </div>
-              `;
-            }
-            const blueWon = m.blueScore > m.redScore;
-            return `
-              <div class="flex items-center justify-between py-1.5 text-xs border-b border-stone-200/50 dark:border-slate-800/50 last:border-0">
-                <span class="font-mono text-[10px] sub-text w-8 shrink-0">#${m.id}</span>
-                <div class="flex-1 flex items-center justify-center gap-1.5">
-                  <span class="${blueWon ? 'font-bold text-blue-600 dark:text-blue-400' : 'sub-text'} text-[11px] truncate max-w-[35%] text-right">${m.blue.join(' & ')}</span>
-                  <span class="font-mono font-bold text-xs px-1.5 py-0.5 rounded card-inner ${blueWon ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400'}">
-                    ${m.blueScore} : ${m.redScore}
-                  </span>
-                  <span class="${!blueWon ? 'font-bold text-rose-600 dark:text-rose-400' : 'sub-text'} text-[11px] truncate max-w-[35%] text-left">${m.red.join(' & ')}</span>
-                </div>
-              </div>
-            `;
-          }).join("");
-
           expandedHTML = `
             <div class="mt-4 space-y-4 animate-in">
               <!-- Final Leaderboard -->
@@ -3863,14 +3835,6 @@
                     <tbody class="divide-y font-medium text-xs">${lbRows}</tbody>
                   </table>
                 </div>
-              </div>
-
-              <!-- Full Match Log -->
-              <div class="glass-card rounded-xl border">
-                <div class="px-3 py-2 card-inner border-b flex items-center gap-1.5 text-xs font-bold">
-                  <i data-lucide="swords" class="w-3.5 h-3.5 text-emerald-500"></i> ${t("allMatchesLog")} (${totalMatches} ${STATE.lang === "zh-TW" ? "局" : "games"})
-                </div>
-                <div class="p-3 max-h-[300px] overflow-y-auto">${matchRows}</div>
               </div>
 
               <!-- Copy Report Button -->
@@ -3912,8 +3876,7 @@
 
             <!-- Expand / Collapse & Enter View -->
             <div class="flex items-center gap-2 pt-1">
-              <button onclick="toggleHistoryTournament('${tData.id}')" class="flex-1 ${isExpanded ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400' : 'card-inner border sub-text hover:text-amber-500 hover:border-amber-500/30'} font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
-                <i data-lucide="${isExpanded ? 'chevron-up' : 'bar-chart-3'}" class="w-3.5 h-3.5"></i>
+              <button onclick="toggleHistoryTournament('${tData.id}')" class="flex-1 card-inner border sub-text hover:text-amber-500 hover:border-amber-500/30 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
                 ${isExpanded ? t("collapseDetails") : t("expandDetails")}
               </button>
               <button onclick="enterTournament('${tData.id}')" class="card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/30 font-bold p-2 rounded-xl text-xs transition flex items-center justify-center gap-1" title="${t("enterTournament")}">
