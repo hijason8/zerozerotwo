@@ -561,6 +561,8 @@
             <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-500" id="icon-toggle-live-admin"></i>
             <span id="text-toggle-live-admin">管理模式</span>
           </button>
+          <!-- Divider: 功能區 / 資訊區 -->
+          <div class="h-6 w-px bg-stone-300 dark:bg-slate-700 shrink-0 mx-0.5"></div>
           <button onclick="openShareModal()" id="t-share-btn"
             class="px-3 py-2 rounded-xl card-inner border transition text-xs font-semibold flex items-center justify-center gap-1 shadow-sm">
             <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i> 分享 / QR Code
@@ -2462,13 +2464,11 @@
               <button onclick="enterTournament('${tData.id}')" class="flex-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
                 <i data-lucide="play" class="w-3.5 h-3.5"></i> ${t("enterTournament")}
               </button>
-              ${isFinished && !STATE.isAdmin
-                ? `<button disabled title="${STATE.lang === 'zh-TW' ? '完賽賽事需進入管理員後台才能刪除' : 'Admin required to delete completed tournaments'}" class="p-2 rounded-xl card-inner sub-text border opacity-30 cursor-not-allowed">
-                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
-                  </button>`
-                : `<button onclick="deleteTournament('${tData.id}')" class="p-2 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
+              ${(!isFinished || STATE.isAdmin)
+                ? `<button onclick="deleteTournament('${tData.id}')" class="p-2 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                   </button>`
+                : ''
               }
             </div>
           </div>
