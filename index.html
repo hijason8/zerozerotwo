@@ -523,21 +523,21 @@
         <!-- 5. Group Mode Section (Shown in Group Mode) -->
         <div id="wrap-group-section" class="hidden space-y-2">
           <div class="flex items-center justify-between">
-            <label id="t-label-group" class="block text-xs sm:text-sm font-semibold">5. 分組抽籤設定</label>
-            <span class="text-[11px] sub-text font-medium">依參賽單位數自動抽籤拆組</span>
+            <label id="t-label-group" class="block text-xs sm:text-sm font-semibold">5. 分組設定</label>
+            <span class="text-[11px] sub-text font-medium">依參賽單位數自動拆組</span>
           </div>
           <div class="card-inner border rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-sm">
-            <div class="flex items-end gap-2.5">
-              <div class="flex-1 space-y-1">
-                <label class="block text-[11px] sub-text font-semibold">分組數量：</label>
+            <div class="flex items-center justify-between gap-2 text-[11px]">
+              <span class="sub-text text-[11px]">分組數量：</span>
+              <div class="flex items-center gap-1.5">
                 <input type="number" id="create-group-count" min="2" max="10" value="2"
                   onchange="renderGroupDrawPreview()" oninput="renderGroupDrawPreview()"
-                  class="w-full input-bg border rounded-xl p-2 text-xs sm:text-sm focus:border-amber-500 focus:outline-none font-mono" />
+                  class="w-14 input-bg border rounded-md px-1.5 py-1 text-xs text-center focus:border-amber-500 focus:outline-none font-mono" />
+                <button type="button" onclick="shuffleAndDrawGroups()"
+                  class="px-2.5 py-1 card-inner border hover:border-amber-500 text-amber-600 dark:text-amber-400 font-bold rounded-md text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95">
+                  <i data-lucide="dices" class="w-3 h-3"></i> <span>隨機分組</span>
+                </button>
               </div>
-              <button type="button" onclick="shuffleAndDrawGroups()"
-                class="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-white dark:text-slate-950 font-bold rounded-xl text-xs sm:text-sm flex items-center gap-1.5 transition shadow-sm active:scale-95 shrink-0">
-                <i data-lucide="shuffle" class="w-3.5 h-3.5"></i> <span>🎲 隨機抽籤分組</span>
-              </button>
             </div>
 
             <!-- Group Draw Preview Container -->
@@ -617,11 +617,11 @@
           <button onclick="toggleTournamentAdminMode()" id="btn-toggle-live-admin"
             class="px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-500" id="icon-toggle-live-admin"></i>
-            <span id="text-toggle-live-admin">管理模式</span>
+            <span id="text-toggle-live-admin">操作模式</span>
           </button>
-          <!-- Copy Report Button -->
+          <!-- Copy Report Button (Only visible when tournament is completed) -->
           <button onclick="liveCopyReport()" id="btn-live-copy-report"
-            class="px-3 py-2 rounded-xl card-inner border hover:border-blue-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            class="hidden px-3 py-2 rounded-xl card-inner border hover:border-blue-500/50 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-500"></i>
             <span id="text-live-copy-report">文字賽報</span>
           </button>
@@ -642,19 +642,19 @@
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <button type="button" onclick="openAddMatchModal()"
-            class="py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="t-btn-add-match-toolbar">新增場次</span>
+            class="py-2.5 px-3 rounded-xl card-inner border hover:border-emerald-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> <span id="t-btn-add-match-toolbar">新增場次</span>
           </button>
           <button type="button" onclick="addLivePlayerPrompt()"
-            class="py-2.5 px-3 rounded-xl card-inner border hover:border-emerald-500/50 sub-text hover:text-emerald-500 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+            class="py-2.5 px-3 rounded-xl card-inner border hover:border-emerald-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="user-plus" class="w-4 h-4 text-emerald-500"></i> <span id="t-btn-add-live-player">補入名單</span>
           </button>
           <button type="button" onclick="completeTournamentAndReturn()" id="btn-complete-and-return"
-            class="py-2.5 px-3 rounded-xl card-inner border border-amber-500/30 hover:border-amber-500 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+            class="py-2.5 px-3 rounded-xl card-inner border hover:border-amber-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-500"></i> <span id="t-btn-complete-and-return">結束賽事</span>
           </button>
           <button type="button" onclick="liveDeleteTournament()" id="btn-live-delete-tournament"
-            class="py-2.5 px-3 rounded-xl card-inner border border-rose-500/30 hover:border-rose-500 text-rose-600 dark:text-rose-400 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+            class="py-2.5 px-3 rounded-xl card-inner border hover:border-rose-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="trash-2" class="w-4 h-4 text-rose-500"></i> <span id="t-btn-live-delete">刪除賽事</span>
           </button>
         </div>
@@ -1893,7 +1893,7 @@
     }
 
     // ----------------------------------------------------
-    // INDIVIDUAL ROUND ROBIN ALGORITHM (個人雙打輪播)
+    // INDIVIDUAL ROUND ROBIN ALGORITHM (升級版：個人雙打輪播)
     // ----------------------------------------------------
     function generateRoundRobinSchedule(playersList, durationHours = 2.0, estMinsPerGame = 15, scheduleMode = "fair", customTotalGames = 0) {
       const n = playersList.length;
@@ -1913,20 +1913,33 @@
         totalRounds = getValidTotalGames(n, rawTargetGames);
       }
 
+      // 1. 初始化狀態追蹤器 (含對手追蹤與連續場次追蹤)
       const gamesPlayed = {};
       const partneredCount = {};
+      const opponentCount = {};
+      const consecutivePlays = {};
+      const consecutiveRests = {};
+
       playersList.forEach(p => {
         gamesPlayed[p] = 0;
+        consecutivePlays[p] = 0;
+        consecutiveRests[p] = 0;
         partneredCount[p] = {};
-        playersList.forEach(p2 => { partneredCount[p][p2] = 0; });
+        opponentCount[p] = {};
+        playersList.forEach(p2 => {
+          partneredCount[p][p2] = 0;
+          opponentCount[p][p2] = 0;
+        });
       });
 
       const matches = [];
 
       for (let r = 1; r <= totalRounds; r++) {
-        // 嚴格優先選擇場數較少者登場，確保場數完全平衡
+        // 2. 嚴格的上場選拔邏輯 (優先級：總場次少 > 連休多 > 連打少)
         const sorted = [...playersList].sort((a, b) => {
           if (gamesPlayed[a] !== gamesPlayed[b]) return gamesPlayed[a] - gamesPlayed[b];
+          if (consecutiveRests[b] !== consecutiveRests[a]) return consecutiveRests[b] - consecutiveRests[a];
+          if (consecutivePlays[a] !== consecutivePlays[b]) return consecutivePlays[a] - consecutivePlays[b];
           return Math.random() - 0.5;
         });
 
@@ -1942,21 +1955,49 @@
         let bestCombo = combinations[0];
         let minScore = Infinity;
 
+        // 3. 配對計分邏輯 (綜合考量搭檔與對手重複率)
         combinations.forEach(combo => {
-          const bScore = partneredCount[combo.blue[0]][combo.blue[1]];
-          const rScore = partneredCount[combo.red[0]][combo.red[1]];
-          const score = bScore + rScore;
+          const bPartnerScore = partneredCount[combo.blue[0]][combo.blue[1]];
+          const rPartnerScore = partneredCount[combo.red[0]][combo.red[1]];
+          
+          let oppScore = 0;
+          combo.blue.forEach(bp => {
+            combo.red.forEach(rp => {
+              oppScore += opponentCount[bp][rp];
+            });
+          });
+
+          // 搭檔重複權重 (3) 高於對手重複 (1)
+          const score = (bPartnerScore + rPartnerScore) * 3 + oppScore;
+
           if (score < minScore) {
             minScore = score;
             bestCombo = combo;
           }
         });
 
-        bestCombo.blue.concat(bestCombo.red).forEach(p => gamesPlayed[p]++);
+        // 4. 更新狀態追蹤器
+        bestCombo.blue.concat(bestCombo.red).forEach(p => {
+          gamesPlayed[p]++;
+          consecutivePlays[p]++;
+          consecutiveRests[p] = 0;
+        });
+        resting.forEach(p => {
+          consecutiveRests[p]++;
+          consecutivePlays[p] = 0;
+        });
+
         partneredCount[bestCombo.blue[0]][bestCombo.blue[1]]++;
         partneredCount[bestCombo.blue[1]][bestCombo.blue[0]]++;
         partneredCount[bestCombo.red[0]][bestCombo.red[1]]++;
         partneredCount[bestCombo.red[1]][bestCombo.red[0]]++;
+
+        bestCombo.blue.forEach(bp => {
+          bestCombo.red.forEach(rp => {
+            opponentCount[bp][rp]++;
+            opponentCount[rp][bp]++;
+          });
+        });
 
         matches.push({
           id: r,
@@ -1967,6 +2008,7 @@
           blueScore: null,
           redScore: null,
           completed: false,
+          voided: false
         });
       }
 
@@ -2885,6 +2927,7 @@
         const tournamentObj = {
           id: tournamentId,
           tournamentMode: effectiveMode,
+          partnerType: partnerType,
           isTeamMode: isTeamMode,
           name: name,
           clubName: clubName,
@@ -3328,13 +3371,13 @@
 
       const isValid = (inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
       if (!isValid) {
-        showToast(STATE.lang === "zh-TW" ? "❌ 密碼錯誤，無法開啟管理模式！" : "❌ Password Incorrect!", "error");
+        showToast(STATE.lang === "zh-TW" ? "❌ 密碼錯誤，無法解鎖操作模式！" : "❌ Password Incorrect!", "error");
         return;
       }
 
       if (clubName) STATE.authenticatedClubs.add(clubName);
       STATE.activeTournamentAdmin = tData.id;
-      showToast(STATE.lang === "zh-TW" ? "🔓 管理模式已解鎖！" : "🔓 Admin Mode Unlocked!", "success");
+      showToast(STATE.lang === "zh-TW" ? "🔓 操作模式已解鎖！" : "🔓 Operation Mode Unlocked!", "success");
       renderLiveUI(tData);
     }
     window.toggleTournamentAdminMode = toggleTournamentAdminMode;
@@ -3385,23 +3428,27 @@
         }
       }
 
+      const isTeamMode = !!(data.isTeamMode || data.partnerType === "fixed");
+      const unit = isTeamMode ? (STATE.lang === "zh-TW" ? "隊" : "Teams") : (STATE.lang === "zh-TW" ? "人" : "Players");
+      const perUnit = isTeamMode ? (STATE.lang === "zh-TW" ? "隊" : "team") : (STATE.lang === "zh-TW" ? "人" : "p");
+
       document.getElementById("live-players-count").innerText = STATE.lang === "zh-TW"
-        ? (isFreeMode ? `${pCount} 人登記` : `${pCount} 人 (每人約 ${estGamesPerPlayer} 場)`)
-        : (isFreeMode ? `${pCount} Players` : `${pCount} Players (~${estGamesPerPlayer} g/p)`);
+        ? (isFreeMode ? `${pCount} ${unit}登記` : `${pCount} ${unit} (每${perUnit}約 ${estGamesPerPlayer} 場)`)
+        : (isFreeMode ? `${pCount} ${unit}` : `${pCount} ${unit} (~${estGamesPerPlayer} g/${perUnit})`);
       document.getElementById("live-duration").innerText = data.durationHours || "2.0";
 
-      // Admin Mode Toggle Button Styling
+      // Admin Mode Toggle Button Styling (操作模式 vs 瀏覽模式)
       const adminBtn = document.getElementById("btn-toggle-live-admin");
       const adminText = document.getElementById("text-toggle-live-admin");
       const adminIcon = document.getElementById("icon-toggle-live-admin");
       if (adminBtn && adminText) {
         if (hasAdmin) {
           adminBtn.className = "px-3 py-2 rounded-xl border border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none";
-          adminText.innerText = STATE.lang === "zh-TW" ? "管理模式" : "Admin Mode";
-          if (adminIcon) adminIcon.setAttribute("data-lucide", "unlock");
+          adminText.innerText = STATE.lang === "zh-TW" ? "瀏覽模式" : "Viewer Mode";
+          if (adminIcon) adminIcon.setAttribute("data-lucide", "eye");
         } else {
           adminBtn.className = "px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none hover:text-amber-500";
-          adminText.innerText = STATE.lang === "zh-TW" ? "管理模式" : "Admin Mode";
+          adminText.innerText = STATE.lang === "zh-TW" ? "操作模式" : "Operation Mode";
           if (adminIcon) adminIcon.setAttribute("data-lucide", "lock");
         }
       }
@@ -3431,6 +3478,18 @@
         } else {
           deleteLiveBtn.classList.add("hidden");
           deleteLiveBtn.classList.remove("flex");
+        }
+      }
+
+      // Copy Report Button (Only visible when tournament is completed)
+      const copyReportBtn = document.getElementById("btn-live-copy-report");
+      if (copyReportBtn) {
+        if (isFinished) {
+          copyReportBtn.classList.remove("hidden");
+          copyReportBtn.classList.add("flex");
+        } else {
+          copyReportBtn.classList.add("hidden");
+          copyReportBtn.classList.remove("flex");
         }
       }
 
