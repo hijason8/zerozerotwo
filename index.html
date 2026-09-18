@@ -4540,10 +4540,7 @@
           const winUnit = STATE.lang === "zh-TW" ? "勝" : "W";
           const lossUnit = STATE.lang === "zh-TW" ? "敗" : "L";
           const lbRows = leaderboard.map((row, idx) => {
-            let rankBadge = `<span class="font-mono sub-text font-bold text-[11px]">${idx + 1}</span>`;
-            if (idx === 0 && row.played > 0) rankBadge = `<span class="text-base">👑</span>`;
-            else if (idx === 1 && row.played > 0) rankBadge = `<span class="text-sm">🥈</span>`;
-            else if (idx === 2 && row.played > 0) rankBadge = `<span class="text-sm">🥉</span>`;
+            const rankBadge = `<span class="font-mono sub-text font-bold text-[11px]">${idx + 1}</span>`;
             const isMvp = idx === 0 && row.played > 0;
             return `
               <tr class="${isMvp ? 'bg-amber-500/10 font-bold border-l-2 border-amber-400' : 'hover:bg-stone-500/5'} transition">
@@ -4564,8 +4561,8 @@
             <div class="mt-4 animate-in">
               <!-- Final Leaderboard -->
               <div class="glass-card rounded-xl overflow-hidden border">
-                <div class="px-3 py-2 card-inner border-b flex items-center gap-1.5 text-xs font-bold">
-                  <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-500"></i> ${t("finalLeaderboard")}
+                <div class="px-3 py-2 card-inner border-b text-xs font-bold">
+                  ${t("finalLeaderboard")}
                 </div>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left text-xs">
@@ -4593,7 +4590,7 @@
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-amber-600 dark:text-amber-400 border">${tData.id}</span>
                 ${clubBadge}
-                <span class="text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">🏆 ${t("statusFinished")}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${t("statusFinished")}</span>
               </div>
               <span class="text-[10px] sub-text font-mono">${dateStr}</span>
             </div>
@@ -4611,8 +4608,8 @@
             <!-- Stats row -->
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sub-text pt-1 border-t border-stone-200 dark:border-slate-800/80">
               <span>👥 ${players.length} ${t("playersCountLabel")}</span>
-              <span>🏸 ${STATE.lang === "zh-TW" ? `共 ${totalMatches} 場｜完賽 ${completedMatches} 場${voidedMatches > 0 ? `｜取消 ${voidedMatches} 場` : ''}` : `${totalMatches} games｜${completedMatches} done${voidedMatches > 0 ? `｜${voidedMatches} voided` : ''}`}</span>
-              ${tData.tournamentMode === "free" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>` : tData.tournamentMode === "round-robin" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>` : `<span>⏱️ ${tData.durationHours || 2}${t("hrsUnit")}</span>`}
+              <span>⚔️ ${STATE.lang === "zh-TW" ? `共 ${totalMatches} 場｜完賽 ${completedMatches} 場${voidedMatches > 0 ? `｜取消 ${voidedMatches} 場` : ''}` : `${totalMatches} games｜${completedMatches} done${voidedMatches > 0 ? `｜${voidedMatches} voided` : ''}`}</span>
+              ${tData.tournamentMode === "free" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>` : tData.tournamentMode === "round-robin" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>` : `<span>⏱️ ${tData.durationHours || 2} ${t("hrsUnit")}</span>`}
             </div>
 
             <!-- Expand / Collapse & Enter View -->
