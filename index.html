@@ -968,6 +968,32 @@
     const getIsAdmin = () => _adminAuthenticated;
     const setIsAdmin = (val) => { _adminAuthenticated = !!val; };
 
+    // ============================================================
+    // LANGUAGE INITIALIZATION (智慧偵測語言版)
+    // ============================================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get("lang");
+    
+    // 先去使用者的手機/瀏覽器找找看以前有沒有設定過
+    let initialLang = localStorage.getItem("pb_lang");
+
+    if (urlLang === "en" || urlLang === "zh-TW") {
+      // 情況 A：網址有強制帶參數 (?lang=en 或 ?lang=zh-TW)
+      initialLang = urlLang;
+      localStorage.setItem("pb_lang", initialLang);
+      
+      // 把網址列的參數抹除，保持畫面美觀
+      urlParams.delete("lang");
+      const newQuery = urlParams.toString() ? '?' + urlParams.toString() : '';
+      window.history.replaceState({}, '', window.location.pathname + newQuery);
+      
+    } else if (!initialLang) {
+      // 情況 B：第一次點進來的全新訪客
+      // 讀取裝置系統預設語言，只要不是中文 (zh 開頭)，就預設給英文版 (en)
+      initialLang = (navigator.language || navigator.userLanguage || "").startsWith("zh") ? "zh-TW" : "en";
+      localStorage.setItem("pb_lang", initialLang);
+    }
+
     // Global App State
     const STATE = {
       firebaseApp: null,
@@ -985,10 +1011,9 @@
       expandedHistoryTournaments: {},
       allTournamentsCache: [],
       authenticatedClubs: new Set(),
-      masterPinHash: null, // loaded from Firebase on init
-      lang: localStorage.getItem("pb_lang") || "zh-TW",
+      masterPinHash: null,
+      lang: initialLang,
       theme: "light",
-      // isAdmin is now protected: use getIsAdmin() / setIsAdmin()
       get isAdmin() { return getIsAdmin(); },
     };
     window.STATE = STATE;
