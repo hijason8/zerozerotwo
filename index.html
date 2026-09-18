@@ -412,11 +412,11 @@
             <div id="wrap-partner-toggle" class="inline-flex p-0.5 bg-stone-200 dark:bg-slate-800/80 rounded-xl text-xs font-bold shrink-0">
               <button type="button" id="btn-partner-rotating" onclick="setPartnerType('rotating')"
                 class="px-2.5 py-1 rounded-lg transition-all text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm">
-                輪替隊友
+                <span id="t-partner-rotating-text">輪替隊友</span>
               </button>
               <button type="button" id="btn-partner-fixed" onclick="setPartnerType('fixed')"
                 class="px-2.5 py-1 rounded-lg transition-all text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200">
-                固定隊友
+                <span id="t-partner-fixed-text">固定隊友</span>
               </button>
             </div>
             <input type="hidden" id="create-partner-type" value="rotating" />
@@ -1607,6 +1607,8 @@
       const modeFreeDescEl = document.getElementById("t-mode-free-desc");
       if (modeFreeDescEl) modeFreeDescEl.innerText = t("modeFreeDesc");
 
+      const isZh = (STATE.lang === "zh-TW");
+
       const labelDurationEl = document.getElementById("t-label-duration");
       if (labelDurationEl) labelDurationEl.innerText = t("labelDuration");
       const unitHoursEl = document.getElementById("t-unit-hours");
@@ -1617,18 +1619,35 @@
       const freeNoticeDescEl = document.getElementById("t-free-notice-desc");
       if (freeNoticeDescEl) freeNoticeDescEl.innerText = t("freeNoticeDesc");
 
+      const partnerRotEl = document.getElementById("t-partner-rotating-text");
+      if (partnerRotEl) partnerRotEl.innerText = isZh ? "輪替隊友" : "Rotating Doubles";
+      const partnerFixEl = document.getElementById("t-partner-fixed-text");
+      if (partnerFixEl) partnerFixEl.innerText = isZh ? "固定隊友" : "Fixed Pairs";
+
+      const quickGenCountInput = document.getElementById("quick-generate-count");
+      if (quickGenCountInput) quickGenCountInput.placeholder = isZh ? "數量" : "Qty";
+      const btnQuickGenEl = document.getElementById("t-btn-quick-gen");
+      if (btnQuickGenEl) btnQuickGenEl.innerText = isZh ? "產生" : "Generate";
+
+      const labelFairDurEl = document.getElementById("t-label-fair-duration");
+      if (labelFairDurEl) labelFairDurEl.innerText = isZh ? "5. 排賽目標與時間限制" : "5. Target Schedule & Time Limit";
+      const stratTimeTitleEl = document.getElementById("t-strategy-time-title");
+      if (stratTimeTitleEl) stratTimeTitleEl.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i> ${isZh ? "按比賽時間排賽" : "Schedule by Duration"}`;
+      const stratTimeDescEl = document.getElementById("t-strategy-time-desc");
+      if (stratTimeDescEl) stratTimeDescEl.innerText = isZh ? "指定總比賽時間，系統自動試算最佳場數與時間對應" : "Specify total duration, auto-calc best game options";
+      const stratFullTitleEl = document.getElementById("t-strategy-full-title");
+      if (stratFullTitleEl) stratFullTitleEl.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ${isZh ? "打滿一輪全循環" : "Full Round-Robin Cycle"}`;
+      const stratFullDescEl = document.getElementById("t-strategy-full-desc");
+      if (stratFullDescEl) stratFullDescEl.innerText = isZh ? "強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決" : "Force 1 full cycle so all participants pair & match up";
+
       const labelPlayersEl = document.getElementById("t-label-players");
-      if (labelPlayersEl) labelPlayersEl.innerText = t("labelPlayers");
-      const selRosterHeading = document.getElementById("t-selected-roster-heading");
-      if (selRosterHeading) selRosterHeading.innerText = STATE.lang === "zh-TW" ? "👥 已登錄：" : "👥 Registered:";
-      const clubMembersTitleEl = document.getElementById("t-club-members-title");
-      if (clubMembersTitleEl) clubMembersTitleEl.innerText = STATE.lang === "zh-TW" ? "🛡️ 社團常用名單：" : "🛡️ Club Members:";
-      const autoGenLabelEl = document.getElementById("t-auto-gen-label");
-      if (autoGenLabelEl) autoGenLabelEl.innerText = STATE.lang === "zh-TW" ? "自動生成代號：" : "Auto Gen Codes:";
+      const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
+      setPartnerType(partnerType);
+
       const btnAddPersonEl = document.getElementById("t-btn-add-person");
       if (btnAddPersonEl) btnAddPersonEl.innerText = t("btnAddPerson");
       const quickAddInputEl = document.getElementById("quick-add-player-input");
-      if (quickAddInputEl) quickAddInputEl.placeholder = STATE.lang === "zh-TW" ? "單行或多行批量輸入" : "Single or multi-line input...";
+      if (quickAddInputEl) quickAddInputEl.placeholder = isZh ? "單行或多行批量輸入" : "Single or multi-line input...";
 
       renderSelectedPlayerChips();
       renderClubMemberChips();
@@ -2275,11 +2294,12 @@
       const titleClub = document.getElementById("t-club-members-title");
       const autoGenLabel = document.getElementById("t-auto-gen-label");
 
-      if (labelPlayers) labelPlayers.innerText = isRotating ? "4. 參賽選手名單" : "4. 參賽隊伍名單";
-      if (inputAdd) inputAdd.placeholder = STATE.lang === "zh-TW" ? "單行或多行批量輸入" : "Single or multi-line input...";
-      if (headingRoster) headingRoster.innerText = isRotating ? "👥 已登錄選手：" : "🛡️ 已登錄隊伍：";
-      if (titleClub) titleClub.innerText = isRotating ? "🛡️ 社團常用選手：" : "🛡️ 社團常用隊伍：";
-      if (autoGenLabel) autoGenLabel.innerText = isRotating ? "自動生成選手代號：" : "自動生成隊伍代號：";
+      const isZh = (STATE.lang === "zh-TW");
+      if (labelPlayers) labelPlayers.innerText = isZh ? (isRotating ? "4. 參賽選手名單" : "4. 參賽隊伍名單") : (isRotating ? "4. Player Roster" : "4. Team Roster");
+      if (inputAdd) inputAdd.placeholder = isZh ? "單行或多行批量輸入" : "Single or multi-line input...";
+      if (headingRoster) headingRoster.innerText = isZh ? (isRotating ? "👥 已登錄選手：" : "🛡️ 已登錄隊伍：") : (isRotating ? "👥 Registered Players:" : "🛡️ Registered Teams:");
+      if (titleClub) titleClub.innerText = isZh ? (isRotating ? "🛡️ 社團常用選手：" : "🛡️ 社團常用隊伍：") : (isRotating ? "🛡️ Club Players:" : "🛡️ Club Teams:");
+      if (autoGenLabel) autoGenLabel.innerText = isZh ? (isRotating ? "自動生成選手代號：" : "自動生成隊伍代號：") : (isRotating ? "Auto Gen Player Codes:" : "Auto Gen Team Codes:");
 
       updatePlayerCountBadge();
       resetSelectedPlan();
@@ -2358,22 +2378,23 @@
 
         if (optionsContainer) {
           optionsContainer.classList.remove("hidden");
+          const isZh = (STATE.lang === "zh-TW");
           optionsContainer.innerHTML = `
             <div class="text-[11px] font-bold sub-text uppercase tracking-wider mb-1">
-              <span>全循環賽程排案：</span>
+              <span>${isZh ? '全循環賽程排案：' : 'Full Round-Robin Schedule Plan:'}</span>
             </div>
             <div class="rounded-xl p-3 border-2 border-amber-500 bg-amber-500/10 shadow-sm space-y-1">
               <div class="flex items-center justify-between">
                 <span class="font-bold text-xs text-amber-600 dark:text-amber-400 font-display">
-                  ✅ 完整 1 輪全循環：共 ${fullGames} 局
+                  ✅ ${isZh ? `完整 1 輪全循環：共 ${fullGames} 局` : `Full 1 Cycle: Total ${fullGames} Games`}
                 </span>
                 <span class="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                  每單位各打 ${gamesPerUnit} 場
+                  ${isZh ? `每單位各打 ${gamesPerUnit} 場` : `${gamesPerUnit} Games / Unit`}
                 </span>
               </div>
               <div class="text-[10.5px] sub-text flex items-center justify-between">
-                <span>各休 ${restEach} 場</span>
-                <span>所有單位皆搭檔/對決到一輪</span>
+                <span>${isZh ? `各休 ${restEach} 場` : `Rest ${restEach} Games Each`}</span>
+                <span>${isZh ? `所有單位皆搭檔/對決到一輪` : `Every pair & matchup played`}</span>
               </div>
             </div>
           `;
@@ -2456,27 +2477,29 @@
       if (optionsContainer) {
         optionsContainer.classList.remove("hidden");
         const gridColsClass = plans.length >= 3 ? 'sm:grid-cols-3' : plans.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1';
+        const isZh = (STATE.lang === "zh-TW");
         optionsContainer.innerHTML = `
           <div class="text-[11px] font-bold sub-text uppercase tracking-wider mb-1 flex items-center gap-1">
-            <span>推薦公平排賽方案（點選直接套用）：</span>
+            <span>${isZh ? '推薦公平排賽方案（點選直接套用）：' : 'Recommended Schedule Options (Click to Select):'}</span>
           </div>
           <div class="grid grid-cols-1 ${gridColsClass} gap-2">
             ${plans.map((p, idx) => {
           const isSelected = p.totalGames === selectedGames;
+          const unitText = isTeamMode ? (isZh ? "隊" : "team") : (isZh ? "人" : "player");
           return `
                 <div onclick="selectFairPlan(${p.totalGames}, ${Math.round(p.avgMins)})"
                   class="cursor-pointer rounded-xl p-2.5 transition border-2 text-left space-y-1 ${isSelected ? 'border-amber-500 bg-amber-500/10 shadow-sm' : 'border-stone-200 dark:border-slate-800 card-inner hover:border-amber-500/40'}">
                   <div class="flex items-center justify-between">
                     <span class="font-bold text-xs flex items-center gap-1 ${isSelected ? 'text-amber-600 dark:text-amber-400 font-display' : ''}">
-                      ${isSelected ? '✅' : '📌'} 方案 ${idx + 1}：共 ${p.totalGames} 局
+                      ${isSelected ? '✅' : '📌'} ${isZh ? `方案 ${idx + 1}：共 ${p.totalGames} 局` : `Option ${idx + 1}: ${p.totalGames} Games`}
                     </span>
                     <span class="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                      每人/隊 ${p.gamesEach} 場
+                      ${isZh ? `每${unitText} ${p.gamesEach} 場` : `${p.gamesEach} Games / ${unitText}`}
                     </span>
                   </div>
                   <div class="text-[10.5px] sub-text flex items-center justify-between">
-                    <span>各休 ${p.restEach} 場</span>
-                    <span>均配 ~${p.avgMins}分/局</span>
+                    <span>${isZh ? `各休 ${p.restEach} 場` : `Rest ${p.restEach} Games`}</span>
+                    <span>${isZh ? `均配 ~${p.avgMins}分/局` : `~${p.avgMins} mins/game`}</span>
                   </div>
                 </div>
               `;
