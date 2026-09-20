@@ -8,7 +8,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LB740SFV1M"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-LB740SFV1M');
@@ -203,7 +203,10 @@
     }
 
     /* Prevent double-tap zoom delay on mobile devices */
-    button, input, select, textarea {
+    button,
+    input,
+    select,
+    textarea {
       touch-action: manipulation;
     }
   </style>
@@ -289,7 +292,8 @@
                 <i data-lucide="mail" class="w-4 h-4 text-amber-500 shrink-0"></i>
                 <span id="t-dropdown-email-label" class="text-xs font-bold sub-text">聯絡信箱</span>
               </span>
-              <span class="text-[11px] font-mono font-bold text-amber-600 dark:text-amber-400 select-all shrink-0">zztwo.app@gmail.com</span>
+              <span
+                class="text-[11px] font-mono font-bold text-amber-600 dark:text-amber-400 select-all shrink-0">zztwo.app@gmail.com</span>
             </a>
           </div>
         </div>
@@ -336,7 +340,8 @@
             class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">已完賽賽事</h3>
           <div class="flex items-center gap-2 text-xs sub-text font-semibold">
             <span id="hub-completed-count"></span>
-            <div class="flex items-center gap-1 card-inner border px-2 py-0.5 rounded-lg text-[11px] group-hover:border-emerald-500/50 transition shadow-sm">
+            <div
+              class="flex items-center gap-1 card-inner border px-2 py-0.5 rounded-lg text-[11px] group-hover:border-emerald-500/50 transition shadow-sm">
               <span id="hub-completed-toggle-text">展開</span>
               <i id="hub-completed-chevron" data-lucide="chevron-down"
                 class="w-3.5 h-3.5 transition-transform duration-200"></i>
@@ -396,12 +401,14 @@
             <button type="button" id="btn-mode-fair" onclick="setCreateMode('fair')"
               class="mode-btn-active px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
               <div class="text-xs sm:text-sm font-display font-extrabold" id="t-mode-fair-title">輪播模式 (平均分配)</div>
-              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-fair-desc">不分組同池輪播，自動排定每人/隊場次均等的公平賽程</p>
+              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-fair-desc">
+                不分組同池輪播，自動排定每人/隊場次均等的公平賽程</p>
             </button>
             <button type="button" id="btn-mode-free" onclick="setCreateMode('free')"
               class="mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
               <div class="text-xs sm:text-sm font-display font-extrabold" id="t-mode-free-title">自由模式 (手動加局)</div>
-              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-free-desc">不預設固定對戰表，現場隨時手動加開場次與補人記分</p>
+              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-free-desc">不預設固定對戰表，現場隨時手動加開場次與補人記分
+              </p>
             </button>
             <button type="button" id="btn-mode-group" onclick="setCreateMode('group')"
               class="mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
@@ -417,7 +424,8 @@
           <!-- Header Bar with Partner Type Switcher -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <label id="t-label-players" class="block text-xs sm:text-sm font-semibold">4. 參賽選手名單</label>
-            <div id="wrap-partner-toggle" class="inline-flex p-0.5 bg-stone-200 dark:bg-slate-800/80 rounded-xl text-xs font-bold shrink-0">
+            <div id="wrap-partner-toggle"
+              class="inline-flex p-0.5 bg-stone-200 dark:bg-slate-800/80 rounded-xl text-xs font-bold shrink-0">
               <button type="button" id="btn-partner-rotating" onclick="setPartnerType('rotating')"
                 class="px-2.5 py-1 rounded-lg transition-all text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm">
                 <span id="t-partner-rotating-text">輪替隊友</span>
@@ -460,10 +468,13 @@
                 class="flex flex-wrap gap-1.5 min-h-[38px] p-2.5 rounded-xl bg-stone-500/5 border border-dashed border-stone-300 dark:border-slate-800 items-center">
                 <!-- Dynamically rendered active player chips -->
               </div>
+              <!-- Dynamic Single-Court Capacity & Wait-time Health Notice -->
+              <div id="roster-health-notice" class="hidden transition-all duration-300 pt-1"></div>
             </div>
 
             <!-- Row 3: Club Common Members (Toggle chips) -->
-            <div id="club-members-section" class="hidden space-y-1.5 pt-2 border-t border-stone-200 dark:border-slate-800/60">
+            <div id="club-members-section"
+              class="hidden space-y-1.5 pt-2 border-t border-stone-200 dark:border-slate-800/60">
               <div class="flex items-center justify-between text-[11px] font-bold sub-text">
                 <span id="t-club-members-title">🛡️ 社團常用名單：</span>
               </div>
@@ -499,17 +510,21 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button type="button" id="btn-strategy-time" onclick="setFairStrategy('time')"
                 class="mode-btn-active px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
-                <div class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5" id="t-strategy-time-title">
+                <div class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5"
+                  id="t-strategy-time-title">
                   <i data-lucide="clock" class="w-3.5 h-3.5"></i> 按比賽時間排賽
                 </div>
-                <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-strategy-time-desc">指定總比賽時間，系統自動試算最佳場數與時間對應</p>
+                <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-strategy-time-desc">
+                  指定總比賽時間，系統自動試算最佳場數與時間對應</p>
               </button>
               <button type="button" id="btn-strategy-full" onclick="setFairStrategy('full-cycle')"
                 class="mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
-                <div class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5" id="t-strategy-full-title">
+                <div class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5"
+                  id="t-strategy-full-title">
                   <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 打滿一輪全循環
                 </div>
-                <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-strategy-full-desc">強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決</p>
+                <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-strategy-full-desc">強制排滿 1
+                  輪完整全循環賽事，人人皆有搭配與對決</p>
               </button>
             </div>
             <input type="hidden" id="create-fair-strategy" value="time" />
@@ -642,7 +657,8 @@
       </div>
 
       <!-- Admin Control Panel Banner (Unlocked when Admin Mode is ON) -->
-      <div id="live-admin-toolbar" class="hidden glass-card rounded-2xl p-3 sm:p-4 border border-amber-500/30 bg-amber-500/5 space-y-2.5 shadow-sm transition-all">
+      <div id="live-admin-toolbar"
+        class="hidden glass-card rounded-2xl p-3 sm:p-4 border border-amber-500/30 bg-amber-500/5 space-y-2.5 shadow-sm transition-all">
         <div class="flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
           <span class="flex items-center gap-1.5">
             <i data-lucide="shield-check" class="w-4 h-4"></i> <span>管理模式面板</span>
@@ -651,15 +667,18 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <button type="button" onclick="openAddMatchModal()"
             class="py-2.5 px-3 rounded-xl card-inner border hover:border-emerald-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
-            <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> <span id="t-btn-add-match-toolbar">新增場次</span>
+            <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> <span
+              id="t-btn-add-match-toolbar">新增場次</span>
           </button>
           <button type="button" onclick="addLivePlayerPrompt()"
             class="py-2.5 px-3 rounded-xl card-inner border hover:border-emerald-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
-            <i data-lucide="user-plus" class="w-4 h-4 text-emerald-500"></i> <span id="t-btn-add-live-player">補入名單</span>
+            <i data-lucide="user-plus" class="w-4 h-4 text-emerald-500"></i> <span
+              id="t-btn-add-live-player">補入名單</span>
           </button>
           <button type="button" onclick="completeTournamentAndReturn()" id="btn-complete-and-return"
             class="py-2.5 px-3 rounded-xl card-inner border hover:border-amber-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
-            <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-500"></i> <span id="t-btn-complete-and-return">結束賽事</span>
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-500"></i> <span
+              id="t-btn-complete-and-return">結束賽事</span>
           </button>
           <button type="button" onclick="liveDeleteTournament()" id="btn-live-delete-tournament"
             class="py-2.5 px-3 rounded-xl card-inner border hover:border-rose-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
@@ -933,7 +952,7 @@
     // ============================================================
     function escapeHTML(str) {
       if (typeof str !== 'string') return str == null ? '' : String(str);
-      return str.replace(/[&<>"']/g, function(match) {
+      return str.replace(/[&<>"']/g, function (match) {
         const escapeMap = {
           '&': '&amp;',
           '<': '&lt;',
@@ -981,7 +1000,7 @@
     // ============================================================
     const urlParams = new URLSearchParams(window.location.search);
     const urlLang = urlParams.get("lang");
-    
+
     // 先去使用者的手機/瀏覽器找找看以前有沒有設定過
     let initialLang = localStorage.getItem("pb_lang");
 
@@ -989,12 +1008,12 @@
       // 情況 A：網址有強制帶參數 (?lang=en 或 ?lang=zh-TW)
       initialLang = urlLang;
       localStorage.setItem("pb_lang", initialLang);
-      
+
       // 把網址列的參數抹除，保持畫面美觀
       urlParams.delete("lang");
       const newQuery = urlParams.toString() ? '?' + urlParams.toString() : '';
       window.history.replaceState({}, '', window.location.pathname + newQuery);
-      
+
     } else if (!initialLang) {
       // 情況 B：第一次點進來的全新訪客
       // 讀取裝置系統預設語言，只要不是中文 (zh 開頭)，就預設給英文版 (en)
@@ -1847,6 +1866,7 @@
       } else if (pageName === "create") {
         resetCreateForm();
       } else if (pageName === "history") {
+        STATE.historyCategory = "__casual__";
         renderHistoryPage();
       } else if (pageName === "admin") {
         renderAdminPage();
@@ -1945,7 +1965,12 @@
     }
 
     // ----------------------------------------------------
-    // INDIVIDUAL ROUND ROBIN ALGORITHM (升級版：個人雙打輪播)
+    // INDIVIDUAL ROUND ROBIN ALGORITHM (升級版：個人雙打輪播 - 智慧動態候選池與全域尋優)
+    // 滿足四大優先級：
+    // 1. 絕對底線一（上場平均）：所有人出賽局數落差絕對 <= 1
+    // 2. 絕對底線二（零重複搭檔）：搭檔重複高額懲罰，在數學允許下達到 0 重複
+    // 3. 絕對底線三（防連打/防連休）：嚴格抑制連打 >= 2，連休 >= 3 啟動板凳救援補償
+    // 4. 錦上添花（對手多樣性）：對手重複微額懲罰
     // ----------------------------------------------------
     function generateRoundRobinSchedule(playersList, durationHours = 2.0, estMinsPerGame = 15, scheduleMode = "fair", customTotalGames = 0) {
       const n = playersList.length;
@@ -1965,106 +1990,179 @@
         totalRounds = getValidTotalGames(n, rawTargetGames);
       }
 
-      // 1. 初始化狀態追蹤器 (含對手追蹤與連續場次追蹤)
-      const gamesPlayed = {};
-      const partneredCount = {};
-      const opponentCount = {};
-      const consecutivePlays = {};
-      const consecutiveRests = {};
+      function generateSingleSchedule() {
+        const gamesPlayed = {};
+        const partneredCount = {};
+        const opponentCount = {};
+        const consecutivePlays = {};
+        const consecutiveRests = {};
 
-      playersList.forEach(p => {
-        gamesPlayed[p] = 0;
-        consecutivePlays[p] = 0;
-        consecutiveRests[p] = 0;
-        partneredCount[p] = {};
-        opponentCount[p] = {};
-        playersList.forEach(p2 => {
-          partneredCount[p][p2] = 0;
-          opponentCount[p][p2] = 0;
-        });
-      });
-
-      const matches = [];
-
-      for (let r = 1; r <= totalRounds; r++) {
-        // 2. 嚴格的上場選拔邏輯 (優先級：總場次少 > 連休多 > 連打少)
-        const sorted = [...playersList].sort((a, b) => {
-          if (gamesPlayed[a] !== gamesPlayed[b]) return gamesPlayed[a] - gamesPlayed[b];
-          if (consecutiveRests[b] !== consecutiveRests[a]) return consecutiveRests[b] - consecutiveRests[a];
-          if (consecutivePlays[a] !== consecutivePlays[b]) return consecutivePlays[a] - consecutivePlays[b];
-          return Math.random() - 0.5;
+        playersList.forEach(p => {
+          gamesPlayed[p] = 0;
+          consecutivePlays[p] = 0;
+          consecutiveRests[p] = 0;
+          partneredCount[p] = {};
+          opponentCount[p] = {};
+          playersList.forEach(p2 => {
+            partneredCount[p][p2] = 0;
+            opponentCount[p][p2] = 0;
+          });
         });
 
-        const active = sorted.slice(0, 4);
-        const resting = sorted.slice(4);
+        const singleMatches = [];
 
-        const combinations = [
-          { blue: [active[0], active[1]], red: [active[2], active[3]] },
-          { blue: [active[0], active[2]], red: [active[1], active[3]] },
-          { blue: [active[0], active[3]], red: [active[1], active[2]] },
-        ];
+        for (let r = 1; r <= totalRounds; r++) {
+          const sortedPlayers = [...playersList].sort((a, b) => {
+            if (gamesPlayed[a] !== gamesPlayed[b]) return gamesPlayed[a] - gamesPlayed[b];
+            return Math.random() - 0.5;
+          });
 
-        let bestCombo = combinations[0];
-        let minScore = Infinity;
+          // 智慧動態候選池：至多取 12 人，確保零重複搭檔解不被擋在池外，且維持毫秒級運算
+          const pool = sortedPlayers.slice(0, Math.min(n, 12));
+          const k = pool.length;
 
-        // 3. 配對計分邏輯 (綜合考量搭檔與對手重複率)
-        combinations.forEach(combo => {
-          const bPartnerScore = partneredCount[combo.blue[0]][combo.blue[1]];
-          const rPartnerScore = partneredCount[combo.red[0]][combo.red[1]];
-          
-          let oppScore = 0;
-          combo.blue.forEach(bp => {
-            combo.red.forEach(rp => {
-              oppScore += opponentCount[bp][rp];
+          let bestMatch = null;
+          let minRoundCost = Infinity;
+
+          for (let i = 0; i < k; i++) {
+            for (let j = i + 1; j < k; j++) {
+              for (let m = j + 1; m < k; m++) {
+                for (let l = m + 1; l < k; l++) {
+                  const four = [pool[i], pool[j], pool[m], pool[l]];
+
+                  // 絕對底線一：所有人上場局數落差絕對不可大於 1 局
+                  let maxSim = -Infinity;
+                  let minSim = Infinity;
+                  playersList.forEach(p => {
+                    const simPlayed = gamesPlayed[p] + (four.includes(p) ? 1 : 0);
+                    if (simPlayed > maxSim) maxSim = simPlayed;
+                    if (simPlayed < minSim) minSim = simPlayed;
+                  });
+                  if (maxSim - minSim > 1) continue;
+
+                  const pairings = [
+                    { blue: [four[0], four[1]], red: [four[2], four[3]] },
+                    { blue: [four[0], four[2]], red: [four[1], four[3]] },
+                    { blue: [four[0], four[3]], red: [four[1], four[2]] }
+                  ];
+
+                  for (const p of pairings) {
+                    // 絕對底線二：搭檔重複重罰 (100000)
+                    const bRepeat = partneredCount[p.blue[0]][p.blue[1]];
+                    const rRepeat = partneredCount[p.red[0]][p.red[1]];
+                    const partnerCost = (bRepeat + rRepeat) * 100000;
+
+                    // 絕對底線三：抑制連打與板凳久休救援補償
+                    let streakCost = 0;
+                    let restReward = 0;
+                    four.forEach(player => {
+                      if (consecutivePlays[player] >= 2) streakCost += 5000;
+                      else if (consecutivePlays[player] === 1) streakCost += 50;
+
+                      // 當連續休息達到 3 局以上，啟動階梯式救援獎勵，避免板凳坐穿
+                      const rests = consecutiveRests[player];
+                      if (rests >= 3) restReward += (rests - 2) * 500;
+                    });
+
+                    // 錦上添花：對手重複微罰 (1)
+                    let oppCost = 0;
+                    p.blue.forEach(bp => {
+                      p.red.forEach(rp => { oppCost += opponentCount[bp][rp] * 1; });
+                    });
+
+                    const totalCost = partnerCost + streakCost + oppCost - restReward + Math.random();
+                    if (totalCost < minRoundCost) {
+                      minRoundCost = totalCost;
+                      bestMatch = {
+                        blue: p.blue,
+                        red: p.red,
+                        active: four,
+                        resting: playersList.filter(x => !four.includes(x))
+                      };
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // 備援保底
+          if (!bestMatch) {
+            const fallbackFour = pool.slice(0, 4);
+            bestMatch = {
+              blue: [fallbackFour[0], fallbackFour[1]],
+              red: [fallbackFour[2], fallbackFour[3]],
+              active: fallbackFour,
+              resting: playersList.filter(x => !fallbackFour.includes(x))
+            };
+          }
+
+          bestMatch.active.forEach(p => {
+            gamesPlayed[p]++;
+            consecutivePlays[p]++;
+            consecutiveRests[p] = 0;
+          });
+          bestMatch.resting.forEach(p => {
+            consecutiveRests[p]++;
+            consecutivePlays[p] = 0;
+          });
+
+          partneredCount[bestMatch.blue[0]][bestMatch.blue[1]]++;
+          partneredCount[bestMatch.blue[1]][bestMatch.blue[0]]++;
+          partneredCount[bestMatch.red[0]][bestMatch.red[1]]++;
+          partneredCount[bestMatch.red[1]][bestMatch.red[0]]++;
+
+          bestMatch.blue.forEach(bp => {
+            bestMatch.red.forEach(rp => {
+              opponentCount[bp][rp]++;
+              opponentCount[rp][bp]++;
             });
           });
 
-          // 搭檔重複權重 (3) 高於對手重複 (1)
-          const score = (bPartnerScore + rPartnerScore) * 3 + oppScore;
-
-          if (score < minScore) {
-            minScore = score;
-            bestCombo = combo;
-          }
-        });
-
-        // 4. 更新狀態追蹤器
-        bestCombo.blue.concat(bestCombo.red).forEach(p => {
-          gamesPlayed[p]++;
-          consecutivePlays[p]++;
-          consecutiveRests[p] = 0;
-        });
-        resting.forEach(p => {
-          consecutiveRests[p]++;
-          consecutivePlays[p] = 0;
-        });
-
-        partneredCount[bestCombo.blue[0]][bestCombo.blue[1]]++;
-        partneredCount[bestCombo.blue[1]][bestCombo.blue[0]]++;
-        partneredCount[bestCombo.red[0]][bestCombo.red[1]]++;
-        partneredCount[bestCombo.red[1]][bestCombo.red[0]]++;
-
-        bestCombo.blue.forEach(bp => {
-          bestCombo.red.forEach(rp => {
-            opponentCount[bp][rp]++;
-            opponentCount[rp][bp]++;
+          singleMatches.push({
+            id: r,
+            roundName: `Game ${r}`,
+            blue: bestMatch.blue,
+            red: bestMatch.red,
+            resting: bestMatch.resting,
+            blueScore: null,
+            redScore: null,
+            completed: false,
+            voided: false
           });
-        });
+        }
 
-        matches.push({
-          id: r,
-          roundName: `Game ${r}`,
-          blue: bestCombo.blue,
-          red: bestCombo.red,
-          resting: resting,
-          blueScore: null,
-          redScore: null,
-          completed: false,
-          voided: false
-        });
+        return { matches: singleMatches, gamesPlayed, partneredCount };
       }
 
-      return matches;
+      // 多次重啟 (Multi-Restart) 全域尋優：在毫秒內尋找全域最優賽程
+      const NUM_RESTARTS = 15;
+      let bestGlobalMatches = null;
+      let bestGlobalCost = Infinity;
+
+      for (let iter = 0; iter < NUM_RESTARTS; iter++) {
+        const schedule = generateSingleSchedule();
+        const playedValues = Object.values(schedule.gamesPlayed);
+        const spread = Math.max(...playedValues) - Math.min(...playedValues);
+
+        let totalPartnerRepeats = 0;
+        for (const p1 of playersList) {
+          for (const p2 of playersList) {
+            if (p1 >= p2) continue;
+            const count = schedule.partneredCount[p1][p2] || 0;
+            if (count > 1) totalPartnerRepeats += (count - 1);
+          }
+        }
+
+        const globalCost = (spread > 1 ? 10000000 : 0) + (totalPartnerRepeats * 100000);
+        if (globalCost < bestGlobalCost) {
+          bestGlobalCost = globalCost;
+          bestGlobalMatches = schedule.matches;
+          if (globalCost === 0) break; // 達到理論極限零重複與零落差，立即返回
+        }
+      }
+
+      return bestGlobalMatches || [];
     }
 
     // ----------------------------------------------------
@@ -2114,6 +2212,7 @@
         if (wrapPartnerToggle) wrapPartnerToggle.classList.add("hidden");
         setPartnerType("rotating");
       }
+      updateRosterHealthNotice();
       lucide.createIcons();
     }
     window.setCreateMode = setCreateMode;
@@ -2326,9 +2425,63 @@
       if (badge) {
         badge.innerHTML = `<i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500"></i> <span><b id="roster-count-num">${players.length}</b> (${unitStr})</span>`;
       }
+      updateRosterHealthNotice();
       lucide.createIcons();
     }
     window.updatePlayerCountBadge = updatePlayerCountBadge;
+
+    function updateRosterHealthNotice() {
+      const noticeEl = document.getElementById("roster-health-notice");
+      if (!noticeEl) return;
+
+      const text = document.getElementById("create-players")?.value || "";
+      const players = text.split("\n").map(s => s.trim()).filter(Boolean);
+      const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
+      const mode = document.getElementById("create-tournament-mode")?.value || "fair";
+      const isRotating = (partnerType === "rotating" && mode !== "group");
+      const isZh = (STATE.lang === "zh-TW");
+      const count = players.length;
+
+      if (!isRotating || count === 0) {
+        noticeEl.classList.add("hidden");
+        noticeEl.innerHTML = "";
+        return;
+      }
+
+      if (count < 4) {
+        noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-stone-500/10 text-stone-600 dark:text-slate-300 border border-stone-300/30";
+        noticeEl.innerHTML = `
+          <i data-lucide="info" class="w-4 h-4 shrink-0 text-stone-400"></i>
+          <span>${isZh ? `目前已登錄 <b>${count}</b> 人（雙打單一球場開賽至少需 4 人）。` : `Currently <b>${count}</b> players registered (min 4 needed for doubles).`}</span>
+        `;
+        noticeEl.classList.remove("hidden");
+      } else if (count <= 8) {
+        const pct = Math.round((4 / count) * 100);
+        noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20";
+        noticeEl.innerHTML = `
+          <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 text-emerald-500"></i>
+          <span><b>${isZh ? "🟢 單場黃金比例" : "🟢 Optimal Court Ratio"}</b>：${isZh ? `目前 ${count} 人，平均上場率約 ${pct}%，打休體能調節最佳！` : `${count} players (~${pct}% playtime), optimal play-to-rest pace!`}</span>
+        `;
+        noticeEl.classList.remove("hidden");
+      } else if (count <= 10) {
+        noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20";
+        noticeEl.innerHTML = `
+          <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 text-amber-500"></i>
+          <span><b>${isZh ? "🟡 等候時間略長" : "🟡 Moderate Wait"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），每打 1 局平均需休 1~2 局。` : `${count} players (${count - 4} resting), players rest 1-2 games between matches.`}</span>
+        `;
+        noticeEl.classList.remove("hidden");
+      } else {
+        noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20";
+        noticeEl.innerHTML = `
+          <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0 text-rose-500"></i>
+          <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），單場輪替易連休 3 局以上手感變冷。若有多面場地建議改用「分組比賽」！` : `${count} players (${count - 4} resting). High rest streaks expected on 1 court. Group Mode strongly recommended!`}</span>
+        `;
+        noticeEl.classList.remove("hidden");
+      }
+
+      lucide.createIcons();
+    }
+    window.updateRosterHealthNotice = updateRosterHealthNotice;
 
     function calculateTimeEstimate() {
       const text = document.getElementById("create-players")?.value || "";
@@ -2636,18 +2789,37 @@
     }
 
     const MAX_ROSTER_LIMIT = 60; // 參賽登錄上限：60 組/人
+    const MAX_ROTATING_PLAYERS = 16; // 單一球場個人輪替上限：16 人
 
     function setSelectedPlayers(list) {
       const textarea = document.getElementById("create-players");
+      const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
+      const mode = document.getElementById("create-tournament-mode")?.value || "fair";
+      const isRotating = (partnerType === "rotating" && mode !== "group");
+
       let unique = Array.from(new Set((list || []).map(s => s.trim()).filter(Boolean)));
-      if (unique.length > MAX_ROSTER_LIMIT) {
+      if (isRotating && unique.length > MAX_ROTATING_PLAYERS) {
+        unique = unique.slice(0, MAX_ROTATING_PLAYERS);
+        showToast(
+          STATE.lang === "zh-TW"
+            ? `⚠️ 單場輪替模式建議上限為 ${MAX_ROTATING_PLAYERS} 人！若人數更多請改用「分組比賽」模式。`
+            : `⚠️ Max ${MAX_ROTATING_PLAYERS} players for single-court rotating! Use Group Mode for larger rosters.`,
+          "warning"
+        );
+      } else if (unique.length > MAX_ROSTER_LIMIT) {
         unique = unique.slice(0, MAX_ROSTER_LIMIT);
-        showToast(STATE.lang === "zh-TW" ? `⚠️ 參賽單位已達上限 (最多 ${MAX_ROSTER_LIMIT} 組)！` : `⚠️ Max unit limit reached (max ${MAX_ROSTER_LIMIT})!`, "warning");
+        showToast(
+          STATE.lang === "zh-TW"
+            ? `⚠️ 參賽單位已達上限 (最多 ${MAX_ROSTER_LIMIT} 組)！`
+            : `⚠️ Max unit limit reached (max ${MAX_ROSTER_LIMIT})!`,
+          "warning"
+        );
       }
       if (textarea) textarea.value = unique.join("\n");
       renderSelectedPlayerChips();
       renderClubMemberChips();
       updatePlayerCountBadge();
+      updateRosterHealthNotice();
       calculateTimeEstimate();
     }
 
@@ -2789,14 +2961,22 @@
 
     function quickGeneratePlayers() {
       const countInput = document.getElementById("quick-generate-count");
+      const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
+      const mode = document.getElementById("create-tournament-mode")?.value || "fair";
+      const isRotating = (partnerType === "rotating" && mode !== "group");
+      const maxLimit = isRotating ? 16 : 60;
+
       const count = parseInt(countInput?.value) || 8;
-      if (count < 4 || count > 60) {
-        showToast(STATE.lang === "zh-TW" ? "請輸入 4 至 60 之間的數量！" : "Please enter a count between 4 and 60!", "warning");
+      if (count < 4 || count > maxLimit) {
+        showToast(
+          STATE.lang === "zh-TW"
+            ? `請輸入 4 至 ${maxLimit} 之間的數量！${isRotating ? "（單場輪替上限 16 人）" : ""}`
+            : `Please enter a count between 4 and ${maxLimit}!`,
+          "warning"
+        );
         return;
       }
 
-      const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
-      const mode = document.getElementById("create-tournament-mode")?.value || "fair";
       const isTeamMode = (partnerType === "fixed" || mode === "group");
       const prefix = isTeamMode
         ? (STATE.lang === "zh-TW" ? "隊伍" : "Team")
@@ -4271,9 +4451,9 @@
 
       const casualCount = completedAll.filter(t => !t.clubName || !t.clubName.trim()).length;
 
-      // Default category
+      // Default category: 每次進來預設優先進入「臨打賽事」
       if (!STATE.historyCategory) {
-        STATE.historyCategory = uniqueClubs.length > 0 ? uniqueClubs[0] : "__casual__";
+        STATE.historyCategory = "__casual__";
       }
 
       // Render category tabs: [ 臨打賽事 (count) ] [ 🛡️ 社團 A (count) ] ...
@@ -4565,12 +4745,68 @@
             `;
           }).join("");
 
+          // 生成【全輪次對戰紀錄】緊湊小表（專業對戰表排版：藍隊靠右、比分置中、紅隊靠左）
+          const matchRows = matches.map(m => {
+            const bScore = m.blueScore != null ? parseInt(m.blueScore) : null;
+            const rScore = m.redScore != null ? parseInt(m.redScore) : null;
+            const isDone = m.completed && !m.voided && bScore != null && rScore != null;
+            const blueWon = isDone && bScore > rScore;
+            const redWon = isDone && rScore > bScore;
+            const isVoid = !!m.voided;
+
+            const blueNames = (m.blue || []).join(" / ");
+            const redNames = (m.red || []).join(" / ");
+            const restNames = (m.resting && m.resting.length > 0) ? m.resting.join("、") : "-";
+
+            let scoreBadge = `<span class="sub-text text-[11px] font-mono">-</span>`;
+            if (isVoid) {
+              scoreBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-500 border border-rose-500/20 font-bold">${STATE.lang === 'zh-TW' ? '取消' : 'Void'}</span>`;
+            } else if (isDone) {
+              scoreBadge = `
+                <span class="font-mono font-bold text-xs px-2 py-0.5 rounded-md card-inner border inline-flex items-center justify-center gap-1 shadow-xs min-w-[56px]">
+                  <span class="${blueWon ? 'text-blue-500 font-extrabold' : 'sub-text'}">${bScore}</span>
+                  <span class="sub-text font-normal">:</span>
+                  <span class="${redWon ? 'text-rose-500 font-extrabold' : 'sub-text'}">${rScore}</span>
+                </span>
+              `;
+            }
+
+            return `
+              <tr class="hover:bg-stone-500/5 transition ${isVoid ? 'opacity-50' : ''}">
+                <td class="py-2.5 px-2 text-center font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                  ${m.roundName || `G${m.id}`}
+                </td>
+                <td class="py-2.5 px-2 text-right text-xs ${blueWon ? 'font-bold text-stone-900 dark:text-slate-100' : 'sub-text'}">
+                  <div class="inline-flex items-center justify-end gap-1.5">
+                    <span>${blueNames}</span>
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0 ${blueWon ? 'bg-blue-500 ring-2 ring-blue-500/30' : 'bg-transparent'}"></span>
+                  </div>
+                </td>
+                <td class="py-2.5 px-1 text-center whitespace-nowrap">
+                  ${scoreBadge}
+                </td>
+                <td class="py-2.5 px-2 text-left text-xs ${redWon ? 'font-bold text-stone-900 dark:text-slate-100' : 'sub-text'}">
+                  <div class="inline-flex items-center justify-start gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0 ${redWon ? 'bg-rose-500 ring-2 ring-rose-500/30' : 'bg-transparent'}"></span>
+                    <span>${redNames}</span>
+                  </div>
+                </td>
+                <td class="py-2.5 px-2 text-center text-[11px] sub-text hidden md:table-cell whitespace-nowrap">
+                  ${restNames}
+                </td>
+              </tr>
+            `;
+          }).join("");
+
           expandedHTML = `
-            <div class="mt-4 animate-in">
+            <div class="mt-4 space-y-3 animate-in">
               <!-- Final Leaderboard -->
               <div class="glass-card rounded-xl overflow-hidden border">
-                <div class="px-3 py-2 card-inner border-b text-xs font-bold">
-                  ${t("finalLeaderboard")}
+                <div class="px-3 py-2 card-inner border-b text-xs font-bold flex items-center justify-between">
+                  <span class="flex items-center gap-1.5">
+                    <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-500"></i>
+                    <span>${t("finalLeaderboard")}</span>
+                  </span>
                 </div>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left text-xs">
@@ -4584,6 +4820,33 @@
                       </tr>
                     </thead>
                     <tbody class="divide-y font-medium text-xs">${lbRows}</tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- 全輪次對戰紀錄 (Full Match Results - 對稱置中) -->
+              <div class="glass-card rounded-xl overflow-hidden border">
+                <div class="px-3 py-2 card-inner border-b text-xs font-bold flex items-center justify-between">
+                  <span class="flex items-center gap-1.5">
+                    <i data-lucide="swords" class="w-3.5 h-3.5 text-amber-500"></i>
+                    <span>${STATE.lang === 'zh-TW' ? '【全輪次對戰紀錄】' : '【Full Match Results】'}</span>
+                  </span>
+                  <span class="sub-text text-[11px] font-mono">${completedMatches} / ${totalMatches} ${STATE.lang === 'zh-TW' ? '完賽' : 'Done'}</span>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-xs">
+                    <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
+                      <tr>
+                        <th class="py-2 px-2 text-center w-12 shrink-0">${STATE.lang === 'zh-TW' ? '局數' : 'Game'}</th>
+                        <th class="py-2 px-2 text-right w-[35%]">${STATE.lang === 'zh-TW' ? '藍隊' : 'Blue'}</th>
+                        <th class="py-2 px-1 text-center w-20 shrink-0">${STATE.lang === 'zh-TW' ? '比分' : 'Score'}</th>
+                        <th class="py-2 px-2 text-left w-[35%]">${STATE.lang === 'zh-TW' ? '紅隊' : 'Red'}</th>
+                        <th class="py-2 px-2 text-center hidden md:table-cell sub-text w-24">${STATE.lang === 'zh-TW' ? '輪休' : 'Resting'}</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y font-medium text-xs">
+                      ${matchRows || `<tr><td colspan="5" class="py-4 text-center sub-text text-xs">尚無場次紀錄</td></tr>`}
+                    </tbody>
                   </table>
                 </div>
               </div>
