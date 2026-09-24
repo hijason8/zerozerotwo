@@ -419,13 +419,25 @@
           <input type="hidden" id="create-tournament-mode" value="fair" />
         </div>
 
+        <!-- Free Mode Initial Option & Notice Card (Shown when Free Mode selected) -->
+        <div id="wrap-free-notice"
+          class="hidden p-3 sm:p-3.5 rounded-2xl card-inner border border-emerald-500/30 text-xs space-y-1.5 bg-emerald-500/5">
+          <div class="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span id="t-free-notice-title">自由模式初始設定與說明：</span>
+          </div>
+          <p class="sub-text text-[11px] leading-relaxed" id="t-free-notice-desc">
+            請在下方選擇賽制類型（個人單打 👤 / 固定隊伍 🛡️ / 自由雙打 👥）並登錄初始參賽名單。進入賽事後亦可在加局時彈性切換單/雙打與自由配對！
+          </p>
+        </div>
+
         <!-- 4. Player Roster Section (Unified Compact Chips Container) -->
         <div class="space-y-2">
           <!-- Header Bar with Partner Type Switcher -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <label id="t-label-players" class="block text-xs sm:text-sm font-semibold">4. 參賽選手名單</label>
+          <div class="flex items-center justify-between gap-2">
+            <label id="t-label-players" class="block text-xs sm:text-sm font-semibold shrink-0">4. 參賽選手名單</label>
             <div id="wrap-partner-toggle"
-              class="inline-flex p-0.5 bg-stone-200 dark:bg-slate-800/80 rounded-xl text-xs font-bold shrink-0">
+              class="inline-flex w-fit p-0.5 bg-stone-200 dark:bg-slate-800/80 rounded-xl text-xs font-bold shrink-0">
               <button type="button" id="btn-partner-rotating" onclick="setPartnerType('rotating')"
                 class="px-2.5 py-1 rounded-lg transition-all text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm">
                 <span id="t-partner-rotating-text">輪替隊友</span>
@@ -433,6 +445,10 @@
               <button type="button" id="btn-partner-fixed" onclick="setPartnerType('fixed')"
                 class="px-2.5 py-1 rounded-lg transition-all text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200">
                 <span id="t-partner-fixed-text">固定隊友</span>
+              </button>
+              <button type="button" id="btn-partner-singles" onclick="setPartnerType('singles')"
+                class="px-2.5 py-1 rounded-lg transition-all text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200">
+                <span id="t-partner-singles-text">個人單打</span>
               </button>
             </div>
             <input type="hidden" id="create-partner-type" value="rotating" />
@@ -443,9 +459,10 @@
             <!-- Row 1: Single Unified Input Bar + Live Count Badge -->
             <div class="flex items-center gap-2">
               <div class="relative flex-1">
-                <input type="text" id="quick-add-player-input" placeholder="單行或多行批量輸入"
+                <input type="text" id="quick-add-player-input" placeholder="輸入姓名，支援空格、逗號或換行批量輸入"
                   class="w-full input-bg border rounded-xl pl-3 pr-20 sm:pr-24 py-2 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none shadow-inner"
-                  onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); quickAddPlayer();}" />
+                  onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); quickAddPlayer();}"
+                  onpaste="setTimeout(quickAddPlayer, 50)" />
                 <button type="button" onclick="quickAddPlayer()" id="t-quick-add-btn"
                   class="absolute right-1 top-1 bottom-1 px-3 bg-emerald-500 hover:bg-emerald-400 text-white dark:text-slate-950 font-bold rounded-lg text-xs flex items-center gap-1 transition shadow-sm active:scale-95">
                   <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span id="t-btn-add-person">新增</span>
@@ -488,7 +505,7 @@
               class="flex items-center justify-between gap-2 pt-2 border-t border-stone-200 dark:border-slate-800/40 text-[11px]">
               <span id="t-auto-gen-label" class="sub-text text-[11px]">自動生成代號：</span>
               <div class="flex items-center gap-1.5">
-                <input type="number" id="quick-generate-count" min="4" max="60" placeholder="數量"
+                <input type="number" id="quick-generate-count" min="2" max="60" placeholder="數量"
                   class="w-14 input-bg border rounded-md px-1.5 py-1 text-xs text-center focus:border-amber-500 focus:outline-none"
                   onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); quickGeneratePlayers();}" />
                 <button type="button" onclick="quickGeneratePlayers()" id="t-quick-gen-btn"
@@ -570,14 +587,6 @@
           </div>
         </div>
 
-        <!-- Free Mode Helper Box -->
-        <div id="wrap-free-notice" class="hidden p-3 rounded-2xl card-inner border text-xs space-y-1">
-          <div class="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-            <span id="t-free-notice-title">自由模式說明：</span>
-          </div>
-          <p class="sub-text text-[11px]" id="t-free-notice-desc">進入賽事後，使用管理模式隨時點擊「➕ 新增場次」與「補入選手」即時開局記分！</p>
-        </div>
-
         <!-- Time Estimation Hint Box & Fair Schedule Options -->
         <div id="time-estimate-box" class="p-3.5 rounded-xl card-inner border text-xs space-y-2.5">
           <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -651,7 +660,7 @@
           <button onclick="openShareModal()" id="t-share-btn"
             class="px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-            <span>分享 / QR Code</span>
+            <span id="t-share-btn-text">分享 / QR Code</span>
           </button>
         </div>
       </div>
@@ -661,7 +670,7 @@
         class="hidden glass-card rounded-2xl p-3 sm:p-4 border border-amber-500/30 bg-amber-500/5 space-y-2.5 shadow-sm transition-all">
         <div class="flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
           <span class="flex items-center gap-1.5">
-            <i data-lucide="shield-check" class="w-4 h-4"></i> <span>管理模式面板</span>
+            <i data-lucide="shield-check" class="w-4 h-4"></i> <span id="t-live-admin-toolbar-title">管理模式面板</span>
           </span>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -880,56 +889,115 @@
   </div>
 
   <!-- ==================== ADD MATCH MODAL ==================== -->
+  <!-- Modal: Add Match (加打一局 / 增加場次 - 自由單雙打與自選配對) -->
   <div id="modal-add-match"
-    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="glass-card rounded-2xl max-w-md w-full p-5 space-y-4 border relative text-left">
+    class="fixed inset-0 bg-stone-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-2xl max-w-lg w-full p-5 space-y-3.5 border relative text-left shadow-2xl">
       <button onclick="closeAddMatchModal()" class="absolute top-3.5 right-3.5 sub-text hover:text-emerald-500">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
 
-      <div class="flex items-center gap-2 border-b border-stone-200 dark:border-slate-800 pb-2.5">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+      <!-- Modal Header -->
+      <div class="flex items-center gap-2.5 border-b border-stone-200 dark:border-slate-800 pb-2.5">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
           <i data-lucide="swords" class="w-4 h-4"></i>
         </div>
-        <div>
+        <div class="flex-1">
           <h3 class="text-sm font-bold font-display" id="modal-add-match-title">加打一局 / 增加場次</h3>
-          <p class="text-[11px] sub-text" id="modal-add-match-desc">選擇 4 位選手或點擊自動配對</p>
+          <p class="text-[11px] sub-text" id="modal-add-match-desc">自選對陣名單或點擊智慧配對</p>
         </div>
       </div>
 
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold sub-text" id="modal-custom-roster-label">自選陣容</span>
-        <button type="button" onclick="autoPickAddMatchPlayers()" id="modal-btn-auto-pick"
-          class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center gap-1 transition">
-          <span id="modal-auto-pick-text">自動配對（場次少者優先）</span>
-        </button>
+      <!-- Format Toggle: Doubles (2v2) vs Singles (1v1) -->
+      <div id="modal-format-toggle-wrap"
+        class="flex items-center justify-between gap-2 p-1.5 rounded-xl bg-stone-500/10 border border-stone-300/30 dark:border-slate-800 text-xs">
+        <span class="font-bold sub-text pl-1 text-[11px]" id="t-modal-format-label">賽制切換：</span>
+        <div class="inline-flex p-0.5 bg-stone-200 dark:bg-slate-800 rounded-lg text-xs font-bold shrink-0">
+          <button type="button" id="modal-btn-format-doubles" onclick="setAddMatchFormat('doubles')"
+            class="px-2.5 py-1 rounded-md text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm transition">
+            <span id="t-modal-format-doubles">👥 雙打 (2v2)</span>
+          </button>
+          <button type="button" id="modal-btn-format-singles" onclick="setAddMatchFormat('singles')"
+            class="px-2.5 py-1 rounded-md text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200 transition">
+            <span id="t-modal-format-singles">👤 單打 (1v1)</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Teams Grid -->
+      <!-- Quick Action Toolbar -->
+      <div class="flex items-center justify-between gap-1.5 flex-wrap pt-0.5">
+        <div class="flex items-center gap-1">
+          <button type="button" onclick="autoPickAddMatchPlayers()" id="modal-btn-auto-pick"
+            class="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center gap-1 transition"
+            title="出賽場次最少者優先上場">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> <span id="t-modal-auto-pick">場次少優先</span>
+          </button>
+          <button type="button" onclick="randomPickAddMatchPlayers()" id="modal-btn-random-pick"
+            class="px-2 py-1 rounded-lg card-inner hover:border-amber-500/50 sub-text font-bold text-xs flex items-center gap-1 border transition"
+            title="從全體選手中隨機抽籤配對">
+            <i data-lucide="dices" class="w-3.5 h-3.5"></i> <span id="t-modal-random-pick">隨機抽籤</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-1">
+          <button type="button" onclick="swapAddMatchSides()"
+            class="px-2 py-1 rounded-lg card-inner sub-text hover:text-amber-500 text-xs font-bold border transition flex items-center gap-1"
+            title="藍紅攻守對調">
+            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline text-[11px]"
+              id="t-modal-swap-sides">藍紅對調</span>
+          </button>
+          <button type="button" id="modal-btn-swap-partners" onclick="swapAddMatchPartners()"
+            class="px-2 py-1 rounded-lg card-inner sub-text hover:text-amber-500 text-xs font-bold border transition flex items-center gap-1"
+            title="交換隊友 (藍2與紅2對調)">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline text-[11px]"
+              id="t-modal-swap-partners">交換隊友</span>
+          </button>
+          <button type="button" onclick="clearAddMatchPlayers()"
+            class="px-2 py-1 rounded-lg card-inner sub-text hover:text-rose-500 text-xs font-bold border transition flex items-center gap-1"
+            title="清空全部欄位">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline text-[11px]"
+              id="t-modal-clear">清空</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Teams Grid (Slots) -->
       <div class="grid grid-cols-2 gap-3 pt-1">
-        <!-- Blue Team -->
+        <!-- Blue Team Slot -->
         <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2">
           <div class="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
             <span class="w-2 h-2 rounded-full bg-blue-500"></span> <span id="modal-blue-team-title">藍隊</span>
           </div>
-          <select id="add-blue-1"
+          <select id="add-blue-1" onchange="renderAddMatchRosterChips()"
             class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
-          <select id="add-blue-2"
+          <select id="add-blue-2" onchange="renderAddMatchRosterChips()"
             class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
         </div>
 
-        <!-- Red Team -->
+        <!-- Red Team Slot -->
         <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-2">
           <div class="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
             <span class="w-2 h-2 rounded-full bg-rose-500"></span> <span id="modal-red-team-title">紅隊</span>
           </div>
-          <select id="add-red-1"
+          <select id="add-red-1" onchange="renderAddMatchRosterChips()"
             class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
-          <select id="add-red-2"
+          <select id="add-red-2" onchange="renderAddMatchRosterChips()"
             class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
         </div>
       </div>
 
+      <!-- Quick Tap Roster Chips Container -->
+      <div class="space-y-1.5 pt-1 border-t border-stone-200 dark:border-slate-800">
+        <div class="flex items-center justify-between text-[11px] font-bold sub-text">
+          <span id="t-modal-tap-roster-title">👥 點選選手直接入座：</span>
+          <span class="text-[10px] font-normal opacity-75" id="t-modal-tap-roster-sub">點擊入座空位，點擊已選取消</span>
+        </div>
+        <div id="modal-roster-chips"
+          class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1.5 rounded-xl card-inner border">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Confirm Button -->
       <button type="button" onclick="submitAddMatch()" id="modal-btn-confirm-add"
         class="w-full bg-emerald-500 hover:bg-emerald-400 text-white dark:text-slate-950 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 shadow-md transition active:scale-95">
         <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="t-modal-confirm-add-text">確認增加對局</span>
@@ -1181,10 +1249,25 @@
         modalQrDesc: "掃描同步戰況比分",
         copyBtn: "複製",
         copiedToast: "📋 專屬連結已複製！",
+        liveAdminToolbarTitle: "管理模式面板",
+        liveAdminToggleAdmin: "操作模式",
+        liveAdminToggleViewer: "瀏覽模式",
+        shareBtnText: "分享 / QR Code",
         addMatchModalTitle: "加打一局 / 增加場次",
         addMatchModalDesc: "選擇 4 位選手或點擊自動配對",
         customRosterLabel: "自選陣容",
         autoPairBtn: "自動配對（場次少者優先）",
+        modalFormatLabel: "賽制切換：",
+        modalFormatDoubles: "👥 雙打 (2v2)",
+        modalFormatSingles: "👤 單打 (1v1)",
+        modalAutoPick: "場次少優先",
+        modalRandomPick: "隨機抽籤",
+        modalSwapSides: "藍紅對調",
+        modalSwapPartners: "交換隊友",
+        modalClear: "清空",
+        modalTapRosterTitle: "👥 點選選手直接入座：",
+        modalTapRosterTitleTeam: "👥 點選隊伍直接入座：",
+        modalTapRosterSub: "點擊入座空位，點擊已選取消",
         modalBlueTeamTitle: "藍隊",
         modalRedTeamTitle: "紅隊",
         confirmAddMatchBtn: "確認增加對局",
@@ -1416,10 +1499,25 @@
         modalQrDesc: "Scan to sync live scores",
         copyBtn: "Copy",
         copiedToast: "📋 Link copied to clipboard!",
+        liveAdminToolbarTitle: "Admin Control Panel",
+        liveAdminToggleAdmin: "Admin Mode",
+        liveAdminToggleViewer: "Viewer Mode",
+        shareBtnText: "Share / QR Code",
         addMatchModalTitle: "Add Match / Extra Game",
         addMatchModalDesc: "Select 4 players or use auto pairing",
         customRosterLabel: "Custom Roster",
         autoPairBtn: "Auto Pair (Fewer games first)",
+        modalFormatLabel: "Format:",
+        modalFormatDoubles: "👥 Doubles (2v2)",
+        modalFormatSingles: "👤 Singles (1v1)",
+        modalAutoPick: "Least Played",
+        modalRandomPick: "Random Draw",
+        modalSwapSides: "Swap Sides",
+        modalSwapPartners: "Swap Partners",
+        modalClear: "Clear",
+        modalTapRosterTitle: "👥 Tap Player to Seat:",
+        modalTapRosterTitleTeam: "👥 Tap Team to Seat:",
+        modalTapRosterSub: "Tap to seat in empty slot, tap seated to remove",
         modalBlueTeamTitle: "Blue Team",
         modalRedTeamTitle: "Red Team",
         confirmAddMatchBtn: "Confirm Add Match",
@@ -1580,8 +1678,6 @@
       const hubCompToggle = document.getElementById("hub-completed-toggle-text");
       const isHubCompOpen = !document.getElementById("hub-completed-tournaments-wrap")?.classList.contains("hidden");
       if (hubCompToggle) hubCompToggle.innerText = isHubCompOpen ? t("collapseText") : t("expandText");
-      const liveCopyReportText = document.getElementById("text-live-copy-report");
-      if (liveCopyReportText) liveCopyReportText.innerText = t("copyReportBtn");
 
       // History Page
       const histTitle = document.getElementById("t-history-title");
@@ -1650,6 +1746,8 @@
       if (partnerRotEl) partnerRotEl.innerText = isZh ? "輪替隊友" : "Rotating Doubles";
       const partnerFixEl = document.getElementById("t-partner-fixed-text");
       if (partnerFixEl) partnerFixEl.innerText = isZh ? "固定隊友" : "Fixed Pairs";
+      const partnerSinglesEl = document.getElementById("t-partner-singles-text");
+      if (partnerSinglesEl) partnerSinglesEl.innerText = isZh ? "個人單打" : "Singles (1v1)";
 
       const quickGenCountInput = document.getElementById("quick-generate-count");
       if (quickGenCountInput) quickGenCountInput.placeholder = isZh ? "數量" : "Qty";
@@ -1695,12 +1793,14 @@
       if (estPrefixEl) estPrefixEl.innerText = t("estPrefix");
       const hrsUnitEl = document.getElementById("t-hrs-unit");
       if (hrsUnitEl) hrsUnitEl.innerText = t("hrsUnit");
-      const shareBtnEl = document.getElementById("t-share-btn");
-      if (shareBtnEl) shareBtnEl.innerHTML = `<i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i> ${t("shareBtn")}`;
+      const shareBtnTextEl = document.getElementById("t-share-btn-text");
+      if (shareBtnTextEl) shareBtnTextEl.innerText = t("shareBtnText");
       const scheduleTitleEl = document.getElementById("t-schedule-title");
       if (scheduleTitleEl) scheduleTitleEl.innerHTML = `<i data-lucide="swords" class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500"></i> ${t("scheduleTitle")}`;
       const leaderboardTitleEl = document.getElementById("t-leaderboard-title");
       if (leaderboardTitleEl) leaderboardTitleEl.innerHTML = `<i data-lucide="crown" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-500"></i> ${t("leaderboardTitle")}`;
+      const liveAdminTitleEl = document.getElementById("t-live-admin-toolbar-title");
+      if (liveAdminTitleEl) liveAdminTitleEl.innerText = t("liveAdminToolbarTitle");
       const btnCompleteReturn = document.getElementById("t-btn-complete-and-return");
       if (btnCompleteReturn) btnCompleteReturn.innerText = t("finishAndReturnBtn");
       const btnLiveDelete = document.getElementById("t-btn-live-delete");
@@ -1708,7 +1808,17 @@
       const btnAddMatchToolbar = document.getElementById("t-btn-add-match-toolbar");
       if (btnAddMatchToolbar) btnAddMatchToolbar.innerText = t("btnAddMatchToolbar");
       const btnAddLivePlayer = document.getElementById("t-btn-add-live-player");
-      if (btnAddLivePlayer) btnAddLivePlayer.innerText = t("btnAddLivePlayer");
+      if (btnAddLivePlayer) {
+        const isTeam = STATE.tournamentData ? getTournamentIsTeamMode(STATE.tournamentData) : false;
+        btnAddLivePlayer.innerText = isTeam ? (STATE.lang === "zh-TW" ? "補入隊伍" : "Add Team") : (STATE.lang === "zh-TW" ? "補入選手" : "Add Player");
+      }
+      const adminText = document.getElementById("text-toggle-live-admin");
+      if (adminText) {
+        const hasAdmin = STATE.tournamentData ? isTournamentAdmin(STATE.tournamentData) : false;
+        adminText.innerText = hasAdmin ? t("liveAdminToggleViewer") : t("liveAdminToggleAdmin");
+      }
+      const liveCopyReportText = document.getElementById("text-live-copy-report");
+      if (liveCopyReportText) liveCopyReportText.innerText = t("copyReportBtn");
 
       // Leaderboard Table Headers
       const thRankEl = document.getElementById("th-rank");
@@ -1745,15 +1855,46 @@
       const addMatchTitleEl = document.getElementById("modal-add-match-title");
       if (addMatchTitleEl) addMatchTitleEl.innerText = t("addMatchModalTitle");
       const addMatchDescEl = document.getElementById("modal-add-match-desc");
-      if (addMatchDescEl) addMatchDescEl.innerText = t("addMatchModalDesc");
-      const customRosterLabelEl = document.getElementById("modal-custom-roster-label");
-      if (customRosterLabelEl) customRosterLabelEl.innerText = t("customRosterLabel");
-      const autoPickTextEl = document.getElementById("modal-auto-pick-text");
-      if (autoPickTextEl) autoPickTextEl.innerText = t("autoPairBtn");
+      if (addMatchDescEl) {
+        const isTeam = STATE.tournamentData ? getTournamentIsTeamMode(STATE.tournamentData) : false;
+        const isSingles = (STATE.addMatchFormat === "singles" || STATE.tournamentData?.partnerType === "singles");
+        addMatchDescEl.innerText = isTeam ? (STATE.lang === "zh-TW" ? "選擇 2 隊進行對抗，或點擊自動對決" : "Select 2 teams or click auto pick") : (isSingles ? (STATE.lang === "zh-TW" ? "選擇 2 位選手進行單打，或點擊自動配對" : "Select 2 players or click auto pick") : (STATE.lang === "zh-TW" ? "選擇 4 位選手或點擊自動配對" : "Select 4 players or click auto pick"));
+      }
+      const modalFormatLabel = document.getElementById("t-modal-format-label");
+      if (modalFormatLabel) modalFormatLabel.innerText = t("modalFormatLabel");
+      const modalFormatDoubles = document.getElementById("t-modal-format-doubles");
+      if (modalFormatDoubles) modalFormatDoubles.innerText = t("modalFormatDoubles");
+      const modalFormatSingles = document.getElementById("t-modal-format-singles");
+      if (modalFormatSingles) modalFormatSingles.innerText = t("modalFormatSingles");
+      const modalAutoPick = document.getElementById("t-modal-auto-pick");
+      if (modalAutoPick) modalAutoPick.innerText = t("modalAutoPick");
+      const modalRandomPick = document.getElementById("t-modal-random-pick");
+      if (modalRandomPick) modalRandomPick.innerText = t("modalRandomPick");
+      const modalSwapSides = document.getElementById("t-modal-swap-sides");
+      if (modalSwapSides) modalSwapSides.innerText = t("modalSwapSides");
+      const modalSwapPartners = document.getElementById("t-modal-swap-partners");
+      if (modalSwapPartners) modalSwapPartners.innerText = t("modalSwapPartners");
+      const modalClear = document.getElementById("t-modal-clear");
+      if (modalClear) modalClear.innerText = t("modalClear");
+      const modalTapTitle = document.getElementById("t-modal-tap-roster-title");
+      if (modalTapTitle) {
+        const isTeam = STATE.tournamentData ? getTournamentIsTeamMode(STATE.tournamentData) : false;
+        modalTapTitle.innerText = isTeam ? t("modalTapRosterTitleTeam") : t("modalTapRosterTitle");
+      }
+      const modalTapSub = document.getElementById("t-modal-tap-roster-sub");
+      if (modalTapSub) modalTapSub.innerText = t("modalTapRosterSub");
       const blueTeamTitleEl = document.getElementById("modal-blue-team-title");
-      if (blueTeamTitleEl) blueTeamTitleEl.innerText = t("modalBlueTeamTitle");
+      if (blueTeamTitleEl) {
+        const isTeam = STATE.tournamentData ? getTournamentIsTeamMode(STATE.tournamentData) : false;
+        const isSingles = (STATE.addMatchFormat === "singles");
+        blueTeamTitleEl.innerText = isTeam ? (STATE.lang === "zh-TW" ? "藍隊" : "Blue Team") : (isSingles ? (STATE.lang === "zh-TW" ? "藍方" : "Blue Side") : (STATE.lang === "zh-TW" ? "藍隊" : "Blue Team"));
+      }
       const redTeamTitleEl = document.getElementById("modal-red-team-title");
-      if (redTeamTitleEl) redTeamTitleEl.innerText = t("modalRedTeamTitle");
+      if (redTeamTitleEl) {
+        const isTeam = STATE.tournamentData ? getTournamentIsTeamMode(STATE.tournamentData) : false;
+        const isSingles = (STATE.addMatchFormat === "singles");
+        redTeamTitleEl.innerText = isTeam ? (STATE.lang === "zh-TW" ? "紅隊" : "Red Team") : (isSingles ? (STATE.lang === "zh-TW" ? "紅方" : "Red Side") : (STATE.lang === "zh-TW" ? "紅隊" : "Red Team"));
+      }
       const confirmAddTextEl = document.getElementById("t-modal-confirm-add-text");
       if (confirmAddTextEl) confirmAddTextEl.innerText = t("confirmAddMatchBtn");
 
@@ -1885,9 +2026,9 @@
     window.navigateTo = navigateTo;
 
     // Helper: 真實全循環 - 計算讓所有單位皆搭檔/對對手打過至少一輪所需的總局數
-    function getFullRoundRobinGames(n, isTeamMode = false) {
+    function getFullRoundRobinGames(n, isTeamMode = false, isSingles = false) {
       if (n < 2) return 0;
-      if (isTeamMode) {
+      if (isTeamMode || isSingles) {
         return (n * (n - 1)) / 2;
       }
       const table = {
@@ -1904,6 +2045,185 @@
       return totalSlots % 4 === 0 ? totalSlots / 4 : Math.ceil((totalSlots * 2) / 4);
     }
     window.getFullRoundRobinGames = getFullRoundRobinGames;
+
+    // Helper: 個人單打 (1v1) 智慧輪播排程演算法
+    function generateSinglesSchedule(playersList, durationHours = 2.0, estMinsPerGame = 15, scheduleMode = "fair", customTotalGames = 0) {
+      const n = playersList.length;
+      if (n < 2) return [];
+
+      const totalMinutes = Math.round(durationHours * 60);
+      const rawTargetGames = Math.max(1, Math.floor(totalMinutes / estMinsPerGame));
+
+      function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+      const blockSize = n / gcd(2, n);
+
+      let totalRounds = 0;
+      if (scheduleMode === "round-robin") {
+        totalRounds = customTotalGames || ((n * (n - 1)) / 2);
+      } else if (customTotalGames && customTotalGames > 0) {
+        totalRounds = customTotalGames;
+      } else if (scheduleMode === "max") {
+        totalRounds = Math.max(1, rawTargetGames);
+      } else {
+        // 公平模式：依時間計算最接近 blockSize 的局數
+        let blocks = Math.round(rawTargetGames / blockSize);
+        if (blocks < 1) blocks = 1;
+        totalRounds = blocks * blockSize;
+      }
+
+      // 情況 1：僅 2 人對決，無板凳，交替藍紅方直球對決
+      if (n === 2) {
+        const p1 = playersList[0];
+        const p2 = playersList[1];
+        const matches = [];
+        for (let r = 1; r <= totalRounds; r++) {
+          const isEven = (r % 2 === 0);
+          matches.push({
+            id: r,
+            roundName: `Game ${r}`,
+            blue: [isEven ? p2 : p1],
+            red: [isEven ? p1 : p2],
+            resting: [],
+            blueScore: null,
+            redScore: null,
+            completed: false,
+            voided: false
+          });
+        }
+        return matches;
+      }
+
+      // 情況 2：3 人以上單打輪播排程（多重重啟全域尋優）
+      function runSinglesSim() {
+        const gamesPlayed = {};
+        const opponentCount = {};
+        const consecutivePlays = {};
+        const consecutiveRests = {};
+        const blueCount = {};
+        const redCount = {};
+
+        playersList.forEach(p => {
+          gamesPlayed[p] = 0;
+          consecutivePlays[p] = 0;
+          consecutiveRests[p] = 0;
+          blueCount[p] = 0;
+          redCount[p] = 0;
+          opponentCount[p] = {};
+          playersList.forEach(q => { opponentCount[p][q] = 0; });
+        });
+
+        const allPairs = [];
+        for (let i = 0; i < n; i++) {
+          for (let j = i + 1; j < n; j++) {
+            allPairs.push([playersList[i], playersList[j]]);
+          }
+        }
+
+        const simMatches = [];
+
+        for (let r = 1; r <= totalRounds; r++) {
+          let bestPair = null;
+          let minCost = Infinity;
+
+          const shuffledPairs = [...allPairs].sort(() => Math.random() - 0.5);
+          const minPlayedAcrossAll = Math.min(...Object.values(gamesPlayed));
+
+          for (const [p1, p2] of shuffledPairs) {
+            let cost = 0;
+
+            // 1. 出賽總場次越少越優先
+            cost += (gamesPlayed[p1] + gamesPlayed[p2]) * 1000;
+
+            // 2. 與全體最少出賽場次的落差懲罰（保證所有人局數差距 <= 1）
+            if (gamesPlayed[p1] > minPlayedAcrossAll) cost += (gamesPlayed[p1] - minPlayedAcrossAll) * 5000;
+            if (gamesPlayed[p2] > minPlayedAcrossAll) cost += (gamesPlayed[p2] - minPlayedAcrossAll) * 5000;
+
+            // 3. 連打抑制
+            if (n >= 4) {
+              if (consecutivePlays[p1] >= 1) cost += 4000;
+              if (consecutivePlays[p2] >= 1) cost += 4000;
+            } else if (n === 3) {
+              if (consecutivePlays[p1] >= 2) cost += 10000;
+              if (consecutivePlays[p2] >= 2) cost += 10000;
+            }
+
+            // 4. 板凳防冷懲罰
+            const wouldRest = playersList.filter(p => p !== p1 && p !== p2);
+            wouldRest.forEach(rp => {
+              if (consecutiveRests[rp] >= 2) cost += (consecutiveRests[rp] * 3000);
+            });
+
+            // 5. 對手對決次數懲罰（平均交手）
+            const oppTimes = opponentCount[p1][p2] || 0;
+            cost += oppTimes * 600;
+
+            if (cost < minCost) {
+              minCost = cost;
+              bestPair = [p1, p2];
+            }
+          }
+
+          const [bp, rp] = bestPair;
+          let bluePlayer = bp;
+          let redPlayer = rp;
+          if (blueCount[bp] > blueCount[rp] || redCount[rp] > redCount[bp]) {
+            bluePlayer = rp;
+            redPlayer = bp;
+          }
+
+          const resting = playersList.filter(p => p !== bluePlayer && p !== redPlayer);
+
+          gamesPlayed[bluePlayer]++;
+          gamesPlayed[redPlayer]++;
+          consecutivePlays[bluePlayer]++;
+          consecutivePlays[redPlayer]++;
+          consecutiveRests[bluePlayer] = 0;
+          consecutiveRests[redPlayer] = 0;
+          blueCount[bluePlayer]++;
+          redCount[redPlayer]++;
+
+          resting.forEach(p => {
+            consecutiveRests[p]++;
+            consecutivePlays[p] = 0;
+          });
+
+          opponentCount[bluePlayer][redPlayer]++;
+          opponentCount[redPlayer][bluePlayer]++;
+
+          simMatches.push({
+            id: r,
+            roundName: `Game ${r}`,
+            blue: [bluePlayer],
+            red: [redPlayer],
+            resting: resting,
+            blueScore: null,
+            redScore: null,
+            completed: false,
+            voided: false
+          });
+        }
+
+        return { matches: simMatches, gamesPlayed };
+      }
+
+      // 多次重啟 (Multi-Restart) 挑選出賽場數分佈最平局的解
+      let bestMatches = null;
+      let bestSpread = Infinity;
+
+      for (let iter = 0; iter < 15; iter++) {
+        const sim = runSinglesSim();
+        const vals = Object.values(sim.gamesPlayed);
+        const spread = Math.max(...vals) - Math.min(...vals);
+        if (spread < bestSpread) {
+          bestSpread = spread;
+          bestMatches = sim.matches;
+          if (spread === 0) break;
+        }
+      }
+
+      return bestMatches;
+    }
+    window.generateSinglesSchedule = generateSinglesSchedule;
 
     // Helper: 隊伍對抗全循環對戰表 (1 隊 vs 1 隊)
     function generateTeamRoundRobinSchedule(teamsList) {
@@ -2205,17 +2525,61 @@
         setPartnerType("fixed");
         renderGroupDrawPreview();
       } else {
+        // Free Mode (自由對抗)：保留搭檔與單雙打切換按鈕，支援單打、輪替雙打與固定隊伍！
         if (wrapDuration) wrapDuration.classList.add("hidden");
         if (wrapGroup) wrapGroup.classList.add("hidden");
         if (wrapNotice) wrapNotice.classList.remove("hidden");
         if (timeBox) timeBox.classList.add("hidden");
-        if (wrapPartnerToggle) wrapPartnerToggle.classList.add("hidden");
-        setPartnerType("rotating");
+        if (wrapPartnerToggle) wrapPartnerToggle.classList.remove("hidden");
+        const currentPartnerType = document.getElementById("create-partner-type")?.value || "rotating";
+        setPartnerType(currentPartnerType);
       }
+      updatePartnerToggleTexts();
       updateRosterHealthNotice();
+      updateFreeNoticeText();
       lucide.createIcons();
     }
     window.setCreateMode = setCreateMode;
+
+    function updatePartnerToggleTexts() {
+      const mode = document.getElementById("create-tournament-mode")?.value || "fair";
+      const rotSpan = document.getElementById("t-partner-rotating-text");
+      const fixSpan = document.getElementById("t-partner-fixed-text");
+      const sinSpan = document.getElementById("t-partner-singles-text");
+      const isZh = (STATE.lang === "zh-TW");
+
+      if (mode === "free") {
+        if (rotSpan) rotSpan.innerText = isZh ? "自由雙打" : "Free Doubles";
+        if (fixSpan) fixSpan.innerText = isZh ? "固定隊伍" : "Fixed Teams";
+        if (sinSpan) sinSpan.innerText = isZh ? "個人單打" : "Singles";
+      } else {
+        if (rotSpan) rotSpan.innerText = isZh ? "輪替隊友" : "Rotating";
+        if (fixSpan) fixSpan.innerText = isZh ? "固定隊友" : "Fixed";
+        if (sinSpan) sinSpan.innerText = isZh ? "個人單打" : "Singles";
+      }
+    }
+    window.updatePartnerToggleTexts = updatePartnerToggleTexts;
+
+    function updateFreeNoticeText() {
+      const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
+      const descEl = document.getElementById("t-free-notice-desc");
+      if (!descEl) return;
+      const isZh = (STATE.lang === "zh-TW");
+      if (partnerType === "singles") {
+        descEl.innerHTML = isZh
+          ? "<b>👤 自由單打模式</b>：名單為個人選手（至少 2 人）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」即可自由挑選選手進行 1v1 單打對決！"
+          : "<b>👤 Free Singles</b>: Enter players (min 2). Click '+ Add Match' to pair up 1v1 matchups on the fly!";
+      } else if (partnerType === "fixed") {
+        descEl.innerHTML = isZh
+          ? "<b>🛡️ 自由隊伍模式</b>：名單為固定隊伍（至少 2 隊）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」由各隊自由約戰 1v1 對決！"
+          : "<b>🛡️ Free Team Mode</b>: Enter teams (min 2). Click '+ Add Match' to pair up teams on the fly!";
+      } else {
+        descEl.innerHTML = isZh
+          ? "<b>👥 自由雙打 / 自由配對</b>：名單為個人選手（至少 2 人）。進入賽事後自由度極高，可隨時自選 2v2 雙打或 1v1 單打，支援手動點選、場次少者優先與隨機抽籤！"
+          : "<b>👥 Free Doubles / Open</b>: Enter players (min 2). In live view, freely choose 2v2 doubles or 1v1 singles with tap-to-seat, least-played priority, or random draw!";
+      }
+    }
+    window.updateFreeNoticeText = updateFreeNoticeText;
 
     // ----------------------------------------------------
     // GROUP ROUND-ROBIN DRAW & PREVIEW LOGIC (分組抽籤)
@@ -2387,14 +2751,17 @@
 
       const btnRotating = document.getElementById("btn-partner-rotating");
       const btnFixed = document.getElementById("btn-partner-fixed");
+      const btnSingles = document.getElementById("btn-partner-singles");
 
       const activeCls = "px-2.5 py-1 rounded-lg transition-all text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm";
       const inactiveCls = "px-2.5 py-1 rounded-lg transition-all text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200";
 
       if (btnRotating) btnRotating.className = type === "rotating" ? activeCls : inactiveCls;
       if (btnFixed) btnFixed.className = type === "fixed" ? activeCls : inactiveCls;
+      if (btnSingles) btnSingles.className = type === "singles" ? activeCls : inactiveCls;
 
       const isRotating = (type === "rotating");
+      const isSingles = (type === "singles");
       const labelPlayers = document.getElementById("t-label-players");
       const inputAdd = document.getElementById("quick-add-player-input");
       const headingRoster = document.getElementById("t-selected-roster-heading");
@@ -2402,15 +2769,28 @@
       const autoGenLabel = document.getElementById("t-auto-gen-label");
 
       const isZh = (STATE.lang === "zh-TW");
-      if (labelPlayers) labelPlayers.innerText = isZh ? (isRotating ? "4. 參賽選手名單" : "4. 參賽隊伍名單") : (isRotating ? "4. Player Roster" : "4. Team Roster");
-      if (inputAdd) inputAdd.placeholder = isZh ? "單行或多行批量輸入" : "Single or multi-line input...";
-      if (headingRoster) headingRoster.innerText = isZh ? (isRotating ? "👥 已登錄選手：" : "🛡️ 已登錄隊伍：") : (isRotating ? "👥 Registered Players:" : "🛡️ Registered Teams:");
-      if (titleClub) titleClub.innerText = isZh ? (isRotating ? "🛡️ 社團常用選手：" : "🛡️ 社團常用隊伍：") : (isRotating ? "🛡️ Club Players:" : "🛡️ Club Teams:");
-      if (autoGenLabel) autoGenLabel.innerText = isZh ? (isRotating ? "自動生成選手代號：" : "自動生成隊伍代號：") : (isRotating ? "Auto Gen Player Codes:" : "Auto Gen Team Codes:");
+      const mode = document.getElementById("create-tournament-mode")?.value || "fair";
+      if (labelPlayers) {
+        if (isZh) {
+          if (mode === "free") {
+            labelPlayers.innerText = isSingles ? "4. 自由單打選手名單" : (isRotating ? "4. 自由雙打選手名單" : "4. 自由隊伍名單");
+          } else {
+            labelPlayers.innerText = isSingles ? "4. 個人單打選手名單" : (isRotating ? "4. 參賽選手名單" : "4. 參賽隊伍名單");
+          }
+        } else {
+          labelPlayers.innerText = isSingles ? "4. Singles Player Roster" : (isRotating ? "4. Player Roster" : "4. Team Roster");
+        }
+      }
+      if (inputAdd) inputAdd.placeholder = isZh ? "輸入姓名，支援空格、逗號或換行批量輸入" : "Enter names (space, comma or line separated)...";
+      if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "👤 已登錄選手：" : (isRotating ? "👥 已登錄選手：" : "🛡️ 已登錄隊伍：")) : (isSingles ? "👤 Registered Singles:" : (isRotating ? "👥 Registered Players:" : "🛡️ Registered Teams:"));
+      if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "🛡️ 社團常用隊伍：" : "🛡️ 社團常用選手：") : (type === "fixed" ? "🛡️ Club Teams:" : "🛡️ Club Players:");
+      if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "自動生成隊伍代號：" : "自動生成選手代號：") : (type === "fixed" ? "Auto Gen Team Codes:" : "Auto Gen Player Codes:");
 
+      updatePartnerToggleTexts();
       updatePlayerCountBadge();
       resetSelectedPlan();
       calculateTimeEstimate();
+      updateFreeNoticeText();
     }
     window.setPartnerType = setPartnerType;
 
@@ -2439,12 +2819,76 @@
       const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
       const mode = document.getElementById("create-tournament-mode")?.value || "fair";
       const isRotating = (partnerType === "rotating" && mode !== "group");
+      const isSingles = (partnerType === "singles" && mode !== "group");
       const isZh = (STATE.lang === "zh-TW");
       const count = players.length;
 
-      if (!isRotating || count === 0) {
+      if (mode === "free") {
+        const unit = (partnerType === "fixed") ? (isZh ? "隊" : "teams") : (isZh ? "人" : "players");
+        if (count < 2) {
+          noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-stone-500/10 text-stone-600 dark:text-slate-300 border border-stone-300/30";
+          noticeEl.innerHTML = `
+            <i data-lucide="info" class="w-4 h-4 shrink-0 text-stone-400"></i>
+            <span>${isZh ? `自由模式名單登錄滿 <b>2</b> 個單位即可開賽，後續隨時可補人！` : `At least 2 units needed for Free Mode, more can be added anytime!`}</span>
+          `;
+          noticeEl.classList.remove("hidden");
+        } else {
+          noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20";
+          noticeEl.innerHTML = `
+            <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 text-emerald-500"></i>
+            <span><b>${isZh ? "🟢 自由開局就緒" : "🟢 Free Play Ready"}</b>：${isZh ? `目前已登錄 ${count} ${unit}，開局後點擊「➕ 新增場次」可自由選擇雙打/單打、手動指定或隨機抽籤！` : `${count} ${unit} registered, ready to play singles or doubles freely!`}</span>
+          `;
+          noticeEl.classList.remove("hidden");
+        }
+        lucide.createIcons();
+        return;
+      }
+
+      if ((!isRotating && !isSingles) || count === 0) {
         noticeEl.classList.add("hidden");
         noticeEl.innerHTML = "";
+        return;
+      }
+
+      if (isSingles) {
+        if (count < 2) {
+          noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-stone-500/10 text-stone-600 dark:text-slate-300 border border-stone-300/30";
+          noticeEl.innerHTML = `
+            <i data-lucide="info" class="w-4 h-4 shrink-0 text-stone-400"></i>
+            <span>${isZh ? `目前已登錄 <b>${count}</b> 人（個人單打開賽至少需 2 人）。` : `Currently <b>${count}</b> players registered (min 2 needed for singles).`}</span>
+          `;
+          noticeEl.classList.remove("hidden");
+        } else if (count === 2) {
+          noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20";
+          noticeEl.innerHTML = `
+            <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 text-emerald-500"></i>
+            <span><b>${isZh ? "🟢 雙人直球對決" : "🟢 1v1 Head-to-Head"}</b>：${isZh ? `2 人單打對抗，每局皆出賽，無板凳等待！` : `2 players, 100% playtime!`}</span>
+          `;
+          noticeEl.classList.remove("hidden");
+        } else if (count <= 4) {
+          const pct = Math.round((2 / count) * 100);
+          noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20";
+          noticeEl.innerHTML = `
+            <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 text-emerald-500"></i>
+            <span><b>${isZh ? "🟢 單打黃金比例" : "🟢 Optimal Singles Ratio"}</b>：${isZh ? `目前 ${count} 人，平均上場率約 ${pct}%，打休體能調節最佳！` : `${count} players (~${pct}% playtime), optimal singles pace!`}</span>
+          `;
+          noticeEl.classList.remove("hidden");
+        } else if (count <= 6) {
+          noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20";
+          noticeEl.innerHTML = `
+            <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 text-amber-500"></i>
+            <span><b>${isZh ? "🟡 等候時間略長" : "🟡 Moderate Wait"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 2} 人），每打 1 局平均需休 ${count - 2} 局。` : `${count} players (${count - 2} resting).`}</span>
+          `;
+          noticeEl.classList.remove("hidden");
+        } else {
+          noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20";
+          noticeEl.innerHTML = `
+            <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0 text-rose-500"></i>
+            <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人單場輪替單打，板凳等候時間較長。若有多面場地建議改用「分組比賽」！` : `${count} players on 1 court for singles. High wait times.`}</span>
+          `;
+          noticeEl.classList.remove("hidden");
+        }
+        lucide.createIcons();
         return;
       }
 
@@ -2495,10 +2939,12 @@
       const strategy = document.getElementById("create-fair-strategy")?.value || "time";
       const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
       const isTeamMode = (partnerType === "fixed" || mode === "group");
+      const isSingles = (partnerType === "singles");
       const unitLabel = isTeamMode ? "隊" : "人";
+      const minUnits = isSingles ? 2 : 4;
 
-      if (players.length < 4) {
-        hintText.innerText = STATE.lang === "zh-TW" ? `請輸入至少 4 個參賽單位 (${unitLabel})。` : "Please enter at least 4 units/players.";
+      if (players.length < minUnits) {
+        hintText.innerText = STATE.lang === "zh-TW" ? `請輸入至少 ${minUnits} 個參賽單位 (${unitLabel})。` : `Please enter at least ${minUnits} units/players.`;
         if (optionsContainer) {
           optionsContainer.innerHTML = "";
           optionsContainer.classList.add("hidden");
@@ -2509,16 +2955,17 @@
 
       const n = players.length;
 
-      // 雙打全循環/公平輪播計算：
+      // 全循環/公平輪播計算：
       function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
-      const g = gcd(4, n);
+      const playersPerGame = isSingles ? 2 : 4;
+      const g = gcd(playersPerGame, n);
       const blockSize = n / g;       // 1 輪全循環總局數
-      const gamesPerBlock = 4 / g;   // 每人/隊每輪出場場數
+      const gamesPerBlock = playersPerGame / g;   // 每人/隊每輪出場場數
 
       // 策略：打滿一輪全循環 (Full Cycle Strategy)
       if (strategy === "full-cycle") {
-        const fullGames = getFullRoundRobinGames(n, isTeamMode);
-        const gamesPerUnit = isTeamMode ? (n - 1) : Math.round((fullGames * 4) / n);
+        const fullGames = getFullRoundRobinGames(n, isTeamMode, isSingles);
+        const gamesPerUnit = (isTeamMode || isSingles) ? (n - 1) : Math.round((fullGames * 4) / n);
         const restEach = fullGames - gamesPerUnit;
         const estMins = Math.round(fullGames * 12);
 
@@ -2555,7 +3002,7 @@
               </div>
               <div class="text-[10.5px] sub-text flex items-center justify-between">
                 <span>${isZh ? `各休 ${restEach} 場` : `Rest ${restEach} Games Each`}</span>
-                <span>${isZh ? `所有單位皆搭檔/對決到一輪` : `Every pair & matchup played`}</span>
+                <span>${isZh ? (isSingles ? '所有選手皆對決到一輪' : '所有單位皆搭檔/對決到一輪') : 'Every pair & matchup played'}</span>
               </div>
             </div>
           `;
@@ -2776,10 +3223,35 @@
 
     function extractPlayerNames(rawText) {
       if (!rawText) return [];
-      return rawText
-        .split(/[\n,，、;；\t]+/)
-        .map(s => s.replace(/^\d+[\.\、\s\-]+/, "").trim())
-        .filter(s => s.length > 0 && s.length <= 25);
+      const text = rawText.trim();
+      if (!text) return [];
+
+      // 1. 若含有換行、逗號、頓號、分號，優先以此為分隔符 (可保留純英文姓名中間的空格如 "Jason Chu")
+      if (/[\n\r,，、;；\t]/.test(text)) {
+        return text
+          .split(/[\n\r,，、;；\t]+/)
+          .map(s => s.replace(/^\d+[\.\、\s\-]+/, "").trim())
+          .filter(s => s.length > 0 && s.length <= 25);
+      }
+
+      // 2. 若含有序號 (如 "1. 小明 2. 小華" 或 "1.Jason 2.Bob")
+      if (/\d+[\.\、\s\-]/.test(text)) {
+        return text
+          .split(/(?=\d+[\.\、\s\-])/)
+          .map(s => s.replace(/^\d+[\.\、\s\-]+/, "").trim())
+          .filter(s => s.length > 0 && s.length <= 25);
+      }
+
+      // 3. 空格/全形空白批量分割
+      const tokens = text.split(/[\s\u3000]+/).map(s => s.trim()).filter(Boolean);
+
+      // 若恰好為 2 個純英文字詞 (如 "Jason Chu")，視為單一英文全名
+      if (tokens.length === 2 && /^[A-Za-z]+$/.test(tokens[0]) && /^[A-Za-z]+$/.test(tokens[1])) {
+        return [text];
+      }
+
+      // 否則所有空格隔開的名字皆作為批量名字處理 (如 "小明 小華 大雄" 或 "Alice Bob Charlie")
+      return tokens.filter(s => s.length <= 25);
     }
 
     function getSelectedPlayers() {
@@ -2796,14 +3268,15 @@
       const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
       const mode = document.getElementById("create-tournament-mode")?.value || "fair";
       const isRotating = (partnerType === "rotating" && mode !== "group");
+      const isSingles = (partnerType === "singles" && mode !== "group");
 
       let unique = Array.from(new Set((list || []).map(s => s.trim()).filter(Boolean)));
-      if (isRotating && unique.length > MAX_ROTATING_PLAYERS) {
+      if ((isRotating || isSingles) && unique.length > MAX_ROTATING_PLAYERS) {
         unique = unique.slice(0, MAX_ROTATING_PLAYERS);
         showToast(
           STATE.lang === "zh-TW"
-            ? `⚠️ 單場輪替模式建議上限為 ${MAX_ROTATING_PLAYERS} 人！若人數更多請改用「分組比賽」模式。`
-            : `⚠️ Max ${MAX_ROTATING_PLAYERS} players for single-court rotating! Use Group Mode for larger rosters.`,
+            ? `⚠️ 單場${isSingles ? "單打" : "輪替"}模式建議上限為 ${MAX_ROTATING_PLAYERS} 人！若人數更多請改用「分組比賽」模式。`
+            : `⚠️ Max ${MAX_ROTATING_PLAYERS} players for single-court rotating/singles! Use Group Mode for larger rosters.`,
           "warning"
         );
       } else if (unique.length > MAX_ROSTER_LIMIT) {
@@ -2917,7 +3390,11 @@
 
       input.value = "";
       setSelectedPlayers(current);
-      showToast(`${t("addedPlayerToast")}${names.join(", ")}`, "success");
+      if (names.length > 1) {
+        showToast(STATE.lang === "zh-TW" ? `⚡ 已批量新增 ${names.length} 位選手！` : `⚡ Added ${names.length} players!`, "success");
+      } else {
+        showToast(`${t("addedPlayerToast")}${names[0]}`, "success");
+      }
     }
     window.quickAddPlayer = quickAddPlayer;
 
@@ -2964,14 +3441,17 @@
       const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
       const mode = document.getElementById("create-tournament-mode")?.value || "fair";
       const isRotating = (partnerType === "rotating" && mode !== "group");
-      const maxLimit = isRotating ? 16 : 60;
+      const isSingles = (partnerType === "singles" && mode !== "group");
+      const maxLimit = (isRotating || isSingles) ? 16 : 60;
+      const minLimit = isSingles ? 2 : 4;
 
-      const count = parseInt(countInput?.value) || 8;
-      if (count < 4 || count > maxLimit) {
+      const defaultCount = isSingles ? 4 : 8;
+      const count = parseInt(countInput?.value) || defaultCount;
+      if (count < minLimit || count > maxLimit) {
         showToast(
           STATE.lang === "zh-TW"
-            ? `請輸入 4 至 ${maxLimit} 之間的數量！${isRotating ? "（單場輪替上限 16 人）" : ""}`
-            : `Please enter a count between 4 and ${maxLimit}!`,
+            ? `請輸入 ${minLimit} 至 ${maxLimit} 之間的數量！${(isRotating || isSingles) ? `（單場上限 ${maxLimit} 人）` : ""}`
+            : `Please enter a count between ${minLimit} and ${maxLimit}!`,
           "warning"
         );
         return;
@@ -3127,8 +3607,28 @@
           return;
         }
 
-        if (mode === "fair" && uniquePlayers.length < 4) {
-          showToast(STATE.lang === "zh-TW" ? "輪播模式參賽單位至少需 4 個 (人/隊伍)！" : "At least 4 units required for rotation mode!", "error");
+        const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
+        const isTeamMode = (partnerType === "fixed" || mode === "group");
+        const isSingles = (partnerType === "singles");
+        const minUnits = isSingles ? 2 : 4;
+
+        if (mode === "free" && uniquePlayers.length < 2) {
+          showToast(
+            STATE.lang === "zh-TW"
+              ? (isSingles ? "自由單打模式至少需 2 位選手！" : (isTeamMode ? "自由隊伍模式至少需 2 支隊伍！" : "自由模式至少需 2 位參賽單位！"))
+              : "At least 2 units required for Free Mode!",
+            "error"
+          );
+          return;
+        }
+
+        if (mode === "fair" && uniquePlayers.length < minUnits) {
+          showToast(
+            STATE.lang === "zh-TW"
+              ? (isSingles ? "個人單打參賽選手至少需 2 人！" : "輪播模式參賽單位至少需 4 個 (人/隊伍)！")
+              : `At least ${minUnits} units required for rotation mode!`,
+            "error"
+          );
           return;
         }
 
@@ -3149,11 +3649,11 @@
 
         const tournamentId = "T-" + Math.floor(100000 + Math.random() * 900000);
         let matches = [];
-        const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
-        const isTeamMode = (partnerType === "fixed" || mode === "group");
 
         if (mode === "fair") {
-          if (isTeamMode) {
+          if (isSingles) {
+            matches = generateSinglesSchedule(uniquePlayers, duration, 15, effectiveMode, customTotalGames);
+          } else if (isTeamMode) {
             matches = generateTeamRoundRobinSchedule(uniquePlayers);
           } else {
             matches = generateRoundRobinSchedule(uniquePlayers, duration, 15, effectiveMode, customTotalGames);
@@ -3309,6 +3809,7 @@
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
                   ${clubBadge}
+                  ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
                 </div>
                 <span class="text-[10px] px-2 py-0.5 rounded font-medium ${isFinished ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20'}">
                   ${isFinished ? t("statusFinished") : t("statusActive")}
@@ -3623,16 +4124,22 @@
 
       const hasAdmin = isTournamentAdmin(data);
       const isFreeMode = data.tournamentMode === "free";
+      const isSingles = (data.partnerType === "singles");
+      const isTeamMode = !!(data.isTeamMode || data.partnerType === "fixed");
       const pCount = data.players ? data.players.length : 0;
       const validMatches = (data.matches || []).filter(m => !m.voided);
-      const estGamesPerPlayer = pCount > 0 ? Math.round((validMatches.length * 4 / pCount) * 10) / 10 : 0;
+      const playersPerGame = (isSingles || isTeamMode) ? 2 : 4;
+      const estGamesPerPlayer = pCount > 0 ? Math.round((validMatches.length * playersPerGame / pCount) * 10) / 10 : 0;
 
       document.getElementById("live-title").innerText = data.name;
 
       // Mode Badge
       const modeBadge = document.getElementById("live-mode-badge");
       if (modeBadge) {
-        if (isFreeMode) {
+        if (isSingles) {
+          modeBadge.innerText = STATE.lang === "zh-TW" ? "個人單打" : "Singles (1v1)";
+          modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20";
+        } else if (isFreeMode) {
           modeBadge.innerText = t("modeFreeTitle");
           modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
         } else {
@@ -3664,7 +4171,6 @@
         }
       }
 
-      const isTeamMode = !!(data.isTeamMode || data.partnerType === "fixed");
       const unit = isTeamMode ? (STATE.lang === "zh-TW" ? "隊" : "Teams") : (STATE.lang === "zh-TW" ? "人" : "Players");
       const perUnit = isTeamMode ? (STATE.lang === "zh-TW" ? "隊" : "team") : (STATE.lang === "zh-TW" ? "人" : "p");
 
@@ -3680,11 +4186,11 @@
       if (adminBtn && adminText) {
         if (hasAdmin) {
           adminBtn.className = "px-3 py-2 rounded-xl border border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none";
-          adminText.innerText = STATE.lang === "zh-TW" ? "瀏覽模式" : "Viewer Mode";
+          adminText.innerText = t("liveAdminToggleViewer");
           if (adminIcon) adminIcon.setAttribute("data-lucide", "eye");
         } else {
           adminBtn.className = "px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none hover:text-amber-500";
-          adminText.innerText = STATE.lang === "zh-TW" ? "操作模式" : "Operation Mode";
+          adminText.innerText = t("liveAdminToggleAdmin");
           if (adminIcon) adminIcon.setAttribute("data-lucide", "lock");
         }
       }
@@ -3739,6 +4245,19 @@
         }
       }
 
+      const liveAdminTitleEl = document.getElementById("t-live-admin-toolbar-title");
+      if (liveAdminTitleEl) liveAdminTitleEl.innerText = t("liveAdminToolbarTitle");
+      const btnAddMatchToolbar = document.getElementById("t-btn-add-match-toolbar");
+      if (btnAddMatchToolbar) btnAddMatchToolbar.innerText = t("btnAddMatchToolbar");
+      const btnCompleteReturn = document.getElementById("t-btn-complete-and-return");
+      if (btnCompleteReturn) btnCompleteReturn.innerText = t("finishAndReturnBtn");
+      const btnLiveDelete = document.getElementById("t-btn-live-delete");
+      if (btnLiveDelete) btnLiveDelete.innerText = t("deleteTournamentBtn");
+      const liveCopyReportText = document.getElementById("text-live-copy-report");
+      if (liveCopyReportText) liveCopyReportText.innerText = t("copyReportBtn");
+      const shareBtnTextEl = document.getElementById("t-share-btn-text");
+      if (shareBtnTextEl) shareBtnTextEl.innerText = t("shareBtnText");
+
       const addLivePlayerBtn = document.getElementById("t-btn-add-live-player");
       if (addLivePlayerBtn) {
         const isTeam = getTournamentIsTeamMode(data);
@@ -3764,11 +4283,33 @@
         return;
       }
 
-      const confirmMsg = STATE.lang === "zh-TW"
-        ? `確定要結束「${tData.name}」並標記為完賽嗎？\n（完賽後將歸檔至完賽紀錄，並返回賽事大廳）`
-        : `Complete "${tData.name}" and return to hub?`;
+      const uncompletedMatches = (tData.matches || []).filter(m => !m.completed && !m.voided);
+      const uncompletedCount = uncompletedMatches.length;
+
+      let confirmMsg = "";
+      if (uncompletedCount > 0) {
+        confirmMsg = STATE.lang === "zh-TW"
+          ? `目前尚有 ${uncompletedCount} 場比賽未完成，確定要提早結束「${tData.name}」嗎？\n\n（系統將自動把未完賽的 ${uncompletedCount} 場標記為「取消」，並將賽事歸檔至完賽紀錄）`
+          : `There are still ${uncompletedCount} unplayed matches. Complete "${tData.name}" early?\n\n(Unplayed matches will automatically be marked as "Void" and archived)`;
+      } else {
+        confirmMsg = STATE.lang === "zh-TW"
+          ? `確定要結束「${tData.name}」並標記為完賽嗎？\n（完賽後將歸檔至完賽紀錄，並返回賽事大廳）`
+          : `Complete "${tData.name}" and return to hub?`;
+      }
 
       if (!confirm(confirmMsg)) return;
+
+      // 自動將所有未完賽且未取消的場次轉為「已取消 (voided)」
+      if (uncompletedCount > 0) {
+        (tData.matches || []).forEach(m => {
+          if (!m.completed && !m.voided) {
+            m.voided = true;
+            m.completed = true;
+            m.blueScore = null;
+            m.redScore = null;
+          }
+        });
+      }
 
       tData.status = "completed";
       tData.completedAt = Date.now();
@@ -3778,7 +4319,8 @@
           const tRef = ref(STATE.db, `tournaments/${tData.id}`);
           await update(tRef, {
             status: "completed",
-            completedAt: tData.completedAt
+            completedAt: tData.completedAt,
+            matches: tData.matches
           });
         } catch (err) {
           console.error("Complete tournament error:", err);
@@ -3786,7 +4328,12 @@
       }
       saveToLocalTournaments(tData);
 
-      showToast(STATE.lang === "zh-TW" ? "✅ 賽事已完賽並封存！" : "✅ Tournament Completed!", "success");
+      showToast(
+        uncompletedCount > 0
+          ? (STATE.lang === "zh-TW" ? `✅ 賽事已提前結束，未賽 ${uncompletedCount} 場已自動取消！` : `✅ Tournament completed early (${uncompletedCount} matches voided)!`)
+          : (STATE.lang === "zh-TW" ? "✅ 賽事已完賽並封存！" : "✅ Tournament Completed!"),
+        "success"
+      );
       navigateTo("hub");
     }
     window.completeTournamentAndReturn = completeTournamentAndReturn;
@@ -3989,9 +4536,11 @@
     // ----------------------------------------------------
     // LIVE VIEW: ADD MATCH (加打一局 / 增加場次)
     // ----------------------------------------------------
-    // Helper: 判斷賽事是否為「固定隊伍 / 隊伍對抗賽」模式
+    // Helper: 判斷賽事是否為「固定隊伍 / 隊伍對抗賽」模式（每隊1單位，但不包括個人單打）
     function getTournamentIsTeamMode(tData) {
       if (!tData) return false;
+      if (tData.partnerType === "singles") return false;
+      if (tData.partnerType === "fixed") return true;
       if (tData.isTeamMode !== undefined) return tData.isTeamMode;
       if (tData.matches && tData.matches.length > 0) {
         const firstMatch = tData.matches.find(m => !m.voided) || tData.matches[0];
@@ -4003,74 +4552,242 @@
     }
     window.getTournamentIsTeamMode = getTournamentIsTeamMode;
 
-    function openAddMatchModal() {
-      const modal = document.getElementById("modal-add-match");
-      if (!modal) return;
+    // Helper: 判斷每方是否僅有 1 個出賽欄位（單打 1v1 或 隊伍對抗 1v1）
+    function isSinglePlayerPerSide(tData) {
+      if (!tData) return false;
+      if (tData.partnerType === "singles") return true;
+      return getTournamentIsTeamMode(tData);
+    }
+    window.isSinglePlayerPerSide = isSinglePlayerPerSide;
+
+    function setAddMatchFormat(format) {
+      STATE.addMatchFormat = format;
+      const isSingles = (format === "singles");
+
+      const btnDoubles = document.getElementById("modal-btn-format-doubles");
+      const btnSingles = document.getElementById("modal-btn-format-singles");
+      const blue2 = document.getElementById("add-blue-2");
+      const red2 = document.getElementById("add-red-2");
+      const swapPartnersBtn = document.getElementById("modal-btn-swap-partners");
+      const blueTitle = document.getElementById("modal-blue-team-title");
+      const redTitle = document.getElementById("modal-red-team-title");
+
+      const activeCls = "px-2.5 py-1 rounded-md text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm transition";
+      const inactiveCls = "px-2.5 py-1 rounded-md text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200 transition";
+
+      if (btnDoubles) btnDoubles.className = isSingles ? inactiveCls : activeCls;
+      if (btnSingles) btnSingles.className = isSingles ? activeCls : inactiveCls;
+
+      if (blue2) {
+        if (isSingles) {
+          blue2.value = "";
+          blue2.classList.add("hidden");
+        } else {
+          blue2.classList.remove("hidden");
+        }
+      }
+      if (red2) {
+        if (isSingles) {
+          red2.value = "";
+          red2.classList.add("hidden");
+        } else {
+          red2.classList.remove("hidden");
+        }
+      }
+      if (swapPartnersBtn) {
+        if (isSingles) swapPartnersBtn.classList.add("hidden");
+        else swapPartnersBtn.classList.remove("hidden");
+      }
+
+      const isZh = (STATE.lang === "zh-TW");
+      const isTeam = getTournamentIsTeamMode(STATE.tournamentData);
+      if (blueTitle) blueTitle.innerText = isTeam ? (isZh ? "藍隊" : "Blue Team") : (isSingles ? (isZh ? "藍方" : "Blue Side") : (isZh ? "藍隊" : "Blue Team"));
+      if (redTitle) redTitle.innerText = isTeam ? (isZh ? "紅隊" : "Red Team") : (isSingles ? (isZh ? "紅方" : "Red Side") : (isZh ? "紅隊" : "Red Team"));
+
+      renderAddMatchRosterChips();
+    }
+    window.setAddMatchFormat = setAddMatchFormat;
+
+    function renderAddMatchRosterChips() {
+      const container = document.getElementById("modal-roster-chips");
+      if (!container) return;
 
       const tData = STATE.tournamentData;
       if (!tData) return;
 
-      if (!isTournamentAdmin(tData)) {
-        showToast(STATE.lang === "zh-TW" ? "請先切換至管理模式！" : "Please switch to Admin Mode first!", "warning");
-        return;
-      }
-
       const players = tData.players || [];
-      const isTeam = getTournamentIsTeamMode(tData);
-      const minRequired = isTeam ? 2 : 4;
-
-      if (players.length < minRequired) {
-        showToast(STATE.lang === "zh-TW" ? `參賽單位不足 ${minRequired} 個，請先點擊「補入參賽名單」！` : `Need at least ${minRequired} units! Please add units first.`, "warning");
-        return;
-      }
-
-      const modalDesc = document.getElementById("modal-add-match-desc");
-      if (modalDesc) {
-        modalDesc.innerText = isTeam
-          ? (STATE.lang === "zh-TW" ? "選擇 2 隊進行對抗，或點擊自動對決" : "Select 2 teams or click auto pick")
-          : (STATE.lang === "zh-TW" ? "選擇 4 位選手或點擊自動配對" : "Select 4 players or click auto pick");
-      }
-
-      const blue2Wrap = document.getElementById("add-blue-2");
-      const red2Wrap = document.getElementById("add-red-2");
-      if (isTeam) {
-        if (blue2Wrap) blue2Wrap.classList.add("hidden");
-        if (red2Wrap) red2Wrap.classList.add("hidden");
-      } else {
-        if (blue2Wrap) blue2Wrap.classList.remove("hidden");
-        if (red2Wrap) red2Wrap.classList.remove("hidden");
-      }
-
-      const unitLabel = isTeam ? (STATE.lang === "zh-TW" ? "隊伍" : "Team") : (STATE.lang === "zh-TW" ? "選手" : "Player");
-      const selectIds = isTeam ? ["add-blue-1", "add-red-1"] : ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"];
-
-      selectIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.innerHTML = `<option value="">-- 選擇${unitLabel} --</option>` +
-            players.map(p => `<option value="${p}">${p}</option>`).join("");
-        }
+      const gamesCount = {};
+      players.forEach(p => { gamesCount[p] = 0; });
+      (tData.matches || []).filter(m => !m.voided).forEach(m => {
+        (m.blue || []).concat(m.red || []).forEach(p => {
+          if (gamesCount[p] !== undefined) gamesCount[p]++;
+        });
       });
 
-      autoPickAddMatchPlayers();
+      const b1 = document.getElementById("add-blue-1")?.value || "";
+      const b2 = document.getElementById("add-blue-2")?.value || "";
+      const r1 = document.getElementById("add-red-1")?.value || "";
+      const r2 = document.getElementById("add-red-2")?.value || "";
 
-      modal.classList.remove("hidden");
+      const isZh = (STATE.lang === "zh-TW");
+      const seated = {};
+      if (b1) seated[b1] = { side: "blue", label: isZh ? "藍1" : "B1" };
+      if (b2 && STATE.addMatchFormat !== "singles") seated[b2] = { side: "blue", label: isZh ? "藍2" : "B2" };
+      if (r1) seated[r1] = { side: "red", label: isZh ? "紅1" : "R1" };
+      if (r2 && STATE.addMatchFormat !== "singles") seated[r2] = { side: "red", label: isZh ? "紅2" : "R2" };
+
+      const html = players.map(p => {
+        const count = gamesCount[p] || 0;
+        const seatInfo = seated[p];
+        if (seatInfo) {
+          const isBlue = (seatInfo.side === "blue");
+          const badgeCls = isBlue
+            ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40"
+            : "bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/40";
+          return `<button type="button" onclick="unassignAddMatchPlayer('${escapeHTML(p)}')"
+            class="px-2 py-1 rounded-lg text-xs font-bold border transition flex items-center gap-1 shadow-sm active:scale-95 ${badgeCls}">
+            <span>${escapeHTML(p)}</span>
+            <span class="text-[10px] px-1 py-0.5 rounded font-mono bg-stone-900/10 dark:bg-stone-100/10">${seatInfo.label} · ${count}${isZh ? '場' : 'g'}</span>
+            <i data-lucide="x" class="w-3 h-3 opacity-60 hover:opacity-100"></i>
+          </button>`;
+        } else {
+          return `<button type="button" onclick="assignAddMatchPlayer('${escapeHTML(p)}')"
+            class="px-2 py-1 rounded-lg text-xs font-medium card-inner border hover:border-amber-500/60 sub-text hover:text-stone-900 dark:hover:text-stone-100 transition flex items-center gap-1 active:scale-95">
+            <span>${escapeHTML(p)}</span>
+            <span class="text-[10px] font-mono opacity-60">${count}${isZh ? '場' : 'g'}</span>
+          </button>`;
+        }
+      }).join("");
+
+      container.innerHTML = html;
       lucide.createIcons();
     }
-    window.openAddMatchModal = openAddMatchModal;
+    window.renderAddMatchRosterChips = renderAddMatchRosterChips;
 
-    function closeAddMatchModal() {
-      const modal = document.getElementById("modal-add-match");
-      if (modal) modal.classList.add("hidden");
+    function assignAddMatchPlayer(name) {
+      const b1 = document.getElementById("add-blue-1");
+      const b2 = document.getElementById("add-blue-2");
+      const r1 = document.getElementById("add-red-1");
+      const r2 = document.getElementById("add-red-2");
+
+      if (
+        (b1 && b1.value === name) ||
+        (b2 && b2.value === name && STATE.addMatchFormat !== "singles") ||
+        (r1 && r1.value === name) ||
+        (r2 && r2.value === name && STATE.addMatchFormat !== "singles")
+      ) {
+        return;
+      }
+
+      const isSingles = (STATE.addMatchFormat === "singles");
+      const slots = isSingles ? [b1, r1] : [b1, r1, b2, r2];
+
+      for (const slot of slots) {
+        if (slot && !slot.value) {
+          slot.value = name;
+          renderAddMatchRosterChips();
+          return;
+        }
+      }
+      showToast(STATE.lang === "zh-TW" ? "欄位已滿！請點擊選手取消或清空重選" : "All slots full! Click a player to unassign", "info");
     }
-    window.closeAddMatchModal = closeAddMatchModal;
+    window.assignAddMatchPlayer = assignAddMatchPlayer;
+
+    function unassignAddMatchPlayer(name) {
+      ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.value === name) {
+          el.value = "";
+        }
+      });
+      renderAddMatchRosterChips();
+    }
+    window.unassignAddMatchPlayer = unassignAddMatchPlayer;
+
+    function clearAddMatchPlayers() {
+      ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+      renderAddMatchRosterChips();
+    }
+    window.clearAddMatchPlayers = clearAddMatchPlayers;
+
+    function swapAddMatchSides() {
+      const b1 = document.getElementById("add-blue-1");
+      const b2 = document.getElementById("add-blue-2");
+      const r1 = document.getElementById("add-red-1");
+      const r2 = document.getElementById("add-red-2");
+
+      if (b1 && r1) {
+        const tmp = b1.value;
+        b1.value = r1.value;
+        r1.value = tmp;
+      }
+      if (b2 && r2 && STATE.addMatchFormat !== "singles") {
+        const tmp = b2.value;
+        b2.value = r2.value;
+        r2.value = tmp;
+      }
+      renderAddMatchRosterChips();
+    }
+    window.swapAddMatchSides = swapAddMatchSides;
+
+    function swapAddMatchPartners() {
+      if (STATE.addMatchFormat === "singles") return;
+      const b2 = document.getElementById("add-blue-2");
+      const r2 = document.getElementById("add-red-2");
+      if (b2 && r2) {
+        const tmp = b2.value;
+        b2.value = r2.value;
+        r2.value = tmp;
+        renderAddMatchRosterChips();
+      }
+    }
+    window.swapAddMatchPartners = swapAddMatchPartners;
+
+    function randomPickAddMatchPlayers() {
+      const tData = STATE.tournamentData;
+      if (!tData) return;
+      const players = [...(tData.players || [])];
+      const isSingles = (STATE.addMatchFormat === "singles");
+      const minRequired = isSingles ? 2 : 4;
+      if (players.length < minRequired) {
+        showToast(STATE.lang === "zh-TW" ? `參賽單位不足 ${minRequired} 個！` : `Need at least ${minRequired} units!`, "warning");
+        return;
+      }
+
+      for (let i = players.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [players[i], players[j]] = [players[j], players[i]];
+      }
+
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || "";
+      };
+
+      if (isSingles) {
+        setVal("add-blue-1", players[0]);
+        setVal("add-blue-2", "");
+        setVal("add-red-1", players[1]);
+        setVal("add-red-2", "");
+      } else {
+        setVal("add-blue-1", players[0]);
+        setVal("add-blue-2", players[1]);
+        setVal("add-red-1", players[2]);
+        setVal("add-red-2", players[3]);
+      }
+      renderAddMatchRosterChips();
+    }
+    window.randomPickAddMatchPlayers = randomPickAddMatchPlayers;
 
     function autoPickAddMatchPlayers() {
       const tData = STATE.tournamentData;
       if (!tData) return;
       const players = [...(tData.players || [])];
-      const isTeam = getTournamentIsTeamMode(tData);
-      const minRequired = isTeam ? 2 : 4;
+      const isSingles = (STATE.addMatchFormat === "singles");
+      const minRequired = isSingles ? 2 : 4;
       if (players.length < minRequired) return;
 
       const gamesCount = {};
@@ -4088,25 +4805,85 @@
 
       const setVal = (id, val) => {
         const el = document.getElementById(id);
-        if (el && val) el.value = val;
+        if (el) el.value = val || "";
       };
 
-      if (isTeam) {
+      if (isSingles) {
         setVal("add-blue-1", players[0]);
+        setVal("add-blue-2", "");
         setVal("add-red-1", players[1]);
+        setVal("add-red-2", "");
       } else {
         setVal("add-blue-1", players[0]);
         setVal("add-blue-2", players[1]);
         setVal("add-red-1", players[2]);
         setVal("add-red-2", players[3]);
       }
+      renderAddMatchRosterChips();
     }
     window.autoPickAddMatchPlayers = autoPickAddMatchPlayers;
+
+    function openAddMatchModal() {
+      const modal = document.getElementById("modal-add-match");
+      if (!modal) return;
+
+      const tData = STATE.tournamentData;
+      if (!tData) return;
+
+      if (!isTournamentAdmin(tData)) {
+        showToast(STATE.lang === "zh-TW" ? "請先切換至管理模式！" : "Please switch to Admin Mode first!", "warning");
+        return;
+      }
+
+      const players = tData.players || [];
+      const isTeam = getTournamentIsTeamMode(tData);
+      const minRequired = 2;
+
+      if (players.length < minRequired) {
+        showToast(STATE.lang === "zh-TW" ? `參賽單位不足 ${minRequired} 個，請先點擊「補入參賽名單」！` : `Need at least ${minRequired} units! Please add units first.`, "warning");
+        return;
+      }
+
+      const isZh = (STATE.lang === "zh-TW");
+      const formatWrap = document.getElementById("modal-format-toggle-wrap");
+      const unitLabel = isTeam ? (isZh ? "隊伍" : "Team") : (isZh ? "選手" : "Player");
+      const selectPlaceholder = isZh ? `-- 選擇${unitLabel} --` : `-- Select ${unitLabel} --`;
+
+      ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.innerHTML = `<option value="">${selectPlaceholder}</option>` +
+            players.map(p => `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`).join("");
+        }
+      });
+
+      if (isTeam) {
+        if (formatWrap) formatWrap.classList.add("hidden");
+        setAddMatchFormat("singles");
+      } else {
+        if (formatWrap) formatWrap.classList.remove("hidden");
+        const defaultFormat = (tData.partnerType === "singles" || players.length < 4) ? "singles" : "doubles";
+        setAddMatchFormat(defaultFormat);
+      }
+
+      autoPickAddMatchPlayers();
+
+      modal.classList.remove("hidden");
+      lucide.createIcons();
+    }
+    window.openAddMatchModal = openAddMatchModal;
+
+    function closeAddMatchModal() {
+      const modal = document.getElementById("modal-add-match");
+      if (modal) modal.classList.add("hidden");
+    }
+    window.closeAddMatchModal = closeAddMatchModal;
 
     async function submitAddMatch() {
       const tData = STATE.tournamentData;
       if (!tData) return;
       const isTeam = getTournamentIsTeamMode(tData);
+      const isSingles = (STATE.addMatchFormat === "singles");
 
       const b1 = document.getElementById("add-blue-1")?.value;
       const b2 = document.getElementById("add-blue-2")?.value;
@@ -4117,13 +4894,13 @@
       let redUnits = [];
       let chosen = [];
 
-      if (isTeam) {
+      if (isSingles) {
         if (!b1 || !r1) {
-          showToast(STATE.lang === "zh-TW" ? "請選滿 2 支對抗隊伍！" : "Please select 2 teams!", "warning");
+          showToast(STATE.lang === "zh-TW" ? (isTeam ? "請選滿 2 支對抗隊伍！" : "請選滿 2 位對戰選手！") : "Please select both sides!", "warning");
           return;
         }
         if (b1 === r1) {
-          showToast(STATE.lang === "zh-TW" ? "藍隊與紅隊不能為同一隊！" : "Teams must be distinct!", "warning");
+          showToast(STATE.lang === "zh-TW" ? (isTeam ? "藍隊與紅隊不能為同一隊！" : "藍方與紅方不能為同一位選手！") : "Both sides must be distinct!", "warning");
           return;
         }
         blueUnits = [b1];
@@ -4186,14 +4963,24 @@
         return;
       }
 
-      const name = prompt(STATE.lang === "zh-TW" ? "➕ 請輸入新加入選手姓名：" : "➕ Enter new player name:");
+      const isTeam = getTournamentIsTeamMode(tData);
+      const isZh = (STATE.lang === "zh-TW");
+
+      const promptMsg = isTeam
+        ? (isZh ? "➕ 請輸入新加入隊伍名稱：" : "➕ Enter new team name:")
+        : (isZh ? "➕ 請輸入新加入選手姓名：" : "➕ Enter new player name:");
+
+      const name = prompt(promptMsg);
       if (!name || !name.trim()) return;
       const cleanName = name.trim();
 
       if (!tData.players) tData.players = [];
 
       if (tData.players.includes(cleanName)) {
-        showToast(STATE.lang === "zh-TW" ? "選手名單中已存在此姓名！" : "Player already in roster!", "warning");
+        const dupMsg = isTeam
+          ? (isZh ? "隊伍名單中已存在此名稱！" : "Team already in roster!")
+          : (isZh ? "選手名單中已存在此姓名！" : "Player already in roster!");
+        showToast(dupMsg, "warning");
         return;
       }
 
@@ -4218,7 +5005,10 @@
       }
 
       renderLiveUI(tData);
-      showToast(STATE.lang === "zh-TW" ? `✅ 已加入選手：${cleanName}` : `✅ Added player: ${cleanName}`, "success");
+      const succMsg = isTeam
+        ? (isZh ? `✅ 已加入隊伍：${cleanName}` : `✅ Added team: ${cleanName}`)
+        : (isZh ? `✅ 已加入選手：${cleanName}` : `✅ Added player: ${cleanName}`);
+      showToast(succMsg, "success");
     }
     window.addLivePlayerPrompt = addLivePlayerPrompt;
 
@@ -4838,9 +5628,9 @@
                     <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
                       <tr>
                         <th class="py-2 px-2 text-center w-12 shrink-0">${STATE.lang === 'zh-TW' ? '局數' : 'Game'}</th>
-                        <th class="py-2 px-2 text-right w-[35%]">${STATE.lang === 'zh-TW' ? '藍隊' : 'Blue'}</th>
+                        <th class="py-2 px-2 text-right w-[35%]">${STATE.lang === 'zh-TW' ? (tData.partnerType === 'singles' ? '藍方' : '藍隊') : 'Blue'}</th>
                         <th class="py-2 px-1 text-center w-20 shrink-0">${STATE.lang === 'zh-TW' ? '比分' : 'Score'}</th>
-                        <th class="py-2 px-2 text-left w-[35%]">${STATE.lang === 'zh-TW' ? '紅隊' : 'Red'}</th>
+                        <th class="py-2 px-2 text-left w-[35%]">${STATE.lang === 'zh-TW' ? (tData.partnerType === 'singles' ? '紅方' : '紅隊') : 'Red'}</th>
                         <th class="py-2 px-2 text-center hidden md:table-cell sub-text w-24">${STATE.lang === 'zh-TW' ? '輪休' : 'Resting'}</th>
                       </tr>
                     </thead>
@@ -4861,6 +5651,7 @@
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-amber-600 dark:text-amber-400 border">${tData.id}</span>
                 ${clubBadge}
+                ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
                 <span class="text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${t("statusFinished")}</span>
               </div>
               <span class="text-[10px] sub-text font-mono">${dateStr}</span>
@@ -4880,13 +5671,17 @@
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sub-text pt-1 border-t border-stone-200 dark:border-slate-800/80">
               <span>👥 ${players.length} ${t("playersCountLabel")}</span>
               <span>⚔️ ${STATE.lang === "zh-TW" ? `共 ${totalMatches} 場｜完賽 ${completedMatches} 場${voidedMatches > 0 ? `｜取消 ${voidedMatches} 場` : ''}` : `${totalMatches} games｜${completedMatches} done${voidedMatches > 0 ? `｜${voidedMatches} voided` : ''}`}</span>
+              ${tData.partnerType === 'singles' ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === "zh-TW" ? "個人單打" : "Singles"}</span>` : ''}
               ${tData.tournamentMode === "free" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>` : tData.tournamentMode === "round-robin" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>` : `<span>⏱️ ${tData.durationHours || 2} ${t("hrsUnit")}</span>`}
             </div>
 
-            <!-- Expand / Collapse & Enter View -->
+            <!-- Expand / Collapse & Actions -->
             <div class="flex items-center gap-2 pt-1">
               <button onclick="toggleHistoryTournament('${tData.id}')" class="flex-1 card-inner border sub-text hover:text-amber-500 hover:border-amber-500/30 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
                 ${isExpanded ? t("collapseDetails") : t("expandDetails")}
+              </button>
+              <button onclick="copyTournamentReport('${tData.id}')" class="card-inner border sub-text hover:text-blue-500 hover:border-blue-500/30 font-bold p-2 rounded-xl text-xs transition flex items-center justify-center gap-1" title="${t("copyReportBtn")}">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
               </button>
               <button onclick="enterTournament('${tData.id}')" class="card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/30 font-bold p-2 rounded-xl text-xs transition flex items-center justify-center gap-1" title="${t("enterTournament")}">
                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
@@ -4927,54 +5722,98 @@
       const completedCount = matches.filter(m => m.completed && !m.voided).length;
       const voidedCount = matches.filter(m => m.voided).length;
 
-      const isZh = STATE.lang === "zh-TW";
+      const isZh = (STATE.lang === "zh-TW");
+      const isTeam = getTournamentIsTeamMode(tData);
+      const isSingles = (tData.partnerType === "singles");
       let report = "";
 
       const countBadgeStr = isZh
         ? `共 ${totalMatches} 場｜完賽 ${completedCount} 場${voidedCount > 0 ? `｜取消 ${voidedCount} 場` : ''}`
         : `${totalMatches} games | ${completedCount} completed${voidedCount > 0 ? ` | ${voidedCount} voided` : ''}`;
 
-      report += `【${isZh ? "賽事名稱" : "Tournament"}】${tData.name}\n`;
-      report += `${isZh ? "日期" : "Date"}：${dateStr}`;
-      if (tData.clubName && tData.clubName.trim()) {
-        report += ` | ${isZh ? "社團" : "Club"}：${tData.clubName.trim()}`;
+      const unitStr = isTeam
+        ? (isZh ? `${players.length} 隊` : `${players.length} teams`)
+        : (isZh ? `${players.length} 人` : `${players.length} players`);
+
+      let modeStr = "";
+      if (isSingles) {
+        modeStr = isZh ? "個人單打" : "Singles (1v1)";
+      } else if (tData.tournamentMode === "free") {
+        modeStr = isZh ? "自由模式" : "Free Play";
+      } else if (tData.tournamentMode === "round-robin") {
+        modeStr = isZh ? "全循環模式" : "Round-Robin";
+      } else {
+        modeStr = isZh ? "平均模式" : "Fair Schedule";
       }
-      report += `\n${isZh ? "參賽人數" : "Players"}：${players.length} ${isZh ? "人" : "players"} | ${isZh ? "對局統計" : "Progress"}：${countBadgeStr}\n`;
-      report += `${"-".repeat(32)}\n\n`;
+
+      // Title & Basic Info
+      if (isZh) {
+        report += `【賽事戰報】${tData.name}\n`;
+        report += `日期：${dateStr}`;
+        if (tData.clubName && tData.clubName.trim()) {
+          report += ` | 社團：${tData.clubName.trim()}`;
+        }
+        report += ` | 賽制：${modeStr}\n`;
+        report += `${isTeam ? "參賽隊伍" : "參賽人數"}：${unitStr} | 對局統計：${countBadgeStr}\n`;
+      } else {
+        report += `[TOURNAMENT REPORT] ${tData.name}\n`;
+        report += `Date: ${dateStr}`;
+        if (tData.clubName && tData.clubName.trim()) {
+          report += ` | Club: ${tData.clubName.trim()}`;
+        }
+        report += ` | Format: ${modeStr}\n`;
+        report += `${isTeam ? "Teams" : "Players"}: ${unitStr} | Progress: ${countBadgeStr}\n`;
+      }
+      report += `${"-".repeat(34)}\n\n`;
 
       // Podium / Top 3
       if (leaderboard.some(p => p.played > 0)) {
-        report += `【${isZh ? "榮譽榜" : "PODIUM"}】\n`;
-        if (leaderboard[0]?.played > 0) report += `  1. ${isZh ? "冠軍" : "Champion"}：${leaderboard[0].name} (${leaderboard[0].wins}${isZh ? "勝" : "W"} ${leaderboard[0].losses}${isZh ? "敗" : "L"}, ${isZh ? "淨勝分" : "Diff"} +${leaderboard[0].diff})\n`;
-        if (leaderboard[1]?.played > 0) report += `  2. ${isZh ? "亞軍" : "Runner-up"}：${leaderboard[1].name} (${leaderboard[1].wins}${isZh ? "勝" : "W"} ${leaderboard[1].losses}${isZh ? "敗" : "L"}, ${isZh ? "淨勝分" : "Diff"} ${leaderboard[1].diff > 0 ? '+' : ''}${leaderboard[1].diff})\n`;
-        if (leaderboard[2]?.played > 0) report += `  3. ${isZh ? "季軍" : "3rd Place"}：${leaderboard[2].name} (${leaderboard[2].wins}${isZh ? "勝" : "W"} ${leaderboard[2].losses}${isZh ? "敗" : "L"}, ${isZh ? "淨勝分" : "Diff"} ${leaderboard[2].diff > 0 ? '+' : ''}${leaderboard[2].diff})\n`;
+        if (isZh) {
+          report += `【榮譽榜】\n`;
+          if (leaderboard[0]?.played > 0) report += `  1. 冠軍：${leaderboard[0].name} (${leaderboard[0].wins}勝 ${leaderboard[0].losses}敗, 淨勝分 ${leaderboard[0].diff > 0 ? '+' : ''}${leaderboard[0].diff})\n`;
+          if (leaderboard[1]?.played > 0) report += `  2. 亞軍：${leaderboard[1].name} (${leaderboard[1].wins}勝 ${leaderboard[1].losses}敗, 淨勝分 ${leaderboard[1].diff > 0 ? '+' : ''}${leaderboard[1].diff})\n`;
+          if (leaderboard[2]?.played > 0) report += `  3. 季軍：${leaderboard[2].name} (${leaderboard[2].wins}勝 ${leaderboard[2].losses}敗, 淨勝分 ${leaderboard[2].diff > 0 ? '+' : ''}${leaderboard[2].diff})\n`;
+        } else {
+          report += `[PODIUM]\n`;
+          if (leaderboard[0]?.played > 0) report += `  1. Champion: ${leaderboard[0].name} (${leaderboard[0].wins}W ${leaderboard[0].losses}L, Diff ${leaderboard[0].diff > 0 ? '+' : ''}${leaderboard[0].diff})\n`;
+          if (leaderboard[1]?.played > 0) report += `  2. Runner-up: ${leaderboard[1].name} (${leaderboard[1].wins}W ${leaderboard[1].losses}L, Diff ${leaderboard[1].diff > 0 ? '+' : ''}${leaderboard[1].diff})\n`;
+          if (leaderboard[2]?.played > 0) report += `  3. 3rd Place: ${leaderboard[2].name} (${leaderboard[2].wins}W ${leaderboard[2].losses}L, Diff ${leaderboard[2].diff > 0 ? '+' : ''}${leaderboard[2].diff})\n`;
+        }
         report += `\n`;
       }
 
       // Full Standings
-      report += `【${isZh ? "完整戰報" : "STANDINGS"}】\n`;
+      report += `${isZh ? "【完整戰報】" : "[STANDINGS]"}\n`;
       leaderboard.forEach((row, idx) => {
         const rank = idx + 1;
         const diffStr = row.diff > 0 ? `+${row.diff}` : `${row.diff}`;
-        report += `  ${rank}. ${row.name}  ${row.wins}${isZh ? "勝" : "W"} ${row.losses}${isZh ? "敗" : "L"}  ${isZh ? "淨勝分" : "Diff"} ${diffStr}  (得失分 ${row.pf}/${row.pa})\n`;
+        if (isZh) {
+          report += `  ${rank}. ${row.name}  ${row.wins}勝 ${row.losses}敗  淨勝分 ${diffStr}  (得失分 ${row.pf}/${row.pa})\n`;
+        } else {
+          report += `  ${rank}. ${row.name}  ${row.wins}W ${row.losses}L  Diff ${diffStr}  (PF/PA ${row.pf}/${row.pa})\n`;
+        }
       });
       report += `\n`;
 
       // Match log
-      report += `【${isZh ? "全輪次對戰紀錄" : "MATCH LOG"}】\n`;
+      report += `${isZh ? "【全輪次對戰紀錄】" : "[MATCH LOG]"}\n`;
       matches.forEach(m => {
+        const bNames = (m.blue || []).join(' & ');
+        const rNames = (m.red || []).join(' & ');
         if (m.voided) {
-          report += `  #${m.id} ${m.blue.join(' & ')} [${isZh ? "已取消" : "Voided"}] ${m.red.join(' & ')}\n`;
+          report += `  #${m.id} ${bNames} [${isZh ? "已取消" : "Voided"}] ${rNames}\n`;
+        } else if (m.completed && m.blueScore != null && m.redScore != null) {
+          report += `  #${m.id} ${bNames}  ${m.blueScore} : ${m.redScore}  ${rNames}\n`;
         } else {
-          report += `  #${m.id} ${m.blue.join(' & ')}  ${m.blueScore} : ${m.redScore}  ${m.red.join(' & ')}\n`;
+          report += `  #${m.id} ${bNames} [${isZh ? "未完賽" : "Pending"}] ${rNames}\n`;
         }
       });
 
-      report += `\n${"-".repeat(32)}\n`;
-      report += `ZeroZeroTwo 匹克球賽事系統`;
+      report += `\n${"-".repeat(34)}\n`;
+      report += isZh ? "ZeroZeroTwo 匹克球賽事系統" : "ZeroZeroTwo Pickleball Tournament System";
 
       navigator.clipboard.writeText(report).then(() => {
-        showToast(t("copiedReportToast"), "success");
+        showToast(isZh ? "📋 戰報已複製至剪貼簿！" : "📋 Match report copied to clipboard!", "success");
       });
     }
     window.copyTournamentReport = copyTournamentReport;
