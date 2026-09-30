@@ -1371,7 +1371,7 @@
         hubActiveTitle: "進行中賽事",
         hubCompletedTitle: "近期完賽 (3日內)",
         hubActiveCountSuffix: "場進行中",
-        hubCompletedCountSuffix: "場完賽 (3日內)",
+        hubCompletedCountSuffix: "場",
         expandText: "展開",
         collapseText: "闔上",
         noActiveTournaments: "目前無進行中的賽事",
@@ -1454,7 +1454,7 @@
         hubActiveTitle: "Active Tournaments",
         hubCompletedTitle: "Recent Completed (3 Days)",
         hubActiveCountSuffix: "Active",
-        hubCompletedCountSuffix: "Completed (3 Days)",
+        hubCompletedCountSuffix: "tournaments",
         expandText: "Expand",
         collapseText: "Collapse",
         noActiveTournaments: "No active tournaments",
@@ -4518,9 +4518,9 @@
             <div class="grid grid-cols-2 gap-2 sm:gap-3 ${isVoided ? 'opacity-50' : ''}">
               <!-- Blue Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-blue-500/15 to-blue-500/5 border border-blue-500/30 space-y-2 flex flex-col justify-between shadow-sm">
-                <div class="space-y-1 text-sm sm:text-base font-extrabold text-stone-900 dark:text-white tracking-wide">
+                <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
                   <div class="truncate flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block shrink-0"></span> <span class="truncate">${m.blue[0] || ''}</span></div>
-                  ${m.blue[1] ? `<div class="truncate pl-3.5 text-xs sm:text-sm font-semibold opacity-90">${m.blue[1]}</div>` : ''}
+                  ${m.blue[1] ? `<div class="truncate flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500/50 inline-block shrink-0"></span> <span class="truncate">${m.blue[1]}</span></div>` : ''}
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
@@ -4532,9 +4532,9 @@
 
               <!-- Red Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-rose-500/15 to-rose-500/5 border border-rose-500/30 space-y-2 flex flex-col justify-between shadow-sm">
-                <div class="space-y-1 text-sm sm:text-base font-extrabold text-stone-900 dark:text-white tracking-wide">
+                <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
                   <div class="truncate flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block shrink-0"></span> <span class="truncate">${m.red[0] || ''}</span></div>
-                  ${m.red[1] ? `<div class="truncate pl-3.5 text-xs sm:text-sm font-semibold opacity-90">${m.red[1]}</div>` : ''}
+                  ${m.red[1] ? `<div class="truncate flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500/50 inline-block shrink-0"></span> <span class="truncate">${m.red[1]}</span></div>` : ''}
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
@@ -4558,13 +4558,17 @@
               <div class="p-3 sm:p-3.5 rounded-2xl ${blueWon ? 'winner-card-blue bg-blue-500/20' : 'bg-blue-500/10'} border ${blueWon ? 'border-blue-500' : 'border-blue-500/25'} space-y-2 flex flex-col justify-between transition-all">
                 <div class="space-y-1">
                   <div class="flex items-center justify-between gap-1">
-                    <div class="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white truncate flex items-center gap-1.5">
+                    <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate flex items-center gap-1.5">
                       <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
                       <span class="truncate">${m.blue[0] || ''}</span>
                     </div>
                     ${blueWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-blue-500 text-white shrink-0 shadow-sm animate-pulse">WIN</span>` : ''}
                   </div>
-                  ${m.blue[1] ? `<div class="truncate pl-3.5 text-xs sm:text-sm font-bold sub-text">${m.blue[1]}</div>` : ''}
+                  ${m.blue[1] ? `
+                  <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-500/50 shrink-0"></span>
+                    <span class="truncate">${m.blue[1]}</span>
+                  </div>` : ''}
                 </div>
                 <div class="pt-1 text-center font-mono text-3xl sm:text-4xl font-black scoreboard-num ${blueWon ? 'text-blue-600 dark:text-blue-400 drop-shadow-sm scale-105' : isScored ? 'sub-text opacity-70' : 'sub-text opacity-30'} transition-transform">
                   ${hasBlueScore ? m.blueScore : '0'}
@@ -4575,13 +4579,17 @@
               <div class="p-3 sm:p-3.5 rounded-2xl ${redWon ? 'winner-card-red bg-rose-500/20' : 'bg-rose-500/10'} border ${redWon ? 'border-rose-500' : 'border-rose-500/25'} space-y-2 flex flex-col justify-between transition-all">
                 <div class="space-y-1">
                   <div class="flex items-center justify-between gap-1">
-                    <div class="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white truncate flex items-center gap-1.5">
+                    <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate flex items-center gap-1.5">
                       <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
                       <span class="truncate">${m.red[0] || ''}</span>
                     </div>
                     ${redWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-rose-500 text-white shrink-0 shadow-sm animate-pulse">WIN</span>` : ''}
                   </div>
-                  ${m.red[1] ? `<div class="truncate pl-3.5 text-xs sm:text-sm font-bold sub-text">${m.red[1]}</div>` : ''}
+                  ${m.red[1] ? `
+                  <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-rose-500/50 shrink-0"></span>
+                    <span class="truncate">${m.red[1]}</span>
+                  </div>` : ''}
                 </div>
                 <div class="pt-1 text-center font-mono text-3xl sm:text-4xl font-black scoreboard-num ${redWon ? 'text-rose-600 dark:text-rose-400 drop-shadow-sm scale-105' : isScored ? 'sub-text opacity-70' : 'sub-text opacity-30'} transition-transform">
                   ${hasRedScore ? m.redScore : '0'}
