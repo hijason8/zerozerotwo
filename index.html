@@ -26,7 +26,7 @@
 
   <!-- SEO Meta Tags -->
   <meta name="description" content="ZeroZeroTwo — 匹克球自動排賽計分系統。" />
-  <meta name="keywords" content="Pickleball 匹克球, 雙打輪播賽, 排賽系統" />
+  <meta name="keywords" content="Pickleball 匹克球, 雙打輪轉賽, 排賽系統" />
 
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -70,28 +70,43 @@
       border-radius: 2px;
     }
 
+    /* Ambient Court Background */
+    body {
+      background-image: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 60%);
+      background-attachment: fixed;
+    }
+
     /* Dark Theme */
     html.dark body {
-      background-color: #090d16;
+      background-color: #080c14;
       color: #f1f5f9;
+      background-image: radial-gradient(circle at 50% -10%, rgba(16, 185, 129, 0.08) 0%, transparent 70%),
+                        radial-gradient(circle at 100% 60%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
     }
 
     html.dark .glass-nav {
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(12px);
-      border-color: #1e293b;
+      background: rgba(8, 12, 20, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-color: rgba(255, 255, 255, 0.07);
     }
 
     html.dark .glass-card {
-      background: rgba(30, 41, 59, 0.75);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(18, 25, 38, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
       color: #f1f5f9;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    html.dark .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
     }
 
     html.dark .input-bg {
-      background-color: #0f172a;
-      border-color: #334155;
+      background-color: rgba(11, 17, 28, 0.85);
+      border-color: rgba(255, 255, 255, 0.1);
       color: #ffffff;
     }
 
@@ -100,32 +115,42 @@
     }
 
     html.dark .card-inner {
-      background-color: rgba(15, 23, 42, 0.6);
-      border-color: #1e293b;
+      background-color: rgba(11, 17, 28, 0.65);
+      border-color: rgba(255, 255, 255, 0.06);
     }
 
-    /* Light Theme (白底) */
+    /* Light Theme (白底 / 暖白簡約) */
     html.light body {
-      background-color: #fbf9f5;
+      background-color: #faf8f5;
       color: #292524;
+      background-image: radial-gradient(circle at 50% -5%, rgba(16, 185, 129, 0.06) 0%, transparent 60%),
+                        radial-gradient(circle at 100% 40%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
     }
 
     html.light .glass-nav {
-      background: rgba(245, 240, 230, 0.95);
-      backdrop-filter: blur(12px);
-      border-color: #e7dfd3;
+      background: rgba(250, 248, 245, 0.9);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-color: #e8e2d8;
     }
 
     html.light .glass-card {
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid #ebd9c8;
       color: #292524;
-      box-shadow: 0 2px 10px -2px rgba(180, 150, 120, 0.08);
+      box-shadow: 0 4px 18px -2px rgba(180, 150, 120, 0.08);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    html.light .glass-card:hover {
+      box-shadow: 0 8px 24px -4px rgba(180, 150, 120, 0.14);
+      border-color: #dfcdb8;
     }
 
     html.light .input-bg {
-      background-color: #fdfbf7;
+      background-color: #ffffff;
       border-color: #d6c7b2;
       color: #1c1917;
     }
@@ -135,7 +160,7 @@
     }
 
     html.light .card-inner {
-      background-color: #f7f3ec;
+      background-color: #f6f2eb;
       border-color: #e5dbc9;
     }
 
@@ -159,17 +184,60 @@
       border-color: #e7ded0 !important;
     }
 
+    /* Hover Lift & Glow Interactions */
+    .hover-lift {
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    }
+    .hover-lift:hover {
+      transform: translateY(-2.5px);
+    }
+    html.dark .hover-lift:hover {
+      box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.55), 0 0 16px -2px rgba(16, 185, 129, 0.16);
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+    html.light .hover-lift:hover {
+      box-shadow: 0 12px 26px -6px rgba(180, 150, 120, 0.2), 0 0 14px -2px rgba(16, 185, 129, 0.18);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    /* Scoreboard Digits & Winner Glow */
+    .scoreboard-num {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+    }
+    .winner-card-blue {
+      border-color: rgba(59, 130, 246, 0.5) !important;
+      box-shadow: 0 0 18px -2px rgba(59, 130, 246, 0.25);
+    }
+    .winner-card-red {
+      border-color: rgba(244, 63, 94, 0.5) !important;
+      box-shadow: 0 0 18px -2px rgba(244, 63, 94, 0.25);
+    }
+
+    /* Animated Progress Shimmer */
+    @keyframes shimmerMove {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .progress-shimmer {
+      background: linear-gradient(90deg, #10b981 0%, #34d399 45%, #6ee7b7 55%, #10b981 100%);
+      background-size: 200% 100%;
+      animation: shimmerMove 3.5s infinite linear;
+    }
+
     /* Schedule Mode Buttons */
     .mode-btn-active {
-      border-color: #10b981;
-      background: rgba(16, 185, 129, 0.12);
-      color: #059669;
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.12) !important;
+      color: #059669 !important;
+      box-shadow: 0 0 12px -2px rgba(16, 185, 129, 0.25);
     }
 
     html.dark .mode-btn-active {
-      border-color: #34d399;
-      background: rgba(52, 211, 153, 0.15);
-      color: #34d399;
+      border-color: #34d399 !important;
+      background: rgba(52, 211, 153, 0.16) !important;
+      color: #34d399 !important;
+      box-shadow: 0 0 14px -2px rgba(52, 211, 153, 0.3);
     }
 
     .mode-btn-inactive {
@@ -314,8 +382,8 @@
         </div>
         <div class="flex items-center gap-2">
           <button onclick="navigateTo('create')" id="t-create-new-btn"
-            class="card-inner border text-stone-800 dark:text-slate-200 font-semibold px-3 py-2 rounded-xl text-xs shadow-sm hover:border-stone-400 dark:hover:border-slate-600 flex items-center gap-1">
-            ➕ 建立新賽事
+            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1.5 transition active:scale-95">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-create-new-btn-text">建立新賽事</span>
           </button>
         </div>
       </div>
@@ -337,7 +405,7 @@
         <div onclick="toggleHubCompletedCollapse()"
           class="flex items-center justify-between cursor-pointer select-none group">
           <h3 id="t-hub-completed-heading"
-            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">已完賽賽事</h3>
+            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">近期完賽 (3日內)</h3>
           <div class="flex items-center gap-2 text-xs sub-text font-semibold">
             <span id="hub-completed-count"></span>
             <div
@@ -397,22 +465,22 @@
         <!-- 3. Tournament Mode Selector (Clean Text, No Emojis/Icons) -->
         <div>
           <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-mode">3. 賽事模式選擇</label>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <button type="button" id="btn-mode-fair" onclick="setCreateMode('fair')"
-              class="mode-btn-active px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
-              <div class="text-xs sm:text-sm font-display font-extrabold" id="t-mode-fair-title">輪播模式 (平均分配)</div>
+              class="mode-btn-active p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm">
+              <span class="block text-xs sm:text-sm font-display font-black" id="t-mode-fair-title">輪轉模式 (平均分配)</span>
               <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-fair-desc">
-                不分組同池輪播，自動排定每人/隊場次均等的公平賽程</p>
+                不分組同池輪轉，自動排定每人/隊場次均等的公平賽程</p>
             </button>
             <button type="button" id="btn-mode-free" onclick="setCreateMode('free')"
-              class="mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
-              <div class="text-xs sm:text-sm font-display font-extrabold" id="t-mode-free-title">自由模式 (手動加局)</div>
+              class="mode-btn-inactive p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm">
+              <span class="block text-xs sm:text-sm font-display font-black" id="t-mode-free-title">自由模式 (手動加局)</span>
               <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-free-desc">不預設固定對戰表，現場隨時手動加開場次與補人記分
               </p>
             </button>
             <button type="button" id="btn-mode-group" onclick="setCreateMode('group')"
-              class="mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
-              <div class="text-xs sm:text-sm font-display font-extrabold" id="t-mode-group-title">分組開局 (拆分小組)</div>
+              class="mode-btn-inactive p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm">
+              <span class="block text-xs sm:text-sm font-display font-black" id="t-mode-group-title">分組開局 (拆分小組)</span>
               <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-group-desc">拆分小組，批量生成各組全循環賽事</p>
             </button>
           </div>
@@ -608,8 +676,8 @@
         <input type="hidden" id="create-selected-total-games" value="" />
 
         <button type="submit" id="t-submit-create-btn"
-          class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white dark:text-slate-950 font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-1.5 mt-2">
-          確認並開賽
+          class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-black py-4 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition text-sm flex items-center justify-center gap-2 mt-4 active:scale-95 tracking-wide">
+          <i data-lucide="rocket" class="w-4 h-4"></i> <span id="t-submit-create-btn-text">確認並開賽</span>
         </button>
       </form>
     </section>
@@ -618,47 +686,59 @@
     <section id="page-live" class="hidden space-y-4 sm:space-y-6">
       <!-- Top Compact Title Banner -->
       <div
-        class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-l-4 border-l-emerald-500">
-        <div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <h2 id="live-title" class="text-lg sm:text-2xl font-display font-extrabold tracking-tight">賽事載入中...</h2>
-            <span id="live-mode-badge"
-              class="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">平均模式</span>
-            <span id="live-club-badge"
-              class="hidden px-2 py-0.5 rounded-md card-inner border text-amber-600 dark:text-amber-400 text-[11px] font-bold"></span>
-            <span id="live-id-badge"
-              class="px-2 py-0.5 rounded-md card-inner border font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">ID:
-              ---</span>
-          </div>
-          <!-- Compact Info Badges Row -->
-          <div class="flex flex-wrap items-center gap-2 text-[11px] mt-2">
-            <span class="flex items-center gap-1 px-2 py-0.5 rounded-md card-inner border"><i data-lucide="users"
-                class="w-3 h-3 sub-text"></i> <span id="live-players-count">0 人</span></span>
-            <span id="live-duration-wrap" class="flex items-center gap-1 px-2 py-0.5 rounded-md card-inner border"><i
-                data-lucide="clock" class="w-3 h-3 text-amber-500"></i> <span id="t-est-prefix">預估</span> <span
-                id="live-duration" class="font-bold text-amber-600 dark:text-amber-300">2</span> <span
-                id="t-hrs-unit">小時</span></span>
+        class="glass-card rounded-2xl p-4 sm:p-5 border-l-4 border-l-emerald-500 shadow-sm relative overflow-hidden space-y-3 sm:space-y-3.5">
+        <!-- 1. 資訊區 (Title, Tags, Meta Badges) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 id="live-title" class="text-lg sm:text-2xl font-display font-extrabold tracking-tight">賽事載入中...</h2>
+              <span id="live-mode-badge"
+                class="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">平均模式</span>
+              <span id="live-club-badge"
+                class="hidden px-2 py-0.5 rounded-md card-inner border text-amber-600 dark:text-amber-400 text-[11px] font-bold"></span>
+              <span id="live-id-badge"
+                class="px-2 py-0.5 rounded-md card-inner border font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">ID:
+                ---</span>
+            </div>
+            <!-- Compact Info Badges Row -->
+            <div class="flex flex-wrap items-center gap-2 text-[11px] mt-2">
+              <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border"><i data-lucide="users"
+                  class="w-3.5 h-3.5 text-emerald-500"></i> <span id="live-players-count">0 人</span></span>
+              <span id="live-duration-wrap" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border"><i
+                  data-lucide="clock" class="w-3.5 h-3.5 text-amber-500"></i> <span id="t-est-prefix">預估</span> <span
+                  id="live-duration" class="font-bold text-amber-600 dark:text-amber-300">2</span> <span
+                  id="t-hrs-unit">小時</span></span>
+              <span id="live-progress-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="live-progress-text">0/0 (0%)</span>
+              </span>
+            </div>
           </div>
         </div>
 
-        <!-- Divider: 資訊區 / 功能區 (手機才顯示) -->
-        <div class="w-full border-t border-stone-200 dark:border-slate-800 mt-1 sm:hidden"></div>
+        <!-- 2. 分隔進度條 (直接作為資訊區與操作按鈕之間的美化分隔線) -->
+        <div class="w-full py-0.5">
+          <div class="w-full h-1.5 sm:h-2 rounded-full bg-stone-200/80 dark:bg-slate-800/80 overflow-hidden shadow-inner">
+            <div id="live-header-progress-bar" class="h-full rounded-full transition-all duration-500 progress-shimmer" style="width: 0%;"></div>
+          </div>
+        </div>
 
-        <div class="flex items-center gap-2 shrink-0 flex-wrap">
+        <!-- 3. 操作功能區 (Actions Area) -->
+        <div class="flex items-center justify-end gap-2 flex-wrap pt-0.5">
           <!-- Mode Switch Button (Viewer vs Admin) -->
           <button onclick="toggleTournamentAdminMode()" id="btn-toggle-live-admin"
-            class="px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-500" id="icon-toggle-live-admin"></i>
             <span id="text-toggle-live-admin">操作模式</span>
           </button>
           <!-- Copy Report Button (Only visible when tournament is completed) -->
           <button onclick="liveCopyReport()" id="btn-live-copy-report"
-            class="hidden px-3 py-2 rounded-xl card-inner border hover:border-blue-500/50 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            class="hidden flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-blue-500/50 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-500"></i>
             <span id="text-live-copy-report">文字賽報</span>
           </button>
           <button onclick="openShareModal()" id="t-share-btn"
-            class="px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
             <span id="t-share-btn-text">分享 / QR Code</span>
           </button>
@@ -667,13 +747,14 @@
 
       <!-- Admin Control Panel Banner (Unlocked when Admin Mode is ON) -->
       <div id="live-admin-toolbar"
-        class="hidden glass-card rounded-2xl p-3 sm:p-4 border border-amber-500/30 bg-amber-500/5 space-y-2.5 shadow-sm transition-all">
+        class="hidden glass-card rounded-2xl p-3.5 sm:p-4 border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent space-y-3 shadow-md transition-all">
         <div class="flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
           <span class="flex items-center gap-1.5">
             <i data-lucide="shield-check" class="w-4 h-4"></i> <span id="t-live-admin-toolbar-title">管理模式面板</span>
           </span>
+          <span class="text-[10px] font-mono sub-text uppercase tracking-wider">Host Controls</span>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
           <button type="button" onclick="openAddMatchModal()"
             class="py-2.5 px-3 rounded-xl card-inner border hover:border-emerald-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> <span
@@ -1175,8 +1256,8 @@
         btnSelectClub: "選擇既有社團",
         placeholderNewClub: "請輸入新社團名稱",
         labelMode: "3. 賽事模式選擇",
-        modeFairTitle: "輪播模式 (平均分配)",
-        modeFairDesc: "不分組同池輪播，自動排定每人/隊場次均等的公平賽程",
+        modeFairTitle: "輪轉模式 (平均分配)",
+        modeFairDesc: "不分組同池輪轉，自動排定每人/隊場次均等的公平賽程",
         modeGroupTitle: "分組開局 (拆分小組)",
         modeGroupDesc: "拆分小組，批量生成各組全循環賽事",
         modeFreeTitle: "自由模式 (手動加局)",
@@ -1288,13 +1369,13 @@
 
         // Hub & Sections
         hubActiveTitle: "進行中賽事",
-        hubCompletedTitle: "已完賽賽事",
+        hubCompletedTitle: "近期完賽 (3日內)",
         hubActiveCountSuffix: "場進行中",
-        hubCompletedCountSuffix: "場已完賽",
+        hubCompletedCountSuffix: "場完賽 (3日內)",
         expandText: "展開",
         collapseText: "闔上",
         noActiveTournaments: "目前無進行中的賽事",
-        noCompletedTournamentsHub: "尚無已完賽的賽事記錄",
+        noCompletedTournamentsHub: "近期 3 日內無完賽賽事",
         createTournamentDirect: "建立新賽事",
         finishAndReturnBtn: "結束賽事",
         deleteTournamentBtn: "刪除賽事",
@@ -1371,13 +1452,13 @@
 
         // Hub & Sections
         hubActiveTitle: "Active Tournaments",
-        hubCompletedTitle: "Completed Tournaments",
+        hubCompletedTitle: "Recent Completed (3 Days)",
         hubActiveCountSuffix: "Active",
-        hubCompletedCountSuffix: "Completed",
+        hubCompletedCountSuffix: "Completed (3 Days)",
         expandText: "Expand",
         collapseText: "Collapse",
         noActiveTournaments: "No active tournaments",
-        noCompletedTournamentsHub: "No completed tournaments yet",
+        noCompletedTournamentsHub: "No completed tournaments in the past 3 days",
         createTournamentDirect: "Create Tournament",
         finishAndReturnBtn: "End Tournament",
         deleteTournamentBtn: "Delete Tournament",
@@ -1669,8 +1750,8 @@
       // Hub Page
       const hubTitle = document.getElementById("t-hub-title");
       if (hubTitle) hubTitle.innerHTML = `<i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500"></i> ${t("hubTitle")}`;
-      const createNewBtnEl = document.getElementById("t-create-new-btn");
-      if (createNewBtnEl) createNewBtnEl.innerText = t("createNewBtn");
+      const createNewBtnTextEl = document.getElementById("t-create-new-btn-text");
+      if (createNewBtnTextEl) createNewBtnTextEl.innerText = t("createNewBtn");
       const hubActHeading = document.getElementById("t-hub-active-heading");
       if (hubActHeading) hubActHeading.innerText = t("hubActiveTitle");
       const hubCompHeading = document.getElementById("t-hub-completed-heading");
@@ -1779,8 +1860,9 @@
 
       const timeCalcTitleEl = document.getElementById("t-time-calc-title");
       if (timeCalcTitleEl) timeCalcTitleEl.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i> ${t("timeCalcTitle")}`;
-      const submitCreateBtnEl = document.getElementById("t-submit-create-btn");
-      if (submitCreateBtnEl) submitCreateBtnEl.innerHTML = t("submitCreateBtn");
+      const submitCreateBtnTextEl = document.getElementById("t-submit-create-btn-text");
+      if (submitCreateBtnTextEl) submitCreateBtnTextEl.innerText = t("submitCreateBtn");
+      else if (submitCreateBtnEl) submitCreateBtnEl.innerHTML = t("submitCreateBtn");
 
       // Placeholders translation
       const createNameInput = document.getElementById("create-name");
@@ -2500,8 +2582,8 @@
       const wrapNotice = document.getElementById("wrap-free-notice");
       const timeBox = document.getElementById("time-estimate-box");
 
-      const activeCls = "mode-btn-active px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5";
-      const inactiveCls = "mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5";
+      const activeCls = "mode-btn-active p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm";
+      const inactiveCls = "mode-btn-inactive p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm";
 
       if (btnFair) btnFair.className = mode === "fair" ? activeCls : inactiveCls;
       if (btnGroup) btnGroup.className = mode === "group" ? activeCls : inactiveCls;
@@ -3625,7 +3707,7 @@
         if (mode === "fair" && uniquePlayers.length < minUnits) {
           showToast(
             STATE.lang === "zh-TW"
-              ? (isSingles ? "個人單打參賽選手至少需 2 人！" : "輪播模式參賽單位至少需 4 個 (人/隊伍)！")
+              ? (isSingles ? "個人單打參賽選手至少需 2 人！" : "輪轉模式參賽單位至少需 4 個 (人/隊伍)！")
               : `At least ${minUnits} units required for rotation mode!`,
             "error"
           );
@@ -3765,13 +3847,19 @@
       // Separate into Active and Completed lists
       const activeList = [];
       const completedList = [];
+      const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+      const nowMs = Date.now();
 
       filteredList.forEach(tData => {
         const total = tData.matches ? tData.matches.length : 0;
         const done = tData.matches ? tData.matches.filter(m => m.completed || m.voided).length : 0;
         const isDone = tData.status === "completed" || (total > 0 && done === total);
         if (isDone) {
-          completedList.push(tData);
+          const tDate = parseTournamentDate(tData.createdAt);
+          const isWithin3Days = tDate ? (nowMs - tDate.getTime()) <= THREE_DAYS_MS : true;
+          if (isWithin3Days) {
+            completedList.push(tData);
+          }
         } else {
           activeList.push(tData);
         }
@@ -3802,40 +3890,73 @@
           </span>
         ` : '';
 
+        const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+
         return `
-          <div class="glass-card rounded-2xl p-4 space-y-3 border hover:border-emerald-500/40 transition flex flex-col justify-between shadow-sm">
-            <div>
+          <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3.5 border flex flex-col justify-between shadow-sm relative overflow-hidden group">
+            <!-- Top Subtle Accent Line -->
+            <div class="absolute top-0 left-0 right-0 h-1 ${isFinished ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-to-r from-amber-500 to-orange-500'} opacity-80"></div>
+
+            <div class="space-y-2.5">
+              <!-- Top Badges Row -->
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
                   ${clubBadge}
                   ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
                 </div>
-                <span class="text-[10px] px-2 py-0.5 rounded font-medium ${isFinished ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20'}">
-                  ${isFinished ? t("statusFinished") : t("statusActive")}
-                </span>
+                ${isFinished
+                  ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-sm">
+                      <i data-lucide="check" class="w-3 h-3"></i> ${t("statusFinished")}
+                    </span>`
+                  : `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1.5 shadow-sm">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${t("statusActive")}
+                    </span>`
+                }
               </div>
-              <h3 class="text-base font-bold mt-1.5 font-display line-clamp-1">${tData.name}</h3>
-              <p class="text-xs sub-text mt-1 flex items-center gap-1">
-                <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
-                ${tData.tournamentMode === "free" ? `<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>` : tData.tournamentMode === "round-robin" ? `<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>` : `<span class="ml-1 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-amber-500"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`}
-              </p>
-              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mt-2 pt-2 border-t border-stone-200 dark:border-slate-800/80 sub-text">
+
+              <!-- Tournament Title -->
+              <h3 class="text-base sm:text-lg font-bold font-display line-clamp-1 group-hover:text-emerald-500 transition-colors">${tData.name}</h3>
+
+              <!-- Meta Info -->
+              <div class="flex items-center gap-2 text-xs sub-text flex-wrap">
+                <span class="flex items-center gap-1">
+                  <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
+                </span>
+                ${tData.tournamentMode === "free"
+                  ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`
+                  : tData.tournamentMode === "round-robin"
+                    ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>`
+                    : tData.tournamentMode === "group"
+                      ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "分組循環" : "Group Stage"}</span>`
+                      : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-stone-400"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`
+                }
                 <span>👥 ${tData.players ? tData.players.length : 0} ${t("playersCountLabel")}</span>
-                <span class="flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500"></i> ${STATE.lang === "zh-TW" ? `共 ${total} 場｜完賽 ${completedCount} 場${voidedCount > 0 ? `｜取消 ${voidedCount} 場` : ''}` : `${total} games｜${completedCount} done${voidedCount > 0 ? `｜${voidedCount} voided` : ''}`}</span>
+              </div>
+
+              <!-- Visual Progress Meter -->
+              <div class="space-y-1 pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
+                <div class="flex items-center justify-between text-[11px] sub-text font-mono">
+                  <span>${STATE.lang === 'zh-TW' ? '賽程進度' : 'Progress'}</span>
+                  <span class="font-bold ${isFinished ? 'text-emerald-500' : 'text-amber-500'}">${completedCount}/${total} (${pct}%)</span>
+                </div>
+                <div class="w-full h-1.5 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'progress-shimmer'}" style="width: ${pct}%"></div>
+                </div>
               </div>
             </div>
 
+            <!-- Action Buttons Row -->
             <div class="flex items-center gap-2 pt-1">
-              <button onclick="enterTournament('${tData.id}')" class="flex-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
-                <i data-lucide="play" class="w-3.5 h-3.5"></i> ${t("enterTournament")}
+              <button onclick="enterTournament('${tData.id}')" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold py-2.5 rounded-xl text-xs transition shadow-sm hover:shadow-emerald-500/25 flex items-center justify-center gap-1.5 active:scale-95">
+                <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> ${t("enterTournament")}
               </button>
               ${STATE.isAdmin
-            ? `<button onclick="deleteTournament('${tData.id}')" class="p-2 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
+                ? `<button onclick="deleteTournament('${tData.id}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                   </button>`
-            : ''
-          }
+                : ''
+              }
             </div>
           </div>
         `;
@@ -4005,6 +4126,9 @@
       } else {
         displayHubTournamentsList(STATE.allTournamentsCache);
         renderHubTournaments();
+        if (STATE.currentPage === "history" || !document.getElementById("page-history")?.classList.contains("hidden")) {
+          renderHistoryPage();
+        }
       }
     }
     window.deleteTournament = deleteTournament;
@@ -4198,6 +4322,16 @@
       const totalMatches = data.matches ? data.matches.length : 0;
       const doneMatches = data.matches ? data.matches.filter(m => m.completed || m.voided).length : 0;
       const isFinished = data.status === "completed" || (totalMatches > 0 && doneMatches === totalMatches);
+      const matchPct = totalMatches > 0 ? Math.round((doneMatches / totalMatches) * 100) : 0;
+
+      const headerProgressBar = document.getElementById("live-header-progress-bar");
+      if (headerProgressBar) {
+        headerProgressBar.style.width = `${matchPct}%`;
+      }
+      const progressTextEl = document.getElementById("live-progress-text");
+      if (progressTextEl) {
+        progressTextEl.innerText = `${doneMatches}/${totalMatches} (${matchPct}%)`;
+      }
 
       // Complete & Return to Hub Button (visible if hasAdmin and NOT finished)
       const completeBtn = document.getElementById("btn-complete-and-return");
@@ -4338,6 +4472,16 @@
     }
     window.completeTournamentAndReturn = completeTournamentAndReturn;
 
+    function stepMatchScore(matchId, side, delta) {
+      const input = document.getElementById(`score-${side}-${matchId}`);
+      if (!input || input.disabled) return;
+      let val = parseInt(input.value || "0", 10);
+      if (isNaN(val)) val = 0;
+      val = Math.max(0, Math.min(99, val + delta));
+      input.value = val;
+    }
+    window.stepMatchScore = stepMatchScore;
+
     function renderMatchesList(matches, hasAdmin = false) {
       const container = document.getElementById("matches-container");
       const validMatches = (matches || []).filter(m => !m.voided);
@@ -4346,12 +4490,12 @@
 
       if (matches.length === 0) {
         container.innerHTML = `
-          <div class="glass-card rounded-2xl p-6 text-center space-y-2 border">
-            <div class="w-10 h-10 rounded-xl card-inner sub-text flex items-center justify-center mx-auto text-emerald-500">
-              <i data-lucide="swords" class="w-5 h-5"></i>
+          <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2.5 border">
+            <div class="w-12 h-12 rounded-2xl card-inner sub-text flex items-center justify-center mx-auto text-emerald-500 border shadow-sm">
+              <i data-lucide="swords" class="w-6 h-6"></i>
             </div>
-            <p class="font-bold text-xs">${STATE.lang === 'zh-TW' ? '尚未有賽程' : 'No matches yet'}</p>
-            <p class="sub-text text-[11px]">${hasAdmin ? (STATE.lang === 'zh-TW' ? '點擊下方「➕ 新增場次」手動或智慧抽籤開打！' : 'Click "➕ Add Match" below to add games!') : (STATE.lang === 'zh-TW' ? '請等待管理員開局...' : 'Waiting for host to start games...')}</p>
+            <p class="font-bold text-sm sm:text-base">${STATE.lang === 'zh-TW' ? '尚未有賽程' : 'No matches yet'}</p>
+            <p class="sub-text text-xs">${hasAdmin ? (STATE.lang === 'zh-TW' ? '點擊上方「➕ 新增場次」開始開局記分！' : 'Click "➕ Add Match" above to start games!') : (STATE.lang === 'zh-TW' ? '請等待管理員開局...' : 'Waiting for host to start games...')}</p>
           </div>
         `;
         lucide.createIcons();
@@ -4361,63 +4505,85 @@
       container.innerHTML = matches.map((m, idx) => {
         const isDone = m.completed;
         const isVoided = m.voided;
+        const bScore = m.blueScore != null ? Number(m.blueScore) : null;
+        const rScore = m.redScore != null ? Number(m.redScore) : null;
+        const blueWon = isDone && bScore !== null && rScore !== null && bScore > rScore;
+        const redWon = isDone && bScore !== null && rScore !== null && rScore > bScore;
 
-        // Score display: Editable inputs in Admin Mode, read-only scoreboard in Viewer Mode
+        // Score display: Editable inputs in Admin Mode with steppers, read-only scoreboard in Viewer Mode
         let scoreHTML = '';
         if (hasAdmin) {
           scoreHTML = `
-            <!-- Teams Grid (Admin Mode - Editable) -->
-            <div class="grid grid-cols-2 gap-2 ${isVoided ? 'opacity-50' : ''}">
+            <!-- Teams Grid (Admin Mode - Editable with Quick Stepper) -->
+            <div class="grid grid-cols-2 gap-2 sm:gap-3 ${isVoided ? 'opacity-50' : ''}">
               <!-- Blue Side -->
-              <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 space-y-2.5 flex flex-col justify-between">
+              <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-blue-500/15 to-blue-500/5 border border-blue-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-extrabold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${m.blue[0] || ''}</div>
-                  ${m.blue[1] ? `<div class="truncate">${m.blue[1]}</div>` : ''}
+                  <div class="truncate flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block shrink-0"></span> <span class="truncate">${m.blue[0] || ''}</span></div>
+                  ${m.blue[1] ? `<div class="truncate pl-3.5 text-xs sm:text-sm font-semibold opacity-90">${m.blue[1]}</div>` : ''}
                 </div>
-                <div class="flex items-center pt-1">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? m.blueScore : ''}" placeholder="0" class="w-full input-bg border border-blue-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-blue-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
+                <!-- Stepper Controls -->
+                <div class="flex items-center justify-center gap-1.5 pt-1.5">
+                  <button type="button" onclick="stepMatchScore(${m.id}, 'blue', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? m.blueScore : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-blue-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-blue-400 scoreboard-num shadow-inner" />
+                  <button type="button" onclick="stepMatchScore(${m.id}, 'blue', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
                 </div>
               </div>
 
               <!-- Red Side -->
-              <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 space-y-2.5 flex flex-col justify-between">
+              <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-rose-500/15 to-rose-500/5 border border-rose-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-extrabold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${m.red[0] || ''}</div>
-                  ${m.red[1] ? `<div class="truncate">${m.red[1]}</div>` : ''}
+                  <div class="truncate flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block shrink-0"></span> <span class="truncate">${m.red[0] || ''}</span></div>
+                  ${m.red[1] ? `<div class="truncate pl-3.5 text-xs sm:text-sm font-semibold opacity-90">${m.red[1]}</div>` : ''}
                 </div>
-                <div class="flex items-center pt-1">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? m.redScore : ''}" placeholder="0" class="w-full input-bg border border-rose-500/35 rounded-lg p-2 text-center font-mono text-lg font-extrabold focus:outline-none focus:border-rose-400 placeholder:opacity-30 placeholder:text-stone-400 dark:placeholder:text-slate-500" />
+                <!-- Stepper Controls -->
+                <div class="flex items-center justify-center gap-1.5 pt-1.5">
+                  <button type="button" onclick="stepMatchScore(${m.id}, 'red', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? m.redScore : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-rose-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-rose-400 scoreboard-num shadow-inner" />
+                  <button type="button" onclick="stepMatchScore(${m.id}, 'red', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
                 </div>
               </div>
             </div>
           `;
         } else {
-          // Viewer Mode - Read Only Scoreboard
+          // Viewer Mode - Read Only Digital Scoreboard
           const hasBlueScore = m.blueScore != null;
           const hasRedScore = m.redScore != null;
           const isScored = isDone && hasBlueScore && hasRedScore;
 
           scoreHTML = `
-            <!-- Teams Grid (Viewer Mode - Read Only) -->
-            <div class="grid grid-cols-2 gap-2 ${isVoided ? 'opacity-50' : ''}">
+            <!-- Teams Grid (Viewer Mode - Digital Scoreboard with Winner Highlight) -->
+            <div class="grid grid-cols-2 gap-2 sm:gap-3 ${isVoided ? 'opacity-50' : ''}">
               <!-- Blue Side -->
-              <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 space-y-2.5 flex flex-col justify-between">
-                <div class="space-y-1 text-sm sm:text-base font-extrabold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${m.blue[0] || ''}</div>
-                  ${m.blue[1] ? `<div class="truncate">${m.blue[1]}</div>` : ''}
+              <div class="p-3 sm:p-3.5 rounded-2xl ${blueWon ? 'winner-card-blue bg-blue-500/20' : 'bg-blue-500/10'} border ${blueWon ? 'border-blue-500' : 'border-blue-500/25'} space-y-2 flex flex-col justify-between transition-all">
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between gap-1">
+                    <div class="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white truncate flex items-center gap-1.5">
+                      <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                      <span class="truncate">${m.blue[0] || ''}</span>
+                    </div>
+                    ${blueWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-blue-500 text-white shrink-0 shadow-sm animate-pulse">WIN</span>` : ''}
+                  </div>
+                  ${m.blue[1] ? `<div class="truncate pl-3.5 text-xs sm:text-sm font-bold sub-text">${m.blue[1]}</div>` : ''}
                 </div>
-                <div class="pt-1 text-center font-mono text-2xl sm:text-3xl font-black ${isScored ? 'text-blue-600 dark:text-blue-400' : 'sub-text opacity-30'}">
+                <div class="pt-1 text-center font-mono text-3xl sm:text-4xl font-black scoreboard-num ${blueWon ? 'text-blue-600 dark:text-blue-400 drop-shadow-sm scale-105' : isScored ? 'sub-text opacity-70' : 'sub-text opacity-30'} transition-transform">
                   ${hasBlueScore ? m.blueScore : '0'}
                 </div>
               </div>
 
               <!-- Red Side -->
-              <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 space-y-2.5 flex flex-col justify-between">
-                <div class="space-y-1 text-sm sm:text-base font-extrabold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${m.red[0] || ''}</div>
-                  ${m.red[1] ? `<div class="truncate">${m.red[1]}</div>` : ''}
+              <div class="p-3 sm:p-3.5 rounded-2xl ${redWon ? 'winner-card-red bg-rose-500/20' : 'bg-rose-500/10'} border ${redWon ? 'border-rose-500' : 'border-rose-500/25'} space-y-2 flex flex-col justify-between transition-all">
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between gap-1">
+                    <div class="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white truncate flex items-center gap-1.5">
+                      <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                      <span class="truncate">${m.red[0] || ''}</span>
+                    </div>
+                    ${redWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-rose-500 text-white shrink-0 shadow-sm animate-pulse">WIN</span>` : ''}
+                  </div>
+                  ${m.red[1] ? `<div class="truncate pl-3.5 text-xs sm:text-sm font-bold sub-text">${m.red[1]}</div>` : ''}
                 </div>
-                <div class="pt-1 text-center font-mono text-2xl sm:text-3xl font-black ${isScored ? 'text-rose-600 dark:text-rose-400' : 'sub-text opacity-30'}">
+                <div class="pt-1 text-center font-mono text-3xl sm:text-4xl font-black scoreboard-num ${redWon ? 'text-rose-600 dark:text-rose-400 drop-shadow-sm scale-105' : isScored ? 'sub-text opacity-70' : 'sub-text opacity-30'} transition-transform">
                   ${hasRedScore ? m.redScore : '0'}
                 </div>
               </div>
@@ -4431,7 +4597,7 @@
           if (isVoided) {
             footerHTML = `
               <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20">${t("voidedNotice")}</span>
+                <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20">${t("voidedNotice")}</span>
                 <button onclick="toggleVoidMatch(${m.id})" class="px-2.5 py-1 font-bold rounded-lg text-xs transition bg-stone-500/10 hover:bg-stone-500/20 sub-text border">
                   ${t("restoreMatchBtn")}
                 </button>
@@ -4447,7 +4613,7 @@
                   <button onclick="toggleVoidMatch(${m.id})" class="px-2 py-1 font-semibold rounded-lg text-[11px] transition text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Match">
                     ${t("voidMatchBtn")}
                   </button>
-                  <button onclick="saveMatchScore(${m.id})" class="px-3 py-1 font-bold rounded-lg text-xs transition flex items-center gap-1 shadow-sm ${isDone ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-emerald-500 hover:bg-emerald-400 text-white dark:text-slate-950'}">
+                  <button onclick="saveMatchScore(${m.id})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${isDone ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
                     <i data-lucide="${isDone ? 'edit-2' : 'check'}" class="w-3.5 h-3.5"></i> ${isDone ? t("editScoreBtn") : t("saveScoreBtn")}
                   </button>
                 </div>
@@ -4458,9 +4624,9 @@
           // Viewer footer
           let statusBadge = `<span class="sub-text text-[11px] italic">${t("inProgressBadge")}</span>`;
           if (isVoided) {
-            statusBadge = `<span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px]">${t("voidMatchBtn")}</span>`;
+            statusBadge = `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px]">${t("voidMatchBtn")}</span>`;
           } else if (isDone) {
-            statusBadge = `<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px]">${t("finishedBadge")}</span>`;
+            statusBadge = `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px]">${t("finishedBadge")}</span>`;
           }
           footerHTML = `
             <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
@@ -4473,11 +4639,11 @@
         }
 
         return `
-          <div class="glass-card rounded-xl p-3 sm:p-4 border ${isVoided ? 'border-rose-500/30 bg-rose-500/5' : isDone ? 'border-emerald-500/40' : ''} transition space-y-3">
+          <div class="glass-card hover-lift rounded-2xl p-3.5 sm:p-4 border ${isVoided ? 'border-rose-500/30 bg-rose-500/5' : isDone ? 'border-emerald-500/40 shadow-sm' : ''} transition space-y-3">
             <!-- Game Header -->
             <div class="flex items-center justify-between">
               <span class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5">
-                <span class="w-5 h-5 rounded-md card-inner text-emerald-600 dark:text-emerald-400 text-[11px] flex items-center justify-center font-mono">${m.id}</span>
+                <span class="w-6 h-6 rounded-lg card-inner text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-mono border font-black">${m.id}</span>
                 ${STATE.lang === 'zh-TW' ? `第 ${m.id} 局` : `Game ${m.id}`}
               </span>
               ${isVoided ? `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400">${t("voidedBadge")}</span>` : ''}
@@ -5135,27 +5301,36 @@
 
       tbody.innerHTML = leaderboard.map((row, idx) => {
         const isMvp = idx === 0 && row.played > 0;
-        let rankBadge = `<span class="font-mono sub-text font-bold text-[11px]">${idx + 1}</span>`;
-        if (isMvp) rankBadge = `<span class="text-base" title="👑 MVP Leader">👑</span>`;
-        else if (idx === 1 && row.played > 0) rankBadge = `<span class="text-sm">🥈</span>`;
-        else if (idx === 2 && row.played > 0) rankBadge = `<span class="text-sm">🥉</span>`;
+        let rankBadge = `<span class="font-mono sub-text font-bold text-xs">${idx + 1}</span>`;
+        if (isMvp) {
+          rankBadge = `<span class="w-6 h-6 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-stone-950 font-black text-xs inline-flex items-center justify-center shadow-sm" title="👑 Champion / MVP">1</span>`;
+        } else if (idx === 1 && row.played > 0) {
+          rankBadge = `<span class="w-5 h-5 rounded-full bg-gradient-to-br from-slate-200 to-slate-400 text-stone-900 font-bold text-[11px] inline-flex items-center justify-center shadow-sm" title="🥈 Runner-up">2</span>`;
+        } else if (idx === 2 && row.played > 0) {
+          rankBadge = `<span class="w-5 h-5 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 text-white font-bold text-[11px] inline-flex items-center justify-center shadow-sm" title="🥉 3rd Place">3</span>`;
+        }
 
         const winUnit = STATE.lang === "zh-TW" ? "勝" : "W";
         const lossUnit = STATE.lang === "zh-TW" ? "敗" : "L";
 
         return `
-          <tr class="${isMvp ? 'bg-amber-500/10 font-bold border-l-2 border-amber-400' : 'hover:bg-stone-500/5'} transition">
-            <td class="py-2 px-1 text-center">${rankBadge}</td>
-            <td class="py-2 px-2">
-              <span class="font-semibold text-xs ${isMvp ? 'text-amber-600 dark:text-amber-300' : ''}">${row.name}</span>
+          <tr class="${isMvp ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent font-bold border-l-4 border-amber-500' : 'hover:bg-stone-500/5'} transition">
+            <td class="py-2.5 px-1.5 text-center">${rankBadge}</td>
+            <td class="py-2.5 px-2">
+              <span class="font-semibold text-xs sm:text-sm ${isMvp ? 'text-amber-600 dark:text-amber-300' : ''}">${row.name}</span>
             </td>
-            <td class="py-2 px-1 text-center font-mono text-[11px]">
-              <span class="text-emerald-600 dark:text-emerald-400">${row.wins}${winUnit}</span>/<span class="text-rose-600 dark:text-rose-400">${row.losses}${lossUnit}</span>
+            <td class="py-2.5 px-1 text-center font-mono text-xs">
+              <span class="text-emerald-600 dark:text-emerald-400 font-bold">${row.wins}${winUnit}</span> / <span class="text-rose-600 dark:text-rose-400">${row.losses}${lossUnit}</span>
             </td>
-            <td class="py-2 px-1 text-center font-mono text-[11px] font-bold ${row.diff > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.diff < 0 ? 'text-rose-600 dark:text-rose-400' : 'sub-text'}">
-              ${row.diff > 0 ? '+' + row.diff : row.diff}
+            <td class="py-2.5 px-1 text-center">
+              ${row.diff > 0
+                ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">+${row.diff}</span>`
+                : row.diff < 0
+                  ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">${row.diff}</span>`
+                  : `<span class="px-1.5 py-0.5 rounded font-mono text-[11px] sub-text">0</span>`
+              }
             </td>
-            <td class="py-2 px-2 text-center font-mono text-[11px] sub-text">
+            <td class="py-2.5 px-2 text-center font-mono text-xs sub-text">
               ${row.pf}/${row.pa}
             </td>
           </tr>
@@ -5645,47 +5820,71 @@
         }
 
         return `
-          <div class="glass-card rounded-2xl p-4 sm:p-5 border border-amber-500/20 space-y-3 transition hover:border-amber-500/40 shadow-sm">
+          <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 border space-y-3.5 transition shadow-sm relative overflow-hidden group">
+            <!-- Top Emerald Gradient Line (完賽標誌) -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-80"></div>
+
             <!-- Header -->
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-amber-600 dark:text-amber-400 border">${tData.id}</span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
                 ${clubBadge}
                 ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
-                <span class="text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${t("statusFinished")}</span>
+                <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-sm">
+                  <i data-lucide="check" class="w-3 h-3"></i> ${t("statusFinished")}
+                </span>
               </div>
               <span class="text-[10px] sub-text font-mono">${dateStr}</span>
             </div>
 
             <!-- Title -->
-            <h3 class="text-base sm:text-lg font-bold font-display">${tData.name}</h3>
+            <h3 class="text-base sm:text-lg font-bold font-display group-hover:text-emerald-500 transition-colors">${tData.name}</h3>
 
-            <!-- Podium -->
-            <div class="flex items-center gap-3 text-xs">
-              ${champion && champion.played > 0 ? `<span class="flex items-center gap-1 font-bold text-amber-600 dark:text-amber-300">🥇 ${champion.name} <span class="sub-text font-normal">(${champion.wins}${STATE.lang === "zh-TW" ? "勝" : "W"})</span></span>` : ''}
-              ${runnerUp && runnerUp.played > 0 ? `<span class="flex items-center gap-1 sub-text">🥈 ${runnerUp.name}</span>` : ''}
-              ${third && third.played > 0 ? `<span class="flex items-center gap-1 sub-text">🥉 ${third.name}</span>` : ''}
+            <!-- Podium Badges -->
+            <div class="flex items-center gap-2 text-xs flex-wrap pt-0.5">
+              ${champion && champion.played > 0
+                ? `<span class="inline-flex items-center gap-1.5 font-bold px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-sm">
+                    <span class="text-sm">🥇</span> <span>${champion.name}</span> <span class="sub-text text-[11px] font-normal font-mono">(${champion.wins}${STATE.lang === "zh-TW" ? "勝" : "W"})</span>
+                  </span>`
+                : ''}
+              ${runnerUp && runnerUp.played > 0
+                ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl card-inner border text-stone-700 dark:text-slate-300 text-xs shadow-sm">
+                    <span>🥈</span> <span>${runnerUp.name}</span>
+                  </span>`
+                : ''}
+              ${third && third.played > 0
+                ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl card-inner border text-stone-700 dark:text-slate-300 text-xs shadow-sm">
+                    <span>🥉</span> <span>${third.name}</span>
+                  </span>`
+                : ''}
             </div>
 
             <!-- Stats row -->
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sub-text pt-1 border-t border-stone-200 dark:border-slate-800/80">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sub-text pt-2 border-t border-stone-200/70 dark:border-slate-800/70">
               <span>👥 ${players.length} ${t("playersCountLabel")}</span>
               <span>⚔️ ${STATE.lang === "zh-TW" ? `共 ${totalMatches} 場｜完賽 ${completedMatches} 場${voidedMatches > 0 ? `｜取消 ${voidedMatches} 場` : ''}` : `${totalMatches} games｜${completedMatches} done${voidedMatches > 0 ? `｜${voidedMatches} voided` : ''}`}</span>
               ${tData.partnerType === 'singles' ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === "zh-TW" ? "個人單打" : "Singles"}</span>` : ''}
-              ${tData.tournamentMode === "free" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>` : tData.tournamentMode === "round-robin" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>` : `<span>⏱️ ${tData.durationHours || 2} ${t("hrsUnit")}</span>`}
+              ${tData.tournamentMode === "free" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>` : tData.tournamentMode === "round-robin" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>` : tData.tournamentMode === "group" ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "分組循環" : "Group Stage"}</span>` : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-stone-400"></i> ${tData.durationHours || 2} ${t("hrsUnit")}</span>`}
             </div>
 
             <!-- Expand / Collapse & Actions -->
             <div class="flex items-center gap-2 pt-1">
-              <button onclick="toggleHistoryTournament('${tData.id}')" class="flex-1 card-inner border sub-text hover:text-amber-500 hover:border-amber-500/30 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
-                ${isExpanded ? t("collapseDetails") : t("expandDetails")}
+              <button onclick="toggleHistoryTournament('${tData.id}')" class="flex-1 card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/40 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
+                <i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
+                <span>${isExpanded ? t("collapseDetails") : t("expandDetails")}</span>
               </button>
-              <button onclick="copyTournamentReport('${tData.id}')" class="card-inner border sub-text hover:text-blue-500 hover:border-blue-500/30 font-bold p-2 rounded-xl text-xs transition flex items-center justify-center gap-1" title="${t("copyReportBtn")}">
-                <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+              <button onclick="copyTournamentReport('${tData.id}')" class="px-3 py-2.5 card-inner border sub-text hover:text-blue-500 hover:border-blue-500/40 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("copyReportBtn")}">
+                <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-500"></i>
               </button>
-              <button onclick="enterTournament('${tData.id}')" class="card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/30 font-bold p-2 rounded-xl text-xs transition flex items-center justify-center gap-1" title="${t("enterTournament")}">
-                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              <button onclick="enterTournament('${tData.id}')" class="px-3 py-2.5 card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/40 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("enterTournament")}">
+                <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-500"></i>
               </button>
+              ${STATE.isAdmin
+                ? `<button onclick="deleteTournament('${tData.id}')" class="px-3 py-2.5 card-inner border hover:bg-rose-500/20 sub-text hover:text-rose-500 border-rose-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("deleteTournamentBtn")}">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500"></i>
+                  </button>`
+                : ''
+              }
             </div>
 
             ${expandedHTML}
