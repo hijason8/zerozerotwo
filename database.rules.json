@@ -1,0 +1,30 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "tournaments": {
+      ".read": true,
+      "$tournament_id": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['id', 'name'])"
+      }
+    },
+    "club_members": {
+      ".read": true,
+      "$club_key": {
+        ".write": true
+      }
+    },
+    "club_passwords": {
+      ".read": true,
+      "$club_key": {
+        ".write": true,
+        ".validate": "newData.val() === null || (newData.isString() && newData.val().length === 64)"
+      }
+    },
+    "app_config": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}
