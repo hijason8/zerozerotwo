@@ -400,16 +400,16 @@
     <section id="page-hub" class="space-y-4 sm:space-y-6">
       <!-- Hub Top Bar: Title + Quick Create -->
       <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
+        class="flex items-center justify-between gap-2 border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
         <div class="text-left">
           <h2 id="t-hub-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2 text-left">
             <i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500 dark:text-emerald-400"></i>
             <span>臨打球局</span>
           </h2>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0">
           <button onclick="STATE.createContextClub = null; navigateTo('create')" id="t-create-new-btn"
-            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1.5 transition active:scale-95">
+            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1.5 transition active:scale-95 shrink-0">
             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-create-new-btn-text">建立新賽事</span>
           </button>
         </div>
@@ -422,7 +422,7 @@
           <div class="relative flex-1">
             <i data-lucide="search"
               class="w-4 h-4 text-stone-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input type="text" id="hub-quick-code-input" placeholder="輸入賽事代碼搜尋 (例: 123456 或 T-123456)" autocomplete="off"
+            <input type="text" id="hub-quick-code-input" placeholder="輸入賽事代碼 (例: T-123456)" autocomplete="off"
               class="w-full input-bg border rounded-xl pl-9 pr-3 py-2 text-xs font-mono focus:border-emerald-500 focus:outline-none placeholder:text-stone-400 placeholder:font-sans" />
           </div>
           <button type="submit" id="btn-quick-code-submit"
@@ -1403,7 +1403,7 @@
         filterCompleted: "🏆 已完賽",
         tabMyTournaments: "⭐ 我的賽事",
         tabPublicTournaments: "🎾 臨打球局",
-        quickCodePlaceholder: "輸入賽事代碼 (例: 123456 或 T-123456)",
+        quickCodePlaceholder: "輸入賽事代碼 (例: T-123456)",
         quickCodeBtn: "前往",
         hubClubFilterAll: "🛡️ 所屬社團 (全部)",
         emptyMyTournamentsTitle: "個人隱私保護中",
@@ -1664,7 +1664,7 @@
         filterCompleted: "🏆 Finished",
         tabMyTournaments: "⭐ My Tournaments",
         tabPublicTournaments: "🎾 Drop-in Play",
-        quickCodePlaceholder: "Enter code (e.g. 123456 or T-123456)",
+        quickCodePlaceholder: "Enter code (e.g. T-123456)",
         quickCodeBtn: "Go",
         hubClubFilterAll: "🛡️ Filter by Club (All)",
         hubPrivacyHint: "",
@@ -4451,7 +4451,12 @@
                 <i data-lucide="layout-grid" class="w-6 h-6"></i>
               </div>
               <div>
-                <h4 class="text-sm sm:text-base font-bold font-display">${t("noActiveTournaments")}</h4>
+                <h4 class="text-sm sm:text-base font-bold font-display leading-snug sm:leading-normal">
+                  ${STATE.lang === 'zh-TW'
+                    ? '<span class="block sm:inline">目前無進行中的公開球局，</span><span class="block sm:inline">請使用賽事連結或進入社團大廳</span>'
+                    : '<span class="block sm:inline">No active public matches.</span> <span class="block sm:inline">Use tournament link or enter Club Lobby</span>'
+                  }
+                </h4>
               </div>
             </div>
           `;
