@@ -685,20 +685,13 @@
           </div>
         </div>
 
-        <!-- 4. One-click Start Card & Cancel Action -->
-        <div id="lobby-admin-action-card" class="pt-2 space-y-2">
+        <!-- 4. One-click Start Card -->
+        <div id="lobby-admin-action-card" class="pt-2">
           <button type="button" id="btn-lobby-start-tournament" onclick="startTournamentFromLobby()"
             class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-black py-4 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 tracking-wide">
             <i data-lucide="rocket" class="w-4 h-4"></i>
             <span id="t-lobby-start-btn-text">全員到齊，立即排賽開打！</span>
           </button>
-          <div class="text-center pt-0.5">
-            <button type="button" onclick="cancelRegistrationTournament()"
-              class="text-xs sub-text hover:text-rose-500 transition inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg hover:bg-rose-500/10 active:scale-95">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500/70"></i>
-              <span id="t-lobby-btn-cancel-bottom">取消並刪除此球局</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1788,8 +1781,6 @@
       if (lobbyBtnEditDur) lobbyBtnEditDur.innerText = isZh ? "調整時間" : "Edit Duration";
       const lobbyBtnDelete = document.getElementById("t-lobby-btn-delete");
       if (lobbyBtnDelete) lobbyBtnDelete.innerText = isZh ? "取消球局" : "Delete Lobby";
-      const lobbyBtnCancelBottom = document.getElementById("t-lobby-btn-cancel-bottom");
-      if (lobbyBtnCancelBottom) lobbyBtnCancelBottom.innerText = isZh ? "取消並刪除此球局" : "Cancel & Delete Tournament";
       const modalDurTitle = document.getElementById("t-modal-duration-title");
       if (modalDurTitle) modalDurTitle.innerText = isZh ? "調整比賽時間" : "Adjust Tournament Duration";
       const modalDurDesc = document.getElementById("t-modal-duration-desc");
