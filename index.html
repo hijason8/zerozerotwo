@@ -258,7 +258,8 @@
         <div onclick="toggleHubCompletedCollapse()"
           class="flex items-center justify-between gap-1.5 sm:gap-2 cursor-pointer select-none group">
           <h3 id="t-hub-completed-heading"
-            class="text-[13px] sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display whitespace-nowrap shrink min-w-0">近期完賽球局 (3日內)</h3>
+            class="text-[13px] sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display whitespace-nowrap shrink min-w-0">
+            近期完賽球局 (3日內)</h3>
           <div class="flex items-center gap-1.5 sm:gap-2 text-xs sub-text font-semibold shrink-0">
             <span id="hub-completed-count" class="text-[11px] sm:text-xs"></span>
             <div
@@ -289,6 +290,7 @@
 
       <form id="form-create-tournament" onsubmit="handleCreateTournament(event)" autocomplete="off" novalidate
         class="glass-card rounded-2xl p-4 sm:p-6 space-y-4">
+        <input type="hidden" id="create-entry-mode" value="instant" />
 
         <!-- 1. Tournament Name -->
         <div>
@@ -311,23 +313,14 @@
         <!-- 3. Tournament Mode Selector (Clean Text, No Emojis/Icons) -->
         <div>
           <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-mode">3. 賽事模式選擇</label>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
             <button type="button" id="btn-mode-fair" onclick="setCreateMode('fair')"
-              class="mode-btn-active p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm">
-              <span class="block text-xs sm:text-sm font-display font-black" id="t-mode-fair-title">輪轉模式 (平均分配)</span>
-              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-fair-desc">
-                不分組同池輪轉，自動排定每人/隊場次均等的公平賽程</p>
+              class="mode-btn-active py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
+              <span class="text-xs sm:text-sm font-display font-black" id="t-mode-fair-title">平均分配</span>
             </button>
             <button type="button" id="btn-mode-free" onclick="setCreateMode('free')"
-              class="mode-btn-inactive p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm">
-              <span class="block text-xs sm:text-sm font-display font-black" id="t-mode-free-title">自由模式 (手動加局)</span>
-              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-free-desc">不預設固定對戰表，現場隨時手動加開場次與補人記分
-              </p>
-            </button>
-            <button type="button" id="btn-mode-group" onclick="setCreateMode('group')"
-              class="mode-btn-inactive p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm">
-              <span class="block text-xs sm:text-sm font-display font-black" id="t-mode-group-title">分組開局 (拆分小組)</span>
-              <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-mode-group-desc">拆分小組，批量生成各組全循環賽事</p>
+              class="mode-btn-inactive py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
+              <span class="text-xs sm:text-sm font-display font-black" id="t-mode-free-title">手動分配</span>
             </button>
           </div>
           <input type="hidden" id="create-tournament-mode" value="fair" />
@@ -353,7 +346,7 @@
             <div id="wrap-partner-toggle"
               class="inline-flex w-fit p-0.5 bg-stone-200 dark:bg-slate-800/80 rounded-xl text-xs font-bold shrink-0">
               <button type="button" id="btn-partner-rotating" onclick="setPartnerType('rotating')"
-                class="px-2.5 py-1 rounded-lg transition-all text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm">
+                class="px-2.5 py-1 rounded-lg transition-all text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm">
                 <span id="t-partner-rotating-text">輪替隊友</span>
               </button>
               <button type="button" id="btn-partner-fixed" onclick="setPartnerType('fixed')"
@@ -373,7 +366,7 @@
             <!-- Row 1: Single Unified Input Bar + Live Count Badge -->
             <div class="flex items-center gap-2">
               <div class="relative flex-1">
-                <input type="text" id="quick-add-player-input" placeholder="輸入姓名，支援空格、逗號或換行批量輸入"
+                <input type="text" id="quick-add-player-input" placeholder="輸入姓名，支援空格批量輸入"
                   class="w-full input-bg border rounded-xl pl-3 pr-20 sm:pr-24 py-2 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none shadow-inner"
                   onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); quickAddPlayer();}"
                   onpaste="setTimeout(quickAddPlayer, 50)" />
@@ -393,7 +386,7 @@
             <!-- Row 2: Selected Players (Active Chips Area) -->
             <div class="space-y-1.5">
               <div class="flex items-center justify-between text-[11px] font-bold sub-text">
-                <span id="t-selected-roster-heading">👥 已登錄：</span>
+                <span id="t-selected-roster-heading">已登錄：</span>
               </div>
               <div id="selected-players-chips"
                 class="flex flex-wrap gap-1.5 min-h-[38px] p-2.5 rounded-xl bg-stone-500/5 border border-dashed border-stone-300 dark:border-slate-800 items-center">
@@ -420,11 +413,11 @@
               <span id="t-auto-gen-label" class="sub-text text-[11px]">自動生成代號：</span>
               <div class="flex items-center gap-1.5">
                 <input type="number" id="quick-generate-count" min="2" max="60" placeholder="數量"
-                  class="w-14 input-bg border rounded-md px-1.5 py-1 text-xs text-center focus:border-amber-500 focus:outline-none"
+                  class="w-14 input-bg border rounded-md px-1.5 py-1 text-xs text-center focus:border-emerald-500 focus:outline-none"
                   onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); quickGeneratePlayers();}" />
                 <button type="button" onclick="quickGeneratePlayers()" id="t-quick-gen-btn"
-                  class="px-2.5 py-1 card-inner border hover:border-amber-500 text-amber-600 dark:text-amber-400 font-bold rounded-md text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95">
-                  <i data-lucide="zap" class="w-3 h-3"></i> <span id="t-btn-quick-gen">產生</span>
+                  class="px-2.5 py-1 card-inner border hover:border-emerald-500 text-stone-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold rounded-md text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95">
+                  <i data-lucide="zap" class="w-3 h-3 text-emerald-500"></i> <span id="t-btn-quick-gen">產生</span>
                 </button>
               </div>
             </div>
@@ -438,24 +431,14 @@
         <div id="wrap-fair-duration" class="space-y-3">
           <div>
             <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-fair-duration">5. 排賽目標與時間限制</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
               <button type="button" id="btn-strategy-time" onclick="setFairStrategy('time')"
-                class="mode-btn-active px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
-                <div class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5"
-                  id="t-strategy-time-title">
-                  <i data-lucide="clock" class="w-3.5 h-3.5"></i> 按比賽時間排賽
-                </div>
-                <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-strategy-time-desc">
-                  指定總比賽時間，系統自動試算最佳場數與時間對應</p>
+                class="mode-btn-active py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
+                <span class="text-xs sm:text-sm font-display font-extrabold" id="t-strategy-time-title">按時間排賽</span>
               </button>
               <button type="button" id="btn-strategy-full" onclick="setFairStrategy('full-cycle')"
-                class="mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5">
-                <div class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5"
-                  id="t-strategy-full-title">
-                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 打滿一輪全循環
-                </div>
-                <p class="text-[11px] font-normal opacity-75 leading-tight" id="t-strategy-full-desc">強制排滿 1
-                  輪完整全循環賽事，人人皆有搭配與對決</p>
+                class="mode-btn-inactive py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
+                <span class="text-xs sm:text-sm font-display font-extrabold" id="t-strategy-full-title">全循環排賽</span>
               </button>
             </div>
             <input type="hidden" id="create-fair-strategy" value="time" />
@@ -474,33 +457,6 @@
           </div>
         </div>
 
-        <!-- 5. Group Mode Section (Shown in Group Mode) -->
-        <div id="wrap-group-section" class="hidden space-y-2">
-          <div class="flex items-center justify-between">
-            <label id="t-label-group" class="block text-xs sm:text-sm font-semibold">5. 分組設定</label>
-            <span class="text-[11px] sub-text font-medium">依參賽單位數自動拆組</span>
-          </div>
-          <div class="card-inner border rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-sm">
-            <div class="flex items-center justify-between gap-2 text-[11px]">
-              <span class="sub-text text-[11px]">分組數量：</span>
-              <div class="flex items-center gap-1.5">
-                <input type="number" id="create-group-count" min="2" max="10" value="2"
-                  onchange="renderGroupDrawPreview()" oninput="renderGroupDrawPreview()"
-                  class="w-14 input-bg border rounded-md px-1.5 py-1 text-xs text-center focus:border-amber-500 focus:outline-none font-mono" />
-                <button type="button" onclick="shuffleAndDrawGroups()"
-                  class="px-2.5 py-1 card-inner border hover:border-amber-500 text-amber-600 dark:text-amber-400 font-bold rounded-md text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95">
-                  <i data-lucide="dices" class="w-3 h-3"></i> <span>隨機分組</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Group Draw Preview Container -->
-            <div id="group-draw-preview" class="space-y-2 pt-1">
-              <!-- Dynamically populated group cards -->
-            </div>
-          </div>
-        </div>
-
         <!-- Time Estimation Hint Box & Fair Schedule Options -->
         <div id="time-estimate-box" class="p-3.5 rounded-xl card-inner border text-xs space-y-2.5">
           <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -512,7 +468,8 @@
               class="text-[10px] px-2 py-0.5 rounded-full card-inner font-mono text-amber-600 dark:text-amber-400 border border-amber-500/20 hidden"></span>
           </div>
 
-          <p id="time-estimate-text" class="sub-text text-[11px]">輸入選手名單預估局數與每局時間。</p>
+          <p id="time-estimate-text" class="sub-text text-[11px] leading-relaxed">💡
+            指定總比賽時間，系統自動試算最佳場數與時間對應；輸入名單後即時試算局數。</p>
 
           <!-- Fair Schedule Options Container (rendered dynamically) -->
           <div id="fair-schedule-options" class="space-y-2 pt-1 hidden">
@@ -522,43 +479,44 @@
         <input type="hidden" id="create-selected-total-games" value="" />
 
         <!-- 6. Privacy Setting (球局隱私設定) -->
-        <div id="wrap-create-privacy" class="card-inner border rounded-2xl p-3.5 space-y-2.5 shadow-sm">
+        <div id="wrap-create-privacy" class="space-y-1.5">
           <div class="flex items-center justify-between">
             <label class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5" id="t-label-privacy">
               <i data-lucide="shield" class="w-4 h-4 text-emerald-500"></i>
-              <span>球局隱私設定</span>
+              <span>6. 球局隱私設定</span>
             </label>
             <span
-              class="text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-              id="badge-privacy-status">臨打公開 (預設)</span>
+              class="text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold sub-text border border-stone-200 dark:border-slate-800"
+              id="badge-privacy-status">公開 (預設)</span>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            <button type="button" id="btn-privacy-public" onclick="setCreatePrivacy(false)"
-              class="p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-emerald-500 text-stone-900 dark:text-white font-bold shadow-sm active:scale-98">
-              <div class="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
-                <span id="t-privacy-public-title">臨打公開 (預設)</span>
-              </div>
-              <p class="text-[10px] sub-text font-normal leading-tight" id="t-privacy-public-desc">發布於臨打球局，供全站球友自由查看與參與
-              </p>
-            </button>
-            <button type="button" id="btn-privacy-private" onclick="setCreatePrivacy(true)"
-              class="p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-transparent opacity-60 text-stone-600 dark:text-slate-400 font-medium hover:opacity-100 active:scale-98">
-              <div class="flex items-center gap-1.5 text-xs text-stone-500 dark:text-slate-400">
-                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
-                <span id="t-privacy-private-title">私密球局</span>
-              </div>
-              <p class="text-[10px] sub-text font-normal leading-tight" id="t-privacy-private-desc">
-                不在列表中顯示，僅持專屬連結或輸入代碼者可進入</p>
-            </button>
-          </div>
+
+          <button type="button" id="btn-privacy-private" onclick="toggleCreatePrivacy()"
+            class="mode-btn-inactive w-full py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-between hover-lift active:scale-95 shadow-sm text-left">
+            <div class="flex items-center gap-2">
+              <i data-lucide="lock" class="w-3.5 h-3.5 shrink-0"></i>
+              <span class="text-xs sm:text-sm font-display font-bold" id="t-privacy-private-title">設為私密球局</span>
+            </div>
+            <span class="text-[10.5px] opacity-75 font-normal" id="t-privacy-private-desc">
+              僅持專屬連結可進入，不在公開列表顯示
+            </span>
+          </button>
           <input type="hidden" id="create-is-private" value="false" />
         </div>
 
-        <button type="submit" id="t-submit-create-btn"
-          class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-black py-4 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition text-sm flex items-center justify-center gap-2 mt-4 active:scale-95 tracking-wide">
-          <i data-lucide="rocket" class="w-4 h-4"></i> <span id="t-submit-create-btn-text">確認並開賽</span>
-        </button>
+        <!-- Action Buttons: 立即開打 (翡翠綠) VS 建立報名 (冷杉青綠) -->
+        <div class="grid grid-cols-2 gap-2 sm:gap-3 pt-3">
+          <button type="button" id="btn-submit-instant" onclick="triggerCreateTournament('instant')"
+            class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-black py-3.5 sm:py-4 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 active:scale-95 tracking-wide">
+            <i data-lucide="zap" class="w-4 h-4 fill-current shrink-0"></i>
+            <span id="t-submit-instant-text">立即開打</span>
+          </button>
+          <button type="button" id="btn-submit-registration" onclick="triggerCreateTournament('registration')"
+            class="w-full bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-black py-3.5 sm:py-4 rounded-2xl shadow-lg hover:shadow-teal-500/25 transition text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 active:scale-95 tracking-wide">
+            <i data-lucide="clipboard-list" class="w-4 h-4 shrink-0"></i>
+            <span id="t-submit-reg-text">建立報名</span>
+          </button>
+        </div>
+        <button type="submit" id="t-submit-hidden-trigger" class="hidden"></button>
       </form>
     </section>
 
@@ -573,7 +531,7 @@
             <div class="flex items-center gap-2 flex-wrap">
               <h2 id="live-title" class="text-lg sm:text-2xl font-display font-extrabold tracking-tight">賽事載入中...</h2>
               <span id="live-mode-badge"
-                class="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">平均模式</span>
+                class="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20">平均模式</span>
               <span id="live-club-badge"
                 class="hidden px-2 py-0.5 rounded-md card-inner border text-amber-600 dark:text-amber-400 text-[11px] font-bold"></span>
               <span id="live-id-badge"
@@ -598,7 +556,7 @@
         </div>
 
         <!-- 2. 分隔進度條 (直接作為資訊區與操作按鈕之間的美化分隔線) -->
-        <div class="w-full py-0.5">
+        <div id="live-header-progress-wrap" class="w-full py-0.5">
           <div
             class="w-full h-1.5 sm:h-2 rounded-full bg-stone-200/80 dark:bg-slate-800/80 overflow-hidden shadow-inner">
             <div id="live-header-progress-bar" class="h-full rounded-full transition-all duration-500 progress-shimmer"
@@ -607,17 +565,17 @@
         </div>
 
         <!-- 3. 操作功能區 (Actions Area) -->
-        <div class="flex items-center justify-end gap-2 flex-wrap pt-0.5">
+        <div id="live-header-actions-wrap" class="flex items-center justify-end gap-2 flex-wrap pt-0.5">
           <!-- Mode Switch Button (Viewer vs Admin) -->
           <button onclick="toggleTournamentAdminMode()" id="btn-toggle-live-admin"
-            class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-500" id="icon-toggle-live-admin"></i>
             <span id="text-toggle-live-admin">操作模式</span>
           </button>
           <!-- Copy Report Button (Only visible when tournament is completed) -->
           <button onclick="liveCopyReport()" id="btn-live-copy-report"
-            class="hidden flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-blue-500/50 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
-            <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-500"></i>
+            class="hidden flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-stone-500 dark:text-slate-400"></i>
             <span id="text-live-copy-report">文字賽報</span>
           </button>
           <button onclick="openShareModal()" id="t-share-btn"
@@ -660,8 +618,92 @@
         </div>
       </div>
 
+      <!-- Registration Lobby (Shown when tournament status === 'registering') -->
+      <div id="live-registration-lobby" class="hidden space-y-4">
+        <!-- 1. Lobby Status & Live Counter -->
+        <div class="glass-card rounded-2xl p-4 sm:p-5 border space-y-4 shadow-sm">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <h3 class="text-base sm:text-lg font-display font-bold" id="t-lobby-title">球局報名</h3>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button type="button" id="btn-lobby-edit-duration" onclick="openEditDurationModal()"
+                class="px-3 py-1 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95 text-stone-700 dark:text-slate-300">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500"></i>
+                <span id="t-lobby-btn-edit-duration">調整時間</span>
+              </button>
+              <button type="button" onclick="openShareModal()"
+                class="px-3 py-1 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95">
+                <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
+                <span id="t-lobby-share-btn">分享報名連結</span>
+              </button>
+              <button type="button" onclick="cancelRegistrationTournament()" id="btn-lobby-delete-tournament"
+                class="px-3 py-1 rounded-xl card-inner border hover:border-rose-500/50 hover:bg-rose-500/10 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95 text-stone-700 dark:text-slate-300 hover:text-rose-500"
+                title="取消此球局">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500"></i>
+                <span id="t-lobby-btn-delete">取消球局</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Registered Players Chips -->
+          <div class="space-y-2 pt-2 border-t border-stone-200/70 dark:border-slate-800/70">
+            <div class="flex items-center justify-between text-xs font-bold sub-text">
+              <span id="t-lobby-registered-title">👥 目前已報名名單：</span>
+              <span id="lobby-registered-count-text" class="font-mono text-[11px]">共 0 人</span>
+            </div>
+            <div id="lobby-registered-chips"
+              class="flex flex-wrap gap-1.5 min-h-[44px] p-2.5 rounded-xl bg-stone-500/5 border border-dashed border-stone-300 dark:border-slate-800 items-center">
+              <!-- Dynamically populated chips -->
+            </div>
+          </div>
+
+          <!-- 3. Quick Sign-up Input Area -->
+          <div class="pt-2 border-t border-stone-200/70 dark:border-slate-800/70 space-y-3">
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <input type="text" id="lobby-player-input" placeholder="輸入姓名，支援空格批量輸入"
+                  class="w-full input-bg border rounded-xl pl-3 pr-24 py-2.5 text-xs sm:text-sm focus:border-teal-500 focus:outline-none shadow-inner"
+                  onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); joinRegistrationFromInput();}" />
+                <button type="button" onclick="joinRegistrationFromInput()" id="btn-lobby-join"
+                  class="absolute right-1 top-1 bottom-1 px-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 transition shadow-sm active:scale-95">
+                  <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> <span id="t-lobby-btn-join">我要報名</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Club Members Quick Check-in Chips (If associated with club) -->
+            <div id="lobby-club-members-section" class="hidden space-y-1.5 pt-1">
+              <div class="flex items-center justify-between text-[11px] font-bold sub-text">
+                <span id="t-lobby-club-members-title">🛡️ 社團成員快速點選簽到 (+1)：</span>
+              </div>
+              <div id="lobby-club-members-chips" class="flex flex-wrap gap-1.5 pt-0.5">
+                <!-- Dynamically populated club member chips -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. One-click Start Card & Cancel Action -->
+        <div id="lobby-admin-action-card" class="pt-2 space-y-2">
+          <button type="button" id="btn-lobby-start-tournament" onclick="startTournamentFromLobby()"
+            class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-black py-4 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 tracking-wide">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <span id="t-lobby-start-btn-text">全員到齊，立即排賽開打！</span>
+          </button>
+          <div class="text-center pt-0.5">
+            <button type="button" onclick="cancelRegistrationTournament()"
+              class="text-xs sub-text hover:text-rose-500 transition inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg hover:bg-rose-500/10 active:scale-95">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500/70"></i>
+              <span id="t-lobby-btn-cancel-bottom">取消並刪除此球局</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Main Live Grid (2 Columns on Desktop, Single Column on Mobile) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+      <div id="live-main-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
         <!-- Left: Matches Schedule (7 Cols) -->
         <div class="lg:col-span-7 space-y-3">
@@ -888,6 +930,63 @@
             <i data-lucide="copy" class="w-3.5 h-3.5"></i> 複製
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== EDIT DURATION MODAL ==================== -->
+  <div id="modal-edit-duration"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border relative text-left shadow-2xl">
+      <button onclick="closeEditDurationModal()" class="absolute top-3.5 right-3.5 sub-text hover:text-emerald-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+          <i data-lucide="clock" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 id="t-modal-duration-title" class="text-base font-bold font-display">調整比賽時間</h3>
+          <p id="t-modal-duration-desc" class="text-xs sub-text">修改預計總時間，開賽將依此自動試算局數</p>
+        </div>
+      </div>
+
+      <!-- Quick Preset Chips -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold sub-text">快速選擇常用時間：</label>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button type="button" onclick="setQuickDuration(1.0)" class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">1.0h</button>
+          <button type="button" onclick="setQuickDuration(1.5)" class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">1.5h</button>
+          <button type="button" onclick="setQuickDuration(2.0)" class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">2.0h</button>
+          <button type="button" onclick="setQuickDuration(2.5)" class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">2.5h</button>
+          <button type="button" onclick="setQuickDuration(3.0)" class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">3.0h</button>
+          <button type="button" onclick="setQuickDuration(3.5)" class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">3.5h</button>
+          <button type="button" onclick="setQuickDuration(4.0)" class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">4.0h</button>
+          <button type="button" onclick="setQuickDuration(5.0)" class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">5.0h</button>
+        </div>
+      </div>
+
+      <!-- Numeric Input -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold sub-text">或自訂比賽小時：</label>
+        <div class="relative">
+          <input type="number" id="edit-duration-input" min="0.5" max="8" step="0.5" value="2.0"
+            class="w-full input-bg border rounded-xl p-2.5 pr-12 text-sm font-mono focus:border-amber-500 focus:outline-none" />
+          <span class="absolute right-3 top-2.5 text-xs font-bold sub-text">小時</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button type="button" onclick="closeEditDurationModal()"
+          class="py-2.5 px-3 rounded-xl card-inner border font-bold text-xs hover:border-stone-400 transition text-center">
+          取消
+        </button>
+        <button type="button" onclick="saveTournamentDuration()"
+          class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-md active:scale-95 transition text-center flex items-center justify-center gap-1">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i> 儲存時間
+        </button>
       </div>
     </div>
   </div>
@@ -1163,6 +1262,8 @@
       });
     }
     window.escapeHTML = escapeHTML;
+    window.escapeHtml = escapeHTML;
+    const escapeHtml = escapeHTML;
 
     function safeSetLocal(key, value) {
       try {
@@ -1287,6 +1388,10 @@
       if (historyPage && !historyPage.classList.contains("hidden")) {
         renderHistoryPage();
       }
+      const currentPartnerType = document.getElementById("create-partner-type")?.value || "rotating";
+      setPartnerType(currentPartnerType);
+      calculateTimeEstimate();
+      updatePlayerCountBadge();
       showToast(STATE.lang === "zh-TW" ? "已切換至 繁體中文" : "Switched to English", "info");
     }
     window.toggleLanguage = toggleLanguage;
@@ -1489,6 +1594,8 @@
     }
 
     function applyLanguageUI() {
+      const isZh = (STATE.lang === "zh-TW");
+
       const navHubEl = document.getElementById("t-nav-hub");
       if (navHubEl) navHubEl.innerText = t("navHub");
       const navHubBtn = document.getElementById("nav-btn-hub");
@@ -1560,6 +1667,8 @@
       if (privPublicTitleEl) privPublicTitleEl.innerText = t("privacyPublicTitle");
       const privPublicDescEl = document.getElementById("t-privacy-public-desc");
       if (privPublicDescEl) privPublicDescEl.innerText = t("privacyPublicDesc");
+      const isPrivateVal = document.getElementById("create-is-private")?.value === "true";
+      setCreatePrivacy(isPrivateVal);
 
       const createNewBtnTextEl = document.getElementById("t-create-new-btn-text");
       if (createNewBtnTextEl) createNewBtnTextEl.innerText = t("createNewBtn");
@@ -1649,21 +1758,47 @@
       if (modeFairTitleEl) modeFairTitleEl.innerText = t("modeFairTitle");
       const modeFairDescEl = document.getElementById("t-mode-fair-desc");
       if (modeFairDescEl) modeFairDescEl.innerText = t("modeFairDesc");
-      const modeGroupTitleEl = document.getElementById("t-mode-group-title");
-      if (modeGroupTitleEl) modeGroupTitleEl.innerText = t("modeGroupTitle");
-      const modeGroupDescEl = document.getElementById("t-mode-group-desc");
-      if (modeGroupDescEl) modeGroupDescEl.innerText = t("modeGroupDesc");
       const modeFreeTitleEl = document.getElementById("t-mode-free-title");
       if (modeFreeTitleEl) modeFreeTitleEl.innerText = t("modeFreeTitle");
       const modeFreeDescEl = document.getElementById("t-mode-free-desc");
       if (modeFreeDescEl) modeFreeDescEl.innerText = t("modeFreeDesc");
 
-      const isZh = (STATE.lang === "zh-TW");
+      // Action Buttons (立即開打 VS 建立報名)
+      const submitInstantTextEl = document.getElementById("t-submit-instant-text");
+      if (submitInstantTextEl) submitInstantTextEl.innerText = isZh ? "立即排賽" : "Direct Play";
+      const submitRegTextEl = document.getElementById("t-submit-reg-text");
+      if (submitRegTextEl) submitRegTextEl.innerText = isZh ? "建立報名" : "Open Sign-up";
+
+      // Registration Lobby Static Texts
+      const lobbyTitleEl = document.getElementById("t-lobby-title");
+      if (lobbyTitleEl) lobbyTitleEl.innerText = t("lobbyTitle");
+      const lobbyRegTitleEl = document.getElementById("t-lobby-registered-title");
+      if (lobbyRegTitleEl) lobbyRegTitleEl.innerText = t("lobbyRegisteredTitle");
+      const lobbyClubTitleEl = document.getElementById("t-lobby-club-members-title");
+      if (lobbyClubTitleEl) lobbyClubTitleEl.innerText = t("lobbyClubMembersTitle");
+      const lobbyBtnJoinEl = document.getElementById("t-lobby-btn-join");
+      if (lobbyBtnJoinEl) lobbyBtnJoinEl.innerText = t("lobbyBtnJoin");
+      const lobbyShareBtnEl = document.getElementById("t-lobby-share-btn");
+      if (lobbyShareBtnEl) lobbyShareBtnEl.innerText = t("lobbyShareBtn");
+      const lobbyAdminTitleEl = document.getElementById("t-lobby-admin-title");
+      if (lobbyAdminTitleEl) lobbyAdminTitleEl.innerText = t("lobbyAdminTitle");
+      const lobbyPlayerInput = document.getElementById("lobby-player-input");
+      if (lobbyPlayerInput) lobbyPlayerInput.placeholder = t("lobbyInputPlaceholder");
+      const lobbyBtnEditDur = document.getElementById("t-lobby-btn-edit-duration");
+      if (lobbyBtnEditDur) lobbyBtnEditDur.innerText = isZh ? "調整時間" : "Edit Duration";
+      const lobbyBtnDelete = document.getElementById("t-lobby-btn-delete");
+      if (lobbyBtnDelete) lobbyBtnDelete.innerText = isZh ? "取消球局" : "Delete Lobby";
+      const lobbyBtnCancelBottom = document.getElementById("t-lobby-btn-cancel-bottom");
+      if (lobbyBtnCancelBottom) lobbyBtnCancelBottom.innerText = isZh ? "取消並刪除此球局" : "Cancel & Delete Tournament";
+      const modalDurTitle = document.getElementById("t-modal-duration-title");
+      if (modalDurTitle) modalDurTitle.innerText = isZh ? "調整比賽時間" : "Adjust Tournament Duration";
+      const modalDurDesc = document.getElementById("t-modal-duration-desc");
+      if (modalDurDesc) modalDurDesc.innerText = isZh ? "修改預計總時間，開賽將依此自動試算局數" : "Update duration, system will recalculate optimal schedule on start";
 
       const labelDurationEl = document.getElementById("t-label-duration");
-      if (labelDurationEl) labelDurationEl.innerText = t("labelDuration");
+      if (labelDurationEl) labelDurationEl.innerText = isZh ? "預計比賽總時間" : "Estimated Duration";
       const unitHoursEl = document.getElementById("t-unit-hours");
-      if (unitHoursEl) unitHoursEl.innerText = t("unitHours");
+      if (unitHoursEl) unitHoursEl.innerText = isZh ? "小時" : "Hrs";
 
       const freeNoticeTitleEl = document.getElementById("t-free-notice-title");
       if (freeNoticeTitleEl) freeNoticeTitleEl.innerText = t("freeNoticeTitle");
@@ -1678,38 +1813,38 @@
       if (partnerSinglesEl) partnerSinglesEl.innerText = isZh ? "個人單打" : "Singles (1v1)";
 
       const quickGenCountInput = document.getElementById("quick-generate-count");
-      if (quickGenCountInput) quickGenCountInput.placeholder = isZh ? "數量" : "Qty";
+      if (quickGenCountInput) quickGenCountInput.placeholder = isZh ? "數量" : "Count";
       const btnQuickGenEl = document.getElementById("t-btn-quick-gen");
       if (btnQuickGenEl) btnQuickGenEl.innerText = isZh ? "產生" : "Generate";
 
       const labelFairDurEl = document.getElementById("t-label-fair-duration");
-      if (labelFairDurEl) labelFairDurEl.innerText = isZh ? "5. 排賽目標與時間限制" : "5. Target Schedule & Time Limit";
+      if (labelFairDurEl) labelFairDurEl.innerText = isZh ? "5. 排賽目標與時間限制" : "5. Scheduling Goal & Duration";
       const stratTimeTitleEl = document.getElementById("t-strategy-time-title");
-      if (stratTimeTitleEl) stratTimeTitleEl.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i> ${isZh ? "按比賽時間排賽" : "Schedule by Duration"}`;
+      if (stratTimeTitleEl) stratTimeTitleEl.innerText = isZh ? "按時間排賽" : "By Duration";
       const stratTimeDescEl = document.getElementById("t-strategy-time-desc");
-      if (stratTimeDescEl) stratTimeDescEl.innerText = isZh ? "指定總比賽時間，系統自動試算最佳場數與時間對應" : "Specify total duration, auto-calc best game options";
+      if (stratTimeDescEl) stratTimeDescEl.innerText = "";
       const stratFullTitleEl = document.getElementById("t-strategy-full-title");
-      if (stratFullTitleEl) stratFullTitleEl.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ${isZh ? "打滿一輪全循環" : "Full Round-Robin Cycle"}`;
+      if (stratFullTitleEl) stratFullTitleEl.innerText = isZh ? "全循環排賽" : "Full Round-Robin";
       const stratFullDescEl = document.getElementById("t-strategy-full-desc");
-      if (stratFullDescEl) stratFullDescEl.innerText = isZh ? "強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決" : "Force 1 full cycle so all participants pair & match up";
+      if (stratFullDescEl) stratFullDescEl.innerText = "";
 
       const labelPlayersEl = document.getElementById("t-label-players");
       const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
       setPartnerType(partnerType);
 
       const btnAddPersonEl = document.getElementById("t-btn-add-person");
-      if (btnAddPersonEl) btnAddPersonEl.innerText = t("btnAddPerson");
+      if (btnAddPersonEl) btnAddPersonEl.innerText = isZh ? "+ 新增" : "+ Add";
       const quickAddInputEl = document.getElementById("quick-add-player-input");
-      if (quickAddInputEl) quickAddInputEl.placeholder = isZh ? "單行或多行批量輸入" : "Single or multi-line input...";
+      if (quickAddInputEl) quickAddInputEl.placeholder = isZh ? "輸入姓名，支援空格批量輸入" : "Enter names, separated by space, comma or newline...";
+
+      const autoGenLabel = document.getElementById("t-auto-gen-label");
+      if (autoGenLabel) autoGenLabel.innerText = isZh ? (partnerType === "fixed" ? "自動生成隊伍代號：" : "自動生成選手代號：") : (partnerType === "fixed" ? "Auto-generate Team Codes:" : "Auto-generate Player Codes:");
 
       renderSelectedPlayerChips();
       renderClubMemberChips();
 
       const timeCalcTitleEl = document.getElementById("t-time-calc-title");
-      if (timeCalcTitleEl) timeCalcTitleEl.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i> ${t("timeCalcTitle")}`;
-      const submitCreateBtnTextEl = document.getElementById("t-submit-create-btn-text");
-      if (submitCreateBtnTextEl) submitCreateBtnTextEl.innerText = t("submitCreateBtn");
-      else if (submitCreateBtnEl) submitCreateBtnEl.innerHTML = t("submitCreateBtn");
+      if (timeCalcTitleEl) timeCalcTitleEl.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i> <span>${isZh ? "時間與配局試算：" : "Estimated Time & Matchups:"}</span>`;
 
       // Placeholders translation
       const createNameInput = document.getElementById("create-name");
@@ -1994,46 +2129,53 @@
     // ----------------------------------------------------
     // PAGE C: CREATE TOURNAMENT & TIME ESTIMATION
     // ----------------------------------------------------
+    function triggerCreateTournament(entryMode) {
+      const modeInput = document.getElementById("create-entry-mode");
+      if (modeInput) modeInput.value = entryMode;
+
+      const triggerBtn = document.getElementById("t-submit-hidden-trigger");
+      if (triggerBtn) {
+        triggerBtn.click();
+      } else {
+        const form = document.getElementById("form-create-tournament");
+        if (form) {
+          if (typeof form.requestSubmit === "function") {
+            form.requestSubmit();
+          } else {
+            form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+          }
+        }
+      }
+    }
+    window.triggerCreateTournament = triggerCreateTournament;
+
     function setCreateMode(mode) {
       const modeInput = document.getElementById("create-tournament-mode");
       if (modeInput) modeInput.value = mode;
 
       const btnFair = document.getElementById("btn-mode-fair");
-      const btnGroup = document.getElementById("btn-mode-group");
       const btnFree = document.getElementById("btn-mode-free");
       const wrapDuration = document.getElementById("wrap-fair-duration");
-      const wrapGroup = document.getElementById("wrap-group-section");
       const wrapNotice = document.getElementById("wrap-free-notice");
       const timeBox = document.getElementById("time-estimate-box");
 
-      const activeCls = "mode-btn-active p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm";
-      const inactiveCls = "mode-btn-inactive p-3 sm:p-3.5 rounded-2xl border-2 text-xs font-bold transition text-left space-y-1 hover-lift active:scale-95 shadow-sm";
+      const activeCls = "mode-btn-active py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
+      const inactiveCls = "mode-btn-inactive py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
 
       if (btnFair) btnFair.className = mode === "fair" ? activeCls : inactiveCls;
-      if (btnGroup) btnGroup.className = mode === "group" ? activeCls : inactiveCls;
       if (btnFree) btnFree.className = mode === "free" ? activeCls : inactiveCls;
 
       const wrapPartnerToggle = document.getElementById("wrap-partner-toggle");
 
       if (mode === "fair") {
         if (wrapDuration) wrapDuration.classList.remove("hidden");
-        if (wrapGroup) wrapGroup.classList.add("hidden");
         if (wrapNotice) wrapNotice.classList.add("hidden");
         if (timeBox) timeBox.classList.remove("hidden");
         if (wrapPartnerToggle) wrapPartnerToggle.classList.remove("hidden");
         calculateTimeEstimate();
-      } else if (mode === "group") {
-        if (wrapDuration) wrapDuration.classList.add("hidden");
-        if (wrapGroup) wrapGroup.classList.remove("hidden");
-        if (wrapNotice) wrapNotice.classList.add("hidden");
-        if (timeBox) timeBox.classList.add("hidden");
-        if (wrapPartnerToggle) wrapPartnerToggle.classList.add("hidden");
-        setPartnerType("fixed");
-        renderGroupDrawPreview();
       } else {
         // Free Mode (自由對抗)：保留搭檔與單雙打切換按鈕，支援單打、輪替雙打與固定隊伍！
         if (wrapDuration) wrapDuration.classList.add("hidden");
-        if (wrapGroup) wrapGroup.classList.add("hidden");
         if (wrapNotice) wrapNotice.classList.remove("hidden");
         if (timeBox) timeBox.classList.add("hidden");
         if (wrapPartnerToggle) wrapPartnerToggle.classList.remove("hidden");
@@ -2087,126 +2229,6 @@
     }
     window.updateFreeNoticeText = updateFreeNoticeText;
 
-    // ----------------------------------------------------
-    // GROUP ROUND-ROBIN DRAW & PREVIEW LOGIC (分組抽籤)
-    // ----------------------------------------------------
-    function getGroupNamesList(count) {
-      const names = ["A組", "B組", "C組", "D組", "E組", "F組", "G組", "H組", "I組", "J組"];
-      return names.slice(0, Math.min(count, 10));
-    }
-
-    function shuffleAndDrawGroups() {
-      const text = document.getElementById("create-players")?.value || "";
-      const players = text.split("\n").map(s => s.trim()).filter(Boolean);
-      const uniquePlayers = [...new Set(players)];
-      const countInput = document.getElementById("create-group-count");
-      const numGroups = Math.max(2, Math.min(10, parseInt(countInput?.value) || 2));
-
-      if (uniquePlayers.length < 4) {
-        showToast(STATE.lang === "zh-TW" ? "請先輸入至少 4 位參賽單位 (人/隊伍)！" : "Please enter at least 4 units first!", "warning");
-        return;
-      }
-
-      // Shuffle using Fisher-Yates
-      const shuffled = [...uniquePlayers].sort(() => Math.random() - 0.5);
-      const groupKeys = getGroupNamesList(numGroups);
-      const drawMap = {};
-      groupKeys.forEach(k => { drawMap[k] = []; });
-
-      shuffled.forEach((player, idx) => {
-        const groupKey = groupKeys[idx % numGroups];
-        drawMap[groupKey].push(player);
-      });
-
-      STATE.groupDrawMap = drawMap;
-      renderGroupDrawPreview();
-      showToast(STATE.lang === "zh-TW" ? "🎲 已完成隨機抽籤分組！" : "🎲 Random draw completed!", "success");
-    }
-    window.shuffleAndDrawGroups = shuffleAndDrawGroups;
-
-    function renderGroupDrawPreview() {
-      const container = document.getElementById("group-draw-preview");
-      if (!container) return;
-
-      const text = document.getElementById("create-players")?.value || "";
-      const players = text.split("\n").map(s => s.trim()).filter(Boolean);
-      const uniquePlayers = [...new Set(players)];
-
-      const countInput = document.getElementById("create-group-count");
-      const numGroups = Math.max(2, Math.min(10, parseInt(countInput?.value) || 2));
-      const groupKeys = getGroupNamesList(numGroups);
-
-      if (uniquePlayers.length < 4) {
-        container.innerHTML = `<p class="sub-text text-[11px] py-2 text-center">請先在上方新增至少 4 個參賽單位 (人/隊伍)</p>`;
-        return;
-      }
-
-      // If draw map is invalid or count changed, generate auto-draw
-      if (!STATE.groupDrawMap || Object.keys(STATE.groupDrawMap).length !== numGroups) {
-        const drawMap = {};
-        groupKeys.forEach(k => { drawMap[k] = []; });
-        uniquePlayers.forEach((p, idx) => {
-          drawMap[groupKeys[idx % numGroups]].push(p);
-        });
-        STATE.groupDrawMap = drawMap;
-      }
-
-      const drawMap = STATE.groupDrawMap;
-      const allGroupNames = Object.keys(drawMap);
-
-      container.innerHTML = allGroupNames.map(gKey => {
-        const members = drawMap[gKey] || [];
-        const fullGames = getFullRoundRobinGames(members.length, true);
-        const gamesPerUnit = members.length > 0 ? members.length - 1 : 0;
-        const chipsHTML = members.map(m => {
-          const otherGroups = allGroupNames.filter(g => g !== gKey);
-          const optionsHTML = otherGroups.map(g => `<option value="${g}">${g}</option>`).join("");
-          return `
-            <div class="px-2.5 py-1 rounded-lg card-inner border text-xs flex items-center gap-1.5 font-medium shadow-xs">
-              <span>${m}</span>
-              <select onchange="moveGroupUnit('${m.replace(/'/g, "\\'")}', this.value)" class="bg-transparent text-[10px] sub-text hover:text-amber-500 font-bold focus:outline-none cursor-pointer">
-                <option value="${gKey}" selected>📍 ${gKey}</option>
-                ${optionsHTML}
-              </select>
-            </div>
-          `;
-        }).join("");
-
-        return `
-          <div class="glass-card rounded-xl p-3 border space-y-2">
-            <div class="flex items-center justify-between text-xs font-bold flex-wrap gap-1">
-              <span class="text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                🏆 ${gKey}
-              </span>
-              <span class="sub-text font-mono text-[11px]">
-                ${members.length} 個單位 ${fullGames > 0 ? `· 全循環共 ${fullGames} 局 (每隊打 ${gamesPerUnit} 場)` : ''}
-              </span>
-            </div>
-            <div class="flex flex-wrap gap-1.5">
-              ${chipsHTML || `<span class="sub-text text-[11px]">尚無成員</span>`}
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      lucide.createIcons();
-    }
-    window.renderGroupDrawPreview = renderGroupDrawPreview;
-
-    function moveGroupUnit(unitName, targetGroup) {
-      if (!STATE.groupDrawMap) return;
-      // Remove from old group
-      Object.keys(STATE.groupDrawMap).forEach(g => {
-        STATE.groupDrawMap[g] = (STATE.groupDrawMap[g] || []).filter(u => u !== unitName);
-      });
-      // Add to target group
-      if (STATE.groupDrawMap[targetGroup]) {
-        STATE.groupDrawMap[targetGroup].push(unitName);
-      }
-      renderGroupDrawPreview();
-    }
-    window.moveGroupUnit = moveGroupUnit;
-
     function setFairStrategy(strategy) {
       const input = document.getElementById("create-fair-strategy");
       if (input) input.value = strategy;
@@ -2215,8 +2237,8 @@
       const btnFull = document.getElementById("btn-strategy-full");
       const wrapTime = document.getElementById("wrap-time-input");
 
-      const activeCls = "mode-btn-active px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5";
-      const inactiveCls = "mode-btn-inactive px-3 py-2 sm:py-2.5 rounded-xl border-2 text-xs font-bold transition text-left space-y-0.5";
+      const activeCls = "mode-btn-active py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
+      const inactiveCls = "mode-btn-inactive py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
 
       if (btnTime) btnTime.className = strategy === "time" ? activeCls : inactiveCls;
       if (btnFull) btnFull.className = strategy === "full-cycle" ? activeCls : inactiveCls;
@@ -2259,7 +2281,7 @@
       const btnFixed = document.getElementById("btn-partner-fixed");
       const btnSingles = document.getElementById("btn-partner-singles");
 
-      const activeCls = "px-2.5 py-1 rounded-lg transition-all text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm";
+      const activeCls = "px-2.5 py-1 rounded-lg transition-all text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm";
       const inactiveCls = "px-2.5 py-1 rounded-lg transition-all text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200";
 
       if (btnRotating) btnRotating.className = type === "rotating" ? activeCls : inactiveCls;
@@ -2287,9 +2309,9 @@
           labelPlayers.innerText = isSingles ? "4. Singles Player Roster" : (isRotating ? "4. Player Roster" : "4. Team Roster");
         }
       }
-      if (inputAdd) inputAdd.placeholder = isZh ? "輸入姓名，支援空格、逗號或換行批量輸入" : "Enter names (space, comma or line separated)...";
-      if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "👤 已登錄選手：" : (isRotating ? "👥 已登錄選手：" : "🛡️ 已登錄隊伍：")) : (isSingles ? "👤 Registered Singles:" : (isRotating ? "👥 Registered Players:" : "🛡️ Registered Teams:"));
-      if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "🛡️ 社團常用隊伍：" : "🛡️ 社團常用選手：") : (type === "fixed" ? "🛡️ Club Teams:" : "🛡️ Club Players:");
+      if (inputAdd) inputAdd.placeholder = isZh ? "輸入姓名，支援空格批量輸入" : "Enter names (space, comma or line separated)...";
+      if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "已登錄選手：" : (isRotating ? "已登錄選手：" : "已登錄隊伍：")) : (isSingles ? "Registered Singles:" : (isRotating ? "Registered Players:" : "Registered Teams:"));
+      if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "社團常用隊伍：" : "社團常用選手：") : (type === "fixed" ? "Club Teams:" : "Club Players:");
       if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "自動生成隊伍代號：" : "自動生成選手代號：") : (type === "fixed" ? "Auto Gen Team Codes:" : "Auto Gen Player Codes:");
 
       updatePartnerToggleTexts();
@@ -2306,7 +2328,10 @@
       const badge = document.getElementById("player-count-badge");
       const num = document.getElementById("roster-count-num");
       const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
-      const unitStr = partnerType === "fixed" ? "隊" : "人";
+      const isZh = (STATE.lang === "zh-TW");
+      const unitStr = isZh
+        ? (partnerType === "fixed" ? "隊" : "人")
+        : (partnerType === "fixed" ? "Teams" : "Players");
       if (num) num.innerText = players.length;
       if (badge) {
         badge.innerHTML = `<i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500"></i> <span><b id="roster-count-num">${players.length}</b> (${unitStr})</span>`;
@@ -2390,7 +2415,7 @@
           noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20";
           noticeEl.innerHTML = `
             <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0 text-rose-500"></i>
-            <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人單場輪替單打，板凳等候時間較長。若有多面場地建議改用「分組比賽」！` : `${count} players on 1 court for singles. High wait times.`}</span>
+            <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人單場輪替單打，板凳等候時間較長。若有多面場地建議分開建立賽事！` : `${count} players on 1 court for singles. High wait times. Consider splitting into separate tournaments.`}</span>
           `;
           noticeEl.classList.remove("hidden");
         }
@@ -2424,7 +2449,7 @@
         noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20";
         noticeEl.innerHTML = `
           <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0 text-rose-500"></i>
-          <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），單場輪替易連休 3 局以上手感變冷。若有多面場地建議改用「分組比賽」！` : `${count} players (${count - 4} resting). High rest streaks expected on 1 court. Group Mode strongly recommended!`}</span>
+          <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），單場輪替易連休 3 局以上手感變冷。若有多面場地建議分開建立賽事！` : `${count} players (${count - 4} resting). High wait times on 1 court. Consider splitting into separate tournaments.`}</span>
         `;
         noticeEl.classList.remove("hidden");
       }
@@ -2450,13 +2475,21 @@
       const mode = document.getElementById("create-tournament-mode")?.value || "fair";
       const strategy = document.getElementById("create-fair-strategy")?.value || "time";
       const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
-      const isTeamMode = (partnerType === "fixed" || mode === "group");
+      const isTeamMode = (partnerType === "fixed");
       const isSingles = (partnerType === "singles");
       const unitLabel = isTeamMode ? "隊" : "人";
       const minUnits = isSingles ? 2 : 4;
 
       if (players.length < minUnits) {
-        hintText.innerText = STATE.lang === "zh-TW" ? `請輸入至少 ${minUnits} 個參賽單位 (${unitLabel})。` : `Please enter at least ${minUnits} units/players.`;
+        if (STATE.lang === "zh-TW") {
+          hintText.innerHTML = strategy === "full-cycle"
+            ? `💡 <strong>全循環排賽</strong>：強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。<span class="opacity-80">請輸入至少 ${minUnits} 個參賽單位 (${unitLabel}) 開始試算。</span>`
+            : `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。<span class="opacity-80">請輸入至少 ${minUnits} 個參賽單位 (${unitLabel}) 開始試算。</span>`;
+        } else {
+          hintText.innerHTML = strategy === "full-cycle"
+            ? `💡 <strong>Full Round-Robin</strong>: Force 1 full cycle so all participants pair & match up. Please enter at least ${minUnits} units.`
+            : `💡 <strong>By Duration</strong>: Specify total duration, auto-calc best game options. Please enter at least ${minUnits} units.`;
+        }
         if (optionsContainer) {
           optionsContainer.innerHTML = "";
           optionsContainer.classList.add("hidden");
@@ -2491,9 +2524,9 @@
         }
 
         if (STATE.lang === "zh-TW") {
-          hintText.innerHTML = `平均模式 (全循環) · 強制打滿 1 輪全循環共 <strong class="text-emerald-500">${fullGames} 局賽程</strong>，<strong class="text-amber-500">每${unitLabel}各打 ${gamesPerUnit} 場</strong> (休 ${restEach} 場)，預估總耗時約 <strong>${estMins} 分鐘</strong> (${(estMins / 60).toFixed(1)}h)。`;
+          hintText.innerHTML = `💡 <strong>全循環排賽</strong>：強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。<br/>全循環共 <strong class="text-emerald-500">${fullGames} 局賽程</strong>，<strong class="text-emerald-600 dark:text-emerald-400">每${unitLabel}各打 ${gamesPerUnit} 場</strong> (休 ${restEach} 場)，預估總耗時約 <strong>${estMins} 分鐘</strong> (${(estMins / 60).toFixed(1)}h)。`;
         } else {
-          hintText.innerHTML = `Fair Mode (Full Cycle) · Total <strong class="text-emerald-500">${fullGames} games</strong> — <strong class="text-amber-500">each unit plays ${gamesPerUnit} games</strong> (rest ${restEach}), est. <strong>${estMins} mins</strong>.`;
+          hintText.innerHTML = `💡 <strong>Full Round-Robin</strong>: Force 1 full cycle so all participants pair & match up.<br/>Total <strong class="text-emerald-500">${fullGames} games</strong> — <strong class="text-emerald-600 dark:text-emerald-400">each unit plays ${gamesPerUnit} games</strong> (rest ${restEach}), est. <strong>${estMins} mins</strong>.`;
         }
 
         if (optionsContainer) {
@@ -2503,9 +2536,9 @@
             <div class="text-[11px] font-bold sub-text uppercase tracking-wider mb-1">
               <span>${isZh ? '全循環賽程排案：' : 'Full Round-Robin Schedule Plan:'}</span>
             </div>
-            <div class="rounded-xl p-3 border-2 border-amber-500 bg-amber-500/10 shadow-sm space-y-1">
+            <div class="rounded-xl p-3 border-2 border-emerald-500/30 bg-emerald-500/10 shadow-sm space-y-1">
               <div class="flex items-center justify-between">
-                <span class="font-bold text-xs text-amber-600 dark:text-amber-400 font-display">
+                <span class="font-bold text-xs text-emerald-700 dark:text-emerald-300 font-display">
                   ✅ ${isZh ? `完整 1 輪全循環：共 ${fullGames} 局` : `Full 1 Cycle: Total ${fullGames} Games`}
                 </span>
                 <span class="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
@@ -2589,9 +2622,9 @@
       }
 
       if (STATE.lang === "zh-TW") {
-        hintText.innerHTML = `總時間 <strong>${totalMinutes} 分鐘</strong> (${durationHours}h) · 目前選定 <strong class="text-emerald-500">${activePlan.totalGames} 局賽程</strong>，<strong class="text-amber-500">每單位(人/隊)各打 ${activePlan.gamesEach} 場</strong> (休 ${activePlan.restEach} 場，單局約 ${activePlan.avgMins} 分鐘)。`;
+        hintText.innerHTML = `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。<br/>總時間 <strong>${totalMinutes} 分鐘</strong> (${durationHours}h) · 目前選定 <strong class="text-emerald-500">${activePlan.totalGames} 局賽程</strong>，<strong class="text-emerald-600 dark:text-emerald-400">每單位(人/隊)各打 ${activePlan.gamesEach} 場</strong> (休 ${activePlan.restEach} 場，單局約 ${activePlan.avgMins} 分鐘)。`;
       } else {
-        hintText.innerHTML = `Total <strong>${totalMinutes} mins</strong> (${durationHours}h) · Selected <strong class="text-emerald-500">${activePlan.totalGames} games</strong> — <strong class="text-amber-500">each unit plays ${activePlan.gamesEach} games</strong> (rest ${activePlan.restEach}, ~${activePlan.avgMins}m/game).`;
+        hintText.innerHTML = `💡 <strong>By Duration</strong>: Specify total duration, auto-calc best game options.<br/>Total <strong>${totalMinutes} mins</strong> (${durationHours}h) · Selected <strong class="text-emerald-500">${activePlan.totalGames} games</strong> — <strong class="text-emerald-600 dark:text-emerald-400">each unit plays ${activePlan.gamesEach} games</strong> (rest ${activePlan.restEach}, ~${activePlan.avgMins}m/game).`;
       }
 
       if (optionsContainer) {
@@ -2750,16 +2783,16 @@
       const textarea = document.getElementById("create-players");
       const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
       const mode = document.getElementById("create-tournament-mode")?.value || "fair";
-      const isRotating = (partnerType === "rotating" && mode !== "group");
-      const isSingles = (partnerType === "singles" && mode !== "group");
+      const isRotating = (partnerType === "rotating");
+      const isSingles = (partnerType === "singles");
 
       let unique = Array.from(new Set((list || []).map(s => s.trim()).filter(Boolean)));
       if ((isRotating || isSingles) && unique.length > MAX_ROTATING_PLAYERS) {
         unique = unique.slice(0, MAX_ROTATING_PLAYERS);
         showToast(
           STATE.lang === "zh-TW"
-            ? `⚠️ 單場${isSingles ? "單打" : "輪替"}模式建議上限為 ${MAX_ROTATING_PLAYERS} 人！若人數更多請改用「分組比賽」模式。`
-            : `⚠️ Max ${MAX_ROTATING_PLAYERS} players for single-court rotating/singles! Use Group Mode for larger rosters.`,
+            ? `⚠️ 單場${isSingles ? "單打" : "輪替"}模式建議上限為 ${MAX_ROTATING_PLAYERS} 人！若人數更多建議分開建立賽事。`
+            : `⚠️ Max ${MAX_ROTATING_PLAYERS} players for single-court rotating/singles! Consider splitting into separate tournaments.`,
           "warning"
         );
       } else if (unique.length > MAX_ROSTER_LIMIT) {
@@ -2940,7 +2973,7 @@
         return;
       }
 
-      const isTeamMode = (partnerType === "fixed" || mode === "group");
+      const isTeamMode = (partnerType === "fixed");
       const prefix = isTeamMode
         ? (STATE.lang === "zh-TW" ? "隊伍" : "Team")
         : (STATE.lang === "zh-TW" ? "選手" : "Player");
@@ -3017,10 +3050,11 @@
       const createPlayers = document.getElementById("create-players");
       if (createPlayers) createPlayers.value = "";
       setSelectedPlayers([]);
-      STATE.groupDrawMap = null;
       renderSelectedPlayerChips();
       renderClubMemberChips();
       updatePlayerCountBadge();
+      const modeInput = document.getElementById("create-entry-mode");
+      if (modeInput) modeInput.value = "instant";
       setupCreateFormContext(STATE.createContextClub);
     }
     window.resetCreateForm = resetCreateForm;
@@ -3028,18 +3062,29 @@
     async function handleCreateTournament(e) {
       e.preventDefault();
 
-      const submitBtn = document.getElementById("t-submit-create-btn");
-      const originalBtnText = submitBtn ? submitBtn.innerHTML : "確認並開賽";
+      const entryMode = document.getElementById("create-entry-mode")?.value || "instant";
+      const isReg = (entryMode === "registration");
+      const btnInstant = document.getElementById("btn-submit-instant");
+      const btnReg = document.getElementById("btn-submit-registration");
+      const activeBtn = isReg ? btnReg : btnInstant;
 
       // 1. 防重複點擊：鎖定按鈕並呈現加載狀態
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.classList.add("opacity-60", "cursor-not-allowed");
-        submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>${STATE.lang === "zh-TW" ? "正在建立賽事..." : "Creating tournament..."}</span>`;
+      if (btnInstant) {
+        btnInstant.disabled = true;
+        btnInstant.classList.add("opacity-60", "cursor-not-allowed");
+      }
+      if (btnReg) {
+        btnReg.disabled = true;
+        btnReg.classList.add("opacity-60", "cursor-not-allowed");
+      }
+      if (activeBtn) {
+        activeBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>${STATE.lang === "zh-TW" ? (isReg ? "正在建立報名球局..." : "正在排賽開打...") : (isReg ? "Creating lobby..." : "Starting tournament...")}</span>`;
         lucide.createIcons();
       }
 
       try {
+        const maxPlayers = null;
+
         const mode = document.getElementById("create-tournament-mode")?.value || "fair";
         const nameInput = document.getElementById("create-name");
         const name = nameInput ? nameInput.value.trim() : "";
@@ -3076,106 +3121,36 @@
 
         const isPrivate = document.getElementById("create-is-private")?.value !== "false";
 
-        if (mode === "group") {
-          if (!STATE.groupDrawMap || Object.keys(STATE.groupDrawMap).length < 2) {
-            renderGroupDrawPreview();
-          }
-          const drawMap = STATE.groupDrawMap || {};
-          const groupKeys = Object.keys(drawMap);
-
-          let hasError = false;
-          groupKeys.forEach(gKey => {
-            if ((drawMap[gKey] || []).length < 4) {
-              showToast(STATE.lang === "zh-TW" ? `分組「${gKey}」參賽單位少於 4 個，無法排全循環對戰！` : `Group ${gKey} has fewer than 4 units!`, "error");
-              hasError = true;
-            }
-          });
-          if (hasError) return;
-
-          let createdCount = 0;
-          for (const gKey of groupKeys) {
-            const groupPlayers = drawMap[gKey] || [];
-            const tId = "T-" + Math.floor(100000 + Math.random() * 900000);
-            const tName = `${name} - ${gKey}`;
-            const gMatches = generateTeamRoundRobinSchedule(groupPlayers);
-
-            const tObj = {
-              id: tId,
-              tournamentMode: "round-robin",
-              isTeamMode: true,
-              name: tName,
-              clubName: clubName,
-              isPrivate: isPrivate,
-              durationHours: 2.0,
-              scoringType: scoringType,
-              targetScore: targetScore,
-              createdAt: new Date().toISOString(),
-              players: groupPlayers,
-              matches: gMatches,
-              status: "active"
-            };
-
-            saveToLocalTournaments(tObj);
-            addMyTournamentId(tId);
-            if (STATE.db) {
-              try {
-                await set(ref(STATE.db, `tournaments/${tId}`), tObj);
-              } catch (err) {
-                console.error("Firebase write error for group:", err);
-              }
-            }
-            createdCount++;
-          }
-
-          // Save club members
-          if (clubName) {
-            const currentClubMembers = getClubMembersList(clubName);
-            let membersUpdated = false;
-            uniquePlayers.forEach(p => {
-              if (!currentClubMembers.includes(p)) {
-                currentClubMembers.push(p);
-                membersUpdated = true;
-              }
-            });
-            if (membersUpdated) saveClubMembersList(clubName, currentClubMembers);
-            STATE.authenticatedClubs.add(clubName);
-          }
-
-          showToast(STATE.lang === "zh-TW" ? `🏆 已成功建立 ${createdCount} 個分組賽事！` : `🏆 Successfully created ${createdCount} group tournaments!`, "success");
-
-          // 重置表單並跳回賽事大廳
-          resetCreateForm();
-          navigateTo("hub");
-          return;
-        }
-
         const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
-        const isTeamMode = (partnerType === "fixed" || mode === "group");
+        const isTeamMode = (partnerType === "fixed");
         const isSingles = (partnerType === "singles");
         const minUnits = isSingles ? 2 : 4;
 
-        if (mode === "free" && uniquePlayers.length < 2) {
-          showToast(
-            STATE.lang === "zh-TW"
-              ? (isSingles ? "自由單打模式至少需 2 位選手！" : (isTeamMode ? "自由隊伍模式至少需 2 支隊伍！" : "自由模式至少需 2 位參賽單位！"))
-              : "At least 2 units required for Free Mode!",
-            "error"
-          );
-          return;
-        }
+        // Validation for Direct Play mode
+        if (entryMode === "instant") {
+          if (mode === "free" && uniquePlayers.length < 2) {
+            showToast(
+              STATE.lang === "zh-TW"
+                ? (isSingles ? "自由單打模式至少需 2 位選手！" : (isTeamMode ? "自由隊伍模式至少需 2 支隊伍！" : "自由模式至少需 2 位參賽單位！"))
+                : "At least 2 units required for Free Mode!",
+              "error"
+            );
+            return;
+          }
 
-        if (mode === "fair" && uniquePlayers.length < minUnits) {
-          showToast(
-            STATE.lang === "zh-TW"
-              ? (isSingles ? "個人單打參賽選手至少需 2 人！" : "輪轉模式參賽單位至少需 4 個 (人/隊伍)！")
-              : `At least ${minUnits} units required for rotation mode!`,
-            "error"
-          );
-          return;
+          if (mode === "fair" && uniquePlayers.length < minUnits) {
+            showToast(
+              STATE.lang === "zh-TW"
+                ? (isSingles ? "個人單打參賽選手至少需 2 人！" : "輪轉模式參賽單位至少需 4 個 (人/隊伍)！")
+                : `At least ${minUnits} units required for rotation mode!`,
+              "error"
+            );
+            return;
+          }
         }
 
         // Automatically persist all roster players to club members list if clubName exists
-        if (clubName) {
+        if (clubName && uniquePlayers.length > 0) {
           const currentClubMembers = getClubMembersList(clubName);
           let membersUpdated = false;
           uniquePlayers.forEach(p => {
@@ -3192,6 +3167,57 @@
         const tournamentId = "T-" + Math.floor(100000 + Math.random() * 900000);
         let matches = [];
 
+        // ----------------------------------------------------
+        // 分支 A: 建立報名模式 (Registration Lobby)
+        // ----------------------------------------------------
+        if (entryMode === "registration") {
+          const tournamentObj = {
+            id: tournamentId,
+            tournamentMode: effectiveMode,
+            partnerType: partnerType,
+            isTeamMode: isTeamMode,
+            name: name,
+            clubName: clubName,
+            isPrivate: isPrivate,
+            durationHours: duration,
+            customTotalGames: customTotalGames,
+            scoringType: scoringType,
+            targetScore: targetScore,
+            createdAt: new Date().toISOString(),
+            players: uniquePlayers,
+            matches: [],
+            status: "registering",
+            entryMode: "registration",
+            maxPlayers: maxPlayers
+          };
+
+          saveToLocalTournaments(tournamentObj);
+          addMyTournamentId(tournamentId);
+          addCreatedTournamentId(tournamentId);
+
+          if (STATE.db) {
+            try {
+              await set(ref(STATE.db, `tournaments/${tournamentId}`), tournamentObj);
+            } catch (err) {
+              console.error("Firebase write error for registration lobby:", err);
+            }
+          }
+
+          if (clubName) {
+            STATE.authenticatedClubs.add(clubName);
+          }
+          STATE.activeTournamentAdmin = tournamentId;
+
+          showToast(STATE.lang === "zh-TW" ? `📋 報名球局「${name}」建立成功！可分享連結給球友簽到` : `📋 Sign-up lobby "${name}" created!`, "success");
+
+          resetCreateForm();
+          loadLiveTournament(tournamentId, true, true);
+          return;
+        }
+
+        // ----------------------------------------------------
+        // 分支 B: 立即開打模式 (Instant Play)
+        // ----------------------------------------------------
         let backendSuccess = false;
         if (mode === "fair") {
           // 優先呼叫後端 Cloud Function 執行核心排賽計算
@@ -3242,6 +3268,7 @@
           clubName: clubName,
           isPrivate: isPrivate,
           durationHours: duration,
+          customTotalGames: customTotalGames,
           scoringType: scoringType,
           targetScore: targetScore,
           createdAt: new Date().toISOString(),
@@ -3252,6 +3279,7 @@
 
         saveToLocalTournaments(tournamentObj);
         addMyTournamentId(tournamentId);
+        addCreatedTournamentId(tournamentId);
 
         const engineTag = backendSuccess ? " (⚡雲端排賽)" : " (💻本地排賽)";
         if (STATE.db) {
@@ -3284,12 +3312,17 @@
         console.error("[CreateTournament Error]:", err);
         showToast(STATE.lang === "zh-TW" ? `❌ 建立賽事失敗: ${err.message || err}` : `❌ Failed to create tournament: ${err.message || err}`, "error");
       } finally {
-        // 恢復按鈕狀態
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.classList.remove("opacity-60", "cursor-not-allowed");
-          submitBtn.innerHTML = originalBtnText;
+        if (btnInstant) {
+          btnInstant.disabled = false;
+          btnInstant.classList.remove("opacity-60", "cursor-not-allowed");
+          btnInstant.innerHTML = `<i data-lucide="zap" class="w-4 h-4 fill-current"></i> <span id="t-submit-instant-text">${STATE.lang === "zh-TW" ? " 立即開打" : "⚡ Direct Play"}</span>`;
         }
+        if (btnReg) {
+          btnReg.disabled = false;
+          btnReg.classList.remove("opacity-60", "cursor-not-allowed");
+          btnReg.innerHTML = `<i data-lucide="clipboard-list" class="w-4 h-4"></i> <span id="t-submit-reg-text">${STATE.lang === "zh-TW" ? "建立報名" : "Open Sign-up"}</span>`;
+        }
+        lucide.createIcons();
       }
     }
     window.handleCreateTournament = handleCreateTournament;
@@ -3364,36 +3397,38 @@
     }
     window.handleQuickCodeSubmit = handleQuickCodeSubmit;
 
+    function toggleCreatePrivacy() {
+      const current = document.getElementById("create-is-private")?.value === "true";
+      setCreatePrivacy(!current);
+    }
+    window.toggleCreatePrivacy = toggleCreatePrivacy;
+
     function setCreatePrivacy(isPrivate) {
       const hiddenInput = document.getElementById("create-is-private");
       const btnPrivate = document.getElementById("btn-privacy-private");
-      const btnPublic = document.getElementById("btn-privacy-public");
       const badge = document.getElementById("badge-privacy-status");
       if (hiddenInput) hiddenInput.value = isPrivate ? "true" : "false";
 
+      const isZh = (STATE.lang === "zh-TW");
+
       if (isPrivate) {
         if (btnPrivate) {
-          btnPrivate.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-emerald-500 text-stone-900 dark:text-white font-bold shadow-sm active:scale-98";
-        }
-        if (btnPublic) {
-          btnPublic.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-transparent opacity-60 text-stone-600 dark:text-slate-400 font-medium hover:opacity-100 active:scale-98";
+          btnPrivate.className = "mode-btn-active w-full py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-between hover-lift active:scale-95 shadow-sm text-left";
         }
         if (badge) {
-          badge.innerText = STATE.lang === "zh-TW" ? "私密球局" : "Private";
-          badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-stone-600 dark:text-slate-400 border border-stone-500/20";
+          badge.innerText = isZh ? "🔒 私密球局 (已選定)" : "🔒 Private (Selected)";
+          badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30";
         }
       } else {
         if (btnPrivate) {
-          btnPrivate.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-transparent opacity-60 text-stone-600 dark:text-slate-400 font-medium hover:opacity-100 active:scale-98";
-        }
-        if (btnPublic) {
-          btnPublic.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-emerald-500 text-stone-900 dark:text-white font-bold shadow-sm active:scale-98";
+          btnPrivate.className = "mode-btn-inactive w-full py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-between hover-lift active:scale-95 shadow-sm text-left";
         }
         if (badge) {
-          badge.innerText = STATE.lang === "zh-TW" ? "臨打公開 (預設)" : "Public (Default)";
-          badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+          badge.innerText = isZh ? "公開 (預設)" : "Public (Default)";
+          badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold sub-text border border-stone-200 dark:border-slate-800";
         }
       }
+      lucide.createIcons();
     }
     window.setCreatePrivacy = setCreatePrivacy;
 
@@ -3485,12 +3520,14 @@
 
       // Helper to render tournament card
       const renderCard = (tData) => {
+        const isRegistering = (tData.status === "registering");
         const total = tData.matches ? tData.matches.length : 0;
         const completedCount = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
         const voidedCount = tData.matches ? tData.matches.filter(m => m.voided).length : 0;
         const done = completedCount + voidedCount;
         const isFinished = tData.status === "completed" || (total > 0 && done === total);
         const dateStr = formatTournamentDate(tData.createdAt);
+        const pCount = tData.players ? tData.players.length : 0;
 
         const clubBadge = tData.clubName && tData.clubName.trim() ? `
           <span class="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
@@ -3509,12 +3546,10 @@
         `;
 
         const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+        const regPct = tData.maxPlayers ? Math.min(100, Math.round((pCount / tData.maxPlayers) * 100)) : 100;
 
         return `
           <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3.5 border flex flex-col justify-between shadow-sm relative overflow-hidden group">
-            <!-- Top Subtle Accent Line -->
-            <div class="absolute top-0 left-0 right-0 h-1 ${isFinished ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-to-r from-amber-500 to-orange-500'} opacity-80"></div>
-
             <div class="space-y-2.5">
               <!-- Top Badges Row -->
               <div class="flex items-center justify-between gap-2">
@@ -3524,13 +3559,17 @@
                   ${privacyBadge}
                   ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
                 </div>
-                ${isFinished
-            ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-sm">
-                      <i data-lucide="check" class="w-3 h-3"></i> ${t("statusFinished")}
+                ${isRegistering
+            ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1.5 shadow-sm">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${STATE.lang === 'zh-TW' ? '開放報名' : 'Registering'}
                     </span>`
-            : `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1.5 shadow-sm">
-                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${t("statusActive")}
-                    </span>`
+            : (isFinished
+              ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-sm">
+                        <i data-lucide="check" class="w-3 h-3"></i> ${t("statusFinished")}
+                      </span>`
+              : `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1.5 shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${t("statusActive")}
+                      </span>`)
           }
               </div>
 
@@ -3548,34 +3587,39 @@
               ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>`
               : tData.tournamentMode === "group"
                 ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "分組循環" : "Group Stage"}</span>`
-                : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-stone-400"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`
+                : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5 text-stone-400"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`
           }
-                <span>👥 ${tData.players ? tData.players.length : 0} ${t("playersCountLabel")}</span>
+                <span>👥 ${pCount} ${isRegistering ? (STATE.lang === 'zh-TW' ? '已報名' : 'Signed up') : t("playersCountLabel")}</span>
               </div>
 
-              <!-- Visual Progress Meter -->
-              <div class="space-y-1 pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
-                <div class="flex items-center justify-between text-[11px] sub-text font-mono">
-                  <span>${STATE.lang === 'zh-TW' ? '賽程進度' : 'Progress'}</span>
-                  <span class="font-bold ${isFinished ? 'text-emerald-500' : 'text-amber-500'}">${completedCount}/${total} (${pct}%)</span>
+              <!-- Visual Progress Meter (僅在賽事進行中或完賽後顯示，報名階段不顯示光條與重複資訊) -->
+              ${!isRegistering ? `
+                <div class="space-y-1 pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
+                  <div class="flex items-center justify-between text-[11px] sub-text font-mono">
+                    <span>${STATE.lang === 'zh-TW' ? '賽程進度' : 'Progress'}</span>
+                    <span class="font-bold ${isFinished ? 'text-emerald-500' : 'text-amber-500 dark:text-amber-400'}">
+                      ${completedCount}/${total} (${pct}%)
+                    </span>
+                  </div>
+                  <div class="w-full h-1.5 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'progress-shimmer'}" style="width: ${pct}%"></div>
+                  </div>
                 </div>
-                <div class="w-full h-1.5 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'progress-shimmer'}" style="width: ${pct}%"></div>
-                </div>
-              </div>
+              ` : ''}
             </div>
 
-            <!-- Action Buttons Row -->
-            <div class="flex items-center gap-2 pt-1">
-              <button onclick="enterTournament('${tData.id}')" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold py-2.5 rounded-xl text-xs transition shadow-sm hover:shadow-emerald-500/25 flex items-center justify-center gap-1.5 active:scale-95">
-                <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> ${t("enterTournament")}
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2 pt-2">
+              <button onclick="enterTournament('${tData.id}')"
+                class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+                <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isRegistering ? '' : 'fill-current'}"></i>
+                <span>${isRegistering ? t("enterRegistration") : t("enterTournament")}</span>
               </button>
-              ${STATE.isAdmin
-            ? `<button onclick="deleteTournament('${tData.id}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
-                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                  </button>`
-            : ''
-          }
+              ${STATE.isAdmin ? `
+                <button onclick="deleteTournament('${tData.id}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              ` : ''}
             </div>
           </div>
         `;
@@ -3771,9 +3815,12 @@
     // ----------------------------------------------------
     // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
     // ----------------------------------------------------
-    async function loadLiveTournament(tId, pushHistory = true) {
+    async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
       STATE.currentTournamentId = tId;
-      STATE.activeTournamentAdmin = null; // 預設進入為瀏覽模式
+      if (!keepAdmin) {
+        STATE.activeTournamentAdmin = null;
+        STATE.isViewerMode = false; // 預設進入為操作模式
+      }
       addMyTournamentId(tId);
       navigateTo("live", false);
       if (pushHistory) {
@@ -3817,10 +3864,33 @@
       }
     }
 
+    function addCreatedTournamentId(tId) {
+      if (!tId) return;
+      try {
+        const list = JSON.parse(localStorage.getItem("pb_created_tournaments") || "[]");
+        if (!list.includes(tId)) {
+          list.push(tId);
+          localStorage.setItem("pb_created_tournaments", JSON.stringify(list));
+        }
+      } catch (e) { }
+    }
+    window.addCreatedTournamentId = addCreatedTournamentId;
+
     function isTournamentAdmin(tData) {
       if (!tData) return false;
-      if (STATE.isAdmin) return true; // Master PIN logged in
-      return STATE.activeTournamentAdmin === tData.id;
+      // 若當前手動切換為「瀏覽模式」，一律回傳 false
+      if (STATE.isViewerMode) return false;
+
+      // 完賽賽事需特別解鎖
+      const isFinished = isTournamentFinished(tData);
+      if (isFinished) {
+        if (STATE.activeTournamentAdmin === tData.id) return true;
+        if (STATE.isAdmin) return true;
+        return false;
+      }
+
+      // 未完賽進行中：人人皆具操作記分權限
+      return true;
     }
     window.isTournamentAdmin = isTournamentAdmin;
 
@@ -3837,69 +3907,66 @@
       const tData = STATE.tournamentData;
       if (!tData) return;
 
-      const hasAdmin = isTournamentAdmin(tData);
-
-      // 若目前已處於操作模式，點擊切回瀏覽模式 (唯讀)
-      if (hasAdmin) {
-        STATE.activeTournamentAdmin = null;
-        showToast(STATE.lang === "zh-TW" ? "👀 已切換為瀏覽模式 (唯讀)" : "👀 Switched to Viewer Mode (Read-only)", "info");
-        renderLiveUI(tData);
-        return;
-      }
-
       const isFinished = isTournamentFinished(tData);
 
-      // 1. 進行中賽事（未完賽）：免密碼直接切換操作模式，現場自由記分
-      if (!isFinished) {
+      // 若目前為完賽賽事，且尚未解鎖修改：
+      if (isFinished && !STATE.isAdmin && STATE.activeTournamentAdmin !== tData.id) {
+        const clubName = (tData.clubName || '').trim();
+        const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
+        const masterHash = STATE.masterPinHash;
+
+        let promptMsg = clubPwdHash
+          ? (STATE.lang === "zh-TW" ? `🔒 此賽事已完賽並凍結。\n請輸入社團「${clubName}」密碼或管理員 PIN 以修改賽事：` : `🔒 Finished tournament is frozen.\nEnter password or Master PIN:`)
+          : (STATE.lang === "zh-TW" ? `🔒 此賽事已完賽並凍結。\n請輸入管理員 PIN 以修改賽事：` : `🔒 Finished tournament is frozen.\nEnter Master PIN:`);
+
+        const input = prompt(promptMsg);
+        if (input === null) return;
+        const cleanInput = input.trim();
+        const inputHash = await sha256(cleanInput);
+
+        const isValid = (clubPwdHash && inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
+        if (!isValid) {
+          showToast(STATE.lang === "zh-TW" ? "❌ 密碼不符，維持唯讀凍結狀態！" : "❌ Password Incorrect, remaining frozen!", "error");
+          return;
+        }
+
+        if (clubName) STATE.authenticatedClubs.add(clubName);
         STATE.activeTournamentAdmin = tData.id;
-        showToast(STATE.lang === "zh-TW" ? "🔓 操作模式已開啟" : "🔓 Operation Mode Enabled", "success");
+        STATE.isViewerMode = false;
+        showToast(STATE.lang === "zh-TW" ? "🔓 完賽賽事已解鎖操作模式！" : "🔓 Finished tournament unlocked for edits!", "success");
         renderLiveUI(tData);
         return;
       }
 
-      // 2. 已完賽賽事：已凍結，需密碼驗證解鎖才能修改
-      if (STATE.isAdmin) {
-        STATE.activeTournamentAdmin = tData.id;
-        showToast(STATE.lang === "zh-TW" ? "🔓 完賽賽事已解鎖操作模式" : "🔓 Finished tournament unlocked", "success");
-        renderLiveUI(tData);
-        return;
-      }
+      // 未完賽或已解鎖賽事：直接自由切換瀏覽模式與操作模式
+      STATE.isViewerMode = !STATE.isViewerMode;
 
-      const clubName = (tData.clubName || '').trim();
-      const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
-      const masterHash = STATE.masterPinHash;
-
-      let promptMsg = "";
-      if (clubPwdHash) {
-        promptMsg = STATE.lang === "zh-TW"
-          ? `🔒 此賽事已完賽並凍結。\n請輸入社團「${clubName}」密碼或管理員 PIN 以修改賽事：`
-          : `🔒 This tournament is completed and frozen.\nEnter password for "${clubName}" or Master PIN to edit:`;
+      if (STATE.isViewerMode) {
+        showToast(STATE.lang === "zh-TW" ? "👀 已切換為瀏覽模式 (唯讀)" : "👀 Switched to Viewer Mode (Read-only)", "info");
       } else {
-        promptMsg = STATE.lang === "zh-TW"
-          ? `🔒 此賽事已完賽並凍結。\n請輸入管理員 PIN 以修改賽事：`
-          : `🔒 This tournament is completed and frozen.\nEnter Master PIN to edit:`;
+        showToast(STATE.lang === "zh-TW" ? "✏️ 已開啟操作模式 (可記分)" : "✏️ Switched to Edit Mode", "success");
       }
 
-      const input = prompt(promptMsg);
-      if (input === null) return;
-      const cleanInput = input.trim();
-      const inputHash = await sha256(cleanInput);
-
-      const isValid = (clubPwdHash && inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
-      if (!isValid) {
-        showToast(STATE.lang === "zh-TW" ? "❌ 密碼不符，已維持凍結狀態！" : "❌ Password Incorrect, remaining frozen!", "error");
-        return;
-      }
-
-      if (clubName) STATE.authenticatedClubs.add(clubName);
-      STATE.activeTournamentAdmin = tData.id;
-      showToast(STATE.lang === "zh-TW" ? "🔓 完賽賽事已解鎖操作模式！" : "🔓 Finished tournament unlocked for edits!", "success");
       renderLiveUI(tData);
     }
     window.toggleTournamentAdminMode = toggleTournamentAdminMode;
 
     function renderLiveUI(data) {
       if (!data) return;
+
+      // Normalize players & matches against Firebase object serialization
+      if (data.players) {
+        data.players = (Array.isArray(data.players) ? data.players : Object.values(data.players))
+          .map(p => (p || "").trim())
+          .filter(Boolean);
+      } else {
+        data.players = [];
+      }
+      if (data.matches) {
+        data.matches = (Array.isArray(data.matches) ? data.matches : Object.values(data.matches)).filter(Boolean);
+      } else {
+        data.matches = [];
+      }
 
       const hasAdmin = isTournamentAdmin(data);
       const isFreeMode = data.tournamentMode === "free";
@@ -3913,17 +3980,21 @@
       document.getElementById("live-title").innerText = data.name;
 
       // Mode Badge
+      const isZh = (STATE.lang === "zh-TW");
       const modeBadge = document.getElementById("live-mode-badge");
       if (modeBadge) {
-        if (isSingles) {
-          modeBadge.innerText = STATE.lang === "zh-TW" ? "個人單打" : "Singles (1v1)";
+        if (data.status === "registering") {
+          modeBadge.innerText = isZh ? "📋 報名中" : "📋 Registering";
+          modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+        } else if (isSingles) {
+          modeBadge.innerText = isZh ? "個人單打" : "Singles (1v1)";
           modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20";
         } else if (isFreeMode) {
           modeBadge.innerText = t("modeFreeTitle");
           modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
         } else {
           modeBadge.innerText = t("modeFairTitle");
-          modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
+          modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20";
         }
       }
 
@@ -3940,22 +4011,35 @@
         }
       }
 
-      // Duration badge wrap
+      // Duration badge wrap (支援點擊直接彈窗編輯時間)
       const durWrap = document.getElementById("live-duration-wrap");
       if (durWrap) {
         if (isFreeMode) {
           durWrap.classList.add("hidden");
         } else {
           durWrap.classList.remove("hidden");
+          if (data.status === "registering") {
+            durWrap.onclick = openEditDurationModal;
+            durWrap.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border cursor-pointer hover:border-amber-500 hover:text-amber-500 transition shadow-sm active:scale-95 group";
+            durWrap.title = isZh ? "點擊調整比賽時間" : "Click to adjust duration";
+          } else {
+            durWrap.onclick = null;
+            durWrap.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border";
+            durWrap.removeAttribute("title");
+          }
         }
       }
 
-      const unit = isTeamMode ? (STATE.lang === "zh-TW" ? "隊" : "Teams") : (STATE.lang === "zh-TW" ? "人" : "Players");
-      const perUnit = isTeamMode ? (STATE.lang === "zh-TW" ? "隊" : "team") : (STATE.lang === "zh-TW" ? "人" : "p");
+      const unit = isTeamMode ? (isZh ? "隊" : "Teams") : (isZh ? "人" : "Players");
+      const perUnit = isTeamMode ? (isZh ? "隊" : "team") : (isZh ? "人" : "p");
 
-      document.getElementById("live-players-count").innerText = STATE.lang === "zh-TW"
-        ? (isFreeMode ? `${pCount} ${unit}登記` : `${pCount} ${unit} (每${perUnit}約 ${estGamesPerPlayer} 場)`)
-        : (isFreeMode ? `${pCount} ${unit}` : `${pCount} ${unit} (~${estGamesPerPlayer} g/${perUnit})`);
+      if (data.status === "registering") {
+        document.getElementById("live-players-count").innerText = `${pCount} 人`;
+      } else {
+        document.getElementById("live-players-count").innerText = isZh
+          ? (isFreeMode ? `${pCount} ${unit}登記` : `${pCount} ${unit} (每${perUnit}約 ${estGamesPerPlayer} 場)`)
+          : (isFreeMode ? `${pCount} ${unit}` : `${pCount} ${unit} (~${estGamesPerPlayer} g/${perUnit})`);
+      }
       document.getElementById("live-duration").innerText = data.durationHours || "2.0";
 
       const totalMatches = data.matches ? data.matches.length : 0;
@@ -3969,13 +4053,13 @@
       const adminIcon = document.getElementById("icon-toggle-live-admin");
       if (adminBtn && adminText) {
         if (hasAdmin) {
-          adminBtn.className = "px-3 py-2 rounded-xl border border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none";
-          adminText.innerText = t("liveAdminToggleViewer");
-          if (adminIcon) adminIcon.setAttribute("data-lucide", "eye");
+          adminBtn.className = "px-3.5 py-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none";
+          adminText.innerText = isZh ? "操作模式" : "Edit Mode";
+          if (adminIcon) adminIcon.setAttribute("data-lucide", "edit-3");
         } else {
-          adminBtn.className = "px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none hover:text-amber-500";
-          adminText.innerText = isFinished ? (STATE.lang === "zh-TW" ? "解鎖修改 🔒" : "Unlock 🔒") : t("liveAdminToggleAdmin");
-          if (adminIcon) adminIcon.setAttribute("data-lucide", isFinished ? "lock" : "edit-3");
+          adminBtn.className = "px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none text-stone-600 dark:text-slate-400";
+          adminText.innerText = (isFinished && STATE.activeTournamentAdmin !== data.id) ? (isZh ? "解鎖修改 🔒" : "Unlock 🔒") : (isZh ? "瀏覽模式" : "Viewer Mode");
+          if (adminIcon) adminIcon.setAttribute("data-lucide", (isFinished && STATE.activeTournamentAdmin !== data.id) ? "lock" : "eye");
         }
       }
 
@@ -4053,6 +4137,110 @@
         addLivePlayerBtn.innerText = isTeam ? (STATE.lang === "zh-TW" ? "補入隊伍" : "Add Team") : (STATE.lang === "zh-TW" ? "補入選手" : "Add Player");
       }
 
+      const isRegistering = (data.status === "registering");
+      const regLobbyEl = document.getElementById("live-registration-lobby");
+      const liveMainGridEl = document.getElementById("live-main-grid");
+      const headerProgressWrap = document.getElementById("live-header-progress-wrap");
+      const headerActionsWrap = document.getElementById("live-header-actions-wrap");
+
+      if (isRegistering) {
+        if (regLobbyEl) regLobbyEl.classList.remove("hidden");
+        if (liveMainGridEl) liveMainGridEl.classList.add("hidden");
+        if (adminToolbar) adminToolbar.classList.add("hidden");
+        if (completeBtn) completeBtn.classList.add("hidden");
+        if (copyReportBtn) copyReportBtn.classList.add("hidden");
+        if (headerProgressWrap) headerProgressWrap.classList.add("hidden");
+        if (headerActionsWrap) headerActionsWrap.classList.add("hidden");
+
+        if (progressTextEl) {
+          progressTextEl.innerText = isZh ? "報名中" : "Registering";
+        }
+        if (headerProgressBar) {
+          headerProgressBar.style.width = "100%";
+          headerProgressBar.className = "h-full rounded-full transition-all duration-500 bg-amber-500";
+        }
+
+        const btnLobbyEditDur = document.getElementById("btn-lobby-edit-duration");
+        if (btnLobbyEditDur) btnLobbyEditDur.classList.remove("hidden");
+
+        const regCountText = document.getElementById("lobby-registered-count-text");
+        if (regCountText) {
+          regCountText.innerText = isZh ? `共 ${pCount} 人` : `Total: ${pCount}`;
+        }
+
+        const chipsEl = document.getElementById("lobby-registered-chips");
+        if (chipsEl) {
+          if ((data.players || []).length === 0) {
+            chipsEl.innerHTML = `<span class="sub-text text-xs italic py-1">${isZh ? "目前尚無人報名，請在下方輸入姓名或點選成員加入！" : "No players registered yet. Enter name below or pick members to join!"}</span>`;
+          } else {
+            chipsEl.innerHTML = (data.players || []).map((p, idx) => {
+              return `
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl card-inner border font-bold text-xs bg-stone-500/10 text-stone-800 dark:text-slate-200 shadow-sm">
+                  <span class="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-black">#${idx + 1}</span>
+                  <span>${escapeHTML(p)}</span>
+                  <button type="button" onclick="unregisterPlayerFromTournament('${escapeHTML(p)}')" title="${isZh ? '移除 / 取消報名' : 'Remove'}"
+                    class="hover:text-rose-500 text-stone-400 dark:text-slate-500 transition ml-1 p-0.5 rounded active:scale-90">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              `;
+            }).join("");
+          }
+        }
+
+        const clubSectionEl = document.getElementById("lobby-club-members-section");
+        const clubChipsEl = document.getElementById("lobby-club-members-chips");
+        if (clubSectionEl && clubChipsEl) {
+          if (data.clubName) {
+            const clubMembers = getClubMembersList(data.clubName);
+            if (clubMembers.length > 0) {
+              clubSectionEl.classList.remove("hidden");
+              const currentRoster = data.players || [];
+              clubChipsEl.innerHTML = clubMembers.map(m => {
+                const isJoined = currentRoster.includes(m);
+                if (isJoined) {
+                  return `
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <i data-lucide="check" class="w-3 h-3"></i> ${escapeHTML(m)}
+                    </span>
+                  `;
+                } else {
+                  return `
+                    <button type="button" onclick="registerPlayerToTournament('${escapeHTML(m)}')"
+                      class="px-2.5 py-1 rounded-lg text-xs font-semibold card-inner border hover:border-teal-500 text-stone-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition flex items-center gap-1 active:scale-95 shadow-sm">
+                      <i data-lucide="plus" class="w-3 h-3"></i> ${escapeHTML(m)}
+                    </button>
+                  `;
+                }
+              }).join("");
+            } else {
+              clubSectionEl.classList.add("hidden");
+            }
+          } else {
+            clubSectionEl.classList.add("hidden");
+          }
+        }
+
+        const startBtn = document.getElementById("btn-lobby-start-tournament");
+        const adminActionCard = document.getElementById("lobby-admin-action-card");
+        if (adminActionCard) {
+          adminActionCard.classList.remove("opacity-60");
+          if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.classList.remove("cursor-not-allowed");
+            startBtn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i> <span>${isZh ? "全員到齊，立即排賽開打！" : "Ready! Generate Schedule & Start"}</span>`;
+          }
+        }
+
+        lucide.createIcons();
+        return;
+      }
+
+      if (regLobbyEl) regLobbyEl.classList.add("hidden");
+      if (liveMainGridEl) liveMainGridEl.classList.remove("hidden");
+      if (headerProgressWrap) headerProgressWrap.classList.remove("hidden");
+      if (headerActionsWrap) headerActionsWrap.classList.remove("hidden");
+
       // Render Matches Schedule
       renderMatchesList(data.matches || [], hasAdmin);
 
@@ -4062,6 +4250,263 @@
 
       lucide.createIcons();
     }
+
+    // ----------------------------------------------------
+    // REGISTRATION LOBBY ACTIONS & CHECK-IN CONTROLLERS
+    // ----------------------------------------------------
+    async function registerPlayerToTournament(playerName) {
+      const tData = STATE.tournamentData;
+      if (!tData || !tData.id) return;
+      if (tData.status !== "registering") {
+        showToast(STATE.lang === "zh-TW" ? "該賽事已截止報名或已開賽！" : "Tournament registration closed!", "warning");
+        return;
+      }
+
+      const name = (playerName || "").trim();
+      if (!name) {
+        showToast(STATE.lang === "zh-TW" ? "請輸入選手姓名！" : "Please enter player name!", "warning");
+        return;
+      }
+
+      const currentPlayers = Array.isArray(tData.players) ? [...tData.players] : [];
+      if (currentPlayers.includes(name)) {
+        showToast(STATE.lang === "zh-TW" ? `「${name}」已經在報名名單中了！` : `"${name}" is already registered!`, "info");
+        return;
+      }
+
+      currentPlayers.push(name);
+      tData.players = currentPlayers;
+
+      localStorage.setItem("pb_my_player_name", name);
+
+      if (tData.clubName) {
+        const clubMembers = getClubMembersList(tData.clubName);
+        if (!clubMembers.includes(name)) {
+          clubMembers.push(name);
+          saveClubMembersList(tData.clubName, clubMembers);
+        }
+      }
+
+      saveToLocalTournaments(tData);
+      if (STATE.db) {
+        try {
+          await update(ref(STATE.db, `tournaments/${tData.id}`), { players: currentPlayers });
+        } catch (err) {
+          console.error("Firebase update error:", err);
+        }
+      }
+      renderLiveUI(tData);
+      showToast(STATE.lang === "zh-TW" ? `✅「${name}」報名成功！` : `✅ "${name}" signed up!`, "success");
+    }
+    window.registerPlayerToTournament = registerPlayerToTournament;
+
+    async function unregisterPlayerFromTournament(playerName) {
+      const tData = STATE.tournamentData;
+      if (!tData || !tData.id) return;
+      if (tData.status !== "registering") {
+        showToast(STATE.lang === "zh-TW" ? "賽事已開打，無法取消報名！" : "Tournament has already started!", "warning");
+        return;
+      }
+
+      const name = (playerName || "").trim();
+      if (!confirm(STATE.lang === "zh-TW" ? `確定將「${name}」自報名名單中移除嗎？` : `Remove "${name}" from registration?`)) return;
+
+      const currentPlayers = (tData.players || []).filter(p => p !== name);
+      tData.players = currentPlayers;
+
+      saveToLocalTournaments(tData);
+      if (STATE.db) {
+        try {
+          await update(ref(STATE.db, `tournaments/${tData.id}`), { players: currentPlayers });
+        } catch (err) {
+          console.error("Firebase update error:", err);
+        }
+      }
+      renderLiveUI(tData);
+      showToast(STATE.lang === "zh-TW" ? `已將「${name}」自名單移除` : `Removed "${name}"`, "info");
+    }
+    window.unregisterPlayerFromTournament = unregisterPlayerFromTournament;
+
+    async function joinRegistrationFromInput() {
+      const input = document.getElementById("lobby-player-input");
+      if (!input) return;
+      const raw = input.value.trim();
+      if (!raw) return;
+
+      const names = raw.split(/[\n,，\s]+/).map(s => s.trim()).filter(Boolean);
+      input.value = "";
+
+      for (const name of names) {
+        await registerPlayerToTournament(name);
+      }
+    }
+    window.joinRegistrationFromInput = joinRegistrationFromInput;
+
+    async function startTournamentFromLobby() {
+      const tData = STATE.tournamentData;
+      if (!tData || !tData.id) return;
+
+      const players = (tData.players || []).map(p => p.trim()).filter(Boolean);
+      const isSingles = (tData.partnerType === "singles");
+      const isTeamMode = !!(tData.isTeamMode || tData.partnerType === "fixed");
+      const minUnits = isSingles ? 2 : 4;
+
+      if (tData.tournamentMode === "free") {
+        if (players.length < 2) {
+          showToast(STATE.lang === "zh-TW" ? "自由模式至少需 2 人即可開打！" : "At least 2 players needed for free mode!", "warning");
+          return;
+        }
+      } else {
+        if (players.length < minUnits) {
+          showToast(
+            STATE.lang === "zh-TW"
+              ? (isSingles ? `個人單打至少需 ${minUnits} 位選手！目前僅 ${players.length} 人。` : `雙打輪轉至少需 ${minUnits} 位參賽單位！目前僅 ${players.length} 人。`)
+              : `At least ${minUnits} players required! Currently: ${players.length}`,
+            "warning"
+          );
+          return;
+        }
+      }
+
+      const startBtn = document.getElementById("btn-lobby-start-tournament");
+      const originalBtnHtml = startBtn ? startBtn.innerHTML : "開賽";
+      if (startBtn) {
+        startBtn.disabled = true;
+        startBtn.classList.add("opacity-60", "cursor-not-allowed");
+        startBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>${STATE.lang === "zh-TW" ? "排賽計算中..." : "Scheduling..."}</span>`;
+        lucide.createIcons();
+      }
+
+      try {
+        let matches = [];
+        let backendSuccess = false;
+        const duration = tData.durationHours || 2.0;
+        const customTotalGames = tData.customTotalGames || 0;
+        const effectiveMode = tData.tournamentMode || "fair";
+
+        if (effectiveMode !== "free") {
+          try {
+            const format = isSingles ? "singles" : (isTeamMode ? "team" : "doubles");
+            const res = await fetch(`${FUNCTIONS_BASE_URL}/generateSchedule`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                players: players,
+                format: format,
+                durationHours: duration,
+                scheduleMode: effectiveMode,
+                customTotalGames: customTotalGames,
+                estMinsPerGame: 15
+              })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.success && Array.isArray(data.matches)) {
+                matches = data.matches;
+                backendSuccess = true;
+                console.info("%c[Scheduler] 報名房開賽計算成功, 場次: " + matches.length, "color: #10b981; font-weight: bold; font-size: 13px;");
+              }
+            }
+          } catch (backendErr) {
+            console.warn("[Scheduler] 雲端排程失敗，啟用前端離線備援:", backendErr);
+          }
+
+          if (!backendSuccess) {
+            if (isSingles) {
+              matches = generateSinglesSchedule(players, duration, 15, effectiveMode, customTotalGames);
+            } else if (isTeamMode) {
+              matches = generateTeamRoundRobinSchedule(players);
+            } else {
+              matches = generateRoundRobinSchedule(players, duration, 15, effectiveMode, customTotalGames);
+            }
+          }
+        }
+
+        tData.matches = matches;
+        tData.status = "active";
+        tData.startedAt = new Date().toISOString();
+
+        saveToLocalTournaments(tData);
+        if (STATE.db) {
+          await set(ref(STATE.db, `tournaments/${tData.id}`), tData);
+        }
+
+        showToast(STATE.lang === "zh-TW" ? "🎉 賽程已生成，正式開賽！" : "🎉 Tournament Started!", "success");
+        renderLiveUI(tData);
+
+      } catch (err) {
+        console.error("Start Tournament Error:", err);
+        showToast(STATE.lang === "zh-TW" ? `❌ 開賽失敗: ${err.message || err}` : `❌ Failed to start: ${err.message || err}`, "error");
+      } finally {
+        if (startBtn) {
+          startBtn.disabled = false;
+          startBtn.classList.remove("opacity-60", "cursor-not-allowed");
+          startBtn.innerHTML = originalBtnHtml;
+          lucide.createIcons();
+        }
+      }
+    }
+    window.startTournamentFromLobby = startTournamentFromLobby;
+
+    function openEditDurationModal() {
+      const tData = STATE.tournamentData;
+      if (!tData) return;
+      const input = document.getElementById("edit-duration-input");
+      if (input) input.value = tData.durationHours || 2.0;
+      const modal = document.getElementById("modal-edit-duration");
+      if (modal) modal.classList.remove("hidden");
+      lucide.createIcons();
+    }
+    window.openEditDurationModal = openEditDurationModal;
+
+    function closeEditDurationModal() {
+      const modal = document.getElementById("modal-edit-duration");
+      if (modal) modal.classList.add("hidden");
+    }
+    window.closeEditDurationModal = closeEditDurationModal;
+
+    function setQuickDuration(val) {
+      const input = document.getElementById("edit-duration-input");
+      if (input) input.value = val;
+    }
+    window.setQuickDuration = setQuickDuration;
+
+    async function saveTournamentDuration() {
+      const tData = STATE.tournamentData;
+      if (!tData || !tData.id) return;
+      const input = document.getElementById("edit-duration-input");
+      const val = parseFloat(input?.value);
+      if (isNaN(val) || val <= 0 || val > 12) {
+        showToast(STATE.lang === "zh-TW" ? "請輸入有效的比賽時數 (0.5 ~ 12 小時)" : "Please enter valid duration", "warning");
+        return;
+      }
+      tData.durationHours = val;
+      saveToLocalTournaments(tData);
+      if (STATE.db) {
+        try {
+          await update(ref(STATE.db, `tournaments/${tData.id}`), { durationHours: val });
+        } catch (err) {
+          console.error("Firebase update duration error:", err);
+        }
+      }
+      closeEditDurationModal();
+      renderLiveUI(tData);
+      showToast(STATE.lang === "zh-TW" ? `✅ 預計比賽時間已調整為 ${val} 小時！` : `✅ Duration updated to ${val} hrs!`, "success");
+    }
+    window.saveTournamentDuration = saveTournamentDuration;
+
+    async function cancelRegistrationTournament() {
+      const tId = STATE.currentTournamentId;
+      if (!tId) return;
+      const tData = STATE.tournamentData;
+      const tName = tData ? tData.name : tId;
+      const isZh = (STATE.lang === "zh-TW");
+      if (!confirm(isZh ? `🗑️ 確定要取消並刪除報名球局「${tName}」嗎？\n（此操作無法復原）` : `Cancel & delete tournament "${tName}"?\n(This cannot be undone)`)) {
+        return;
+      }
+      await deleteTournament(tId);
+    }
+    window.cancelRegistrationTournament = cancelRegistrationTournament;
 
     async function completeTournamentAndReturn() {
       const tData = STATE.tournamentData;
@@ -5383,20 +5828,28 @@
         if (clubActiveTournaments.length > 0) {
           clubActiveSection.classList.remove("hidden");
           clubActiveListEl.innerHTML = clubActiveTournaments.map(tData => {
+            const isReg = tData.status === "registering";
+            const pCount = tData.players ? tData.players.length : 0;
             return `
               <div class="glass-card rounded-2xl p-4 border space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1">
                   <div class="flex items-center justify-between">
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 border border-amber-500/25 flex items-center gap-1">
-                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> 進行中
-                    </span>
+                    ${isReg ? `
+                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${STATE.lang === 'zh-TW' ? '報名中' : 'Registering'}
+                      </span>
+                    ` : `
+                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 border border-amber-500/25 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> 進行中
+                      </span>
+                    `}
                   </div>
                   <h4 class="text-sm font-bold font-display line-clamp-1">${tData.name}</h4>
-                  <div class="text-xs sub-text">👥 ${tData.players ? tData.players.length : 0} 人參賽</div>
+                  <div class="text-xs sub-text">👥 ${pCount} ${isReg ? (STATE.lang === 'zh-TW' ? '人已報名' : 'signed up') : (STATE.lang === 'zh-TW' ? '人參賽' : 'players')}</div>
                 </div>
-                <button onclick="enterTournament('${tData.id}')" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white dark:text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1">
-                  <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> 進入計分
+                <button onclick="enterTournament('${tData.id}')" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm active:scale-95">
+                  <i data-lucide="${isReg ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isReg ? '' : 'fill-current'}"></i> ${isReg ? t("enterRegistration") : (STATE.lang === 'zh-TW' ? '進入計分' : 'Enter')}
                 </button>
               </div>
             `;
@@ -5762,9 +6215,6 @@
 
         return `
           <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 border space-y-3.5 transition shadow-sm relative overflow-hidden group">
-            <!-- Top Emerald Gradient Line (完賽標誌) -->
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-80"></div>
-
             <!-- Header -->
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-1.5 flex-wrap">
