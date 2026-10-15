@@ -81,7 +81,7 @@
       background-color: #080c14;
       color: #f1f5f9;
       background-image: radial-gradient(circle at 50% -10%, rgba(16, 185, 129, 0.08) 0%, transparent 70%),
-                        radial-gradient(circle at 100% 60%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
+        radial-gradient(circle at 100% 60%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
     }
 
     html.dark .glass-nav {
@@ -119,12 +119,17 @@
       border-color: rgba(255, 255, 255, 0.06);
     }
 
+    html.dark select option {
+      background-color: #0b111c;
+      color: #ffffff;
+    }
+
     /* Light Theme (白底 / 暖白簡約) */
     html.light body {
       background-color: #faf8f5;
       color: #292524;
       background-image: radial-gradient(circle at 50% -5%, rgba(16, 185, 129, 0.06) 0%, transparent 60%),
-                        radial-gradient(circle at 100% 40%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
+        radial-gradient(circle at 100% 40%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
     }
 
     html.light .glass-nav {
@@ -164,6 +169,11 @@
       border-color: #e5dbc9;
     }
 
+    html.light select option {
+      background-color: #ffffff;
+      color: #292524;
+    }
+
     html.light .text-white {
       color: #1c1917 !important;
     }
@@ -188,13 +198,16 @@
     .hover-lift {
       transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
     }
+
     .hover-lift:hover {
       transform: translateY(-2.5px);
     }
+
     html.dark .hover-lift:hover {
       box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.55), 0 0 16px -2px rgba(16, 185, 129, 0.16);
       border-color: rgba(16, 185, 129, 0.35);
     }
+
     html.light .hover-lift:hover {
       box-shadow: 0 12px 26px -6px rgba(180, 150, 120, 0.2), 0 0 14px -2px rgba(16, 185, 129, 0.18);
       border-color: rgba(16, 185, 129, 0.4);
@@ -205,10 +218,12 @@
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.03em;
     }
+
     .winner-card-blue {
       border-color: rgba(59, 130, 246, 0.5) !important;
       box-shadow: 0 0 18px -2px rgba(59, 130, 246, 0.25);
     }
+
     .winner-card-red {
       border-color: rgba(244, 63, 94, 0.5) !important;
       box-shadow: 0 0 18px -2px rgba(244, 63, 94, 0.25);
@@ -216,9 +231,15 @@
 
     /* Animated Progress Shimmer */
     @keyframes shimmerMove {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
+      0% {
+        background-position: -200% 0;
+      }
+
+      100% {
+        background-position: 200% 0;
+      }
     }
+
     .progress-shimmer {
       background: linear-gradient(90deg, #10b981 0%, #34d399 45%, #6ee7b7 55%, #10b981 100%);
       background-size: 200% 100%;
@@ -303,18 +324,21 @@
         <!-- Nav: Hub -->
         <button id="nav-btn-hub" onclick="navigateTo('hub')"
           class="px-2.5 sm:px-3.5 py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95"
-          title="賽事大廳">
+          title="臨打球局">
           <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-          <span id="t-nav-hub" class="hidden xs:inline sm:inline">賽事大廳</span>
+          <span id="t-nav-hub" class="hidden xs:inline sm:inline">臨打球局</span>
         </button>
 
-        <!-- Nav: History (完賽紀錄) -->
-        <button id="nav-btn-history" onclick="navigateTo('history')"
-          class="px-2.5 sm:px-3.5 py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95"
-          title="完賽紀錄">
-          <i data-lucide="history" class="w-3.5 h-3.5"></i>
-          <span id="t-nav-history" class="hidden xs:inline sm:inline">完賽紀錄</span>
-        </button>
+        <!-- Nav: Club Lobby Dropdown (社團大廳下拉切換) -->
+        <div class="relative flex items-center">
+          <i data-lucide="shield" id="nav-club-icon" class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-stone-600 dark:text-slate-400"></i>
+          <select id="nav-btn-history" onchange="onNavClubSelectChange(this.value)"
+            class="w-[96px] pl-6 pr-[22px] py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition text-xs font-bold shadow-sm cursor-pointer focus:border-emerald-500 focus:outline-none appearance-none truncate"
+            title="社團大廳">
+            <option value="" disabled selected hidden>社團大廳</option>
+          </select>
+          <i data-lucide="chevron-down" class="w-3 h-3 text-stone-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        </div>
 
 
 
@@ -374,25 +398,46 @@
 
     <!-- ==================== PAGE B: TOURNAMENT HUB ==================== -->
     <section id="page-hub" class="space-y-4 sm:space-y-6">
-      <div class="flex items-center justify-between border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
+      <!-- Hub Top Bar: Title + Quick Create -->
+      <div
+        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
         <div class="text-left">
           <h2 id="t-hub-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2 text-left">
-            <i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500 dark:text-emerald-400"></i> 賽事大廳
+            <i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500 dark:text-emerald-400"></i>
+            <span>臨打球局</span>
           </h2>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="navigateTo('create')" id="t-create-new-btn"
+          <button onclick="STATE.createContextClub = null; navigateTo('create')" id="t-create-new-btn"
             class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1.5 transition active:scale-95">
             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-create-new-btn-text">建立新賽事</span>
           </button>
         </div>
       </div>
 
-      <!-- Section 1: Active Tournaments (進行中賽事) -->
+      <!-- Quick Action Panel: Direct Code Entry -->
+      <div
+        class="glass-card rounded-2xl p-3 sm:p-4 border border-stone-200 dark:border-slate-800/80 shadow-sm">
+        <form onsubmit="handleQuickCodeSubmit(event)" class="flex items-center gap-2 max-w-lg">
+          <div class="relative flex-1">
+            <i data-lucide="search"
+              class="w-4 h-4 text-stone-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="hub-quick-code-input" placeholder="輸入賽事代碼搜尋 (例: 123456 或 T-123456)" autocomplete="off"
+              class="w-full input-bg border rounded-xl pl-9 pr-3 py-2 text-xs font-mono focus:border-emerald-500 focus:outline-none placeholder:text-stone-400 placeholder:font-sans" />
+          </div>
+          <button type="submit" id="btn-quick-code-submit"
+            class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold text-xs shadow-sm hover:shadow-emerald-500/20 transition active:scale-95 shrink-0 flex items-center gap-1.5 cursor-pointer">
+            <span id="t-quick-code-btn">前往</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Section 1: Active Tournaments (進行中球局) -->
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <h3 id="t-hub-active-heading"
-            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">進行中賽事</h3>
+            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">進行中球局</h3>
           <span id="hub-active-count" class="text-xs sub-text font-semibold"></span>
         </div>
         <div id="hub-active-tournaments-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
@@ -400,12 +445,12 @@
         </div>
       </div>
 
-      <!-- Section 2: Completed Tournaments (已完賽賽事 - 可折疊收合) -->
+      <!-- Section 2: Completed Tournaments (已完賽球局 - 可折疊收合) -->
       <div class="space-y-3 pt-2">
         <div onclick="toggleHubCompletedCollapse()"
           class="flex items-center justify-between cursor-pointer select-none group">
           <h3 id="t-hub-completed-heading"
-            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">近期完賽 (3日內)</h3>
+            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">近期完賽球局 (3日內)</h3>
           <div class="flex items-center gap-2 text-xs sub-text font-semibold">
             <span id="hub-completed-count"></span>
             <div
@@ -445,20 +490,13 @@
         </div>
 
         <!-- 2. Club Name Selection / Input -->
-        <div>
+        <div id="wrap-create-club">
           <label id="t-label-club" class="block text-xs sm:text-sm font-semibold mb-1">2. 所屬社團 / 球團 (選填)</label>
           <div class="space-y-2">
             <select id="create-club-select" onchange="onClubSelectChange()"
               class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none">
-              <option value="">-- 無社團 --</option>
-              <option value="__new__">➕ 輸入新社團名稱...</option>
+              <option value="">-- 無社團 (臨打球局) --</option>
             </select>
-            <div id="new-club-input-wrap" class="hidden space-y-2">
-              <input type="text" id="create-club-name" placeholder="請輸入新社團名稱 (例如：樂活早午團)"
-                class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
-              <input type="password" id="create-club-password" placeholder="設定社團密碼（選填，防止他人亂改）"
-                class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
-            </div>
           </div>
         </div>
 
@@ -675,6 +713,38 @@
         </div>
         <input type="hidden" id="create-selected-total-games" value="" />
 
+        <!-- 6. Privacy Setting (球局隱私設定) -->
+        <div id="wrap-create-privacy" class="card-inner border rounded-2xl p-3.5 space-y-2.5 shadow-sm">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5" id="t-label-privacy">
+              <i data-lucide="shield" class="w-4 h-4 text-emerald-500"></i>
+              <span>球局隱私設定</span>
+            </label>
+            <span
+              class="text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+              id="badge-privacy-status">臨打公開 (預設)</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <button type="button" id="btn-privacy-public" onclick="setCreatePrivacy(false)"
+              class="p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-emerald-500 text-stone-900 dark:text-white font-bold shadow-sm active:scale-98">
+              <div class="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                <span id="t-privacy-public-title">臨打公開 (預設)</span>
+              </div>
+              <p class="text-[10px] sub-text font-normal leading-tight" id="t-privacy-public-desc">發布於臨打球局，供全站球友自由查看與參與</p>
+            </button>
+            <button type="button" id="btn-privacy-private" onclick="setCreatePrivacy(true)"
+              class="p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-transparent opacity-60 text-stone-600 dark:text-slate-400 font-medium hover:opacity-100 active:scale-98">
+              <div class="flex items-center gap-1.5 text-xs text-stone-500 dark:text-slate-400">
+                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                <span id="t-privacy-private-title">私密球局</span>
+              </div>
+              <p class="text-[10px] sub-text font-normal leading-tight" id="t-privacy-private-desc">不在列表中顯示，僅持專屬連結或輸入代碼者可進入</p>
+            </button>
+          </div>
+          <input type="hidden" id="create-is-private" value="false" />
+        </div>
+
         <button type="submit" id="t-submit-create-btn"
           class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-black py-4 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition text-sm flex items-center justify-center gap-2 mt-4 active:scale-95 tracking-wide">
           <i data-lucide="rocket" class="w-4 h-4"></i> <span id="t-submit-create-btn-text">確認並開賽</span>
@@ -704,11 +774,12 @@
             <div class="flex flex-wrap items-center gap-2 text-[11px] mt-2">
               <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border"><i data-lucide="users"
                   class="w-3.5 h-3.5 text-emerald-500"></i> <span id="live-players-count">0 人</span></span>
-              <span id="live-duration-wrap" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border"><i
-                  data-lucide="clock" class="w-3.5 h-3.5 text-amber-500"></i> <span id="t-est-prefix">預估</span> <span
-                  id="live-duration" class="font-bold text-amber-600 dark:text-amber-300">2</span> <span
-                  id="t-hrs-unit">小時</span></span>
-              <span id="live-progress-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border font-mono font-bold text-emerald-600 dark:text-emerald-400">
+              <span id="live-duration-wrap"
+                class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border"><i data-lucide="clock"
+                  class="w-3.5 h-3.5 text-amber-500"></i> <span id="t-est-prefix">預估</span> <span id="live-duration"
+                  class="font-bold text-amber-600 dark:text-amber-300">2</span> <span id="t-hrs-unit">小時</span></span>
+              <span id="live-progress-badge"
+                class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-inner border font-mono font-bold text-emerald-600 dark:text-emerald-400">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span id="live-progress-text">0/0 (0%)</span>
               </span>
@@ -718,8 +789,10 @@
 
         <!-- 2. 分隔進度條 (直接作為資訊區與操作按鈕之間的美化分隔線) -->
         <div class="w-full py-0.5">
-          <div class="w-full h-1.5 sm:h-2 rounded-full bg-stone-200/80 dark:bg-slate-800/80 overflow-hidden shadow-inner">
-            <div id="live-header-progress-bar" class="h-full rounded-full transition-all duration-500 progress-shimmer" style="width: 0%;"></div>
+          <div
+            class="w-full h-1.5 sm:h-2 rounded-full bg-stone-200/80 dark:bg-slate-800/80 overflow-hidden shadow-inner">
+            <div id="live-header-progress-bar" class="h-full rounded-full transition-all duration-500 progress-shimmer"
+              style="width: 0%;"></div>
           </div>
         </div>
 
@@ -740,7 +813,7 @@
           <button onclick="openShareModal()" id="t-share-btn"
             class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
             <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-            <span id="t-share-btn-text">分享 / QR Code</span>
+            <span id="t-share-btn-text">分享賽事</span>
           </button>
         </div>
       </div>
@@ -840,67 +913,107 @@
       </div>
     </section>
 
-    <!-- ==================== PAGE E: TOURNAMENT HISTORY ARCHIVE ==================== -->
+    <!-- ==================== PAGE E: CLUB LOBBY (社團大廳) ==================== -->
     <section id="page-history" class="hidden space-y-4 sm:space-y-6">
-      <div class="border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
+      <!-- 1. Club Lobby Header -->
+      <div
+        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
         <div>
-          <h2 id="t-history-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2 text-left">
-            <i data-lucide="history" class="w-5 h-5 text-emerald-500"></i> 完賽紀錄
+          <h2 id="t-club-space-heading"
+            class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2 text-left">
+            <i data-lucide="shield" class="w-5 h-5 text-emerald-500"></i>
+            <span id="club-space-header-title">社團大廳</span>
           </h2>
+          <p id="club-space-header-sub" class="text-xs sub-text mt-0.5">專屬社團戰績榜、歷次賽程存檔與出賽名冊</p>
+        </div>
+        <div id="club-space-header-actions" class="flex items-center gap-2 flex-wrap">
+          <!-- 1. Create Tournament Button (進到社團大廳後在其後方：直接是建立新賽事的功能) -->
+          <button type="button" id="btn-club-create-tournament" onclick="createClubTournament()"
+            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-sm flex items-center gap-1.5 transition active:scale-95">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+            <span id="t-club-create-btn">建立新賽事</span>
+          </button>
+
+          <!-- 2. Share Club Button (進入特定社團後顯示) -->
+          <button type="button" id="btn-share-club" onclick="copyClubLink()"
+            class="px-2.5 py-1.5 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95 hidden">
+            <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
+            <span id="t-btn-share-club">分享社團</span>
+          </button>
         </div>
       </div>
 
-      <!-- History Classification Tabs: 臨打賽事 vs 各社團 -->
-      <div id="history-club-filter-container" class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <!-- Rendered dynamically: [ 臨打賽事 ] [ 社團 A ] [ 社團 B ] -->
+      <!-- 2. Empty State (尚無社團賽事時顯示) -->
+      <div id="club-empty-state" class="hidden glass-card rounded-2xl p-8 text-center space-y-3 border">
+        <i data-lucide="shield" class="w-8 h-8 text-emerald-500 mx-auto"></i>
+        <p class="text-xs sub-text" id="t-no-clubs-yet">目前尚未建立任何社團。點擊下方按鈕或上方下拉選單建立專屬社團！</p>
+        <button onclick="openCreateClubModal()"
+          class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white dark:text-slate-950 font-bold text-xs shadow-sm active:scale-95 transition inline-flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-empty-create-club-btn">建立新社團</span>
+        </button>
       </div>
 
-      <!-- Top: Club Aggregate Leaderboard (Only shown when a specific club is selected) -->
-      <div id="history-club-aggregate-section" class="hidden space-y-3">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <h3 class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">
-            <span id="t-history-aggregate-heading">社團參賽紀錄</span> (<span id="history-aggregate-club-name"></span>)
+      <!-- 3. Club Content -->
+      <div id="club-content-container" class="space-y-4 sm:space-y-6">
+        <!-- Club Active Tournaments (進行中的社團賽事) -->
+        <div id="club-active-section" class="hidden space-y-3">
+          <h3
+            class="text-sm sm:text-base font-bold text-amber-600 dark:text-amber-400 font-display flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span>進行中的社團賽事</span>
           </h3>
-          <!-- Month Filter -->
-          <div class="flex items-center gap-1.5 text-xs">
-            <span id="t-history-month-label" class="sub-text">月份：</span>
-            <select id="history-month-select" onchange="setHistoryMonthFilter(this.value)"
-              class="input-bg border rounded-lg px-2 py-1 text-xs focus:border-emerald-500 focus:outline-none">
-              <option value="all">全部月份</option>
-            </select>
+          <div id="club-active-tournaments-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           </div>
         </div>
 
-        <!-- Aggregate Table Card -->
-        <div class="glass-card rounded-2xl overflow-hidden border">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
-                <tr>
-                  <th id="th-agg-player" class="py-2.5 px-3">選手名稱</th>
-                  <th id="th-agg-games" class="py-2.5 px-2 text-center">出賽局數</th>
-                  <th id="th-agg-winrate" class="py-2.5 px-2 text-center">總勝率</th>
-                  <th id="th-agg-wl" class="py-2.5 px-2 text-center">勝/敗場</th>
-                  <th id="th-agg-diff" class="py-2.5 px-2 text-center">總淨勝分</th>
-                  <th id="th-agg-pfpa" class="py-2.5 px-2 text-center">總得/失分</th>
-                </tr>
-              </thead>
-              <tbody id="history-aggregate-tbody" class="divide-y font-medium text-xs">
-                <!-- Rendered dynamically -->
-              </tbody>
-            </table>
+        <!-- Club Aggregate Leaderboard (Top: 社團參賽紀錄 / 總積分榜) -->
+        <div id="history-club-aggregate-section" class="space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <h3 class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <i data-lucide="crown" class="w-4 h-4 text-amber-500"></i>
+              <span id="t-history-aggregate-heading">社團參賽紀錄</span> (<span id="history-aggregate-club-name"></span>)
+            </h3>
+            <!-- Month Filter -->
+            <div class="flex items-center gap-1.5 text-xs">
+              <span id="t-history-month-label" class="sub-text">月份：</span>
+              <select id="history-month-select" onchange="setHistoryMonthFilter(this.value)"
+                class="input-bg border rounded-lg px-2 py-1 text-xs focus:border-emerald-500 focus:outline-none">
+                <option value="all">全部月份</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Aggregate Table Card -->
+          <div class="glass-card rounded-2xl overflow-hidden border">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
+                  <tr>
+                    <th id="th-agg-player" class="py-2.5 px-3">選手名稱</th>
+                    <th id="th-agg-games" class="py-2.5 px-2 text-center">出賽局數</th>
+                    <th id="th-agg-winrate" class="py-2.5 px-2 text-center">總勝率</th>
+                    <th id="th-agg-wl" class="py-2.5 px-2 text-center">勝/敗場</th>
+                    <th id="th-agg-diff" class="py-2.5 px-2 text-center">總淨勝分</th>
+                    <th id="th-agg-pfpa" class="py-2.5 px-2 text-center">總得/失分</th>
+                  </tr>
+                </thead>
+                <tbody id="history-aggregate-tbody" class="divide-y font-medium text-xs">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Bottom: Individual Match List (List of completed tournament cards for this club / casual) -->
-      <div class="space-y-3">
-        <h3 id="history-matches-section-title"
-          class="text-sm sm:text-base font-bold flex items-center gap-1.5 sub-text">
-          <i data-lucide="calendar" class="w-4 h-4"></i> 歷次賽事紀錄
-        </h3>
-        <div id="history-tournaments-list" class="space-y-4">
-          <!-- Rendered dynamically -->
+        <!-- Club Match Archives (Bottom: 歷次賽事紀錄) -->
+        <div class="space-y-3">
+          <h3 id="history-matches-section-title"
+            class="text-sm sm:text-base font-bold flex items-center gap-1.5 sub-text">
+            <i data-lucide="calendar" class="w-4 h-4"></i> 歷次賽事紀錄
+          </h3>
+          <div id="history-tournaments-list" class="space-y-4">
+            <!-- Rendered dynamically -->
+          </div>
         </div>
       </div>
     </section>
@@ -1086,6 +1199,53 @@
     </div>
   </div>
 
+  <!-- ==================== CREATE CLUB MODAL ==================== -->
+  <div id="modal-create-club" onclick="if(event.target === this) closeCreateClubModal()"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border relative text-left shadow-2xl">
+      <button onclick="closeCreateClubModal()" class="absolute top-3.5 right-3.5 sub-text hover:text-emerald-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-stone-200 dark:border-slate-800 pb-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+          <i data-lucide="shield" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 id="t-modal-create-club-title" class="text-base font-bold font-display">建立新社團</h3>
+          <p id="t-modal-create-club-desc" class="text-xs sub-text mt-0.5">建立專屬社團大廳與歷次戰績存檔</p>
+        </div>
+      </div>
+
+      <form onsubmit="handleModalCreateClubSubmit(event)" class="space-y-3.5">
+        <div>
+          <label id="t-label-modal-club-name" class="block text-xs font-semibold mb-1">社團 / 球隊名稱 <span class="text-rose-500">*</span></label>
+          <input type="text" id="modal-create-club-name" required placeholder="請輸入社團名稱 (例：樂活匹克團)" autocomplete="off"
+            class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label id="t-label-modal-club-pwd" class="block text-xs font-semibold mb-1">社團防護密碼 (選填)</label>
+          <input type="password" id="modal-create-club-pwd" placeholder="設定密碼（選填，防止他人修改賽事）" autocomplete="new-password"
+            class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
+          <p id="t-modal-club-pwd-hint" class="text-[11px] sub-text mt-1">若設定密碼，日後他人欲於此社團開賽或編輯時需輸入該密碼驗證。</p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCreateClubModal()" id="t-btn-cancel-create-club"
+            class="px-3.5 py-2 rounded-xl card-inner border text-xs font-semibold hover:border-stone-400 transition cursor-pointer">
+            取消
+          </button>
+          <button type="submit" id="t-btn-submit-create-club"
+            class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span id="t-btn-submit-create-club-text">確認建立</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
@@ -1188,6 +1348,9 @@
       allTournamentsCache: [],
       authenticatedClubs: new Set(),
       masterPinHash: null,
+      hubTab: "my", // "my" | "public"
+      hubClubFilter: "",
+      currentClub: null, // 當前選取的社團名稱
       lang: initialLang,
       theme: "light",
       get isAdmin() { return getIsAdmin(); },
@@ -1206,19 +1369,28 @@
     const I18N = {
       "zh-TW": {
         appSubtitle: "排賽系統",
-        navHub: "賽事大廳",
-        navHistory: "歷史紀錄",
+        navHub: "臨打球局",
+        navHistory: "社團大廳",
+        navClub: "社團大廳",
+        clubSpaceTitle: "社團大廳",
+        clubSwitcherAllOption: "🛡️ 選擇社團",
+        chooseClubTitle: "請選擇要進入的社團",
+        chooseClubDesc: "進入社團查看專屬積分榜、歷次賽事紀錄與出賽名冊：",
+        switchClubBtn: "切換社團",
+        shareClubBtn: "分享社團",
+        noClubsYet: "目前尚未建立任何社團賽事。在建立新賽事時輸入社團名稱即可建立專屬社團！",
         navCreate: "新增賽事",
         dbConnected: "已連線",
 
         // Hub
-        hubTitle: "賽事大廳",
+        hubTitle: "臨打球局",
+        hubPrivacyHint: "",
         dropdownLang: "語言切換",
         dropdownAdmin: "管理員後台",
         dropdownEmailLabel: "聯絡信箱",
         hubDesc: "點擊卡片即可進入即時對戰賽程",
         hubHistoryBtn: "歷史完賽紀錄",
-        createNewBtn: "➕ 建立新賽事",
+        createNewBtn: "建立新賽事",
         statusFinished: "已完賽",
         statusActive: "進行中",
         enterTournament: "進入賽事",
@@ -1229,11 +1401,30 @@
         filterAll: "全部",
         filterActive: "🔥 進行中",
         filterCompleted: "🏆 已完賽",
+        tabMyTournaments: "⭐ 我的賽事",
+        tabPublicTournaments: "🎾 臨打球局",
+        quickCodePlaceholder: "輸入賽事代碼 (例: 123456 或 T-123456)",
+        quickCodeBtn: "前往",
+        hubClubFilterAll: "🛡️ 所屬社團 (全部)",
+        emptyMyTournamentsTitle: "個人隱私保護中",
+        emptyMyTournamentsDesc: "您在此裝置上尚未建立或參與任何進行中的賽事。點擊【建立新賽事】開始，或在上方輸入朋友傳來的賽事代碼加入觀賽！",
+        emptyPublicTournaments: "目前無進行中的公開球局，請使用連結或代碼進入",
+        labelPrivacy: "球局隱私設定",
+        privacyPrivateTitle: "私密球局",
+        privacyPrivateDesc: "不在列表中顯示，僅持專屬連結或輸入代碼者可進入",
+        privacyPublicTitle: "臨打公開 (預設)",
+        privacyPublicDesc: "發布於臨打球局，供全站球友自由查看與參與",
+        privacyBadgeUnlisted: "私密球局",
+        privacyBadgePublic: "臨打公開",
+        badgePrivate: "私密",
+        badgePublic: "臨打",
+        copyLinkBtn: "複製連結",
+        copiedLinkToast: "✅ 已複製賽事觀賽連結，可直接傳至 LINE 群組！",
 
         // History Page
         historyTitle: "完賽紀錄",
         historyDesc: "",
-        navBackHub: "賽事大廳",
+        navBackHub: "臨打球局",
         expandDetails: "展開排行",
         collapseDetails: "收合排行",
         copyReportBtn: "文字賽報",
@@ -1333,7 +1524,7 @@
         liveAdminToolbarTitle: "管理模式面板",
         liveAdminToggleAdmin: "操作模式",
         liveAdminToggleViewer: "瀏覽模式",
-        shareBtnText: "分享 / QR Code",
+        shareBtnText: "分享賽事",
         addMatchModalTitle: "加打一局 / 增加場次",
         addMatchModalDesc: "選擇 4 位選手或點擊自動配對",
         customRosterLabel: "自選陣容",
@@ -1368,14 +1559,14 @@
         clubPasswordRemoved: "✅ 社團密碼已移除",
 
         // Hub & Sections
-        hubActiveTitle: "進行中賽事",
-        hubCompletedTitle: "近期完賽 (3日內)",
+        hubActiveTitle: "進行中球局",
+        hubCompletedTitle: "近期完賽球局 (3日內)",
         hubActiveCountSuffix: "場進行中",
         hubCompletedCountSuffix: "場",
         expandText: "展開",
         collapseText: "闔上",
-        noActiveTournaments: "目前無進行中的賽事",
-        noCompletedTournamentsHub: "近期 3 日內無完賽賽事",
+        noActiveTournaments: "目前無進行中的公開球局，請使用賽事連結或進入社團大廳",
+        noCompletedTournamentsHub: "近期 3 日內無完賽球局",
         createTournamentDirect: "建立新賽事",
         finishAndReturnBtn: "結束賽事",
         deleteTournamentBtn: "刪除賽事",
@@ -1421,18 +1612,40 @@
         adminForceCompleteDone: "✅ 賽事已強制完賽",
         adminStatsTournaments: "總賽事",
         adminStatsClubs: "社團數",
-        adminStatsGames: "總完成局數"
+        adminStatsGames: "總完成局數",
+
+        // Create Club Modal & Messages
+        createClubModalTitle: "建立新社團",
+        createClubModalDesc: "建立專屬社團大廳與歷次戰績存檔",
+        labelModalClubName: "社團 / 球隊名稱",
+        placeholderModalClubName: "請輸入社團名稱 (例：樂活匹克團)",
+        labelModalClubPwd: "社團防護密碼 (選填)",
+        placeholderModalClubPwd: "設定密碼（選填，防止他人修改賽事）",
+        hintModalClubPwd: "若設定密碼，日後他人欲於此社團開賽或編輯時需輸入該密碼驗證。",
+        confirmCreateBtn: "確認建立",
+        cancelBtn: "取消",
+        clubCreatedSuccess: "✅ 社團「{club}」建立成功！",
+        clubAlreadyExists: "ℹ️ 社團「{club}」已存在，已為您切換至該社團大廳！",
+        navCreateClubOption: "➕ 建立新社團..."
       },
 
       "en": {
         appSubtitle: "ZeroZeroTwo",
-        navHub: "Hub",
-        navHistory: "History",
+        navHub: "Drop-in Play",
+        navHistory: "Club Lobby",
+        navClub: "Club Lobby",
+        clubSpaceTitle: "Club Lobby",
+        clubSwitcherAllOption: "🛡️ Select Club",
+        chooseClubTitle: "Select a Club to Enter",
+        chooseClubDesc: "View club standings, match archives, and roster:",
+        switchClubBtn: "Switch Club",
+        shareClubBtn: "Share Club",
+        noClubsYet: "No clubs created yet. Enter a club name when creating a tournament to create one!",
         navCreate: "Create",
         dbConnected: "Connected",
 
         // Hub
-        hubTitle: "Tournament Hub",
+        hubTitle: "Drop-in Play",
         dropdownLang: "Language",
         dropdownAdmin: "Admin Console",
         dropdownEmailLabel: "Contact Email",
@@ -1449,15 +1662,35 @@
         filterAll: "All",
         filterActive: "🔥 Active",
         filterCompleted: "🏆 Finished",
+        tabMyTournaments: "⭐ My Tournaments",
+        tabPublicTournaments: "🎾 Drop-in Play",
+        quickCodePlaceholder: "Enter code (e.g. 123456 or T-123456)",
+        quickCodeBtn: "Go",
+        hubClubFilterAll: "🛡️ Filter by Club (All)",
+        hubPrivacyHint: "",
+        emptyMyTournamentsTitle: "Privacy Protected",
+        emptyMyTournamentsDesc: "You haven't created or joined any active tournaments on this device yet. Click Create Tournament or enter a tournament code above!",
+        emptyPublicTournaments: "No active drop-in tournaments right now. Click Create Tournament to start!",
+        labelPrivacy: "Session Privacy",
+        privacyPrivateTitle: "Private Session",
+        privacyPrivateDesc: "Hidden from list. Accessible only via direct link or code",
+        privacyPublicTitle: "Drop-in Public (Default)",
+        privacyPublicDesc: "Visible on Drop-in Play page for all players",
+        privacyBadgeUnlisted: "Private",
+        privacyBadgePublic: "Drop-in",
+        badgePrivate: "Private",
+        badgePublic: "Drop-in",
+        copyLinkBtn: "Copy Link",
+        copiedLinkToast: "✅ Match link copied! Send to LINE or messaging app",
 
         // Hub & Sections
-        hubActiveTitle: "Active Tournaments",
-        hubCompletedTitle: "Recent Completed (3 Days)",
+        hubActiveTitle: "Active Drop-in Matches",
+        hubCompletedTitle: "Recent Completed Matches (3 Days)",
         hubActiveCountSuffix: "Active",
         hubCompletedCountSuffix: "tournaments",
         expandText: "Expand",
         collapseText: "Collapse",
-        noActiveTournaments: "No active tournaments",
+        noActiveTournaments: "No active public matches. Use tournament link or enter Club Lobby",
         noCompletedTournamentsHub: "No completed tournaments in the past 3 days",
         createTournamentDirect: "Create Tournament",
         finishAndReturnBtn: "End Tournament",
@@ -1467,7 +1700,7 @@
         // History Page
         historyTitle: "Completed Match Archives",
         historyDesc: "Full archive of finished tournaments, podium & head-to-head breakdown",
-        navBackHub: "Back to Hub",
+        navBackHub: "Back to Drop-in Play",
         expandDetails: "Expand Standings",
         collapseDetails: "Collapse Standings",
         copyReportBtn: "Text Report",
@@ -1583,7 +1816,7 @@
         liveAdminToolbarTitle: "Admin Control Panel",
         liveAdminToggleAdmin: "Admin Mode",
         liveAdminToggleViewer: "Viewer Mode",
-        shareBtnText: "Share / QR Code",
+        shareBtnText: "Share Tournament",
         addMatchModalTitle: "Add Match / Extra Game",
         addMatchModalDesc: "Select 4 players or use auto pairing",
         customRosterLabel: "Custom Roster",
@@ -1641,7 +1874,21 @@
         adminForceCompleteDone: "✅ Tournament force completed",
         adminStatsTournaments: "Tournaments",
         adminStatsClubs: "Clubs",
-        adminStatsGames: "Completed Games"
+        adminStatsGames: "Completed Games",
+
+        // Create Club Modal & Messages
+        createClubModalTitle: "Create New Club",
+        createClubModalDesc: "Create dedicated club lobby and archives",
+        labelModalClubName: "Club / Team Name",
+        placeholderModalClubName: "e.g. LOHAS Pickleball Club",
+        labelModalClubPwd: "Club Password (Optional)",
+        placeholderModalClubPwd: "Set password (optional, prevents unauthorized edits)",
+        hintModalClubPwd: "If set, members must enter this password to create or edit tournaments under this club.",
+        confirmCreateBtn: "Create Club",
+        cancelBtn: "Cancel",
+        clubCreatedSuccess: "✅ Club \"{club}\" created successfully!",
+        clubAlreadyExists: "ℹ️ Club \"{club}\" already exists, switched to its lobby!",
+        navCreateClubOption: "➕ Create New Club..."
       }
     };
 
@@ -1724,13 +1971,32 @@
       setBtnState(btnHub, pageName === "hub");
       setBtnState(btnHistory, pageName === "history");
       setBtnState(btnCreate, pageName === "create");
+
+      const clubIcon = document.getElementById("nav-club-icon");
+      if (clubIcon) {
+        if (pageName === "history") {
+          clubIcon.classList.add("text-stone-950", "dark:text-white");
+          clubIcon.classList.remove("text-stone-600", "dark:text-slate-400");
+        } else {
+          clubIcon.classList.remove("text-stone-950", "dark:text-white");
+          clubIcon.classList.add("text-stone-600", "dark:text-slate-400");
+        }
+      }
+
+      if (typeof updateNavClubSelectValue === "function") {
+        updateNavClubSelectValue();
+      }
     }
 
     function applyLanguageUI() {
       const navHubEl = document.getElementById("t-nav-hub");
       if (navHubEl) navHubEl.innerText = t("navHub");
-      const navHistoryEl = document.getElementById("t-nav-history");
-      if (navHistoryEl) navHistoryEl.innerText = t("navHistory");
+      const navHubBtn = document.getElementById("nav-btn-hub");
+      if (navHubBtn) navHubBtn.title = t("navHub");
+      const navClubEl = document.getElementById("t-nav-club") || document.getElementById("t-nav-history");
+      if (navClubEl) navClubEl.innerText = t("navClub");
+      const navClubBtn = document.getElementById("nav-btn-history");
+      if (navClubBtn) navClubBtn.title = t("navClub");
       const navCreateEl = document.getElementById("t-nav-create");
       if (navCreateEl) navCreateEl.innerText = t("navCreate");
 
@@ -1749,7 +2015,25 @@
 
       // Hub Page
       const hubTitle = document.getElementById("t-hub-title");
-      if (hubTitle) hubTitle.innerHTML = `<i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500"></i> ${t("hubTitle")}`;
+      if (hubTitle) hubTitle.innerHTML = `<i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500"></i> <span>${t("hubTitle")}</span>`;
+      const hubPrivacyHintEl = document.getElementById("t-hub-privacy-hint");
+      if (hubPrivacyHintEl) hubPrivacyHintEl.innerText = t("hubPrivacyHint");
+      const quickCodeInputEl = document.getElementById("hub-quick-code-input");
+      if (quickCodeInputEl) quickCodeInputEl.placeholder = t("quickCodePlaceholder");
+      const quickCodeBtnEl = document.getElementById("t-quick-code-btn");
+      if (quickCodeBtnEl) quickCodeBtnEl.innerText = t("quickCodeBtn");
+
+      const labelPrivacyEl = document.getElementById("t-label-privacy");
+      if (labelPrivacyEl) labelPrivacyEl.innerHTML = `<i data-lucide="shield" class="w-4 h-4 text-emerald-500"></i> <span>${t("labelPrivacy")}</span>`;
+      const privPrivateTitleEl = document.getElementById("t-privacy-private-title");
+      if (privPrivateTitleEl) privPrivateTitleEl.innerText = t("privacyPrivateTitle");
+      const privPrivateDescEl = document.getElementById("t-privacy-private-desc");
+      if (privPrivateDescEl) privPrivateDescEl.innerText = t("privacyPrivateDesc");
+      const privPublicTitleEl = document.getElementById("t-privacy-public-title");
+      if (privPublicTitleEl) privPublicTitleEl.innerText = t("privacyPublicTitle");
+      const privPublicDescEl = document.getElementById("t-privacy-public-desc");
+      if (privPublicDescEl) privPublicDescEl.innerText = t("privacyPublicDesc");
+
       const createNewBtnTextEl = document.getElementById("t-create-new-btn-text");
       if (createNewBtnTextEl) createNewBtnTextEl.innerText = t("createNewBtn");
       const hubActHeading = document.getElementById("t-hub-active-heading");
@@ -1760,7 +2044,25 @@
       const isHubCompOpen = !document.getElementById("hub-completed-tournaments-wrap")?.classList.contains("hidden");
       if (hubCompToggle) hubCompToggle.innerText = isHubCompOpen ? t("collapseText") : t("expandText");
 
-      // History Page
+      // Club Lobby Page (formerly History)
+      const clubHeadingTitleEl = document.getElementById("club-space-header-title");
+      if (clubHeadingTitleEl && !STATE.currentClub) clubHeadingTitleEl.innerText = t("clubSpaceTitle");
+      const btnClubCreateEl = document.getElementById("t-club-create-btn");
+      if (btnClubCreateEl) btnClubCreateEl.innerText = t("createNewBtn");
+      const btnShareClubEl = document.getElementById("t-btn-share-club");
+      if (btnShareClubEl) btnShareClubEl.innerText = t("shareClubBtn");
+      const chooseClubTitleEl = document.getElementById("t-choose-club-title");
+      if (chooseClubTitleEl) chooseClubTitleEl.innerText = t("chooseClubTitle");
+      const chooseClubSubEl = document.getElementById("t-choose-club-sub");
+      if (chooseClubSubEl) chooseClubSubEl.innerText = t("chooseClubDesc");
+      if (typeof populateNavClubSelect === "function") {
+        populateNavClubSelect();
+      }
+      const switcherSelect = document.getElementById("club-space-switcher-select");
+      if (switcherSelect && switcherSelect.options.length > 0) {
+        switcherSelect.options[0].text = t("clubSwitcherAllOption");
+      }
+
       const histTitle = document.getElementById("t-history-title");
       if (histTitle) histTitle.innerHTML = `<i data-lucide="history" class="w-5 h-5 text-emerald-500"></i> ${t("historyTitle")}`;
       const histAggHeading = document.getElementById("t-history-aggregate-heading");
@@ -1787,13 +2089,27 @@
       if (labelNameEl) labelNameEl.innerText = t("labelName");
       const labelClubEl = document.getElementById("t-label-club");
       if (labelClubEl) labelClubEl.innerText = t("labelClub");
-      const btnNewClubEl = document.getElementById("t-btn-new-club");
-      if (btnNewClubEl) {
-        const isNewMode = !document.getElementById("new-club-input-wrap")?.classList.contains("hidden");
-        btnNewClubEl.innerText = isNewMode ? t("btnSelectClub") : t("btnNewClub");
-      }
-      const newClubInputEl = document.getElementById("create-club-name");
-      if (newClubInputEl) newClubInputEl.placeholder = t("placeholderNewClub");
+      // Modal Create Club
+      const modalCreateClubTitle = document.getElementById("t-modal-create-club-title");
+      if (modalCreateClubTitle) modalCreateClubTitle.innerText = t("createClubModalTitle");
+      const modalCreateClubDesc = document.getElementById("t-modal-create-club-desc");
+      if (modalCreateClubDesc) modalCreateClubDesc.innerText = t("createClubModalDesc");
+      const modalClubNameLabel = document.getElementById("t-label-modal-club-name");
+      if (modalClubNameLabel) modalClubNameLabel.innerHTML = `${t("labelModalClubName")} <span class="text-rose-500">*</span>`;
+      const modalClubPwdLabel = document.getElementById("t-label-modal-club-pwd");
+      if (modalClubPwdLabel) modalClubPwdLabel.innerText = t("labelModalClubPwd");
+      const modalClubPwdHint = document.getElementById("t-modal-club-pwd-hint");
+      if (modalClubPwdHint) modalClubPwdHint.innerText = t("hintModalClubPwd");
+      const modalClubNameInput = document.getElementById("modal-create-club-name");
+      if (modalClubNameInput) modalClubNameInput.placeholder = t("placeholderModalClubName");
+      const modalClubPwdInput = document.getElementById("modal-create-club-pwd");
+      if (modalClubPwdInput) modalClubPwdInput.placeholder = t("placeholderModalClubPwd");
+      const modalCancelBtn = document.getElementById("t-btn-cancel-create-club");
+      if (modalCancelBtn) modalCancelBtn.innerText = t("cancelBtn");
+      const modalSubmitBtnText = document.getElementById("t-btn-submit-create-club-text");
+      if (modalSubmitBtnText) modalSubmitBtnText.innerText = t("confirmCreateBtn");
+      const emptyCreateClubBtn = document.getElementById("t-empty-create-club-btn");
+      if (emptyCreateClubBtn) emptyCreateClubBtn.innerText = t("createClubModalTitle");
 
       // Mode Selector
       const labelModeEl = document.getElementById("t-label-mode");
@@ -2019,13 +2335,22 @@
             localStorage.setItem("pb_club_members", JSON.stringify({}));
           }
           if (typeof renderClubMemberChips === 'function') renderClubMemberChips();
+          if (typeof populateNavClubSelect === 'function') populateNavClubSelect();
         });
 
-        // 載入 Master PIN hash（hash 存在 Firebase，原始碼不含明文 PIN）
         try {
           const pinSnap = await get(ref(STATE.db, "app_config/master_pin_hash"));
           if (pinSnap.exists()) STATE.masterPinHash = pinSnap.val();
         } catch (e) { console.warn("Could not load master pin hash", e); }
+
+        // 載入社團密碼雜湊表（供頂部社團下拉選單與大廳卡片即時顯示密碼鎖狀態）
+        try {
+          const pwdSnap = await get(ref(STATE.db, "club_passwords"));
+          if (pwdSnap.exists()) {
+            STATE.clubPasswordsMap = pwdSnap.val() || {};
+            if (typeof populateNavClubSelect === "function") populateNavClubSelect();
+          }
+        } catch (e) { console.warn("Could not load club passwords", e); }
       } catch (err) {
         console.error("Firebase init error:", err);
         updateDbStatusBadge(false);
@@ -2050,10 +2375,25 @@
       const urlParams = new URLSearchParams(window.location.search);
       const tId = urlParams.get("t");
       const page = urlParams.get("page");
+      const club = urlParams.get("club");
       if (tId) {
         loadLiveTournament(tId, false);
+      } else if (club) {
+        const decodedClub = decodeURIComponent(club).trim();
+        verifyClubAccess(decodedClub).then(canAccess => {
+          if (canAccess) {
+            STATE.currentClub = decodedClub;
+            localStorage.setItem("pb_last_club", decodedClub);
+          } else {
+            STATE.currentClub = null;
+          }
+          navigateTo("history", false);
+        });
       } else if (page === "create") {
         navigateTo("create", false);
+      } else if (page === "club") {
+        STATE.currentClub = null;
+        navigateTo("history", false);
       } else if (page === "history") {
         navigateTo("history", false);
       } else {
@@ -2080,8 +2420,16 @@
         } else if (pageName === "create") {
           window.history.pushState({}, "", `${window.location.pathname}?page=create`);
         } else if (pageName === "history") {
-          window.history.pushState({}, "", `${window.location.pathname}?page=history`);
+          if (STATE.currentClub) {
+            window.history.pushState({}, "", `${window.location.pathname}?club=${encodeURIComponent(STATE.currentClub)}`);
+          } else {
+            window.history.pushState({}, "", `${window.location.pathname}?page=club`);
+          }
         }
+      }
+
+      if (pageName !== "create" && pageName !== "live") {
+        STATE.createContextClub = null;
       }
 
       if (pageName === "hub") {
@@ -2089,7 +2437,6 @@
       } else if (pageName === "create") {
         resetCreateForm();
       } else if (pageName === "history") {
-        STATE.historyCategory = "__casual__";
         renderHistoryPage();
       } else if (pageName === "admin") {
         renderAdminPage();
@@ -3202,24 +3549,7 @@
     window.calculateTimeEstimate = calculateTimeEstimate;
 
     function toggleNewClubInput(forceShow) {
-      const wrap = document.getElementById("new-club-input-wrap");
-      const btnSpan = document.getElementById("t-btn-new-club");
-      const clubSelect = document.getElementById("create-club-select");
-      const input = document.getElementById("create-club-name");
-      if (!wrap) return;
-
-      const isHidden = wrap.classList.contains("hidden");
-      const shouldShow = forceShow !== undefined ? forceShow : isHidden;
-      if (shouldShow) {
-        wrap.classList.remove("hidden");
-        if (clubSelect) clubSelect.value = "__new__";
-        if (btnSpan) btnSpan.innerText = t("btnSelectClub");
-        if (input) input.focus();
-      } else {
-        wrap.classList.add("hidden");
-        if (clubSelect && clubSelect.value === "__new__") clubSelect.value = "";
-        if (btnSpan) btnSpan.innerText = t("btnNewClub");
-      }
+      // 社團建立已獨立至上方導航選單 Modal，開賽表單保留此函式防呆
       renderClubMemberChips();
       lucide.createIcons();
     }
@@ -3228,16 +3558,11 @@
     async function onClubSelectChange() {
       const clubSelect = document.getElementById("create-club-select");
       if (!clubSelect) return;
-      const val = clubSelect.value;
-      if (val === "__new__") {
-        toggleNewClubInput(true);
-      } else {
-        toggleNewClubInput(false);
-        if (val && val.trim()) {
-          const hasAccess = await verifyClubAccess(val.trim());
-          if (!hasAccess) {
-            clubSelect.value = "";
-          }
+      const val = (clubSelect.value || "").trim();
+      if (val) {
+        const hasAccess = await verifyClubAccess(val);
+        if (!hasAccess) {
+          clubSelect.value = "";
         }
       }
       renderClubMemberChips();
@@ -3255,14 +3580,7 @@
     // ----------------------------------------------------
     function getCurrentClubName() {
       const clubSelect = document.getElementById("create-club-select");
-      const newClubInput = document.getElementById("create-club-name");
-      const wrap = document.getElementById("new-club-input-wrap");
-      if (clubSelect && (clubSelect.value === "__new__" || (wrap && !wrap.classList.contains("hidden")))) {
-        return newClubInput ? (newClubInput.value || "").trim() : "";
-      } else if (clubSelect) {
-        return (clubSelect.value || "").trim();
-      }
-      return "";
+      return clubSelect ? (clubSelect.value || "").trim() : "";
     }
 
     function getClubMembersList(clubName) {
@@ -3553,6 +3871,63 @@
     }
     window.quickGeneratePlayers = quickGeneratePlayers;
 
+    function setupCreateFormContext(clubName) {
+      const wrapClub = document.getElementById("wrap-create-club");
+      const wrapPrivacy = document.getElementById("wrap-create-privacy");
+      const nameInput = document.getElementById("create-name");
+
+      if (clubName) {
+        // 社團模式：直接鎖定為當前社團，隱藏隱私開關
+        if (wrapClub) {
+          wrapClub.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs sm:text-sm font-semibold">2. 所屬社團</label>
+              <span class="text-[10px] px-2 py-0.5 rounded-full card-inner border font-bold text-amber-600 dark:text-amber-400">社團專屬球局</span>
+            </div>
+            <div class="p-3 rounded-xl card-inner border flex items-center justify-between">
+              <div class="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
+                <i data-lucide="shield" class="w-4 h-4"></i>
+                <span>${clubName}</span>
+              </div>
+              <span class="text-[11px] sub-text">歸檔至該社團大廳</span>
+            </div>
+            <select id="create-club-select" class="hidden">
+              <option value="${clubName}" selected>${clubName}</option>
+            </select>
+          `;
+        }
+        if (wrapPrivacy) wrapPrivacy.classList.add("hidden");
+        const isPrivateInput = document.getElementById("create-is-private");
+        if (isPrivateInput) isPrivateInput.value = "false";
+
+        if (nameInput && !nameInput.value.trim()) {
+          const today = new Date();
+          const dStr = `${today.getMonth() + 1}/${today.getDate()}`;
+          nameInput.value = `${clubName} ${dStr} 球局`;
+        }
+      } else {
+        // 臨打模式：顯示完整社團選單（預設無社團），顯示隱私開關（預設公開）
+        if (wrapClub) {
+          const uniqueClubs = getAllUniqueClubs();
+          wrapClub.innerHTML = `
+            <label id="t-label-club" class="block text-xs sm:text-sm font-semibold mb-1">${t("labelClub")}</label>
+            <div class="space-y-2">
+              <select id="create-club-select" onchange="onClubSelectChange()"
+                class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none">
+                <option value="">-- 無社團 (臨打球局) --</option>
+                ${uniqueClubs.map(c => `<option value="${c}">${c}</option>`).join("")}
+              </select>
+            </div>
+          `;
+        }
+        if (wrapPrivacy) wrapPrivacy.classList.remove("hidden");
+        setCreatePrivacy(false);
+      }
+      if (typeof onClubSelectChange === "function") onClubSelectChange();
+      lucide.createIcons();
+    }
+    window.setupCreateFormContext = setupCreateFormContext;
+
     function resetCreateForm() {
       const form = document.getElementById("form-create-tournament");
       if (form) form.reset();
@@ -3563,6 +3938,7 @@
       renderSelectedPlayerChips();
       renderClubMemberChips();
       updatePlayerCountBadge();
+      setupCreateFormContext(STATE.createContextClub);
     }
     window.resetCreateForm = resetCreateForm;
 
@@ -3585,20 +3961,10 @@
         const nameInput = document.getElementById("create-name");
         const name = nameInput ? nameInput.value.trim() : "";
         const clubSelect = document.getElementById("create-club-select");
-        const newClubInput = document.getElementById("create-club-name");
-        const wrap = document.getElementById("new-club-input-wrap");
+        const clubName = clubSelect ? (clubSelect.value || "").trim() : "";
 
-        let clubName = "";
-        let isNewClub = false;
-        if (clubSelect && (clubSelect.value === "__new__" || (wrap && !wrap.classList.contains("hidden")))) {
-          clubName = newClubInput ? newClubInput.value.trim() : "";
-          isNewClub = true;
-        } else if (clubSelect) {
-          clubName = clubSelect.value.trim();
-        }
-
-        // Verify club access (password protection) for existing clubs
-        if (clubName && !isNewClub) {
+        // Verify club access (password protection)
+        if (clubName) {
           const hasAccess = await verifyClubAccess(clubName);
           if (!hasAccess) return;
         }
@@ -3617,6 +3983,8 @@
         if (mode === "fair" && strategy === "full-cycle") {
           effectiveMode = "round-robin";
         }
+
+        const isPrivate = document.getElementById("create-is-private")?.value !== "false";
 
         if (mode === "group") {
           if (!STATE.groupDrawMap || Object.keys(STATE.groupDrawMap).length < 2) {
@@ -3647,6 +4015,7 @@
               isTeamMode: true,
               name: tName,
               clubName: clubName,
+              isPrivate: isPrivate,
               durationHours: 2.0,
               scoringType: scoringType,
               targetScore: targetScore,
@@ -3657,6 +4026,7 @@
             };
 
             saveToLocalTournaments(tObj);
+            addMyTournamentId(tId);
             if (STATE.db) {
               try {
                 await set(ref(STATE.db, `tournaments/${tId}`), tObj);
@@ -3749,6 +4119,7 @@
           isTeamMode: isTeamMode,
           name: name,
           clubName: clubName,
+          isPrivate: isPrivate,
           durationHours: duration,
           scoringType: scoringType,
           targetScore: targetScore,
@@ -3759,17 +4130,7 @@
         };
 
         saveToLocalTournaments(tournamentObj);
-
-        // Save new club password if set
-        if (isNewClub && clubName) {
-          const clubPwdInput = document.getElementById("create-club-password");
-          const clubPwd = clubPwdInput ? clubPwdInput.value.trim() : "";
-          if (clubPwd) {
-            await setClubPasswordDB(clubName, clubPwd);
-            STATE.authenticatedClubs.add(clubName);
-            showToast(t("clubPasswordSet"), "success");
-          }
-        }
+        addMyTournamentId(tournamentId);
 
         if (STATE.db) {
           try {
@@ -3789,9 +4150,13 @@
         }
         STATE.activeTournamentAdmin = tournamentId;
 
-        // 重置表單並直接跳回賽事大廳 (Hub)
+        // 重置表單並依情境跳轉至相應大廳
         resetCreateForm();
-        navigateTo("hub");
+        if (clubName) {
+          openClubSpace(clubName);
+        } else {
+          navigateTo("hub");
+        }
 
       } finally {
         // 恢復按鈕狀態
@@ -3803,6 +4168,109 @@
       }
     }
     window.handleCreateTournament = handleCreateTournament;
+
+    // ----------------------------------------------------
+    // PRIVACY & MY TOURNAMENTS HELPERS
+    // ----------------------------------------------------
+    function getMyTournamentIds() {
+      try {
+        const raw = localStorage.getItem("pb_my_tournaments");
+        if (raw) return JSON.parse(raw);
+        // Seed from existing local tournaments if any
+        const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+        const ids = Object.keys(local);
+        if (ids.length > 0) {
+          localStorage.setItem("pb_my_tournaments", JSON.stringify(ids));
+          return ids;
+        }
+        return [];
+      } catch (e) {
+        return [];
+      }
+    }
+    window.getMyTournamentIds = getMyTournamentIds;
+
+    function addMyTournamentId(tId) {
+      if (!tId) return;
+      try {
+        let ids = getMyTournamentIds();
+        ids = ids.filter(id => id !== tId);
+        ids.unshift(tId);
+        if (ids.length > 60) ids = ids.slice(0, 60);
+        localStorage.setItem("pb_my_tournaments", JSON.stringify(ids));
+      } catch (e) { }
+    }
+    window.addMyTournamentId = addMyTournamentId;
+
+    function setHubTab(tab) {
+      STATE.hubTab = tab;
+      displayHubTournamentsList(STATE.allTournamentsCache);
+    }
+    window.setHubTab = setHubTab;
+
+    function onHubClubFilterChange(clubName) {
+      STATE.hubClubFilter = (clubName || "").trim();
+      displayHubTournamentsList(STATE.allTournamentsCache);
+    }
+    window.onHubClubFilterChange = onHubClubFilterChange;
+
+    function quickEnterTournament(code) {
+      if (!code) return;
+      let clean = code.trim().toUpperCase();
+      if (!clean) return;
+      if (!clean.startsWith("T-") && /^\d+$/.test(clean)) {
+        clean = "T-" + clean;
+      }
+      loadLiveTournament(clean, true);
+    }
+    window.quickEnterTournament = quickEnterTournament;
+
+    function handleQuickCodeSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById("hub-quick-code-input");
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) {
+        showToast(STATE.lang === "zh-TW" ? "請輸入賽事代碼" : "Please enter tournament code", "warning");
+        return;
+      }
+      quickEnterTournament(val);
+      input.value = "";
+    }
+    window.handleQuickCodeSubmit = handleQuickCodeSubmit;
+
+    function setCreatePrivacy(isPrivate) {
+      const hiddenInput = document.getElementById("create-is-private");
+      const btnPrivate = document.getElementById("btn-privacy-private");
+      const btnPublic = document.getElementById("btn-privacy-public");
+      const badge = document.getElementById("badge-privacy-status");
+      if (hiddenInput) hiddenInput.value = isPrivate ? "true" : "false";
+
+      if (isPrivate) {
+        if (btnPrivate) {
+          btnPrivate.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-emerald-500 text-stone-900 dark:text-white font-bold shadow-sm active:scale-98";
+        }
+        if (btnPublic) {
+          btnPublic.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-transparent opacity-60 text-stone-600 dark:text-slate-400 font-medium hover:opacity-100 active:scale-98";
+        }
+        if (badge) {
+          badge.innerText = STATE.lang === "zh-TW" ? "私密球局" : "Private";
+          badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-stone-600 dark:text-slate-400 border border-stone-500/20";
+        }
+      } else {
+        if (btnPrivate) {
+          btnPrivate.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-transparent opacity-60 text-stone-600 dark:text-slate-400 font-medium hover:opacity-100 active:scale-98";
+        }
+        if (btnPublic) {
+          btnPublic.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-emerald-500 text-stone-900 dark:text-white font-bold shadow-sm active:scale-98";
+        }
+        if (badge) {
+          badge.innerText = STATE.lang === "zh-TW" ? "臨打公開 (預設)" : "Drop-in Public (Default)";
+          badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+        }
+      }
+    }
+    window.setCreatePrivacy = setCreatePrivacy;
 
     function saveToLocalTournaments(tObj) {
       const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
@@ -3816,14 +4284,11 @@
     function displayHubTournamentsList(list) {
       STATE.allTournamentsCache = list || [];
 
-      // Extract unique clubs for create selector
-      const clubsSet = new Set();
-      (list || []).forEach(t => {
-        if (t.clubName && t.clubName.trim()) {
-          clubsSet.add(t.clubName.trim());
-        }
-      });
-      const uniqueClubs = Array.from(clubsSet);
+      // Extract unique clubs for selectors across all sources
+      const uniqueClubs = getAllUniqueClubs();
+      if (typeof populateNavClubSelect === "function") {
+        populateNavClubSelect(uniqueClubs);
+      }
 
       // Populate create form club selector options
       const clubSelect = document.getElementById("create-club-select");
@@ -3832,16 +4297,19 @@
         clubSelect.innerHTML = `
           <option value="">${t("selectClubOption")}</option>
           ${uniqueClubs.map(c => `<option value="${c}">${c}</option>`).join("")}
-          <option value="__new__">${t("newClubOption")}</option>
         `;
-        if (currentVal && currentVal !== "__new__" && uniqueClubs.includes(currentVal)) {
+        if (currentVal && uniqueClubs.includes(currentVal)) {
           clubSelect.value = currentVal;
-        } else if (currentVal === "__new__") {
-          clubSelect.value = "__new__";
         }
       }
 
-      let filteredList = [...(list || [])];
+      // 臨打球局僅顯示無所屬社團的公開臨打賽事，嚴格排除所有社團賽事（進行中或完賽）
+      let filteredList = (list || []).filter(t => {
+        const isClub = !!(t.clubName && t.clubName.trim());
+        if (isClub) return false;
+        // 默認公開：只有開賽者明確設定 isPrivate === true 才隱藏，其餘皆顯示於臨打球局
+        return t.isPrivate !== true;
+      });
       filteredList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       // Separate into Active and Completed lists
@@ -3890,6 +4358,16 @@
           </span>
         ` : '';
 
+        const privacyBadge = tData.isPrivate === true ? `
+          <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 flex items-center gap-0.5">
+            <i data-lucide="lock" class="w-2.5 h-2.5"></i> ${t("badgePrivate")}
+          </span>
+        ` : `
+          <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-0.5">
+            <i data-lucide="zap" class="w-2.5 h-2.5"></i> ${t("badgePublic")}
+          </span>
+        `;
+
         const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
 
         return `
@@ -3903,16 +4381,17 @@
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
                   ${clubBadge}
+                  ${privacyBadge}
                   ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
                 </div>
                 ${isFinished
-                  ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-sm">
+            ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-sm">
                       <i data-lucide="check" class="w-3 h-3"></i> ${t("statusFinished")}
                     </span>`
-                  : `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1.5 shadow-sm">
+            : `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1.5 shadow-sm">
                       <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${t("statusActive")}
                     </span>`
-                }
+          }
               </div>
 
               <!-- Tournament Title -->
@@ -3924,13 +4403,13 @@
                   <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
                 </span>
                 ${tData.tournamentMode === "free"
-                  ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`
-                  : tData.tournamentMode === "round-robin"
-                    ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>`
-                    : tData.tournamentMode === "group"
-                      ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "分組循環" : "Group Stage"}</span>`
-                      : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-stone-400"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`
-                }
+            ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`
+            : tData.tournamentMode === "round-robin"
+              ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>`
+              : tData.tournamentMode === "group"
+                ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "分組循環" : "Group Stage"}</span>`
+                : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-stone-400"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`
+          }
                 <span>👥 ${tData.players ? tData.players.length : 0} ${t("playersCountLabel")}</span>
               </div>
 
@@ -3952,11 +4431,11 @@
                 <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> ${t("enterTournament")}
               </button>
               ${STATE.isAdmin
-                ? `<button onclick="deleteTournament('${tData.id}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
+            ? `<button onclick="deleteTournament('${tData.id}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                   </button>`
-                : ''
-              }
+            : ''
+          }
             </div>
           </div>
         `;
@@ -3967,8 +4446,13 @@
       if (activeContainer) {
         if (activeList.length === 0) {
           activeContainer.innerHTML = `
-            <div class="col-span-full glass-card rounded-2xl p-6 text-center space-y-1 border">
-              <p class="text-xs font-semibold sub-text">${t("noActiveTournaments")}</p>
+            <div class="col-span-full glass-card rounded-2xl p-6 sm:p-8 text-center space-y-3 border">
+              <div class="w-12 h-12 rounded-2xl card-inner border mx-auto flex items-center justify-center text-emerald-500 shadow-inner">
+                <i data-lucide="layout-grid" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <h4 class="text-sm sm:text-base font-bold font-display">${t("noActiveTournaments")}</h4>
+              </div>
             </div>
           `;
         } else {
@@ -4145,6 +4629,7 @@
     async function loadLiveTournament(tId, pushHistory = true) {
       STATE.currentTournamentId = tId;
       STATE.activeTournamentAdmin = null; // 預設進入為瀏覽模式
+      addMyTournamentId(tId);
       navigateTo("live", false);
       if (pushHistory) {
         window.history.pushState({}, "", `${window.location.pathname}?t=${tId}`);
@@ -4194,51 +4679,76 @@
     }
     window.isTournamentAdmin = isTournamentAdmin;
 
+    function isTournamentFinished(tData) {
+      if (!tData) return false;
+      const matches = tData.matches || [];
+      const total = matches.length;
+      const done = matches.filter(m => m.completed || m.voided).length;
+      return tData.status === "completed" || (total > 0 && done === total);
+    }
+    window.isTournamentFinished = isTournamentFinished;
+
     async function toggleTournamentAdminMode() {
       const tData = STATE.tournamentData;
       if (!tData) return;
 
       const hasAdmin = isTournamentAdmin(tData);
 
+      // 若目前已處於操作模式，點擊切回瀏覽模式 (唯讀)
       if (hasAdmin) {
-        // Switch back to spectator / viewer mode
         STATE.activeTournamentAdmin = null;
         showToast(STATE.lang === "zh-TW" ? "👀 已切換為瀏覽模式 (唯讀)" : "👀 Switched to Viewer Mode (Read-only)", "info");
         renderLiveUI(tData);
         return;
       }
 
-      // Unlock Admin Mode
-      const clubName = (tData.clubName || '').trim();
-      const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
+      const isFinished = isTournamentFinished(tData);
 
-      // If already authenticated or club has no password -> grant access
-      if ((clubName && STATE.authenticatedClubs.has(clubName)) || !clubPwdHash) {
+      // 1. 進行中賽事（未完賽）：免密碼直接切換操作模式，現場自由記分
+      if (!isFinished) {
         STATE.activeTournamentAdmin = tData.id;
-        showToast(STATE.lang === "zh-TW" ? "🔓 管理模式已開啟" : "🔓 Admin Mode Enabled", "success");
+        showToast(STATE.lang === "zh-TW" ? "🔓 操作模式已開啟" : "🔓 Operation Mode Enabled", "success");
         renderLiveUI(tData);
         return;
       }
 
-      // If the club has a password, prompt for club password or Master PIN
-      const promptMsg = STATE.lang === "zh-TW"
-        ? `🔐 請輸入社團「${clubName}」密碼以開啟管理模式：`
-        : `🔐 Enter password for "${clubName}" to unlock Admin Mode:`;
+      // 2. 已完賽賽事：已凍結，需密碼驗證解鎖才能修改
+      if (STATE.isAdmin) {
+        STATE.activeTournamentAdmin = tData.id;
+        showToast(STATE.lang === "zh-TW" ? "🔓 完賽賽事已解鎖操作模式" : "🔓 Finished tournament unlocked", "success");
+        renderLiveUI(tData);
+        return;
+      }
+
+      const clubName = (tData.clubName || '').trim();
+      const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
+      const masterHash = STATE.masterPinHash;
+
+      let promptMsg = "";
+      if (clubPwdHash) {
+        promptMsg = STATE.lang === "zh-TW"
+          ? `🔒 此賽事已完賽並凍結。\n請輸入社團「${clubName}」密碼或管理員 PIN 以修改賽事：`
+          : `🔒 This tournament is completed and frozen.\nEnter password for "${clubName}" or Master PIN to edit:`;
+      } else {
+        promptMsg = STATE.lang === "zh-TW"
+          ? `🔒 此賽事已完賽並凍結。\n請輸入管理員 PIN 以修改賽事：`
+          : `🔒 This tournament is completed and frozen.\nEnter Master PIN to edit:`;
+      }
 
       const input = prompt(promptMsg);
       if (input === null) return;
-      const inputHash = await sha256(input.trim());
-      const masterHash = STATE.masterPinHash;
+      const cleanInput = input.trim();
+      const inputHash = await sha256(cleanInput);
 
-      const isValid = (inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
+      const isValid = (clubPwdHash && inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
       if (!isValid) {
-        showToast(STATE.lang === "zh-TW" ? "❌ 密碼錯誤，無法解鎖操作模式！" : "❌ Password Incorrect!", "error");
+        showToast(STATE.lang === "zh-TW" ? "❌ 密碼不符，已維持凍結狀態！" : "❌ Password Incorrect, remaining frozen!", "error");
         return;
       }
 
       if (clubName) STATE.authenticatedClubs.add(clubName);
       STATE.activeTournamentAdmin = tData.id;
-      showToast(STATE.lang === "zh-TW" ? "🔓 操作模式已解鎖！" : "🔓 Operation Mode Unlocked!", "success");
+      showToast(STATE.lang === "zh-TW" ? "🔓 完賽賽事已解鎖操作模式！" : "🔓 Finished tournament unlocked for edits!", "success");
       renderLiveUI(tData);
     }
     window.toggleTournamentAdminMode = toggleTournamentAdminMode;
@@ -4303,6 +4813,11 @@
         : (isFreeMode ? `${pCount} ${unit}` : `${pCount} ${unit} (~${estGamesPerPlayer} g/${perUnit})`);
       document.getElementById("live-duration").innerText = data.durationHours || "2.0";
 
+      const totalMatches = data.matches ? data.matches.length : 0;
+      const doneMatches = data.matches ? data.matches.filter(m => m.completed || m.voided).length : 0;
+      const isFinished = typeof isTournamentFinished === "function" ? isTournamentFinished(data) : (data.status === "completed" || (totalMatches > 0 && doneMatches === totalMatches));
+      const matchPct = totalMatches > 0 ? Math.round((doneMatches / totalMatches) * 100) : 0;
+
       // Admin Mode Toggle Button Styling (操作模式 vs 瀏覽模式)
       const adminBtn = document.getElementById("btn-toggle-live-admin");
       const adminText = document.getElementById("text-toggle-live-admin");
@@ -4314,15 +4829,10 @@
           if (adminIcon) adminIcon.setAttribute("data-lucide", "eye");
         } else {
           adminBtn.className = "px-3 py-2 rounded-xl card-inner border hover:border-amber-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none hover:text-amber-500";
-          adminText.innerText = t("liveAdminToggleAdmin");
-          if (adminIcon) adminIcon.setAttribute("data-lucide", "lock");
+          adminText.innerText = isFinished ? (STATE.lang === "zh-TW" ? "解鎖修改 🔒" : "Unlock 🔒") : t("liveAdminToggleAdmin");
+          if (adminIcon) adminIcon.setAttribute("data-lucide", isFinished ? "lock" : "edit-3");
         }
       }
-
-      const totalMatches = data.matches ? data.matches.length : 0;
-      const doneMatches = data.matches ? data.matches.filter(m => m.completed || m.voided).length : 0;
-      const isFinished = data.status === "completed" || (totalMatches > 0 && doneMatches === totalMatches);
-      const matchPct = totalMatches > 0 ? Math.round((doneMatches / totalMatches) * 100) : 0;
 
       const headerProgressBar = document.getElementById("live-header-progress-bar");
       if (headerProgressBar) {
@@ -4427,8 +4937,8 @@
           : `There are still ${uncompletedCount} unplayed matches. Complete "${tData.name}" early?\n\n(Unplayed matches will automatically be marked as "Void" and archived)`;
       } else {
         confirmMsg = STATE.lang === "zh-TW"
-          ? `確定要結束「${tData.name}」並標記為完賽嗎？\n（完賽後將歸檔至完賽紀錄，並返回賽事大廳）`
-          : `Complete "${tData.name}" and return to hub?`;
+          ? `確定要結束「${tData.name}」並標記為完賽嗎？\n（完賽後將歸檔至完賽紀錄，並返回臨打球局）`
+          : `Complete "${tData.name}" and return to Drop-in Play?`;
       }
 
       if (!confirm(confirmMsg)) return;
@@ -5328,11 +5838,11 @@
             </td>
             <td class="py-2.5 px-1 text-center">
               ${row.diff > 0
-                ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">+${row.diff}</span>`
-                : row.diff < 0
-                  ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">${row.diff}</span>`
-                  : `<span class="px-1.5 py-0.5 rounded font-mono text-[11px] sub-text">0</span>`
-              }
+            ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">+${row.diff}</span>`
+            : row.diff < 0
+              ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">${row.diff}</span>`
+              : `<span class="px-1.5 py-0.5 rounded font-mono text-[11px] sub-text">0</span>`
+          }
             </td>
             <td class="py-2.5 px-2 text-center font-mono text-xs sub-text">
               ${row.pf}/${row.pa}
@@ -5356,18 +5866,24 @@
       container.innerHTML = `<div class="text-center py-8 sub-text"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-1"></i>Loading...</div>`;
       lucide.createIcons();
 
-      // Fetch from cache or Firebase
       // Fetch from Firebase or fallback
       if (STATE.db) {
         const tournamentsRef = ref(STATE.db, "tournaments");
-        get(tournamentsRef).then(snapshot => {
+        const passwordsRef = ref(STATE.db, "club_passwords");
+        Promise.all([
+          get(tournamentsRef),
+          get(passwordsRef).catch(() => null)
+        ]).then(([snapshot, pwdSnap]) => {
           let list = [];
-          if (snapshot.exists()) {
+          if (snapshot && snapshot.exists()) {
             const data = snapshot.val();
             list = Object.values(data);
             localStorage.setItem("pb_tournaments", JSON.stringify(data));
           } else {
             localStorage.setItem("pb_tournaments", JSON.stringify({}));
+          }
+          if (pwdSnap && pwdSnap.exists()) {
+            STATE.clubPasswordsMap = pwdSnap.val() || {};
           }
           STATE.allTournamentsCache = list;
           renderHistoryCategorized(list);
@@ -5388,6 +5904,263 @@
     }
     window.setHistoryCategory = setHistoryCategory;
 
+    function decodeClubKey(safeKey) {
+      if (!safeKey) return "";
+      try {
+        return decodeURIComponent(safeKey.replace(/%2E/gi, "."));
+      } catch (e) {
+        return safeKey;
+      }
+    }
+    window.decodeClubKey = decodeClubKey;
+
+    function getAllUniqueClubs() {
+      const clubsSet = new Set();
+
+      // 1. 記憶體中目前的賽事快取
+      if (Array.isArray(STATE.allTournamentsCache)) {
+        STATE.allTournamentsCache.forEach(t => {
+          if (t && t.clubName && t.clubName.trim()) clubsSet.add(t.clubName.trim());
+        });
+      }
+
+      // 2. 本地賽事快取 (localStorage pb_tournaments)
+      try {
+        const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+        Object.values(localData).forEach(t => {
+          if (t && t.clubName && t.clubName.trim()) clubsSet.add(t.clubName.trim());
+        });
+      } catch (e) {}
+
+      // 3. 成員名冊庫 (localStorage pb_club_members) - 保障有成員但暫無賽事的社團
+      try {
+        const localMembers = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
+        Object.keys(localMembers).forEach(k => {
+          if (k && k !== "__general__" && k.trim()) clubsSet.add(k.trim());
+        });
+      } catch (e) {}
+
+      // 4. 本地密碼庫 (localStorage pb_club_passwords)
+      try {
+        const localPwds = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
+        Object.keys(localPwds).forEach(k => {
+          if (k && k.trim()) clubsSet.add(k.trim());
+        });
+      } catch (e) {}
+
+      // 5. 雲端密碼映射表 (Firebase club_passwords)
+      if (STATE.clubPasswordsMap && typeof STATE.clubPasswordsMap === "object") {
+        Object.keys(STATE.clubPasswordsMap).forEach(safeKey => {
+          const decoded = decodeClubKey(safeKey);
+          if (decoded && decoded !== "__general__" && decoded.trim()) {
+            clubsSet.add(decoded.trim());
+          }
+        });
+      }
+
+      // 6. 當前選定或記錄的社團
+      if (STATE.currentClub && STATE.currentClub.trim()) {
+        clubsSet.add(STATE.currentClub.trim());
+      }
+      try {
+        const lastClub = localStorage.getItem("pb_last_club");
+        if (lastClub && lastClub.trim()) clubsSet.add(lastClub.trim());
+      } catch (e) {}
+
+      // 過濾空值與保留字
+      clubsSet.delete("");
+      clubsSet.delete("__general__");
+
+      return Array.from(clubsSet).sort((a, b) => a.localeCompare(b, "zh-Hant"));
+    }
+    window.getAllUniqueClubs = getAllUniqueClubs;
+
+    function populateNavClubSelect(clubs) {
+      const navSelect = document.getElementById("nav-btn-history");
+      if (!navSelect) return;
+
+      const set = new Set(getAllUniqueClubs());
+      if (Array.isArray(clubs)) {
+        clubs.forEach(c => {
+          if (c && c !== "__general__" && c.trim()) set.add(c.trim());
+        });
+      }
+      const uniqueClubs = Array.from(set).sort((a, b) => a.localeCompare(b, "zh-Hant"));
+      const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
+      const isZh = STATE.lang === "zh-TW";
+      const defaultLabel = isZh ? "社團大廳" : "Club Lobby";
+      const createClubOptionLabel = isZh ? "➕ 建立新社團..." : "➕ Create New Club...";
+
+      navSelect.innerHTML = `
+        <option value="" disabled hidden ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>
+        ${uniqueClubs.map(c => {
+          const safeKey = encodeClubKey(c);
+          const hasPwd = !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
+          return `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${hasPwd ? ' 🔒' : ''}</option>`;
+        }).join("")}
+        <option value="" disabled>──────────</option>
+        <option value="__create_new_club__">${createClubOptionLabel}</option>
+      `;
+
+      updateNavClubSelectValue();
+    }
+    window.populateNavClubSelect = populateNavClubSelect;
+
+    function updateNavClubSelectValue() {
+      const navSelect = document.getElementById("nav-btn-history");
+      if (!navSelect) return;
+
+      if (STATE.currentPage === "history" && STATE.currentClub) {
+        navSelect.value = STATE.currentClub;
+      } else {
+        navSelect.value = "";
+      }
+    }
+    window.updateNavClubSelectValue = updateNavClubSelectValue;
+
+    async function onNavClubSelectChange(clubName) {
+      if (!clubName) return;
+      if (clubName === "__create_new_club__") {
+        updateNavClubSelectValue();
+        openCreateClubModal();
+        return;
+      }
+      await openClubSpace(clubName);
+    }
+    window.onNavClubSelectChange = onNavClubSelectChange;
+
+    function openCreateClubModal() {
+      const modal = document.getElementById("modal-create-club");
+      if (!modal) return;
+      const nameInput = document.getElementById("modal-create-club-name");
+      const pwdInput = document.getElementById("modal-create-club-pwd");
+      if (nameInput) nameInput.value = "";
+      if (pwdInput) pwdInput.value = "";
+      modal.classList.remove("hidden");
+      if (nameInput) setTimeout(() => nameInput.focus(), 60);
+      lucide.createIcons();
+    }
+    window.openCreateClubModal = openCreateClubModal;
+
+    function closeCreateClubModal() {
+      const modal = document.getElementById("modal-create-club");
+      if (!modal) return;
+      modal.classList.add("hidden");
+    }
+    window.closeCreateClubModal = closeCreateClubModal;
+
+    async function handleModalCreateClubSubmit(e) {
+      if (e) e.preventDefault();
+      const nameInput = document.getElementById("modal-create-club-name");
+      const pwdInput = document.getElementById("modal-create-club-pwd");
+      const rawName = nameInput ? nameInput.value.trim() : "";
+      const pwd = pwdInput ? pwdInput.value.trim() : "";
+
+      if (!rawName) {
+        showToast(STATE.lang === "zh-TW" ? "請輸入社團名稱！" : "Please enter a club name!", "warning");
+        if (nameInput) nameInput.focus();
+        return;
+      }
+
+      if (rawName === "__general__" || rawName === "__create_new_club__" || rawName === "__new__") {
+        showToast(STATE.lang === "zh-TW" ? "此名稱為系統保留字，請使用其他名稱！" : "This name is reserved, please choose another!", "error");
+        return;
+      }
+
+      const existingClubs = getAllUniqueClubs();
+      const matched = existingClubs.find(c => c.toLowerCase() === rawName.toLowerCase());
+
+      if (matched) {
+        closeCreateClubModal();
+        showToast(t("clubAlreadyExists").replace("{club}", matched), "info");
+        await openClubSpace(matched);
+        return;
+      }
+
+      // 1. 初始化社團名冊
+      const currentMembers = getClubMembersList(rawName);
+      saveClubMembersList(rawName, currentMembers);
+
+      // 2. 儲存密碼 (選填)
+      if (pwd) {
+        await setClubPasswordDB(rawName, pwd);
+        showToast(t("clubPasswordSet"), "success");
+      }
+
+      // 3. 加入目前會話已授權清單與儲存偏好
+      STATE.authenticatedClubs.add(rawName);
+      localStorage.setItem("pb_last_club", rawName);
+
+      // 4. 更新全站下拉選單
+      populateNavClubSelect();
+
+      // 5. 關閉 Modal 並切換進入該社團大廳
+      closeCreateClubModal();
+      showToast(t("clubCreatedSuccess").replace("{club}", rawName), "success");
+      await openClubSpace(rawName);
+    }
+    window.handleModalCreateClubSubmit = handleModalCreateClubSubmit;
+
+    async function openClubSpace(clubName) {
+      if (clubName) {
+        const canAccess = await verifyClubAccess(clubName);
+        if (!canAccess) {
+          const switcher = document.getElementById("club-space-switcher-select");
+          if (switcher) switcher.value = STATE.currentClub || "";
+          updateNavClubSelectValue();
+          return false;
+        }
+        STATE.currentClub = clubName;
+        localStorage.setItem("pb_last_club", clubName);
+      } else if (!STATE.currentClub) {
+        const lastClub = localStorage.getItem("pb_last_club");
+        if (lastClub) {
+          const canAccess = await verifyClubAccess(lastClub);
+          if (canAccess) {
+            STATE.currentClub = lastClub;
+          }
+        }
+      }
+      navigateTo("history");
+      updateNavClubSelectValue();
+      return true;
+    }
+    window.openClubSpace = openClubSpace;
+
+    async function onClubSpaceSelectChange(clubName) {
+      if (!clubName) {
+        openClubSpacePicker();
+        return;
+      }
+      await openClubSpace(clubName);
+    }
+    window.onClubSpaceSelectChange = onClubSpaceSelectChange;
+
+    function openClubSpacePicker() {
+      STATE.currentClub = null;
+      localStorage.removeItem("pb_last_club");
+      navigateTo("history");
+    }
+    window.openClubSpacePicker = openClubSpacePicker;
+
+    function createClubTournament() {
+      STATE.createContextClub = STATE.currentClub;
+      navigateTo("create");
+    }
+    window.createClubTournament = createClubTournament;
+
+    function copyClubLink(clubName) {
+      const name = clubName || STATE.currentClub;
+      if (!name) return;
+      const shareUrl = `${window.location.origin}${window.location.pathname}?club=${encodeURIComponent(name)}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showToast(STATE.lang === "zh-TW" ? `✅ 已複製「${name}」專屬網址，可傳至 LINE 群組！` : `✅ Copied club link for "${name}"!`, "success");
+        });
+      }
+    }
+    window.copyClubLink = copyClubLink;
+
     function setHistoryMonthFilter(month) {
       STATE.historyMonthFilter = month;
       const allT = STATE.allTournamentsCache || [];
@@ -5396,96 +6169,115 @@
     window.setHistoryMonthFilter = setHistoryMonthFilter;
 
     function renderHistoryCategorized(allList) {
+      const contentContainer = document.getElementById("club-content-container");
+      const emptyStateEl = document.getElementById("club-empty-state");
+      const headerTitleEl = document.getElementById("club-space-header-title");
+      const headerSubEl = document.getElementById("club-space-header-sub");
+      const headerActionsEl = document.getElementById("club-space-header-actions");
+      const btnShareClub = document.getElementById("btn-share-club");
+      const btnClubCreate = document.getElementById("btn-club-create-tournament");
+
       const tournamentsListEl = document.getElementById("history-tournaments-list");
-      const clubFilterContainer = document.getElementById("history-club-filter-container");
       const aggregateSection = document.getElementById("history-club-aggregate-section");
       const aggregateClubNameEl = document.getElementById("history-aggregate-club-name");
       const sectionTitleEl = document.getElementById("history-matches-section-title");
 
-      if (!tournamentsListEl) return;
+      // Extract all unique clubs across all sources
+      const uniqueClubs = getAllUniqueClubs();
+      if (typeof populateNavClubSelect === "function") {
+        populateNavClubSelect(uniqueClubs);
+      }
 
-      // Filter all completed tournaments
-      const completedAll = (allList || []).filter(tData => {
+      // 1. 若系統中尚無任何社團
+      if (uniqueClubs.length === 0) {
+        STATE.currentClub = null;
+        if (emptyStateEl) emptyStateEl.classList.remove("hidden");
+        if (contentContainer) contentContainer.classList.add("hidden");
+        if (headerActionsEl) headerActionsEl.classList.add("hidden");
+        if (headerTitleEl) headerTitleEl.innerText = t("navClub");
+        if (headerSubEl) headerSubEl.innerText = t("noClubsYet");
+        updateNavClubSelectValue();
+        lucide.createIcons();
+        return;
+      }
+
+      // 2. 若尚未選定社團，自動帶入上次選取的社團或第一個社團
+      if (!STATE.currentClub || !uniqueClubs.includes(STATE.currentClub)) {
+        const lastClub = localStorage.getItem("pb_last_club");
+        if (lastClub && uniqueClubs.includes(lastClub)) {
+          STATE.currentClub = lastClub;
+        } else {
+          STATE.currentClub = uniqueClubs[0];
+        }
+        localStorage.setItem("pb_last_club", STATE.currentClub);
+      }
+
+      const clubName = STATE.currentClub;
+      if (emptyStateEl) emptyStateEl.classList.add("hidden");
+      if (contentContainer) contentContainer.classList.remove("hidden");
+      if (headerActionsEl) headerActionsEl.classList.remove("hidden");
+      if (btnClubCreate) btnClubCreate.classList.remove("hidden");
+      if (btnShareClub) btnShareClub.classList.remove("hidden");
+      if (headerTitleEl) headerTitleEl.innerText = `${clubName} 社團大廳`;
+      if (headerSubEl) headerSubEl.innerText = `${clubName} 專屬戰績榜、歷次賽事存檔與出賽名冊`;
+
+      updateNavClubSelectValue();
+
+      const clubTournamentsAll = (allList || []).filter(t => (t.clubName || '').trim() === clubName);
+
+      // Render Active Tournaments for this Club
+      const clubActiveSection = document.getElementById("club-active-section");
+      const clubActiveListEl = document.getElementById("club-active-tournaments-list");
+      const clubActiveTournaments = clubTournamentsAll.filter(t => {
+        const total = t.matches ? t.matches.length : 0;
+        const done = t.matches ? t.matches.filter(m => m.completed || m.voided).length : 0;
+        return t.status !== "completed" && (total === 0 || done < total);
+      });
+
+      if (clubActiveSection && clubActiveListEl) {
+        if (clubActiveTournaments.length > 0) {
+          clubActiveSection.classList.remove("hidden");
+          clubActiveListEl.innerHTML = clubActiveTournaments.map(tData => {
+            return `
+              <div class="glass-card rounded-2xl p-4 border space-y-2 flex flex-col justify-between shadow-sm">
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 border border-amber-500/25 flex items-center gap-1">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> 進行中
+                    </span>
+                  </div>
+                  <h4 class="text-sm font-bold font-display line-clamp-1">${tData.name}</h4>
+                  <div class="text-xs sub-text">👥 ${tData.players ? tData.players.length : 0} 人參賽</div>
+                </div>
+                <button onclick="enterTournament('${tData.id}')" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white dark:text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1">
+                  <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> 進入計分
+                </button>
+              </div>
+            `;
+          }).join("");
+        } else {
+          clubActiveSection.classList.add("hidden");
+        }
+      }
+
+      // Filter Completed Tournaments for this Club
+      const completedClubTournaments = clubTournamentsAll.filter(tData => {
         const total = tData.matches ? tData.matches.length : 0;
         const done = tData.matches ? tData.matches.filter(m => m.completed || m.voided).length : 0;
         return tData.status === "completed" || (total > 0 && done === total);
       });
 
-      // Extract unique clubs
-      const clubsSet = new Set();
-      completedAll.forEach(t => {
-        if (t.clubName && t.clubName.trim()) clubsSet.add(t.clubName.trim());
-      });
-      const uniqueClubs = Array.from(clubsSet);
-
-      const casualCount = completedAll.filter(t => !t.clubName || !t.clubName.trim()).length;
-
-      // Default category: 每次進來預設優先進入「臨打賽事」
-      if (!STATE.historyCategory) {
-        STATE.historyCategory = "__casual__";
+      // Render Aggregate Leaderboard
+      if (aggregateSection) aggregateSection.classList.remove("hidden");
+      if (aggregateClubNameEl) aggregateClubNameEl.innerText = clubName;
+      if (sectionTitleEl) {
+        sectionTitleEl.innerHTML = `<i data-lucide="calendar" class="w-4 h-4"></i> ${clubName} 歷次賽事紀錄`;
       }
 
-      // Render category tabs: [ 臨打賽事 (count) ] [ 🛡️ 社團 A (count) ] ...
-      if (clubFilterContainer) {
-        const isCasualActive = STATE.historyCategory === "__casual__";
-        let tabsHTML = `
-          <button onclick="setHistoryCategory('__casual__')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 ${isCasualActive ? 'bg-emerald-500 text-white dark:text-slate-950 shadow-sm' : 'card-inner border sub-text hover:text-emerald-500'}">
-            <span>${STATE.lang === 'zh-TW' ? '臨打賽事' : 'Casual Play'}</span>
-            <span class="px-1.5 py-0.2 rounded-full text-[10px] ${isCasualActive ? 'bg-black/20 text-white dark:text-slate-950' : 'card-inner'}">${casualCount}</span>
-          </button>
-        `;
-
-        uniqueClubs.forEach(club => {
-          const count = completedAll.filter(t => (t.clubName || '').trim() === club).length;
-          const isActive = STATE.historyCategory === club;
-          tabsHTML += `
-            <button data-club-tab="${club.replace(/"/g, '&quot;')}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 ${isActive ? 'bg-emerald-500 text-white dark:text-slate-950 shadow-sm' : 'card-inner border sub-text hover:text-emerald-500'}">
-              <i data-lucide="shield" class="w-3.5 h-3.5"></i>
-              <span>${club}</span>
-              <span class="px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-black/20 text-white dark:text-slate-950' : 'card-inner'}">${count}</span>
-            </button>
-          `;
-        });
-
-        clubFilterContainer.innerHTML = tabsHTML;
-
-        // Event delegation: 使用 data-club-tab 避免 inline onclick 引號跳脫問題
-        clubFilterContainer.querySelectorAll('[data-club-tab]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            setHistoryCategory(btn.getAttribute('data-club-tab'));
-          });
-        });
-      }
-
-      // If Casual is selected
-      if (STATE.historyCategory === "__casual__") {
-        if (aggregateSection) aggregateSection.classList.add("hidden");
-        if (sectionTitleEl) {
-          sectionTitleEl.innerHTML = `<i data-lucide="calendar" class="w-4 h-4"></i> ${t("casualArchiveTitle")}`;
-        }
-
-        const casualTournaments = completedAll.filter(t => !t.clubName || !t.clubName.trim());
-        renderHistoryTournamentCards(casualTournaments, tournamentsListEl);
-      } else {
-        // Specific Club is selected
-        const clubName = STATE.historyCategory;
-        if (aggregateSection) aggregateSection.classList.remove("hidden");
-        if (aggregateClubNameEl) aggregateClubNameEl.innerText = clubName;
-        if (sectionTitleEl) {
-          sectionTitleEl.innerHTML = `<i data-lucide="calendar" class="w-4 h-4"></i> ${clubName} ${t("clubArchiveTitle")}`;
-        }
-
-        const clubTournaments = completedAll.filter(t => (t.clubName || '').trim() === clubName);
-
-        // Populate month selector
-        populateHistoryMonthSelect(clubTournaments);
-
-        // Render aggregate leaderboard
-        renderHistoryClubAggregate(clubTournaments);
-
-        // Render tournament cards
-        renderHistoryTournamentCards(clubTournaments, tournamentsListEl);
-      }
+      populateHistoryMonthSelect(completedClubTournaments);
+      renderHistoryClubAggregate(completedClubTournaments);
+      renderHistoryTournamentCards(completedClubTournaments, tournamentsListEl);
 
       lucide.createIcons();
     }
@@ -5847,20 +6639,20 @@
             <!-- Podium Badges -->
             <div class="flex items-center gap-2 text-xs flex-wrap pt-0.5">
               ${champion && champion.played > 0
-                ? `<span class="inline-flex items-center gap-1.5 font-bold px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-sm">
+            ? `<span class="inline-flex items-center gap-1.5 font-bold px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-sm">
                     <span class="text-sm">🥇</span> <span>${champion.name}</span> <span class="sub-text text-[11px] font-normal font-mono">(${champion.wins}${STATE.lang === "zh-TW" ? "勝" : "W"})</span>
                   </span>`
-                : ''}
+            : ''}
               ${runnerUp && runnerUp.played > 0
-                ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl card-inner border text-stone-700 dark:text-slate-300 text-xs shadow-sm">
+            ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl card-inner border text-stone-700 dark:text-slate-300 text-xs shadow-sm">
                     <span>🥈</span> <span>${runnerUp.name}</span>
                   </span>`
-                : ''}
+            : ''}
               ${third && third.played > 0
-                ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl card-inner border text-stone-700 dark:text-slate-300 text-xs shadow-sm">
+            ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl card-inner border text-stone-700 dark:text-slate-300 text-xs shadow-sm">
                     <span>🥉</span> <span>${third.name}</span>
                   </span>`
-                : ''}
+            : ''}
             </div>
 
             <!-- Stats row -->
@@ -5884,11 +6676,11 @@
                 <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-500"></i>
               </button>
               ${STATE.isAdmin
-                ? `<button onclick="deleteTournament('${tData.id}')" class="px-3 py-2.5 card-inner border hover:bg-rose-500/20 sub-text hover:text-rose-500 border-rose-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("deleteTournamentBtn")}">
+            ? `<button onclick="deleteTournament('${tData.id}')" class="px-3 py-2.5 card-inner border hover:bg-rose-500/20 sub-text hover:text-rose-500 border-rose-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("deleteTournamentBtn")}">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500"></i>
                   </button>`
-                : ''
-              }
+            : ''
+          }
             </div>
 
             ${expandedHTML}
@@ -6045,10 +6837,17 @@
 
     async function getClubPassword(clubName) {
       if (!clubName || !clubName.trim()) return null;
+      const safeKey = encodeClubKey(clubName);
+      if (STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey] !== undefined) {
+        return STATE.clubPasswordsMap[safeKey];
+      }
       if (STATE.db) {
         try {
-          const snap = await get(ref(STATE.db, `club_passwords/${encodeClubKey(clubName)}`));
-          return snap.exists() ? snap.val() : null;
+          const snap = await get(ref(STATE.db, `club_passwords/${safeKey}`));
+          const val = snap.exists() ? snap.val() : null;
+          if (!STATE.clubPasswordsMap) STATE.clubPasswordsMap = {};
+          STATE.clubPasswordsMap[safeKey] = val;
+          return val;
         } catch (e) {
           console.error("getClubPassword error:", e);
         }
@@ -6064,6 +6863,8 @@
       const safeKey = encodeClubKey(clubName);
       // Hash password before storing (empty string = remove password)
       const hashToStore = password ? await sha256(password) : null;
+      if (!STATE.clubPasswordsMap) STATE.clubPasswordsMap = {};
+      STATE.clubPasswordsMap[safeKey] = hashToStore;
       // Save to localStorage
       const passwords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
       if (hashToStore) {
@@ -6368,6 +7169,13 @@
         STATE.authenticatedClubs.delete(oldName);
         STATE.authenticatedClubs.add(cleanNew);
       }
+      if (STATE.currentClub === oldName) {
+        STATE.currentClub = cleanNew;
+        localStorage.setItem("pb_last_club", cleanNew);
+      }
+      if (typeof populateNavClubSelect === "function") {
+        populateNavClubSelect();
+      }
 
       showToast(STATE.lang === "zh-TW" ? `✅ 社團「${oldName}」已成功更名為「${cleanNew}」！` : `✅ Club renamed to "${cleanNew}"!`, "success");
       renderAdminPage();
@@ -6473,6 +7281,7 @@
       // Remove from Firebase
       if (STATE.db) {
         try {
+          const safeKey = encodeClubKey(clubName);
           if (Object.keys(updates).length > 0) {
             await update(ref(STATE.db), updates);
           }
@@ -6484,6 +7293,13 @@
       }
 
       STATE.authenticatedClubs.delete(clubName);
+      if (STATE.currentClub === clubName) {
+        STATE.currentClub = null;
+        localStorage.removeItem("pb_last_club");
+      }
+      if (typeof populateNavClubSelect === "function") {
+        populateNavClubSelect();
+      }
       showToast(
         STATE.lang === 'zh-TW' ? `✅ 社團「${clubName}」已删除` : `✅ Club "${clubName}" deleted`,
         'success'
@@ -6574,10 +7390,25 @@
     window.closeShareModal = closeShareModal;
 
     function copyShareUrl() {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?t=${STATE.currentTournamentId}`;
       const urlInput = document.getElementById("share-url-input");
-      urlInput.select();
-      navigator.clipboard.writeText(urlInput.value);
-      showToast(t("copiedToast"), "success");
+      if (urlInput) urlInput.value = shareUrl;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showToast(t("copiedLinkToast"), "success");
+        }).catch(() => {
+          if (urlInput) {
+            urlInput.select();
+            document.execCommand("copy");
+            showToast(t("copiedLinkToast"), "success");
+          }
+        });
+      } else if (urlInput) {
+        urlInput.select();
+        document.execCommand("copy");
+        showToast(t("copiedLinkToast"), "success");
+      }
     }
     window.copyShareUrl = copyShareUrl;
 
