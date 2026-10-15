@@ -2753,6 +2753,7 @@
         const opponentCount = {};
         const consecutivePlays = {};
         const consecutiveRests = {};
+        const recentQuads = [];
 
         playersList.forEach(p => {
           gamesPlayed[p] = 0;
@@ -2797,6 +2798,15 @@
                   });
                   if (maxSim - minSim > 1) continue;
 
+                  // 核心約束：四人同場熱度冷卻（防止小團體連續隔離閉環打內戰）
+                  let quadOverlapCost = 0;
+                  recentQuads.forEach((rq, qIdx) => {
+                    const overlap = four.filter(x => rq.includes(x)).length;
+                    if (overlap >= 3) {
+                      quadOverlapCost += (qIdx === recentQuads.length - 1 ? 60000 : 30000);
+                    }
+                  });
+
                   const pairings = [
                     { blue: [four[0], four[1]], red: [four[2], four[3]] },
                     { blue: [four[0], four[2]], red: [four[1], four[3]] },
@@ -2821,13 +2831,13 @@
                       if (rests >= 3) restReward += (rests - 2) * 500;
                     });
 
-                    // 錦上添花：對手重複微罰 (1)
+                    // 對手重複均衡化懲罰（從 1 提升至 200，均衡對打次數）
                     let oppCost = 0;
                     p.blue.forEach(bp => {
-                      p.red.forEach(rp => { oppCost += opponentCount[bp][rp] * 1; });
+                      p.red.forEach(rp => { oppCost += opponentCount[bp][rp] * 200; });
                     });
 
-                    const totalCost = partnerCost + streakCost + oppCost - restReward + Math.random();
+                    const totalCost = partnerCost + streakCost + oppCost + quadOverlapCost - restReward + Math.random();
                     if (totalCost < minRoundCost) {
                       minRoundCost = totalCost;
                       bestMatch = {
@@ -2876,12 +2886,16 @@
             });
           });
 
+          recentQuads.push(bestMatch.active);
+          if (recentQuads.length > 2) recentQuads.shift();
+
           singleMatches.push({
             id: r,
             roundName: `Game ${r}`,
             blue: bestMatch.blue,
             red: bestMatch.red,
             resting: bestMatch.resting,
+            active: bestMatch.active,
             blueScore: null,
             redScore: null,
             completed: false,
@@ -2893,7 +2907,7 @@
       }
 
       // 多次重啟 (Multi-Restart) 全域尋優：在毫秒內尋找全域最優賽程
-      const NUM_RESTARTS = 15;
+      const NUM_RESTARTS = 20;
       let bestGlobalMatches = null;
       let bestGlobalCost = Infinity;
 
@@ -2911,11 +2925,25 @@
           }
         }
 
-        const globalCost = (spread > 1 ? 10000000 : 0) + (totalPartnerRepeats * 100000);
+        // 短期相鄰四人重複檢測（防止小團體連續內戰）
+        let shortTermQuadRepeats = 0;
+        const matchesList = schedule.matches;
+        for (let i = 0; i < matchesList.length; i++) {
+          for (let j = i + 1; j <= Math.min(matchesList.length - 1, i + 2); j++) {
+            const m1Act = matchesList[i].active;
+            const m2Act = matchesList[j].active;
+            if (m1Act && m2Act) {
+              const overlap = m1Act.filter(x => m2Act.includes(x)).length;
+              if (overlap >= 4) shortTermQuadRepeats++;
+            }
+          }
+        }
+
+        const globalCost = (spread > 1 ? 10000000 : 0) + (totalPartnerRepeats * 100000) + (shortTermQuadRepeats * 50000);
         if (globalCost < bestGlobalCost) {
           bestGlobalCost = globalCost;
           bestGlobalMatches = schedule.matches;
-          if (globalCost === 0) break; // 達到理論極限零重複與零落差，立即返回
+          if (globalCost === 0) break; // 達到理論極限零重複搭檔與零短期隔離，立即返回
         }
       }
 
