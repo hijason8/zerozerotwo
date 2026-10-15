@@ -331,13 +331,15 @@
 
         <!-- Nav: Club Lobby Dropdown (社團大廳下拉切換) -->
         <div class="relative flex items-center">
-          <i data-lucide="shield" id="nav-club-icon" class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-stone-600 dark:text-slate-400"></i>
+          <i data-lucide="shield" id="nav-club-icon"
+            class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-stone-600 dark:text-slate-400"></i>
           <select id="nav-btn-history" onchange="onNavClubSelectChange(this.value)"
-            class="w-[96px] pl-6 pr-[22px] py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition text-xs font-bold shadow-sm cursor-pointer focus:border-emerald-500 focus:outline-none appearance-none truncate"
+            class="w-[104px] sm:w-[116px] pl-6 pr-[22px] py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition text-xs font-bold shadow-sm cursor-pointer focus:border-emerald-500 focus:outline-none appearance-none truncate"
             title="社團大廳">
             <option value="" disabled selected hidden>社團大廳</option>
           </select>
-          <i data-lucide="chevron-down" class="w-3 h-3 text-stone-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          <i data-lucide="chevron-down"
+            class="w-3 h-3 text-stone-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
         </div>
 
 
@@ -416,8 +418,7 @@
       </div>
 
       <!-- Quick Action Panel: Direct Code Entry -->
-      <div
-        class="glass-card rounded-2xl p-3 sm:p-4 border border-stone-200 dark:border-slate-800/80 shadow-sm">
+      <div class="glass-card rounded-2xl p-3 sm:p-4 border border-stone-200 dark:border-slate-800/80 shadow-sm">
         <form onsubmit="handleQuickCodeSubmit(event)" class="flex items-center gap-2 max-w-lg">
           <div class="relative flex-1">
             <i data-lucide="search"
@@ -495,7 +496,7 @@
           <div class="space-y-2">
             <select id="create-club-select" onchange="onClubSelectChange()"
               class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none">
-              <option value="">-- 無社團 (臨打球局) --</option>
+              <option value="">-- 臨打球局 --</option>
             </select>
           </div>
         </div>
@@ -731,7 +732,8 @@
                 <i data-lucide="globe" class="w-3.5 h-3.5"></i>
                 <span id="t-privacy-public-title">臨打公開 (預設)</span>
               </div>
-              <p class="text-[10px] sub-text font-normal leading-tight" id="t-privacy-public-desc">發布於臨打球局，供全站球友自由查看與參與</p>
+              <p class="text-[10px] sub-text font-normal leading-tight" id="t-privacy-public-desc">發布於臨打球局，供全站球友自由查看與參與
+              </p>
             </button>
             <button type="button" id="btn-privacy-private" onclick="setCreatePrivacy(true)"
               class="p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-transparent opacity-60 text-stone-600 dark:text-slate-400 font-medium hover:opacity-100 active:scale-98">
@@ -739,7 +741,8 @@
                 <i data-lucide="lock" class="w-3.5 h-3.5"></i>
                 <span id="t-privacy-private-title">私密球局</span>
               </div>
-              <p class="text-[10px] sub-text font-normal leading-tight" id="t-privacy-private-desc">不在列表中顯示，僅持專屬連結或輸入代碼者可進入</p>
+              <p class="text-[10px] sub-text font-normal leading-tight" id="t-privacy-private-desc">
+                不在列表中顯示，僅持專屬連結或輸入代碼者可進入</p>
             </button>
           </div>
           <input type="hidden" id="create-is-private" value="false" />
@@ -1219,7 +1222,8 @@
 
       <form onsubmit="handleModalCreateClubSubmit(event)" class="space-y-3.5">
         <div>
-          <label id="t-label-modal-club-name" class="block text-xs font-semibold mb-1">社團 / 球隊名稱 <span class="text-rose-500">*</span></label>
+          <label id="t-label-modal-club-name" class="block text-xs font-semibold mb-1">社團 / 球隊名稱 <span
+              class="text-rose-500">*</span></label>
           <input type="text" id="modal-create-club-name" required placeholder="請輸入社團名稱 (例：樂活匹克團)" autocomplete="off"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
         </div>
@@ -1441,7 +1445,7 @@
         createDesc: "",
         labelName: "1. 賽事名稱",
         labelClub: "2. 所屬社團",
-        selectClubOption: "無社團",
+        selectClubOption: "-- 臨打球局 --",
         newClubOption: "➕ 輸入新社團名稱...",
         btnNewClub: "新增社團",
         btnSelectClub: "選擇既有社團",
@@ -1640,7 +1644,7 @@
         chooseClubDesc: "View club standings, match archives, and roster:",
         switchClubBtn: "Switch Club",
         shareClubBtn: "Share Club",
-        noClubsYet: "No clubs created yet. Enter a club name when creating a tournament to create one!",
+        noClubsYet: "No clubs created yet. Tap the button below or the top dropdown to create a club!",
         navCreate: "Create",
         dbConnected: "Connected",
 
@@ -1651,10 +1655,10 @@
         dropdownEmailLabel: "Contact Email",
         hubDesc: "Click card to view live match schedule",
         hubHistoryBtn: "Match Archives",
-        createNewBtn: "➕ Create Tournament",
+        createNewBtn: "New Tournament",
         statusFinished: "Completed",
         statusActive: "In Progress",
-        enterTournament: "Enter View",
+        enterTournament: "Enter Match",
         playersCountLabel: "Players",
         gamesDoneLabel: "Games Done",
         allClubsTab: "All Clubs",
@@ -1733,7 +1737,7 @@
         createDesc: "Generate optimal round robin & time estimation",
         labelName: "1. Tournament Name",
         labelClub: "2. Club / League",
-        selectClubOption: "-- Select Club (Optional) --",
+        selectClubOption: "-- Drop-in Play --",
         newClubOption: "➕ Enter new club name...",
         btnNewClub: "Add Club",
         btnSelectClub: "Select Club",
@@ -2089,6 +2093,10 @@
       if (labelNameEl) labelNameEl.innerText = t("labelName");
       const labelClubEl = document.getElementById("t-label-club");
       if (labelClubEl) labelClubEl.innerText = t("labelClub");
+      const clubSelectEl = document.getElementById("create-club-select");
+      if (clubSelectEl && clubSelectEl.options.length > 0 && clubSelectEl.options[0].value === "") {
+        clubSelectEl.options[0].text = t("selectClubOption");
+      }
       // Modal Create Club
       const modalCreateClubTitle = document.getElementById("t-modal-create-club-title");
       if (modalCreateClubTitle) modalCreateClubTitle.innerText = t("createClubModalTitle");
@@ -3914,7 +3922,7 @@
             <div class="space-y-2">
               <select id="create-club-select" onchange="onClubSelectChange()"
                 class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none">
-                <option value="">-- 無社團 (臨打球局) --</option>
+                <option value="">${t("selectClubOption")}</option>
                 ${uniqueClubs.map(c => `<option value="${c}">${c}</option>`).join("")}
               </select>
             </div>
@@ -4265,7 +4273,7 @@
           btnPublic.className = "p-2.5 rounded-xl border-2 transition text-left space-y-0.5 card-inner border-emerald-500 text-stone-900 dark:text-white font-bold shadow-sm active:scale-98";
         }
         if (badge) {
-          badge.innerText = STATE.lang === "zh-TW" ? "臨打公開 (預設)" : "Drop-in Public (Default)";
+          badge.innerText = STATE.lang === "zh-TW" ? "臨打公開 (預設)" : "Public (Default)";
           badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
         }
       }
@@ -4453,9 +4461,9 @@
               <div>
                 <h4 class="text-sm sm:text-base font-bold font-display leading-snug sm:leading-normal">
                   ${STATE.lang === 'zh-TW'
-                    ? '<span class="block sm:inline">目前無進行中的公開球局，</span><span class="block sm:inline">請使用賽事連結或進入社團大廳</span>'
-                    : '<span class="block sm:inline">No active public matches.</span> <span class="block sm:inline">Use tournament link or enter Club Lobby</span>'
-                  }
+              ? '<span class="block sm:inline">目前無進行中的公開球局，</span><span class="block sm:inline">請使用賽事連結或進入社團大廳</span>'
+              : '<span class="block sm:inline">No active public matches.</span> <span class="block sm:inline">Use tournament link or enter Club Lobby</span>'
+            }
                 </h4>
               </div>
             </div>
@@ -5935,7 +5943,7 @@
         Object.values(localData).forEach(t => {
           if (t && t.clubName && t.clubName.trim()) clubsSet.add(t.clubName.trim());
         });
-      } catch (e) {}
+      } catch (e) { }
 
       // 3. 成員名冊庫 (localStorage pb_club_members) - 保障有成員但暫無賽事的社團
       try {
@@ -5943,7 +5951,7 @@
         Object.keys(localMembers).forEach(k => {
           if (k && k !== "__general__" && k.trim()) clubsSet.add(k.trim());
         });
-      } catch (e) {}
+      } catch (e) { }
 
       // 4. 本地密碼庫 (localStorage pb_club_passwords)
       try {
@@ -5951,7 +5959,7 @@
         Object.keys(localPwds).forEach(k => {
           if (k && k.trim()) clubsSet.add(k.trim());
         });
-      } catch (e) {}
+      } catch (e) { }
 
       // 5. 雲端密碼映射表 (Firebase club_passwords)
       if (STATE.clubPasswordsMap && typeof STATE.clubPasswordsMap === "object") {
@@ -5970,7 +5978,7 @@
       try {
         const lastClub = localStorage.getItem("pb_last_club");
         if (lastClub && lastClub.trim()) clubsSet.add(lastClub.trim());
-      } catch (e) {}
+      } catch (e) { }
 
       // 過濾空值與保留字
       clubsSet.delete("");
@@ -5999,10 +6007,10 @@
       navSelect.innerHTML = `
         <option value="" disabled hidden ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>
         ${uniqueClubs.map(c => {
-          const safeKey = encodeClubKey(c);
-          const hasPwd = !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
-          return `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${hasPwd ? ' 🔒' : ''}</option>`;
-        }).join("")}
+        const safeKey = encodeClubKey(c);
+        const hasPwd = !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
+        return `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${hasPwd ? ' 🔒' : ''}</option>`;
+      }).join("")}
         <option value="" disabled>──────────</option>
         <option value="__create_new_club__">${createClubOptionLabel}</option>
       `;
