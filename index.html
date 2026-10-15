@@ -256,13 +256,13 @@
       <!-- Section 2: Completed Tournaments (已完賽球局 - 可折疊收合) -->
       <div class="space-y-3 pt-2">
         <div onclick="toggleHubCompletedCollapse()"
-          class="flex items-center justify-between cursor-pointer select-none group">
+          class="flex items-center justify-between gap-1.5 sm:gap-2 cursor-pointer select-none group">
           <h3 id="t-hub-completed-heading"
-            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">近期完賽球局 (3日內)</h3>
-          <div class="flex items-center gap-2 text-xs sub-text font-semibold">
-            <span id="hub-completed-count"></span>
+            class="text-[13px] sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display whitespace-nowrap shrink min-w-0">近期完賽球局 (3日內)</h3>
+          <div class="flex items-center gap-1.5 sm:gap-2 text-xs sub-text font-semibold shrink-0">
+            <span id="hub-completed-count" class="text-[11px] sm:text-xs"></span>
             <div
-              class="flex items-center gap-1 card-inner border px-2 py-0.5 rounded-lg text-[11px] group-hover:border-emerald-500/50 transition shadow-sm">
+              class="flex items-center gap-1 card-inner border px-2 py-0.5 rounded-lg text-[11px] group-hover:border-emerald-500/50 transition shadow-sm shrink-0">
               <span id="hub-completed-toggle-text">展開</span>
               <i id="hub-completed-chevron" data-lucide="chevron-down"
                 class="w-3.5 h-3.5 transition-transform duration-200"></i>

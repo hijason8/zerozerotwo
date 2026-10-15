@@ -340,9 +340,9 @@ export const I18N = {
 
     // Hub & Sections
     hubActiveTitle: "Active Drop-in Matches",
-    hubCompletedTitle: "Recent Completed Matches (3 Days)",
+    hubCompletedTitle: "Recent Completed (3 Days)",
     hubActiveCountSuffix: "Active",
-    hubCompletedCountSuffix: "tournaments",
+    hubCompletedCountSuffix: "games",
     expandText: "Expand",
     collapseText: "Collapse",
     noActiveTournaments: "No active public matches. Use tournament link or enter Club Lobby",
