@@ -166,28 +166,39 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6">
 
+    <!-- ==================== SHARED LOBBY HEADER (大廳 / 社團共用頂部工具列) ==================== -->
+    <div id="lobby-shared-header"
+      class="flex items-center justify-between gap-2 border-b border-stone-300 dark:border-slate-800 pb-3 mb-4 sm:mb-6 text-left">
+      <!-- 賽事大廳 / 社團 下拉切換選單 (位置與字體圖案在全站大廳與各社團絕對一致) -->
+      <div class="relative flex items-center min-w-0">
+        <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
+          class="appearance-none font-display font-black text-xl sm:text-2xl bg-transparent border-0 pl-0 pr-7 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 hover:text-emerald-600 dark:hover:text-emerald-400 transition truncate max-w-[200px] xs:max-w-[260px] sm:max-w-md">
+          <option value="" selected>賽事大廳</option>
+        </select>
+        <i data-lucide="chevron-down"
+          class="w-5 h-5 text-emerald-500 absolute right-1 pointer-events-none shrink-0 transition-transform"></i>
+      </div>
+
+      <!-- 右側動作按鈕組 (建立新賽事 + 分享社團) -->
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- 分享社團按鈕 (僅在社團大廳且有選定社團時顯示) -->
+        <button type="button" id="btn-share-club" onclick="copyClubLink()"
+          class="hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95 shrink-0 cursor-pointer"
+          title="分享此社團專屬連結">
+          <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
+          <span id="t-btn-share-club" class="hidden xs:inline">分享社團</span>
+        </button>
+
+        <!-- 建立新賽事按鈕 (全站大廳建立公開賽事，社團大廳建立社團賽事) -->
+        <button type="button" id="t-create-new-btn" onclick="handleSharedCreateTournament()"
+          class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1.5 transition active:scale-95 shrink-0 cursor-pointer">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-create-new-btn-text">建立新賽事</span>
+        </button>
+      </div>
+    </div>
+
     <!-- ==================== PAGE B: TOURNAMENT HUB ==================== -->
     <section id="page-hub" class="space-y-4 sm:space-y-6">
-      <!-- Hub Top Bar: Title Dropdown (賽事大廳 / 社團切換) + Quick Create -->
-      <div
-        class="flex items-center justify-between gap-2 border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
-        <!-- 賽事大廳下拉切換 -->
-        <div class="relative flex items-center min-w-0">
-          <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
-            class="appearance-none font-display font-black text-xl sm:text-2xl bg-transparent border-0 pl-0 pr-7 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 hover:text-emerald-600 dark:hover:text-emerald-400 transition truncate max-w-[210px] sm:max-w-md">
-            <option value="" selected>賽事大廳</option>
-          </select>
-          <i data-lucide="chevron-down"
-            class="w-5 h-5 text-emerald-500 absolute right-1 pointer-events-none shrink-0 transition-transform"></i>
-        </div>
-
-        <div class="flex items-center gap-2 shrink-0">
-          <button onclick="STATE.createContextClub = null; navigateTo('create')" id="t-create-new-btn"
-            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1.5 transition active:scale-95 shrink-0">
-            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-create-new-btn-text">建立新賽事</span>
-          </button>
-        </div>
-      </div>
 
       <!-- PWA Install Banner (Lobby) -->
       <div id="pwa-install-banner"
@@ -753,33 +764,6 @@
 
     <!-- ==================== PAGE E: CLUB LOBBY (社團大廳) ==================== -->
     <section id="page-history" class="hidden space-y-4 sm:space-y-6">
-      <!-- 1. Club Lobby Header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
-        <div>
-          <h2 id="t-club-space-heading"
-            class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2 text-left">
-            <i data-lucide="shield" class="w-5 h-5 text-emerald-500"></i>
-            <span id="club-space-header-title">社團大廳</span>
-          </h2>
-          <p id="club-space-header-sub" class="text-xs sub-text mt-0.5">專屬社團戰績榜、歷次賽程存檔與出賽名冊</p>
-        </div>
-        <div id="club-space-header-actions" class="flex items-center gap-2 flex-wrap">
-          <!-- 1. Create Tournament Button (進到社團大廳後在其後方：直接是建立新賽事的功能) -->
-          <button type="button" id="btn-club-create-tournament" onclick="createClubTournament()"
-            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-sm flex items-center gap-1.5 transition active:scale-95">
-            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-            <span id="t-club-create-btn">建立新賽事</span>
-          </button>
-
-          <!-- 2. Share Club Button (進入特定社團後顯示) -->
-          <button type="button" id="btn-share-club" onclick="copyClubLink()"
-            class="px-2.5 py-1.5 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95 hidden">
-            <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-            <span id="t-btn-share-club">分享社團</span>
-          </button>
-        </div>
-      </div>
 
       <!-- 2. Empty State (尚無社團賽事時顯示) -->
       <div id="club-empty-state" class="hidden glass-card rounded-2xl p-8 text-center space-y-3 border">
@@ -2527,6 +2511,16 @@
 
       const target = document.getElementById(`page-${pageName}`);
       if (target) target.classList.remove("hidden");
+
+      // 控制共用大廳頂部工具列顯示狀態 (僅在賽事大廳與社團大廳時顯示)
+      const sharedHeader = document.getElementById("lobby-shared-header");
+      if (sharedHeader) {
+        if (pageName === "hub" || pageName === "history") {
+          sharedHeader.classList.remove("hidden");
+        } else {
+          sharedHeader.classList.add("hidden");
+        }
+      }
 
       updateNavActiveState(pageName);
 
@@ -6140,15 +6134,27 @@
 
     function updateNavClubSelectValue() {
       const navSelect = document.getElementById("hub-club-selector") || document.getElementById("nav-btn-history");
-      if (!navSelect) return;
+      const shareBtn = document.getElementById("btn-share-club");
 
       if (STATE.currentPage === "history" && STATE.currentClub) {
-        navSelect.value = STATE.currentClub;
+        if (navSelect) navSelect.value = STATE.currentClub;
+        if (shareBtn) shareBtn.classList.remove("hidden");
       } else {
-        navSelect.value = "";
+        if (navSelect) navSelect.value = "";
+        if (shareBtn) shareBtn.classList.add("hidden");
       }
     }
     window.updateNavClubSelectValue = updateNavClubSelectValue;
+
+    function handleSharedCreateTournament() {
+      if (STATE.currentPage === "history" && STATE.currentClub) {
+        STATE.createContextClub = STATE.currentClub;
+      } else {
+        STATE.createContextClub = null;
+      }
+      navigateTo("create");
+    }
+    window.handleSharedCreateTournament = handleSharedCreateTournament;
 
     async function onNavClubSelectChange(clubName) {
       if (!clubName || clubName === "") {
