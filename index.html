@@ -55,6 +55,9 @@
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -661,6 +664,9 @@
 
           <!-- 3. Quick Sign-up Input Area -->
           <div class="pt-2 border-t border-stone-200/70 dark:border-slate-800/70 space-y-3">
+            <!-- LINE Quick Check-in Banner (Shown when LINE profile detected) -->
+            <div id="lobby-liff-profile-banner" class="hidden"></div>
+
             <div class="flex items-center gap-2">
               <div class="relative flex-1">
                 <input type="text" id="lobby-player-input" placeholder="輸入姓名，支援空格批量輸入"
@@ -912,6 +918,13 @@
       <div class="bg-white p-2.5 rounded-xl inline-block shadow-md border border-stone-200">
         <img id="share-qr-img" src="" alt="QR Code" class="w-40 h-40 mx-auto" />
       </div>
+
+      <!-- LINE Direct Share Button -->
+      <button type="button" onclick="shareToLine()" id="btn-share-to-line"
+        class="w-full py-2.5 px-4 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95">
+        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/></svg>
+        <span id="t-btn-share-line">傳送至 LINE 好友 / 群組</span>
+      </button>
 
       <!-- Share URL Input -->
       <div class="space-y-2">
@@ -1337,9 +1350,17 @@
       currentClub: null, // 當前選取的社團名稱
       lang: initialLang,
       theme: "light",
+      isLiff: false,
+      lineProfile: null,
       get isAdmin() { return getIsAdmin(); },
     };
     window.STATE = STATE;
+
+    // LINE LIFF Configuration
+    const LIFF_ID = "2012043789-KvKpHLCt";
+    const LIFF_URL = "https://liff.line.me/2012043789-KvKpHLCt";
+    window.LIFF_ID = LIFF_ID;
+    window.LIFF_URL = LIFF_URL;
 
     // Built-in Hardcoded Firebase Config
     const DEFAULT_FIREBASE_CONFIG = {
@@ -1546,6 +1567,35 @@
       if (modal) modal.classList.add("hidden");
     }
     window.closePwaIosModal = closePwaIosModal;
+
+    // ============================================================
+    // LINE LIFF INTEGRATION
+    // ============================================================
+    async function initLiff() {
+      if (!window.liff) return;
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        STATE.isLiff = true;
+
+        if (liff.isLoggedIn()) {
+          try {
+            const profile = await liff.getProfile();
+            STATE.lineProfile = profile;
+            if (profile?.displayName) {
+              localStorage.setItem("pb_my_player_name", profile.displayName);
+              if (STATE.tournamentData && STATE.tournamentData.status === "registering") {
+                renderLiveUI(STATE.tournamentData);
+              }
+            }
+          } catch (profileErr) {
+            console.warn("[LIFF] Failed to fetch profile:", profileErr);
+          }
+        }
+      } catch (err) {
+        console.warn("[LIFF] Initialization warning:", err);
+      }
+    }
+    window.initLiff = initLiff;
 
     function updateNavActiveState(pageName) {
       const btnHub = document.getElementById("nav-btn-hub");
@@ -1905,6 +1955,8 @@
       if (modalQrDescEl) modalQrDescEl.innerText = t("modalQrDesc");
       const copyBtnEl = document.getElementById("t-copy-btn");
       if (copyBtnEl) copyBtnEl.innerHTML = `<i data-lucide="copy" class="w-3.5 h-3.5"></i> ${t("copyBtn")}`;
+      const btnShareLine = document.getElementById("t-btn-share-line");
+      if (btnShareLine) btnShareLine.innerText = t("shareLineBtn");
 
       // Add Match Modal
       const addMatchTitleEl = document.getElementById("modal-add-match-title");
@@ -2028,11 +2080,31 @@
     // ----------------------------------------------------
     // ROUTING & SPA NAVIGATION
     // ----------------------------------------------------
-    function initRouting() {
+    function getQueryParam(key) {
       const urlParams = new URLSearchParams(window.location.search);
-      const tId = urlParams.get("t");
-      const page = urlParams.get("page");
-      const club = urlParams.get("club");
+      let val = urlParams.get(key);
+      if (!val && urlParams.get("liff.state")) {
+        try {
+          const rawState = decodeURIComponent(urlParams.get("liff.state"));
+          const qIndex = rawState.indexOf("?");
+          if (qIndex !== -1) {
+            const stateParams = new URLSearchParams(rawState.substring(qIndex));
+            val = stateParams.get(key);
+          } else if (rawState.includes("=")) {
+            const stateParams = new URLSearchParams(rawState);
+            val = stateParams.get(key);
+          }
+        } catch (e) {
+          console.warn("[LIFF] State parsing warning:", e);
+        }
+      }
+      return val;
+    }
+
+    function initRouting() {
+      const tId = getQueryParam("t");
+      const page = getQueryParam("page");
+      const club = getQueryParam("club");
       if (tId) {
         loadLiveTournament(tId, false);
       } else if (club) {
@@ -4212,6 +4284,41 @@
           }
         }
 
+        const liffBannerEl = document.getElementById("lobby-liff-profile-banner");
+        if (liffBannerEl) {
+          if (STATE.lineProfile && STATE.lineProfile.displayName) {
+            const myName = STATE.lineProfile.displayName;
+            const currentRoster = data.players || [];
+            const isJoined = currentRoster.includes(myName);
+            const avatarHtml = STATE.lineProfile.pictureUrl
+              ? `<img src="${STATE.lineProfile.pictureUrl}" class="w-6 h-6 rounded-full object-cover border border-emerald-500/50 shadow-sm" />`
+              : `<span class="w-6 h-6 rounded-full bg-[#06C755] text-white flex items-center justify-center text-[10px] font-bold">L</span>`;
+
+            liffBannerEl.classList.remove("hidden");
+            if (isJoined) {
+              liffBannerEl.innerHTML = `
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold">
+                  <div class="flex items-center gap-2">
+                    ${avatarHtml}
+                    <span>${isZh ? `已以 LINE「${escapeHTML(myName)}」報名` : `Joined as "${escapeHTML(myName)}"`}</span>
+                  </div>
+                  <span class="text-[10px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md font-bold">${isZh ? "已在名單中" : "Registered"}</span>
+                </div>
+              `;
+            } else {
+              liffBannerEl.innerHTML = `
+                <button type="button" onclick="registerPlayerToTournament('${escapeHTML(myName)}')"
+                  class="w-full py-2.5 px-3 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95">
+                  ${avatarHtml}
+                  <span>${isZh ? `⚡ 以 LINE「${escapeHTML(myName)}」一鍵報名簽到` : `⚡ One-tap Sign Up as "${escapeHTML(myName)}"`}</span>
+                </button>
+              `;
+            }
+          } else {
+            liffBannerEl.classList.add("hidden");
+          }
+        }
+
         const startBtn = document.getElementById("btn-lobby-start-tournament");
         const adminActionCard = document.getElementById("lobby-admin-action-card");
         if (adminActionCard) {
@@ -4320,12 +4427,14 @@
 
     async function joinRegistrationFromInput() {
       const input = document.getElementById("lobby-player-input");
-      if (!input) return;
-      const raw = input.value.trim();
+      let raw = input ? input.value.trim() : "";
+      if (!raw && STATE.lineProfile && STATE.lineProfile.displayName) {
+        raw = STATE.lineProfile.displayName;
+      }
       if (!raw) return;
 
       const names = raw.split(/[\n,，\s]+/).map(s => s.trim()).filter(Boolean);
-      input.value = "";
+      if (input) input.value = "";
 
       for (const name of names) {
         await registerPlayerToTournament(name);
@@ -7029,14 +7138,22 @@
     // ----------------------------------------------------
     // SHARE & QR CODE MODAL
     // ----------------------------------------------------
+    function getTournamentShareUrl(tId) {
+      if (!tId) return window.location.href;
+      return `${LIFF_URL}?t=${tId}`;
+    }
+
     function openShareModal() {
       const modal = document.getElementById("modal-share");
       const urlInput = document.getElementById("share-url-input");
       const qrImg = document.getElementById("share-qr-img");
+      const tId = STATE.currentTournamentId;
 
-      const shareUrl = `${window.location.origin}${window.location.pathname}?t=${STATE.currentTournamentId}`;
-      urlInput.value = shareUrl;
-      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
+      const shareUrl = getTournamentShareUrl(tId);
+      if (urlInput) urlInput.value = shareUrl;
+      if (qrImg) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
+      }
 
       modal.classList.remove("hidden");
     }
@@ -7047,8 +7164,42 @@
     }
     window.closeShareModal = closeShareModal;
 
+    async function shareToLine() {
+      const tData = STATE.tournamentData;
+      const tId = STATE.currentTournamentId || (tData ? tData.id : null);
+      if (!tId) return;
+
+      const title = (tData && tData.title) ? tData.title : "匹克球排賽";
+      const liffUrl = `${LIFF_URL}?t=${tId}`;
+      const isZh = (STATE.lang === "zh-TW");
+      const shareText = isZh
+        ? `🏓 匹克球【${title}】大廳已開啟！\n立即點擊報名/觀戰：\n${liffUrl}`
+        : `🏓 Pickleball [${title}] Lobby is open!\nJoin / Watch now:\n${liffUrl}`;
+
+      if (window.liff && liff.isApiAvailable && liff.isApiAvailable("shareTargetPicker")) {
+        try {
+          const res = await liff.shareTargetPicker([
+            {
+              type: "text",
+              text: shareText
+            }
+          ]);
+          if (res) {
+            showToast(t("liffSharedToast"), "success");
+            return;
+          }
+        } catch (err) {
+          console.warn("[LIFF] shareTargetPicker fallback:", err);
+        }
+      }
+
+      const lineShareUrl = `https://line.me/R/msg/text/?${encodeURIComponent(shareText)}`;
+      window.open(lineShareUrl, "_blank");
+    }
+    window.shareToLine = shareToLine;
+
     function copyShareUrl() {
-      const shareUrl = `${window.location.origin}${window.location.pathname}?t=${STATE.currentTournamentId}`;
+      const shareUrl = getTournamentShareUrl(STATE.currentTournamentId);
       const urlInput = document.getElementById("share-url-input");
       if (urlInput) urlInput.value = shareUrl;
 
@@ -7104,6 +7255,7 @@
       updatePlayerCountBadge();
       initRouting();
       initPwa();
+      initLiff();
       lucide.createIcons();
     }
 
