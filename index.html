@@ -1011,6 +1011,84 @@
     </div>
   </div>
 
+  <!-- ==================== CLUB IDENTITY CLAIM MODAL (LINE 身分認領對話框) ==================== -->
+  <div id="modal-club-claim-identity"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-card rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-5 space-y-3.5 border relative shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-left">
+      <!-- 頂部標題列 -->
+      <div class="flex items-center justify-between border-b pb-2.5">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center shadow-sm">
+            <i data-lucide="user-check" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold font-display">歡迎！請認領您的球員身分</h3>
+            <p id="claim-modal-club-title" class="text-[11px] sub-text">社團球員與 LINE 帳號綁定</p>
+          </div>
+        </div>
+        <button onclick="closeClubIdentityClaimModal()" class="p-1.5 sub-text hover:text-emerald-500 cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- 說明提示盒 -->
+      <div class="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 text-xs flex items-start gap-2 shadow-inner">
+        <i data-lucide="info" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
+        <div class="text-[11px] leading-tight">
+          若您過去曾在本團出賽過，請在下方點擊您的<strong>「姓名」</strong>進行認領，未來的社團排賽與戰績將無縫綁定至您的 LINE 帳號！
+        </div>
+      </div>
+
+      <!-- 待認領名單區 (Chips) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs font-bold sub-text">本團待認領成員：</span>
+          <span id="claim-available-count" class="text-[10px] sub-text font-mono"></span>
+        </div>
+        <div id="claim-members-container" class="max-h-44 overflow-y-auto p-1.5 flex flex-wrap gap-1.5 border rounded-xl card-inner">
+          <!-- 動態載入可認領名字 -->
+        </div>
+      </div>
+
+      <!-- 分隔線 -->
+      <div class="relative flex py-1 items-center">
+        <div class="flex-grow border-t border-stone-300 dark:border-slate-800"></div>
+        <span class="flex-shrink mx-3 text-[11px] sub-text">我是新加入或找不到名字</span>
+        <div class="flex-grow border-t border-stone-300 dark:border-slate-800"></div>
+      </div>
+
+      <!-- 新朋友註冊區塊 -->
+      <div class="space-y-2">
+        <button type="button" id="btn-claim-new-friend-direct" onclick="handleClaimNewFriendDirect()"
+          class="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
+          <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+          <span id="btn-claim-new-friend-text">➕ 我是新朋友 (使用 LINE 暱稱)</span>
+        </button>
+
+        <!-- 自訂名稱切換按鈕 -->
+        <div class="text-center">
+          <button type="button" onclick="toggleCustomClaimNameInput()"
+            class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer inline-flex items-center gap-1">
+            <span>不想用 LINE 暱稱？自行輸入出賽球員姓名</span>
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          </button>
+        </div>
+
+        <!-- 自訂名稱展開輸入框 -->
+        <div id="claim-custom-name-wrap" class="hidden pt-1.5 space-y-2">
+          <div class="flex items-center gap-2">
+            <input type="text" id="claim-custom-name-input" maxlength="12" placeholder="請輸入欲顯示的球員姓名 (上限12字)"
+              class="w-full input-bg border rounded-xl p-2.5 text-xs focus:border-emerald-500 focus:outline-none" />
+            <button type="button" onclick="handleClaimCustomNameSubmit()"
+              class="px-3.5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white dark:text-slate-950 font-bold rounded-xl text-xs shrink-0 transition active:scale-95 cursor-pointer">
+              確定綁定
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== CLUB SELECTOR SHEET MODAL (滿版無斷行社團切換選單) ==================== -->
   <div id="modal-club-selector-sheet" onclick="if(event.target === this) closeClubSelectorSheet()"
     class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
@@ -1680,7 +1758,7 @@
       if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("./sw.js?v=9")
+            .register("./sw.js?v=10")
             .then((reg) => {
               console.log("[PWA] Service Worker registered successfully, scope:", reg.scope);
             })
@@ -1926,6 +2004,11 @@
           }
 
           console.info(`[LIFF] Logged in: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
+
+          // 若當前已處於某社團，檢查並提示 LINE 身分認領
+          if (STATE.currentClub && typeof checkAndPromptClubIdentityClaim === "function") {
+            checkAndPromptClubIdentityClaim(STATE.currentClub);
+          }
         } else {
           STATE.lineUserId = null;
           STATE.lineProfile = null;
@@ -2606,6 +2689,9 @@
           if (canAccess) {
             STATE.currentClub = decodedClub;
             localStorage.setItem("pb_last_club", decodedClub);
+            if (typeof checkAndPromptClubIdentityClaim === "function") {
+              checkAndPromptClubIdentityClaim(decodedClub);
+            }
           } else {
             STATE.currentClub = null;
           }
@@ -6705,6 +6791,244 @@
     }
     window.enterClubFromCredential = enterClubFromCredential;
 
+    // ----------------------------------------------------
+    // CLUB IDENTITY CLAIM & LINE BINDING SYSTEM
+    // ----------------------------------------------------
+    let _activeClaimClub = null;
+    let _activeClaimMappings = {};
+
+    async function checkAndPromptClubIdentityClaim(clubName) {
+      if (!clubName || !clubName.trim()) return;
+      if (!STATE.lineUserId) return; // 僅在 LINE 登入環境執行
+      if (!STATE.db) return;
+
+      const safeClub = encodeClubKey(clubName);
+
+      try {
+        const snap = await get(ref(STATE.db, `club_mappings/${safeClub}`));
+        const mappings = snap.exists() ? snap.val() : {};
+
+        // 檢查該使用者是否已於此社團綁定
+        if (mappings[STATE.lineUserId]) {
+          STATE.clubPlayerName = mappings[STATE.lineUserId];
+          localStorage.setItem(`pb_bound_name_${clubName}`, STATE.clubPlayerName);
+          console.info(`[Club Identity] User ${STATE.lineUserId} already bound to "${STATE.clubPlayerName}" in ${clubName}`);
+          return;
+        }
+
+        // 尚未綁定：彈出身分認領 Modal！
+        showClubIdentityClaimModal(clubName, mappings);
+      } catch (err) {
+        console.warn("[Club Identity] checkAndPromptClubIdentityClaim error:", err);
+      }
+    }
+    window.checkAndPromptClubIdentityClaim = checkAndPromptClubIdentityClaim;
+
+    async function showClubIdentityClaimModal(clubName, mappings = {}) {
+      _activeClaimClub = clubName;
+      _activeClaimMappings = mappings;
+
+      const modal = document.getElementById("modal-club-claim-identity");
+      const titleEl = document.getElementById("claim-modal-club-title");
+      const countEl = document.getElementById("claim-available-count");
+      const containerEl = document.getElementById("claim-members-container");
+      const newFriendBtnText = document.getElementById("btn-claim-new-friend-text");
+      const customWrap = document.getElementById("claim-custom-name-wrap");
+      const customInput = document.getElementById("claim-custom-name-input");
+
+      if (!modal) return;
+      if (customWrap) customWrap.classList.add("hidden");
+
+      if (titleEl) titleEl.innerText = `【${clubName}】球員身分對照`;
+
+      // 預設 LINE 暱稱
+      const lineName = (STATE.lineProfile && STATE.lineProfile.displayName)
+        ? STATE.lineProfile.displayName.trim()
+        : (localStorage.getItem("pb_my_player_name") || "").trim();
+
+      if (newFriendBtnText) {
+        newFriendBtnText.innerText = lineName
+          ? `➕ 我是新朋友 (使用 LINE 暱稱：${lineName})`
+          : `➕ 我是新朋友 (建立新球員身分)`;
+      }
+      if (customInput) {
+        customInput.value = lineName;
+      }
+
+      // 1. 取得該社團所有成員清單 (合併 Firebase 與歷史賽事)
+      let clubMembers = getClubMembersList(clubName) || [];
+      if (STATE.db) {
+        try {
+          const safeClub = encodeClubKey(clubName);
+          const snap = await get(ref(STATE.db, `club_members/${safeClub}`));
+          if (snap.exists() && Array.isArray(snap.val())) {
+            const merged = new Set([...clubMembers, ...snap.val()]);
+            clubMembers = Array.from(merged);
+          }
+        } catch (e) {}
+      }
+
+      // 2. 排除機制：抓出所有「已被其他 LINE ID 綁定走」的名字
+      const claimedNames = new Set(Object.values(mappings).map(n => (n || '').trim()));
+
+      // 剩餘可認領的名字
+      const availableNames = clubMembers.filter(m => m && m.trim() && !claimedNames.has(m.trim()));
+
+      if (countEl) {
+        countEl.innerText = `${availableNames.length} 人待認領`;
+      }
+
+      // 3. 渲染 Chips
+      if (containerEl) {
+        if (availableNames.length === 0) {
+          containerEl.innerHTML = `
+            <div class="w-full py-3 text-center text-xs sub-text">
+              目前名冊中的球員已全數認領或為全新社團，請點選下方<strong>「我是新朋友」</strong>出賽！
+            </div>
+          `;
+        } else {
+          containerEl.innerHTML = availableNames.map(name => {
+            const safeName = safeEscape(name);
+            return `
+              <button type="button" onclick="confirmClaimIdentity('${safeName}')"
+                class="px-2.5 py-1.5 rounded-xl card-inner border hover:border-emerald-500 hover:text-emerald-500 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer">
+                <i data-lucide="user" class="w-3.5 h-3.5 text-stone-400"></i>
+                <span>${escapeHTML(name)}</span>
+              </button>
+            `;
+          }).join("");
+        }
+      }
+
+      modal.classList.remove("hidden");
+      if (window.lucide) lucide.createIcons();
+    }
+    window.showClubIdentityClaimModal = showClubIdentityClaimModal;
+
+    function closeClubIdentityClaimModal() {
+      const modal = document.getElementById("modal-club-claim-identity");
+      if (modal) modal.classList.add("hidden");
+    }
+    window.closeClubIdentityClaimModal = closeClubIdentityClaimModal;
+
+    function toggleCustomClaimNameInput() {
+      const wrap = document.getElementById("claim-custom-name-wrap");
+      const input = document.getElementById("claim-custom-name-input");
+      if (!wrap) return;
+      wrap.classList.toggle("hidden");
+      if (!wrap.classList.contains("hidden") && input) {
+        input.focus();
+      }
+    }
+    window.toggleCustomClaimNameInput = toggleCustomClaimNameInput;
+
+    async function handleClaimNewFriendDirect() {
+      const lineName = (STATE.lineProfile && STATE.lineProfile.displayName)
+        ? STATE.lineProfile.displayName.trim()
+        : (localStorage.getItem("pb_my_player_name") || "").trim();
+
+      if (!lineName) {
+        toggleCustomClaimNameInput();
+        return;
+      }
+      await executeClaimBinding(lineName, true);
+    }
+    window.handleClaimNewFriendDirect = handleClaimNewFriendDirect;
+
+    async function handleClaimCustomNameSubmit() {
+      const input = document.getElementById("claim-custom-name-input");
+      const name = input ? input.value.trim() : "";
+      if (!name) {
+        showToast("請輸入欲顯示的球員姓名！", "warning");
+        if (input) input.focus();
+        return;
+      }
+      await executeClaimBinding(name, true);
+    }
+    window.handleClaimCustomNameSubmit = handleClaimCustomNameSubmit;
+
+    async function confirmClaimIdentity(name) {
+      if (!name || !name.trim()) return;
+      const clubName = _activeClaimClub || STATE.currentClub;
+      const isZh = STATE.lang === "zh-TW";
+      const confirmMsg = isZh
+        ? `確定要將「${name}」認領為您在【${clubName}】的專屬球員身分嗎？\n(認領後歷史與未來戰績將直接連結至您的 LINE)`
+        : `Claim "${name}" as your identity in "${clubName}"?`;
+
+      if (!confirm(confirmMsg)) return;
+      await executeClaimBinding(name.trim(), false);
+    }
+    window.confirmClaimIdentity = confirmClaimIdentity;
+
+    async function executeClaimBinding(chosenName, isNewFriend = false) {
+      const clubName = _activeClaimClub || STATE.currentClub;
+      if (!clubName || !STATE.lineUserId) return;
+
+      const cleanName = chosenName.trim();
+      if (!cleanName) {
+        showToast("姓名不可為空！", "warning");
+        return;
+      }
+      if (cleanName.length > 12) {
+        showToast("球員姓名不可超過 12 個字！", "warning");
+        return;
+      }
+
+      const safeClub = encodeClubKey(clubName);
+
+      try {
+        // 1. 寫入 /club_mappings/{safeClub}/{lineUserId} = cleanName
+        // 2. 寫入 /users/{lineUserId}/myClubs/{safeClub} = true
+        if (STATE.db) {
+          const updates = {};
+          updates[`club_mappings/${safeClub}/${STATE.lineUserId}`] = cleanName;
+          updates[`users/${STATE.lineUserId}/myClubs/${safeClub}`] = true;
+          await update(ref(STATE.db), updates);
+
+          // 3. 如果是新朋友，順便把他的名字 push 進 club_members 陣列裡
+          if (isNewFriend) {
+            let currentMembers = getClubMembersList(clubName) || [];
+            const snap = await get(ref(STATE.db, `club_members/${safeClub}`));
+            if (snap.exists() && Array.isArray(snap.val())) {
+              currentMembers = Array.from(new Set([...currentMembers, ...snap.val()]));
+            }
+            if (!currentMembers.includes(cleanName)) {
+              currentMembers.push(cleanName);
+              saveClubMembersList(clubName, currentMembers);
+              await set(ref(STATE.db, `club_members/${safeClub}`), currentMembers);
+            }
+          }
+        }
+
+        // 4. 前端狀態同步
+        STATE.clubPlayerName = cleanName;
+        localStorage.setItem(`pb_bound_name_${clubName}`, cleanName);
+        localStorage.setItem("pb_my_player_name", cleanName);
+
+        if (!Array.isArray(STATE.myClubs)) STATE.myClubs = [];
+        if (!STATE.myClubs.includes(clubName)) {
+          STATE.myClubs.push(clubName);
+          localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
+        }
+
+        if (typeof populateNavClubSelect === "function") {
+          populateNavClubSelect();
+        }
+
+        closeClubIdentityClaimModal();
+        showToast(`✅ 身分綁定成功！歡迎【${cleanName}】！`, "success");
+
+        // 5. 繼續原本的頁面渲染流程
+        if (typeof renderHistoryCategorized === "function") {
+          renderHistoryCategorized(STATE.allTournamentsCache || []);
+        }
+      } catch (err) {
+        console.error("[Club Identity] executeClaimBinding error:", err);
+        showToast("身分綁定失敗，請稍後再試！", "error");
+      }
+    }
+    window.executeClaimBinding = executeClaimBinding;
+
     async function openClubSpace(clubName) {
       if (clubName) {
         const canAccess = await verifyClubAccess(clubName);
@@ -6729,6 +7053,12 @@
       }
       navigateTo("history");
       updateNavClubSelectValue();
+
+      // 檢查並提示 LINE 身分認領
+      if (STATE.currentClub && STATE.lineUserId) {
+        checkAndPromptClubIdentityClaim(STATE.currentClub);
+      }
+
       return true;
     }
     window.openClubSpace = openClubSpace;
