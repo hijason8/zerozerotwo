@@ -80,8 +80,18 @@
         </h1>
       </div>
 
-      <!-- Action Buttons Bar (LINE User + Search + Settings) -->
+      <!-- Action Buttons Bar (LINE OA + LINE User + Search + Settings) -->
       <div class="flex items-center gap-1.5 sm:gap-2 relative">
+        <!-- ZEROZEROTWO LINE App 按鈕 -->
+        <button id="btn-line-oa" type="button" onclick="openLineOAModal()"
+          class="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white shadow-sm active:scale-95 text-xs font-black tracking-wide cursor-pointer transition shrink-0"
+          title="ZZTWO-LINE App">
+          <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
+          </svg>
+          <span id="t-btn-line-oa" class="text-xs font-black tracking-wide">APP</span>
+        </button>
+
         <!-- LINE User Profile / Status Indicator -->
         <div id="nav-line-profile-container" class="flex items-center">
           <button type="button" onclick="handleLineLoginClick()"
@@ -120,6 +130,18 @@
                 <span id="t-dropdown-lang" class="text-xs font-bold">語言切換</span>
               </span>
               <span id="lang-mode-label" class="sub-text text-xs font-mono font-bold">繁中</span>
+            </button>
+
+            <!-- Official LINE Account Option -->
+            <button type="button" onclick="openLineOAModal(); closeSettingsDropdown();"
+              class="w-full px-3 py-2.5 rounded-xl hover:bg-[#06C755]/10 text-[#06C755] transition flex items-center justify-between text-left font-semibold cursor-pointer">
+              <span class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
+                </svg>
+                <span id="t-dropdown-line-oa" class="text-xs font-bold">ZZTWO-LINE</span>
+              </span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded card-inner border font-mono font-bold text-[#06C755]">APP</span>
             </button>
 
             <!-- Install App Option -->
@@ -187,6 +209,14 @@
           title="分享此社團專屬連結">
           <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
           <span id="t-btn-share-club" class="hidden xs:inline">分享社團</span>
+        </button>
+
+        <!-- 社團球員身分檢測與主動綁定按鈕 (僅在社團大廳且有選定社團時顯示) -->
+        <button type="button" id="btn-club-identity" onclick="handleClubIdentityBadgeClick()"
+          class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
+          title="社團球員身分狀態">
+          <i data-lucide="user" class="w-3.5 h-3.5" id="club-identity-icon"></i>
+          <span id="t-club-identity-text">身分綁定</span>
         </button>
 
         <!-- 取消常用按鈕 (僅在社團大廳且為我的社團且已登入 LINE 時顯示) -->
@@ -973,6 +1003,71 @@
     </div>
   </div>
 
+  <!-- ==================== LINE OFFICIAL ACCOUNT MODAL (加入官方帳號彈窗) ==================== -->
+  <div id="modal-line-oa"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4"
+    onclick="if(event.target === this) closeLineOAModal()">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border relative text-left shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+      <button onclick="closeLineOAModal()" class="absolute top-3.5 right-3.5 sub-text hover:text-emerald-500 cursor-pointer">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-[#06C755]/15 text-[#06C755] border border-[#06C755]/30 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 fill-current shrink-0" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold font-display flex items-center gap-1.5">
+            <span id="t-modal-line-oa-title-text">ZZTWO-LINE</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-[#06C755] text-white font-black tracking-wide">APP</span>
+          </h3>
+          <p id="t-modal-line-oa-desc" class="text-xs sub-text mt-0.5">LINE 專屬隨身應用・賽況即時推播・快速出賽</p>
+        </div>
+      </div>
+
+      <!-- QR Code & ID Card -->
+      <div class="p-3.5 rounded-2xl card-inner border flex flex-col items-center justify-center text-center space-y-2.5">
+        <div class="p-2 bg-white rounded-xl shadow-sm border border-stone-200">
+          <img id="line-oa-qr-img"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40zerozerotwo"
+            alt="ZZTWO-LINE QR Code"
+            class="w-36 h-36 object-contain" />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono font-bold bg-[#06C755]/10 text-[#06C755] px-2.5 py-1 rounded-lg border border-[#06C755]/30">
+            ID: <span id="line-oa-id-display">@zerozerotwo</span>
+          </span>
+          <button type="button" onclick="copyLineOAId()"
+            class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold transition flex items-center gap-1 active:scale-95 cursor-pointer"
+            title="複製 LINE ID">
+            <i data-lucide="copy" class="w-3 h-3 text-stone-500"></i>
+            <span id="t-btn-copy-line-id">複製</span>
+          </button>
+        </div>
+        <p id="t-modal-line-oa-hint" class="text-[11px] sub-text">手機可直接點擊下方按鈕啟動，或使用相機掃描 QR Code</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-2 pt-1">
+        <button type="button" onclick="openLineOAUrl()"
+          class="w-full py-2.5 px-4 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95 cursor-pointer">
+          <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
+          </svg>
+          <span id="t-btn-open-line-oa">開啟 ZZTWO-LINE App</span>
+        </button>
+
+        <button type="button" onclick="closeLineOAModal()"
+          class="w-full py-2 px-3 rounded-xl border border-stone-200 dark:border-slate-800 hover:bg-stone-500/10 text-xs font-semibold sub-text transition cursor-pointer">
+          <span id="t-btn-close-line-oa">關閉</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== QUICK CODE SEARCH MODAL ==================== -->
   <div id="modal-quick-code"
     class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4"
@@ -1738,6 +1833,12 @@
     window.LIFF_ID = LIFF_ID;
     window.LIFF_URL = LIFF_URL;
 
+    // LINE 官方帳號 (LINE Official Account) 設定
+    const LINE_OA_URL = "https://line.me/R/ti/p/@zerozerotwo";
+    const LINE_OA_ID = "@zerozerotwo";
+    window.LINE_OA_URL = LINE_OA_URL;
+    window.LINE_OA_ID = LINE_OA_ID;
+
     // Built-in Hardcoded Firebase Config
     const DEFAULT_FIREBASE_CONFIG = {
       apiKey: "AIzaSyDHYf0ooBsXI4XuzRnlO0Sln-X7qswcs_U",
@@ -2292,6 +2393,8 @@
       }
 
       // Dropdown labels
+      const dropLineOa = document.getElementById("t-dropdown-line-oa");
+      if (dropLineOa) dropLineOa.innerText = t("dropdownLineOa");
       const dropTheme = document.getElementById("t-dropdown-theme");
       if (dropTheme) dropTheme.innerText = STATE.lang === "zh-TW" ? "外觀主題" : "Appearance";
       const dropLang = document.getElementById("t-dropdown-lang");
@@ -2302,6 +2405,21 @@
       if (dropInstall) dropInstall.innerText = t("dropdownInstall");
       const langLabel = document.getElementById("lang-mode-label");
       if (langLabel) langLabel.innerText = STATE.lang === "zh-TW" ? "繁中" : "EN";
+
+      const btnLineOaEl = document.getElementById("t-btn-line-oa");
+      if (btnLineOaEl) {
+        btnLineOaEl.innerText = "APP";
+      }
+      const modalLineOaTitleEl = document.getElementById("t-modal-line-oa-title-text");
+      if (modalLineOaTitleEl) modalLineOaTitleEl.innerText = t("modalLineOaTitle");
+      const modalLineOaDescEl = document.getElementById("t-modal-line-oa-desc");
+      if (modalLineOaDescEl) modalLineOaDescEl.innerText = t("modalLineOaDesc");
+      const modalLineOaHintEl = document.getElementById("t-modal-line-oa-hint");
+      if (modalLineOaHintEl) modalLineOaHintEl.innerText = t("modalLineOaHint");
+      const btnOpenLineOaEl = document.getElementById("t-btn-open-line-oa");
+      if (btnOpenLineOaEl) btnOpenLineOaEl.innerText = t("btnOpenLineOa");
+      const btnCopyLineIdEl = document.getElementById("t-btn-copy-line-id");
+      if (btnCopyLineIdEl) btnCopyLineIdEl.innerText = t("btnCopyLineId");
 
       const dropdownEmailLabelEl = document.getElementById("t-dropdown-email-label");
       if (dropdownEmailLabelEl) dropdownEmailLabelEl.innerText = t("dropdownEmailLabel");
@@ -4250,6 +4368,57 @@
       quickEnterTournament(val);
     }
     window.handleQuickCodeModalSubmit = handleQuickCodeModalSubmit;
+
+    // ==================== LINE OFFICIAL ACCOUNT HELPERS ====================
+    function openLineOAModal() {
+      const modal = document.getElementById("modal-line-oa");
+      if (!modal) return;
+      const oaUrl = window.LINE_OA_URL || "https://line.me/R/ti/p/@zerozerotwo";
+      const oaId = window.LINE_OA_ID || "@zerozerotwo";
+      const qrImg = document.getElementById("line-oa-qr-img");
+      const idDisplay = document.getElementById("line-oa-id-display");
+      if (qrImg) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(oaUrl)}`;
+      }
+      if (idDisplay) {
+        idDisplay.textContent = oaId;
+      }
+      modal.classList.remove("hidden");
+      lucide.createIcons();
+    }
+    window.openLineOAModal = openLineOAModal;
+
+    function closeLineOAModal() {
+      const modal = document.getElementById("modal-line-oa");
+      if (!modal) return;
+      modal.classList.add("hidden");
+    }
+    window.closeLineOAModal = closeLineOAModal;
+
+    function openLineOAUrl() {
+      const oaUrl = window.LINE_OA_URL || "https://line.me/R/ti/p/@zerozerotwo";
+      if (window.liff && typeof liff.isInClient === "function" && liff.isInClient()) {
+        liff.openWindow({ url: oaUrl, external: false });
+      } else {
+        window.open(oaUrl, "_blank");
+      }
+    }
+    window.openLineOAUrl = openLineOAUrl;
+
+    function copyLineOAId() {
+      const oaId = window.LINE_OA_ID || "@zerozerotwo";
+      const isZh = (STATE.lang === "zh-TW");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(oaId).then(() => {
+          showToast(isZh ? `✅ 已複製 LINE ID：${oaId}` : `✅ Copied LINE ID: ${oaId}`, "success");
+        }).catch(() => {
+          showToast(`LINE ID: ${oaId}`, "info");
+        });
+      } else {
+        showToast(`LINE ID: ${oaId}`, "info");
+      }
+    }
+    window.copyLineOAId = copyLineOAId;
 
     function handleQuickCodeSubmit(e) {
       if (e) e.preventDefault();
@@ -7107,10 +7276,16 @@
           }
           lucide.createIcons();
         }
+
+        if (typeof updateClubIdentityBadge === "function") {
+          updateClubIdentityBadge(STATE.currentClub);
+        }
       } else {
         if (navSelect) navSelect.value = "";
         if (shareBtn) shareBtn.classList.add("hidden");
         if (removeBtn) removeBtn.classList.add("hidden");
+        const idBtn = document.getElementById("btn-club-identity");
+        if (idBtn) idBtn.classList.add("hidden");
       }
     }
     window.updateNavClubSelectValue = updateNavClubSelectValue;
@@ -7554,29 +7729,112 @@
     let _activeClaimClub = null;
     let _activeClaimMappings = {};
 
-    async function checkAndPromptClubIdentityClaim(clubName) {
-      if (!clubName || !clubName.trim()) return;
-      if (!STATE.lineUserId) return; // 僅在 LINE 登入環境執行
-      if (!STATE.db) return;
+    async function updateClubIdentityBadge(clubName) {
+      const badgeBtn = document.getElementById("btn-club-identity");
+      const iconEl = document.getElementById("club-identity-icon");
+      const textEl = document.getElementById("t-club-identity-text");
+      if (!badgeBtn) return;
 
-      const safeClub = encodeClubKey(clubName);
+      if (STATE.currentPage !== "history" || !clubName || !clubName.trim()) {
+        badgeBtn.classList.add("hidden");
+        return;
+      }
 
-      try {
-        const snap = await get(ref(STATE.db, `club_mappings/${safeClub}`));
-        const mappings = snap.exists() ? snap.val() : {};
+      badgeBtn.classList.remove("hidden");
+      const cleanClub = clubName.trim();
+      const safeClub = typeof encodeClubKey === "function" ? encodeClubKey(cleanClub) : encodeURIComponent(cleanClub);
+      const isZh = (STATE.lang === "zh-TW");
 
-        // 檢查該使用者是否已於此社團綁定
-        if (mappings[STATE.lineUserId]) {
-          STATE.clubPlayerName = mappings[STATE.lineUserId];
-          localStorage.setItem(`pb_bound_name_${clubName}`, STATE.clubPlayerName);
-          console.info(`[Club Identity] User ${STATE.lineUserId} already bound to "${STATE.clubPlayerName}" in ${clubName}`);
+      // 1. 若未登入 LINE
+      if (!STATE.lineUserId) {
+        badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-stone-400 text-xs font-semibold sub-text transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer";
+        badgeBtn.title = isZh ? "登入 LINE 即可認領社團專屬球員姓名" : "Log in with LINE to bind player identity";
+        if (textEl) textEl.innerText = isZh ? "LINE 綁定" : "Bind ID";
+        if (iconEl) iconEl.className = "w-3.5 h-3.5 text-stone-400";
+        lucide.createIcons();
+        return;
+      }
+
+      // 2. 本地快取
+      let boundName = localStorage.getItem(`pb_bound_name_${cleanClub}`);
+
+      // 3. 從雲端 /club_mappings/{safeClub}/{lineUserId} 同步確認
+      if (STATE.db) {
+        try {
+          const snap = await get(ref(STATE.db, `club_mappings/${safeClub}/${STATE.lineUserId}`));
+          if (snap.exists() && snap.val()) {
+            boundName = String(snap.val()).trim();
+            localStorage.setItem(`pb_bound_name_${cleanClub}`, boundName);
+          } else if (!snap.exists()) {
+            boundName = null;
+            localStorage.removeItem(`pb_bound_name_${cleanClub}`);
+          }
+        } catch (e) {
+          console.warn("[Club Identity] badge fetch error:", e);
+        }
+      }
+
+      STATE.clubPlayerName = boundName || null;
+
+      if (boundName) {
+        // 已綁定狀態：顯示綠色標籤
+        badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-emerald-500/70";
+        badgeBtn.title = isZh ? `已綁定球員姓名：${boundName} (點擊可更換)` : `Bound to: ${boundName} (Click to change)`;
+        if (textEl) textEl.innerHTML = `<span class="hidden xs:inline">${isZh ? "球員：" : "Player: "}</span>${escapeHTML(boundName)}`;
+        if (iconEl) iconEl.className = "w-3.5 h-3.5 text-emerald-500";
+      } else {
+        // 未綁定狀態：顯示黃色/琥珀色提醒標籤
+        badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-amber-500/80";
+        badgeBtn.title = isZh ? "您在此社團尚未綁定球員姓名，點擊認領或自訂" : "No player identity bound. Click to claim";
+        if (textEl) textEl.innerText = isZh ? "未綁定身分" : "Claim ID";
+        if (iconEl) iconEl.className = "w-3.5 h-3.5 text-amber-500";
+      }
+      lucide.createIcons();
+    }
+    window.updateClubIdentityBadge = updateClubIdentityBadge;
+
+    async function handleClubIdentityBadgeClick() {
+      const clubName = STATE.currentClub;
+      if (!clubName) return;
+
+      const isZh = (STATE.lang === "zh-TW");
+
+      if (!STATE.lineUserId) {
+        if (typeof showLineLoginModal === "function") {
+          showLineLoginModal();
+        } else {
+          showToast(isZh ? "請先使用 LINE 登入，即可綁定社團球員身分與個人戰績！" : "Please log in with LINE to bind identity!", "info");
+        }
+        return;
+      }
+
+      const boundName = localStorage.getItem(`pb_bound_name_${clubName}`) || STATE.clubPlayerName;
+      if (boundName) {
+        const confirmMsg = isZh
+          ? `您目前在【${clubName}】已綁定球員姓名為「${boundName}」。\n\n是否要更換或重新選擇球員身分？`
+          : `You are currently bound to "${boundName}" in "${clubName}".\n\nChange player identity?`;
+        if (!confirm(confirmMsg)) {
           return;
         }
+      }
 
-        // 尚未綁定：彈出身分認領 Modal！
-        showClubIdentityClaimModal(clubName, mappings);
-      } catch (err) {
-        console.warn("[Club Identity] checkAndPromptClubIdentityClaim error:", err);
+      // 開啟認領彈窗
+      const safeClub = encodeClubKey(clubName);
+      let mappings = {};
+      if (STATE.db) {
+        try {
+          const snap = await get(ref(STATE.db, `club_mappings/${safeClub}`));
+          if (snap.exists()) mappings = snap.val() || {};
+        } catch (e) {}
+      }
+      showClubIdentityClaimModal(clubName, mappings);
+    }
+    window.handleClubIdentityBadgeClick = handleClubIdentityBadgeClick;
+
+    async function checkAndPromptClubIdentityClaim(clubName) {
+      // 改為主動式狀態徽章檢測，不再被動自動彈窗
+      if (typeof updateClubIdentityBadge === "function") {
+        await updateClubIdentityBadge(clubName);
       }
     }
     window.checkAndPromptClubIdentityClaim = checkAndPromptClubIdentityClaim;
@@ -7773,6 +8031,9 @@
         }
 
         closeClubIdentityClaimModal();
+        if (typeof updateClubIdentityBadge === "function") {
+          updateClubIdentityBadge(clubName);
+        }
         showToast(`✅ 身分綁定成功！歡迎【${cleanName}】！`, "success");
 
         // 5. 繼續原本的頁面渲染流程
