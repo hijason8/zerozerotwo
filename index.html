@@ -1435,11 +1435,35 @@
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
         </div>
 
+        <!-- 社團隱私設定 (公開 vs 私密) -->
+        <div>
+          <label class="block text-xs font-semibold mb-1.5" id="t-label-modal-club-privacy">社團隱私設定</label>
+          <input type="hidden" id="modal-club-is-private" value="false" />
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="modal-club-btn-public" onclick="setModalClubPrivacy(false)"
+              class="p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 shadow-sm">
+              <div class="flex items-center gap-1.5 font-bold">
+                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                <span id="t-modal-club-public-title">公開社團</span>
+              </div>
+              <span id="t-modal-club-public-desc" class="text-[10px] sub-text font-normal text-center">全站探索可見</span>
+            </button>
+            <button type="button" id="modal-club-btn-private" onclick="setModalClubPrivacy(true)"
+              class="p-2.5 rounded-xl border border-stone-200 dark:border-slate-800 card-inner sub-text font-semibold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 hover:border-stone-400">
+              <div class="flex items-center gap-1.5 font-bold">
+                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                <span id="t-modal-club-private-title">私密社團</span>
+              </div>
+              <span id="t-modal-club-private-desc" class="text-[10px] sub-text font-normal text-center">僅限專屬網址進入</span>
+            </button>
+          </div>
+        </div>
+
         <div>
           <label id="t-label-modal-club-pwd" class="block text-xs font-semibold mb-1">社團防護密碼 (選填)</label>
-          <input type="password" id="modal-create-club-pwd" placeholder="設定密碼（選填，防止他人修改賽事）" autocomplete="new-password"
+          <input type="password" id="modal-create-club-pwd" placeholder="設定密碼（選填，解鎖計分修改權限）" autocomplete="new-password"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
-          <p id="t-modal-club-pwd-hint" class="text-[11px] sub-text mt-1">若設定密碼，日後他人欲於此社團開賽或編輯時需輸入該密碼驗證。</p>
+          <p id="t-modal-club-pwd-hint" class="text-[11px] sub-text mt-1">若設定密碼，未來進入該社團的計分板時，預設為唯讀瀏覽模式，須輸入此密碼解鎖『操作模式』才能修改比分與排賽，若留白則為全開放信任制。</p>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2">
@@ -1758,7 +1782,7 @@
       if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("./sw.js?v=10")
+            .register("./sw.js?v=11")
             .then((reg) => {
               console.log("[PWA] Service Worker registered successfully, scope:", reg.scope);
             })
@@ -2636,6 +2660,16 @@
             if (typeof populateNavClubSelect === "function") populateNavClubSelect();
           }
         } catch (e) { console.warn("Could not load club passwords", e); }
+
+        // 載入社團中繼資料（供隱私過濾，私密社團不顯示在公開探索清單）
+        try {
+          const metaSnap = await get(ref(STATE.db, "clubs_metadata"));
+          if (metaSnap.exists()) {
+            STATE.clubsMetadataMap = metaSnap.val() || {};
+            localStorage.setItem("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
+            if (typeof populateNavClubSelect === "function") populateNavClubSelect();
+          }
+        } catch (e) { console.warn("Could not load clubs metadata", e); }
       } catch (err) {
         console.error("Firebase init error:", err);
         updateDbStatusBadge(false);
@@ -3687,7 +3721,11 @@
             .filter(c => c && c.trim())
             .map(c => c.trim());
           const myClubsList = uniqueClubs.filter(c => userMyClubs.includes(c));
-          const exploreClubsList = uniqueClubs.filter(c => !userMyClubs.includes(c) && !hasPassword(c));
+          const exploreClubsList = uniqueClubs.filter(c => 
+            !userMyClubs.includes(c) && 
+            !hasPassword(c) && 
+            !(typeof isClubPrivate === "function" && isClubPrivate(c))
+          );
           const isZh = STATE.lang === "zh-TW";
 
           let optionsHtml = `<option value="">${t("selectClubOption")}</option>`;
@@ -6240,8 +6278,9 @@
         const passwordsRef = ref(STATE.db, "club_passwords");
         Promise.all([
           get(tournamentsRef),
-          get(passwordsRef).catch(() => null)
-        ]).then(([snapshot, pwdSnap]) => {
+          get(passwordsRef).catch(() => null),
+          get(ref(STATE.db, "clubs_metadata")).catch(() => null)
+        ]).then(([snapshot, pwdSnap, metaSnap]) => {
           let list = [];
           if (snapshot && snapshot.exists()) {
             const data = snapshot.val();
@@ -6252,6 +6291,10 @@
           }
           if (pwdSnap && pwdSnap.exists()) {
             STATE.clubPasswordsMap = pwdSnap.val() || {};
+          }
+          if (metaSnap && metaSnap.exists()) {
+            STATE.clubsMetadataMap = metaSnap.val() || {};
+            localStorage.setItem("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
           }
           STATE.allTournamentsCache = list;
           renderHistoryCategorized(list);
@@ -6339,7 +6382,19 @@
       clubsSet.delete("");
       clubsSet.delete("__general__");
 
-      return Array.from(clubsSet).sort((a, b) => a.localeCompare(b, "zh-Hant"));
+      // 隱私過濾：私密社團若不在使用者的 myClubs 且非當前正在造訪的社團，則排除
+      const userMyClubsList = (Array.isArray(STATE.myClubs) ? STATE.myClubs : []).map(c => (c || "").trim());
+      const currentActive = (STATE.currentClub || "").trim();
+
+      const filteredClubs = Array.from(clubsSet).filter(c => {
+        if (!c) return false;
+        if (typeof isClubPrivate === "function" && isClubPrivate(c)) {
+          return userMyClubsList.includes(c) || currentActive === c;
+        }
+        return true;
+      });
+
+      return filteredClubs.sort((a, b) => a.localeCompare(b, "zh-Hant"));
     }
     window.getAllUniqueClubs = getAllUniqueClubs;
 
@@ -6374,8 +6429,12 @@
       }
       const myClubsList = uniqueClubs.filter(c => userMyClubs.includes(c));
 
-      // 2.「探索社團」清單 (排除我的社團，且「只可以探索沒有設定密碼的社團」)
-      const exploreClubsList = uniqueClubs.filter(c => !userMyClubs.includes(c) && !hasPassword(c));
+      // 2.「探索社團」清單 (排除我的社團，且「只可以探索沒有設定密碼且未設私密的社團」)
+      const exploreClubsList = uniqueClubs.filter(c => 
+        !userMyClubs.includes(c) && 
+        !hasPassword(c) && 
+        !(typeof isClubPrivate === "function" && isClubPrivate(c))
+      );
 
       let html = `<option value="" ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>`;
 
@@ -6635,6 +6694,7 @@
       const pwdInput = document.getElementById("modal-create-club-pwd");
       if (nameInput) nameInput.value = "";
       if (pwdInput) pwdInput.value = "";
+      setModalClubPrivacy(false);
       modal.classList.remove("hidden");
       if (nameInput) setTimeout(() => nameInput.focus(), 60);
       lucide.createIcons();
@@ -6648,12 +6708,48 @@
     }
     window.closeCreateClubModal = closeCreateClubModal;
 
+    function setModalClubPrivacy(isPrivate) {
+      const hiddenInput = document.getElementById("modal-club-is-private");
+      const btnPublic = document.getElementById("modal-club-btn-public");
+      const btnPrivate = document.getElementById("modal-club-btn-private");
+      if (hiddenInput) hiddenInput.value = isPrivate ? "true" : "false";
+
+      if (btnPublic && btnPrivate) {
+        if (!isPrivate) {
+          btnPublic.className = "p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 shadow-sm";
+          btnPrivate.className = "p-2.5 rounded-xl border border-stone-200 dark:border-slate-800 card-inner sub-text font-semibold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 hover:border-stone-400";
+        } else {
+          btnPrivate.className = "p-2.5 rounded-xl border-2 border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 shadow-sm";
+          btnPublic.className = "p-2.5 rounded-xl border border-stone-200 dark:border-slate-800 card-inner sub-text font-semibold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 hover:border-stone-400";
+        }
+      }
+    }
+    window.setModalClubPrivacy = setModalClubPrivacy;
+
+    function isClubPrivate(clubName) {
+      if (!clubName || !clubName.trim()) return false;
+      const safeKey = encodeClubKey(clubName);
+      const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
+      if (STATE.clubsMetadataMap && STATE.clubsMetadataMap[safeKey]) {
+        return !!STATE.clubsMetadataMap[safeKey].isPrivate;
+      }
+      if (localMeta[clubName] && localMeta[clubName].isPrivate !== undefined) {
+        return !!localMeta[clubName].isPrivate;
+      }
+      if (localMeta[safeKey] && localMeta[safeKey].isPrivate !== undefined) {
+        return !!localMeta[safeKey].isPrivate;
+      }
+      return false;
+    }
+    window.isClubPrivate = isClubPrivate;
+
     async function handleModalCreateClubSubmit(e) {
       if (e) e.preventDefault();
       const nameInput = document.getElementById("modal-create-club-name");
       const pwdInput = document.getElementById("modal-create-club-pwd");
       const rawName = nameInput ? nameInput.value.trim() : "";
       const pwd = pwdInput ? pwdInput.value.trim() : "";
+      const isPrivate = document.getElementById("modal-club-is-private")?.value === "true";
 
       if (!rawName) {
         showToast(STATE.lang === "zh-TW" ? "請輸入社團名稱！" : "Please enter a club name!", "warning");
@@ -6692,14 +6788,35 @@
         showToast(t("clubPasswordSet"), "success");
       }
 
-      // 3. 加入目前會話已授權清單與儲存偏好
+      // 3. 儲存社團隱私中繼資料 (clubs_metadata)
+      const safeKey = encodeClubKey(rawName);
+      if (STATE.db) {
+        try {
+          await set(ref(STATE.db, `clubs_metadata/${safeKey}`), {
+            isPrivate: isPrivate,
+            createdAt: Date.now()
+          });
+        } catch (err) {
+          console.warn("[Firebase] clubs_metadata set error:", err);
+        }
+      }
+
+      const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
+      localMeta[safeKey] = { isPrivate: isPrivate, createdAt: Date.now() };
+      localMeta[rawName] = { isPrivate: isPrivate, createdAt: Date.now() };
+      localStorage.setItem("pb_clubs_metadata", JSON.stringify(localMeta));
+
+      if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
+      STATE.clubsMetadataMap[safeKey] = { isPrivate: isPrivate, createdAt: Date.now() };
+
+      // 4. 加入目前會話已授權清單與儲存偏好
       STATE.authenticatedClubs.add(rawName);
       localStorage.setItem("pb_last_club", rawName);
 
-      // 4. 更新全站下拉選單
+      // 5. 更新全站下拉選單
       populateNavClubSelect();
 
-      // 5. 關閉建立 Modal，自動訂閱並彈出社團建立專屬憑證（強提醒截圖留存與分享）
+      // 6. 關閉建立 Modal，自動訂閱並彈出社團建立專屬憑證（強提醒截圖留存與分享）
       closeCreateClubModal();
       addUserClubToFirebase(rawName);
       openClubCreatedCredentialModal(rawName, pwd);
