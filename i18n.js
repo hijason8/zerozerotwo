@@ -294,7 +294,12 @@ export const I18N = {
     cancelBtn: "取消",
     clubCreatedSuccess: "✅ 社團「{club}」建立成功！",
     clubAlreadyExists: "ℹ️ 社團「{club}」已存在，已為您切換至該社團大廳！",
+    navExploreClubsOption: "🔍 探索更多社團...",
     navCreateClubOption: "建立新社團...",
+    modalExploreClubsTitle: "探索公開社團",
+    modalExploreClubsDesc: "點選社團即可前往該社團專屬大廳",
+    modalExploreClubsPlaceholder: "搜尋社團名稱...",
+    modalExploreClubsEmpty: "目前尚無其他可探索社團",
 
     // PWA
     dropdownInstall: "安裝 App / 加入主畫面",
@@ -605,7 +610,12 @@ export const I18N = {
     cancelBtn: "Cancel",
     clubCreatedSuccess: "✅ Club \"{club}\" created successfully!",
     clubAlreadyExists: "ℹ️ Club \"{club}\" already exists, switched to its lobby!",
+    navExploreClubsOption: "🔍 Explore More Clubs...",
     navCreateClubOption: "Create New Club...",
+    modalExploreClubsTitle: "Explore Clubs",
+    modalExploreClubsDesc: "Tap a club to visit its lobby",
+    modalExploreClubsPlaceholder: "Search clubs...",
+    modalExploreClubsEmpty: "No clubs available to explore",
 
     // PWA
     dropdownInstall: "Install App / Add to Home",
