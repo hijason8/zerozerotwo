@@ -1469,6 +1469,8 @@
       theme: "light",
       isLiff: false,
       lineProfile: null,
+      lineUserId: null,
+      myClubs: [],
       get isAdmin() { return getIsAdmin(); },
     };
     window.STATE = STATE;
@@ -1686,38 +1688,153 @@
     window.closePwaIosModal = closePwaIosModal;
 
     // ============================================================
-    // LINE LIFF INTEGRATION & USER STATUS
+    // FIREBASE RTDB: USER PROFILE & CLUBS MODULE
     // ============================================================
-    async function initLiff() {
+    async function syncUserProfileToFirebase(profile) {
+      if (!STATE.db || !profile || !profile.userId) return null;
+      const userId = profile.userId;
+      const userRef = ref(STATE.db, `users/${userId}`);
+
+      try {
+        const snap = await get(userRef);
+        const existing = snap.exists() ? snap.val() : {};
+
+        const updates = {
+          displayName: profile.displayName || existing.displayName || "LINE 球友",
+          pictureUrl: profile.pictureUrl || existing.pictureUrl || "",
+          lastLoginAt: Date.now(),
+        };
+
+        if (!existing.myClubs) {
+          updates.myClubs = {};
+        }
+
+        await update(userRef, updates);
+
+        return {
+          ...existing,
+          ...updates,
+          myClubs: existing.myClubs || {},
+        };
+      } catch (err) {
+        console.warn("[Firebase] syncUserProfile failed:", err);
+        return null;
+      }
+    }
+    window.syncUserProfileToFirebase = syncUserProfileToFirebase;
+
+    async function fetchUserClubsFromFirebase(userId) {
+      if (!STATE.db || !userId) return [];
+      const clubsRef = ref(STATE.db, `users/${userId}/myClubs`);
+
+      try {
+        const snap = await get(clubsRef);
+        if (!snap.exists()) return [];
+        const rawClubs = snap.val() || {};
+        return Object.keys(rawClubs).filter((k) => rawClubs[k]).map(c => decodeURIComponent(c));
+      } catch (err) {
+        console.warn("[Firebase] fetchUserClubs failed:", err);
+        return [];
+      }
+    }
+    window.fetchUserClubsFromFirebase = fetchUserClubsFromFirebase;
+
+    async function addUserClubToFirebase(clubName) {
+      if (!clubName || !clubName.trim()) return;
+      const safeClub = clubName.trim();
+
+      if (!STATE.myClubs.includes(safeClub)) {
+        STATE.myClubs.push(safeClub);
+      }
+
+      try {
+        localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
+        localStorage.setItem("pb_last_club", safeClub);
+      } catch (e) {}
+
+      if (STATE.db && STATE.lineUserId) {
+        try {
+          const updates = {};
+          updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(safeClub)}`] = true;
+          updates[`users/${STATE.lineUserId}/lastClub`] = safeClub;
+          await update(ref(STATE.db), updates);
+        } catch (err) {
+          console.warn("[Firebase] addUserClub failed:", err);
+        }
+      }
+    }
+    window.addUserClubToFirebase = addUserClubToFirebase;
+
+    // ============================================================
+    // LINE LIFF INTEGRATION & USER STATUS (DUAL FALLBACK)
+    // ============================================================
+    async function initLiffAndUser() {
+      // 1. 預設降級：先從 LocalStorage 取出快取資料
+      try {
+        const cachedClubs = JSON.parse(localStorage.getItem("pb_my_clubs") || "[]");
+        STATE.myClubs = Array.isArray(cachedClubs) ? cachedClubs : [];
+      } catch (e) {
+        STATE.myClubs = [];
+      }
+
       if (!window.liff) {
+        console.info("[LIFF] SDK not found, using LocalStorage fallback.");
         updateNavLineProfileUI();
         return;
       }
+
       try {
         await liff.init({ liffId: LIFF_ID });
         STATE.isLiff = true;
 
         if (liff.isLoggedIn()) {
-          try {
-            const profile = await liff.getProfile();
-            STATE.lineProfile = profile;
-            if (profile?.displayName) {
-              localStorage.setItem("pb_my_player_name", profile.displayName);
-              if (STATE.tournamentData && STATE.tournamentData.status === "registering") {
-                renderLiveUI(STATE.tournamentData);
-              }
+          const profile = await liff.getProfile();
+          STATE.lineUserId = profile.userId;
+          STATE.lineProfile = profile;
+
+          if (profile.displayName) {
+            localStorage.setItem("pb_my_player_name", profile.displayName);
+            if (STATE.tournamentData && STATE.tournamentData.status === "registering") {
+              renderLiveUI(STATE.tournamentData);
             }
-          } catch (profileErr) {
-            console.warn("[LIFF] Failed to fetch profile:", profileErr);
           }
+
+          // 等待 Firebase RTDB 初始化就緒 (最多等待 2 秒)
+          let waitCount = 0;
+          while (!STATE.db && waitCount < 20) {
+            await new Promise(r => setTimeout(r, 100));
+            waitCount++;
+          }
+
+          // 2. 雲端同步：自動在 Firebase 建立/更新 /users/{lineUserId}
+          const userData = await syncUserProfileToFirebase(profile);
+
+          if (userData && userData.myClubs) {
+            const cloudClubs = Object.keys(userData.myClubs).map(c => decodeURIComponent(c));
+            const mergedSet = new Set([...cloudClubs, ...STATE.myClubs]);
+            STATE.myClubs = Array.from(mergedSet);
+
+            localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
+
+            if (userData.lastClub && !STATE.currentClub) {
+              STATE.currentClub = userData.lastClub;
+            }
+          }
+
+          console.info(`[LIFF] Logged in: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
+        } else {
+          STATE.lineUserId = null;
+          STATE.lineProfile = null;
+          console.info("[LIFF] Not logged in, running in guest/fallback mode.");
         }
       } catch (err) {
-        console.warn("[LIFF] Initialization warning:", err);
+        console.warn("[LIFF] Initialization error (safe fallback enabled):", err);
       } finally {
         updateNavLineProfileUI();
       }
     }
-    window.initLiff = initLiff;
+    window.initLiffAndUser = initLiffAndUser;
+    window.initLiff = initLiffAndUser;
 
     function updateNavLineProfileUI() {
       const container = document.getElementById("nav-line-profile-container");
@@ -7588,7 +7705,7 @@
       updatePlayerCountBadge();
       initRouting();
       initPwa();
-      initLiff();
+      initLiffAndUser();
       lucide.createIcons();
     }
 
