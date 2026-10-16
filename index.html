@@ -67,24 +67,24 @@
 
   <!-- ==================== HEADER / NAV (超緊湊手機優化版) ==================== -->
   <header class="sticky top-0 z-40 glass-nav border-b transition-colors">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-3">
       <!-- Logo & Title -->
-      <div class="flex items-center gap-2.5 cursor-pointer" onclick="navigateTo('hub')">
+      <div class="flex items-center gap-2 sm:gap-2.5 cursor-pointer shrink-0" onclick="navigateTo('hub')">
         <div
-          class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl card-inner border flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold shadow-sm shrink-0">
-          <i data-lucide="trophy" class="w-5 h-5 sm:w-5.5 sm:h-5.5"></i>
+          class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl card-inner border flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold shadow-sm shrink-0">
+          <i data-lucide="trophy" class="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5"></i>
         </div>
-        <h1 class="font-display font-black text-lg sm:text-xl tracking-tight leading-none">
+        <h1 class="font-display font-black text-base sm:text-xl tracking-tight leading-none">
           ZeroZero<span id="brand-hub-text"
             class="text-emerald-500 dark:text-emerald-400 transition-colors duration-300">Two</span>
         </h1>
       </div>
 
-      <!-- Action Buttons Bar (LINE OA + LINE User + Search + Settings) -->
-      <div class="flex items-center gap-1.5 sm:gap-2 relative">
+      <!-- Action Buttons Bar (LINE OA + LINE User + Settings) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 relative shrink-0">
         <!-- ZEROZEROTWO LINE App 按鈕 -->
         <button id="btn-line-oa" type="button" onclick="openLineOAModal()"
-          class="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white shadow-sm active:scale-95 text-xs font-black tracking-wide cursor-pointer transition shrink-0"
+          class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white shadow-sm active:scale-95 text-xs font-black tracking-wide cursor-pointer transition shrink-0"
           title="ZZTWO-LINE App">
           <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
@@ -93,28 +93,21 @@
         </button>
 
         <!-- LINE User Profile / Status Indicator -->
-        <div id="nav-line-profile-container" class="flex items-center">
+        <div id="nav-line-profile-container" class="flex items-center shrink-0">
           <button type="button" onclick="handleLineLoginClick()"
             class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-[#06C755]/10 hover:bg-[#06C755]/20 text-[#06C755] border border-[#06C755]/30 hover:border-[#06C755] transition shadow-sm active:scale-95 text-xs font-bold cursor-pointer shrink-0"
             title="尚未登入 LINE，點擊進行連動">
             <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
             </svg>
-            <span class="text-[11px] sm:text-xs">未登入 LINE</span>
+            <span class="text-[11px] sm:text-xs whitespace-nowrap">未登入 LINE</span>
           </button>
         </div>
 
-        <!-- Search Tournament Code Button (移動至右上角，設置按鈕旁邊) -->
-        <button id="btn-header-search-toggle" onclick="openQuickCodeModal()"
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl card-inner border hover:border-emerald-500/50 flex items-center justify-center sub-text hover:text-stone-900 dark:hover:text-white transition shadow-sm active:scale-95 cursor-pointer"
-          title="搜尋賽事代碼">
-          <i data-lucide="search" class="w-4 h-4 text-emerald-500"></i>
-        </button>
-
         <!-- Settings Gear Dropdown Button -->
-        <div class="relative">
+        <div class="relative shrink-0">
           <button id="btn-settings-toggle" onclick="toggleSettingsDropdown(event)"
-            class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl card-inner border hover:border-emerald-500/50 flex items-center justify-center sub-text hover:text-stone-900 dark:hover:text-white transition shadow-sm active:scale-95"
+            class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl card-inner border hover:border-emerald-500/50 flex items-center justify-center sub-text hover:text-stone-900 dark:hover:text-white transition shadow-sm active:scale-95 cursor-pointer"
             title="設定與管理">
             <i data-lucide="settings" class="w-4 h-4"></i>
           </button>
@@ -2219,7 +2212,7 @@
 
         container.innerHTML = `
           <button type="button" onclick="openLineProfileModal()"
-            class="flex items-center gap-1.5 px-2 py-1 rounded-xl card-inner border hover:border-[#06C755] transition shadow-sm active:scale-95 cursor-pointer max-w-[120px] sm:max-w-[160px]"
+            class="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-1 rounded-xl card-inner border hover:border-[#06C755] transition shadow-sm active:scale-95 cursor-pointer max-w-[100px] sm:max-w-[150px] shrink-0"
             title="${isZh ? `LINE 已連動：${escapeHTML(profile.displayName)}` : `Logged in: ${escapeHTML(profile.displayName)}`}">
             <div class="relative shrink-0">
               ${avatarHtml}
@@ -2237,7 +2230,7 @@
             <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
             </svg>
-            <span class="text-[11px] sm:text-xs">${isZh ? "未登入 LINE" : "LINE Login"}</span>
+            <span class="text-[11px] sm:text-xs whitespace-nowrap">${isZh ? "未登入 LINE" : "LINE Login"}</span>
           </button>
         `;
       }
