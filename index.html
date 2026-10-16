@@ -6498,44 +6498,49 @@
     async function verifyClubAccess(clubName) {
       if (!clubName || !clubName.trim()) return true;
       if (STATE.isAdmin) return true;
-      if (STATE.authenticatedClubs.has(clubName.trim())) return true;
+      const cleanClub = clubName.trim();
+      if (STATE.authenticatedClubs.has(cleanClub)) return true;
 
       // 優先檢查該社團是否有密碼保護：無密碼直接放行
-      const storedHash = await getClubPassword(clubName);
+      const storedHash = await getClubPassword(cleanClub);
       if (!storedHash) {
-        STATE.authenticatedClubs.add(clubName.trim());
+        STATE.authenticatedClubs.add(cleanClub);
         return true;
       }
 
-      const input = prompt(t("clubPasswordPrompt").replace("{club}", clubName));
+      const input = prompt(t("clubPasswordPrompt").replace("{club}", cleanClub));
       if (input === null) return false;
+      const cleanInput = input.trim();
+      if (!cleanInput) {
+        showToast(t("clubPasswordWrong"), "error");
+        return false;
+      }
 
-      // 優先呼叫後端 Cloud Function 安全驗證密碼
+      // 1. 本地 SHA-256 嚴格即時驗證
+      const inputHash = await sha256(cleanInput);
+      const masterHash = STATE.masterPinHash;
+      if (inputHash === storedHash || (masterHash && inputHash === masterHash)) {
+        STATE.authenticatedClubs.add(cleanClub);
+        return true;
+      }
+
+      // 2. 本地不相符時，向後端 Cloud Function 再次驗證（防止社團密碼已被其他裝置修改）
       try {
         const res = await fetch(`${FUNCTIONS_BASE_URL}/verifyClubPassword`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clubName: clubName.trim(), password: input.trim() })
+          body: JSON.stringify({ clubName: cleanClub, password: cleanInput })
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.valid) {
-            STATE.authenticatedClubs.add(clubName.trim());
+          // 嚴格校驗：必須 valid 為 true 且排除無密碼保護的誤判訊息
+          if (data.valid === true && !data.message) {
+            STATE.authenticatedClubs.add(cleanClub);
             return true;
           }
-          showToast(t("clubPasswordWrong"), "error");
-          return false;
         }
       } catch (err) {
-        console.warn("[Auth] Backend verification failed, falling back to local verification:", err);
-      }
-
-      // 容錯降級：若後端暫未啟動，使用本機儲存驗證
-      const inputHash = await sha256(input.trim());
-      const masterHash = STATE.masterPinHash;
-      if (inputHash === storedHash || (masterHash && inputHash === masterHash)) {
-        STATE.authenticatedClubs.add(clubName.trim());
-        return true;
+        console.warn("[Auth] Backend verification failed:", err);
       }
 
       showToast(t("clubPasswordWrong"), "error");

@@ -187,7 +187,7 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
             stored_hash = db.reference(f"/clubs/{safe_key}/password_hash").get()
 
         if not stored_hash:
-            return https_fn.Response(json.dumps({"valid": True, "message": "無密碼保護"}), status=200, mimetype="application/json")
+            return https_fn.Response(json.dumps({"valid": False, "error": "社團未設定密碼或不存在"}), status=200, mimetype="application/json")
 
         input_hash = sha256(password)
         if input_hash == stored_hash:
