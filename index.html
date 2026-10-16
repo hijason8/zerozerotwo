@@ -164,26 +164,26 @@
   </header>
 
   <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-1.5 py-3 sm:p-6">
 
     <!-- ==================== SHARED LOBBY HEADER (大廳 / 社團共用頂部工具列) ==================== -->
     <div id="lobby-shared-header"
-      class="flex items-center justify-between gap-2 border-b border-stone-300 dark:border-slate-800 pb-3 mb-4 sm:mb-6 text-left">
+      class="flex items-center justify-between gap-1 sm:gap-2 border-b border-stone-300 dark:border-slate-800 pb-2 mb-3 sm:mb-6 text-left">
       <!-- 賽事大廳 / 社團 下拉切換選單 (位置與字體圖案在全站大廳與各社團絕對一致) -->
-      <div class="relative flex items-center min-w-0">
+      <div class="relative flex items-center min-w-0 flex-1">
         <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
-          class="appearance-none font-display font-bold text-base sm:text-xl bg-transparent border-0 pl-0 pr-6 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition truncate max-w-[210px] xs:max-w-[280px] sm:max-w-md">
+          class="appearance-none font-display font-bold text-sm sm:text-lg bg-transparent border-0 pl-0 pr-5 sm:pr-7 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition truncate w-full">
           <option value="" selected>賽事大廳</option>
         </select>
         <i data-lucide="chevron-down"
-          class="w-4 h-4 sm:w-5 sm:h-5 text-stone-900 dark:text-stone-100 absolute right-1 pointer-events-none shrink-0 transition-transform"></i>
+          class="w-4 h-4 text-stone-900 dark:text-stone-100 absolute right-0.5 pointer-events-none shrink-0 transition-transform"></i>
       </div>
 
       <!-- 右側動作按鈕組 (建立新賽事 + 分享社團 + 取消常用) -->
-      <div id="club-space-header-actions" class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <div id="club-space-header-actions" class="flex items-center gap-1 sm:gap-2 shrink-0">
         <!-- 分享社團按鈕 (僅在社團大廳且有選定社團時顯示) -->
         <button type="button" id="btn-share-club" onclick="copyClubLink()"
-          class="hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95 shrink-0 cursor-pointer"
+          class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
           title="分享此社團專屬連結">
           <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
           <span id="t-btn-share-club" class="hidden xs:inline">分享社團</span>
@@ -191,7 +191,7 @@
 
         <!-- 取消常用按鈕 (僅在社團大廳且為我的社團且已登入 LINE 時顯示) -->
         <button type="button" id="btn-remove-my-club" onclick="removeMyClub()"
-          class="hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-rose-500/50 text-xs font-semibold sub-text hover:text-rose-500 transition flex items-center gap-1.5 shadow-sm active:scale-95 shrink-0 cursor-pointer"
+          class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-rose-500/50 text-xs font-semibold sub-text hover:text-rose-500 transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
           title="從專屬社團清單移除">
           <i data-lucide="x-circle" class="w-3.5 h-3.5 text-rose-500"></i>
           <span id="t-btn-remove-my-club" class="hidden xs:inline">取消常用</span>
@@ -199,7 +199,7 @@
 
         <!-- 建立新賽事按鈕 (全站大廳建立公開賽事，社團大廳建立社團賽事) -->
         <button type="button" id="t-create-new-btn" onclick="handleSharedCreateTournament()"
-          class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1.5 transition active:scale-95 shrink-0 cursor-pointer">
+          class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1 transition active:scale-95 shrink-0 cursor-pointer">
           <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-create-new-btn-text">建立新賽事</span>
         </button>
       </div>
@@ -1245,7 +1245,7 @@
         <div>
           <label id="t-label-modal-club-name" class="block text-xs font-semibold mb-1">社團 / 球隊名稱 <span
               class="text-rose-500">*</span></label>
-          <input type="text" id="modal-create-club-name" required maxlength="15" placeholder="請輸入社團名稱 (上限15字)" autocomplete="off"
+          <input type="text" id="modal-create-club-name" required maxlength="12" placeholder="請輸入社團名稱 (上限12字)" autocomplete="off"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
         </div>
 
@@ -1572,7 +1572,7 @@
       if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("./sw.js?v=6")
+            .register("./sw.js?v=7")
             .then((reg) => {
               console.log("[PWA] Service Worker registered successfully, scope:", reg.scope);
             })
@@ -3480,16 +3480,47 @@
           nameInput.value = `${clubName} ${dStr} 球局`;
         }
       } else {
-        // 臨打模式：顯示完整社團選單（預設無社團），顯示隱私開關（預設公開）
+        // 臨打模式：顯示社團選單（嚴格遵循 B 類分組：我的社團 + 探索公開社團，絕不暴露私密社團）
         if (wrapClub) {
           const uniqueClubs = getAllUniqueClubs();
+          const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
+          const hasPassword = (c) => {
+            const safeKey = encodeClubKey(c);
+            return !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
+          };
+
+          const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
+            .filter(c => c && c.trim())
+            .map(c => c.trim());
+          const myClubsList = uniqueClubs.filter(c => userMyClubs.includes(c));
+          const exploreClubsList = uniqueClubs.filter(c => !userMyClubs.includes(c) && !hasPassword(c));
+          const isZh = STATE.lang === "zh-TW";
+
+          let optionsHtml = `<option value="">${t("selectClubOption")}</option>`;
+
+          if (myClubsList.length > 0) {
+            optionsHtml += `<optgroup label="${isZh ? "我的社團" : "My Clubs"}">`;
+            myClubsList.forEach(c => {
+              const hasPwd = hasPassword(c);
+              optionsHtml += `<option value="${c.replace(/"/g, '&quot;')}">${c}${hasPwd ? ' 🔒' : ''}</option>`;
+            });
+            optionsHtml += `</optgroup>`;
+          }
+
+          if (exploreClubsList.length > 0) {
+            optionsHtml += `<optgroup label="${isZh ? "探索社團" : "Explore Clubs"}">`;
+            exploreClubsList.forEach(c => {
+              optionsHtml += `<option value="${c.replace(/"/g, '&quot;')}">${c}</option>`;
+            });
+            optionsHtml += `</optgroup>`;
+          }
+
           wrapClub.innerHTML = `
             <label id="t-label-club" class="block text-xs sm:text-sm font-semibold mb-1">${t("labelClub")}</label>
             <div class="space-y-2">
               <select id="create-club-select" onchange="onClubSelectChange()"
                 class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none">
-                <option value="">${t("selectClubOption")}</option>
-                ${uniqueClubs.map(c => `<option value="${c}">${c}</option>`).join("")}
+                ${optionsHtml}
               </select>
             </div>
           `;
@@ -6317,8 +6348,8 @@
         return;
       }
 
-      if (rawName.length > 15) {
-        showToast(STATE.lang === "zh-TW" ? "社團名稱不可超過 15 個字！" : "Club name cannot exceed 15 characters!", "warning");
+      if (rawName.length > 12) {
+        showToast(STATE.lang === "zh-TW" ? "社團名稱不可超過 12 個字！" : "Club name cannot exceed 12 characters!", "warning");
         if (nameInput) nameInput.focus();
         return;
       }
