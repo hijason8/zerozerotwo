@@ -172,21 +172,29 @@
       <!-- 賽事大廳 / 社團 下拉切換選單 (位置與字體圖案在全站大廳與各社團絕對一致) -->
       <div class="relative flex items-center min-w-0">
         <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
-          class="appearance-none font-display font-black text-xl sm:text-2xl bg-transparent border-0 pl-0 pr-7 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition truncate max-w-[200px] xs:max-w-[260px] sm:max-w-md">
+          class="appearance-none font-display font-bold text-base sm:text-xl bg-transparent border-0 pl-0 pr-6 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition truncate max-w-[210px] xs:max-w-[280px] sm:max-w-md">
           <option value="" selected>賽事大廳</option>
         </select>
         <i data-lucide="chevron-down"
-          class="w-5 h-5 text-stone-900 dark:text-stone-100 absolute right-1 pointer-events-none shrink-0 transition-transform"></i>
+          class="w-4 h-4 sm:w-5 sm:h-5 text-stone-900 dark:text-stone-100 absolute right-1 pointer-events-none shrink-0 transition-transform"></i>
       </div>
 
-      <!-- 右側動作按鈕組 (建立新賽事 + 分享社團) -->
-      <div class="flex items-center gap-2 shrink-0">
+      <!-- 右側動作按鈕組 (建立新賽事 + 分享社團 + 取消常用) -->
+      <div id="club-space-header-actions" class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <!-- 分享社團按鈕 (僅在社團大廳且有選定社團時顯示) -->
         <button type="button" id="btn-share-club" onclick="copyClubLink()"
           class="hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95 shrink-0 cursor-pointer"
           title="分享此社團專屬連結">
           <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
           <span id="t-btn-share-club" class="hidden xs:inline">分享社團</span>
+        </button>
+
+        <!-- 取消常用按鈕 (僅在社團大廳且為我的社團且已登入 LINE 時顯示) -->
+        <button type="button" id="btn-remove-my-club" onclick="removeMyClub()"
+          class="hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-rose-500/50 text-xs font-semibold sub-text hover:text-rose-500 transition flex items-center gap-1.5 shadow-sm active:scale-95 shrink-0 cursor-pointer"
+          title="從專屬社團清單移除">
+          <i data-lucide="x-circle" class="w-3.5 h-3.5 text-rose-500"></i>
+          <span id="t-btn-remove-my-club" class="hidden xs:inline">取消常用</span>
         </button>
 
         <!-- 建立新賽事按鈕 (全站大廳建立公開賽事，社團大廳建立社團賽事) -->
@@ -1237,7 +1245,7 @@
         <div>
           <label id="t-label-modal-club-name" class="block text-xs font-semibold mb-1">社團 / 球隊名稱 <span
               class="text-rose-500">*</span></label>
-          <input type="text" id="modal-create-club-name" required placeholder="請輸入社團名稱 (例：樂活匹克團)" autocomplete="off"
+          <input type="text" id="modal-create-club-name" required maxlength="15" placeholder="請輸入社團名稱 (上限15字)" autocomplete="off"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
         </div>
 
@@ -1564,7 +1572,7 @@
       if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("./sw.js?v=5")
+            .register("./sw.js?v=6")
             .then((reg) => {
               console.log("[PWA] Service Worker registered successfully, scope:", reg.scope);
             })
@@ -2059,6 +2067,8 @@
       }
       const hubPrivacyHintEl = document.getElementById("t-hub-privacy-hint");
       if (hubPrivacyHintEl) hubPrivacyHintEl.innerText = t("hubPrivacyHint");
+      const btnRemoveMyClubEl = document.getElementById("t-btn-remove-my-club");
+      if (btnRemoveMyClubEl) btnRemoveMyClubEl.innerText = isZh ? "取消常用" : "Remove";
 
       // Quick Code Search Modal
       const modalSearchTitleEl = document.getElementById("t-modal-search-title");
@@ -6176,16 +6186,74 @@
     function updateNavClubSelectValue() {
       const navSelect = document.getElementById("hub-club-selector") || document.getElementById("nav-btn-history");
       const shareBtn = document.getElementById("btn-share-club");
+      const removeBtn = document.getElementById("btn-remove-my-club");
 
       if (STATE.currentPage === "history" && STATE.currentClub) {
         if (navSelect) navSelect.value = STATE.currentClub;
         if (shareBtn) shareBtn.classList.remove("hidden");
+
+        // 僅當目前的 currentClub 存在於 myClubs 陣列中，且有 lineUserId 時才顯示「取消常用」按鈕
+        const isMyClub = !!(
+          Array.isArray(STATE.myClubs) &&
+          STATE.myClubs.includes(STATE.currentClub) &&
+          STATE.lineUserId
+        );
+        if (removeBtn) {
+          if (isMyClub) removeBtn.classList.remove("hidden");
+          else removeBtn.classList.add("hidden");
+        }
       } else {
         if (navSelect) navSelect.value = "";
         if (shareBtn) shareBtn.classList.add("hidden");
+        if (removeBtn) removeBtn.classList.add("hidden");
       }
     }
     window.updateNavClubSelectValue = updateNavClubSelectValue;
+
+    async function removeMyClub() {
+      const clubToRemove = STATE.currentClub;
+      if (!clubToRemove) return;
+
+      const isZh = STATE.lang === "zh-TW";
+      const confirmMsg = isZh
+        ? `確定要將「${clubToRemove}」從您的專屬社團清單移除嗎？\n(這不會刪除任何戰績紀錄)`
+        : `Are you sure you want to remove "${clubToRemove}" from your club list?\n(No match records will be deleted)`;
+
+      if (!confirm(confirmMsg)) {
+        return;
+      }
+
+      // 1. Firebase 雲端更新：將 users/${lineUserId}/myClubs/${club} 設為 null
+      // ⚠️【安全防呆】：僅刪除 users/{lineUserId}/myClubs 內屬性，絕不碰 tournaments、club_members 或 club_passwords！
+      if (STATE.db && STATE.lineUserId) {
+        try {
+          const updates = {};
+          updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(clubToRemove)}`] = null;
+          await update(ref(STATE.db), updates);
+        } catch (err) {
+          console.warn("[Firebase] removeMyClub error:", err);
+        }
+      }
+
+      // 2. 前端狀態同步
+      STATE.myClubs = (STATE.myClubs || []).filter(c => c !== clubToRemove);
+      try {
+        localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
+        localStorage.removeItem("pb_last_club");
+      } catch (e) {}
+
+      STATE.currentClub = null;
+      showToast(isZh ? "已從我的社團移除" : "Removed from My Clubs", "info");
+
+      // 3. 重新渲染頂部導覽列下拉選單
+      if (typeof populateNavClubSelect === "function") {
+        populateNavClubSelect();
+      }
+
+      // 4. 返回公開賽事大廳
+      navigateTo("hub");
+    }
+    window.removeMyClub = removeMyClub;
 
     function handleSharedCreateTournament() {
       if (STATE.currentPage === "history" && STATE.currentClub) {
@@ -6245,6 +6313,12 @@
 
       if (!rawName) {
         showToast(STATE.lang === "zh-TW" ? "請輸入社團名稱！" : "Please enter a club name!", "warning");
+        if (nameInput) nameInput.focus();
+        return;
+      }
+
+      if (rawName.length > 15) {
+        showToast(STATE.lang === "zh-TW" ? "社團名稱不可超過 15 個字！" : "Club name cannot exceed 15 characters!", "warning");
         if (nameInput) nameInput.focus();
         return;
       }
