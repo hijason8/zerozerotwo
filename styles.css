@@ -4,6 +4,11 @@
   height: 4px;
 }
 
+select, select option, select optgroup {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+}
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
