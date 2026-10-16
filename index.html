@@ -172,11 +172,11 @@
       <!-- 賽事大廳 / 社團 下拉切換選單 (位置與字體圖案在全站大廳與各社團絕對一致) -->
       <div class="relative flex items-center min-w-0">
         <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
-          class="appearance-none font-display font-black text-xl sm:text-2xl bg-transparent border-0 pl-0 pr-7 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 hover:text-emerald-600 dark:hover:text-emerald-400 transition truncate max-w-[200px] xs:max-w-[260px] sm:max-w-md">
+          class="appearance-none font-display font-black text-xl sm:text-2xl bg-transparent border-0 pl-0 pr-7 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition truncate max-w-[200px] xs:max-w-[260px] sm:max-w-md">
           <option value="" selected>賽事大廳</option>
         </select>
         <i data-lucide="chevron-down"
-          class="w-5 h-5 text-emerald-500 absolute right-1 pointer-events-none shrink-0 transition-transform"></i>
+          class="w-5 h-5 text-stone-900 dark:text-stone-100 absolute right-1 pointer-events-none shrink-0 transition-transform"></i>
       </div>
 
       <!-- 右側動作按鈕組 (建立新賽事 + 分享社團) -->
@@ -2051,7 +2051,7 @@
       // Hub Page & Club Selector
       const hubClubSelector = document.getElementById("hub-club-selector");
       if (hubClubSelector && hubClubSelector.options.length > 0) {
-        hubClubSelector.options[0].text = isZh ? "賽事大廳" : "Tournament Lobby";
+        hubClubSelector.options[0].text = isZh ? "賽事大廳" : "LOBBY";
       }
       const hubPrivacyHintEl = document.getElementById("t-hub-privacy-hint");
       if (hubPrivacyHintEl) hubPrivacyHintEl.innerText = t("hubPrivacyHint");
@@ -6114,7 +6114,7 @@
       const uniqueClubs = Array.from(set).sort((a, b) => a.localeCompare(b, "zh-Hant"));
       const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
       const isZh = STATE.lang === "zh-TW";
-      const defaultLabel = isZh ? "賽事大廳" : "Tournament Lobby";
+      const defaultLabel = isZh ? "賽事大廳" : "LOBBY";
       const createClubOptionLabel = isZh ? "➕ 建立新社團..." : "➕ Create New Club...";
 
       navSelect.innerHTML = `
