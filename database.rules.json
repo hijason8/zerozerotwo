@@ -22,6 +22,18 @@
         ".validate": "newData.val() === null || (newData.isString() && newData.val().length === 64)"
       }
     },
+    "clubs_metadata": {
+      ".read": true,
+      "$club_key": {
+        ".write": true
+      }
+    },
+    "users": {
+      ".read": true,
+      "$user_id": {
+        ".write": true
+      }
+    },
     "app_config": {
       ".read": true,
       ".write": false
