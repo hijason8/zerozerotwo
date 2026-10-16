@@ -1,4 +1,4 @@
-const CACHE_NAME = "zerozerotwo-v11";
+const CACHE_NAME = "zerozerotwo-v12";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -57,8 +57,14 @@ self.addEventListener("fetch", (event) => {
   }
 
   // 規則 C：Network First 靜態資源策略，並具備優雅的 Response 保底
+  // 對 HTML 或頁面導航請求強制 cache: "no-cache"，杜絕瀏覽器磁碟快取導致版本落後
+  const isDoc = (event.request.mode === "navigate" || event.request.destination === "document");
+  const fetchPromise = isDoc
+    ? fetch(event.request, { cache: "no-cache" })
+    : fetch(event.request);
+
   event.respondWith(
-    fetch(event.request)
+    fetchPromise
       .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
           const responseToCache = networkResponse.clone();

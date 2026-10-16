@@ -2844,16 +2844,7 @@
           if (pinSnap.exists()) STATE.masterPinHash = pinSnap.val();
         } catch (e) { console.warn("Could not load master pin hash", e); }
 
-        // 載入社團密碼雜湊表（供頂部社團下拉選單與大廳卡片即時顯示密碼鎖狀態）
-        try {
-          const pwdSnap = await get(ref(STATE.db, "club_passwords"));
-          if (pwdSnap.exists()) {
-            STATE.clubPasswordsMap = pwdSnap.val() || {};
-            if (typeof populateNavClubSelect === "function") populateNavClubSelect();
-          }
-        } catch (e) { console.warn("Could not load club passwords", e); }
-
-        // 載入社團中繼資料（供隱私過濾，私密社團不顯示在公開探索清單）
+        // 載入社團中繼資料（供隱私過濾與密碼保護標記，不包含也不讀取任何密碼 Hash）
         try {
           const metaSnap = await get(ref(STATE.db, "clubs_metadata"));
           if (metaSnap.exists()) {
@@ -4710,8 +4701,13 @@
       }
 
       if (STATE.db) {
-        const tournamentsRef = ref(STATE.db, "tournaments");
-        STATE.hubUnsubscribe = onValue(tournamentsRef, (snapshot) => {
+        // 使用限制查詢：僅監聽最新 40 筆賽事，避免全站資料庫全量推播導致手機發燙與流量耗盡
+        const hubTournamentsQuery = query(
+          ref(STATE.db, "tournaments"),
+          orderByChild("createdAt"),
+          limitToLast(40)
+        );
+        STATE.hubUnsubscribe = onValue(hubTournamentsQuery, (snapshot) => {
           let list = [];
           if (snapshot.exists()) {
             const data = snapshot.val();
@@ -4767,33 +4763,18 @@
       }
 
       const clubName = tObj ? (tObj.clubName || '').trim() : '';
-      const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
       const tournamentName = tObj ? tObj.name : id;
 
-      // If the club has a password and user hasn't authenticated it in session
-      if (clubPwdHash && !STATE.isAdmin && !STATE.authenticatedClubs.has(clubName)) {
-        const promptMsg = STATE.lang === "zh-TW"
-          ? `🗑️ 確定刪除賽事「${tournamentName}」(${id}) 嗎？\n請輸入社團「${clubName}」密碼或管理員 PIN：`
-          : `🗑️ Delete tournament "${tournamentName}" (${id})?\nEnter password for "${clubName}" or Master PIN:`;
-
-        const input = prompt(promptMsg);
-        if (input === null) return;
-        const cleanInput = input.trim();
-        const inputHash = await sha256(cleanInput);
-        const masterHash = STATE.masterPinHash;
-
-        const isValid = (inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
-        if (!isValid) {
-          showToast(STATE.lang === "zh-TW" ? "❌ 密碼不符，無法刪除！" : "❌ Password Incorrect!", "error");
-          return;
-        }
-      } else {
-        // No password on club or already authenticated -> standard confirm dialog
-        const confirmMsg = STATE.lang === "zh-TW"
-          ? `🗑️ 確定要刪除賽事「${tournamentName}」(${id}) 嗎？\n（此操作無法復原）`
-          : `🗑️ Are you sure you want to delete "${tournamentName}" (${id})?\n(This cannot be undone)`;
-        if (!confirm(confirmMsg)) return;
+      // 若該社團需要密碼驗證且當前尚未解鎖，全面走後端 verifyClubAccess
+      if (clubName && !STATE.isAdmin && !STATE.authenticatedClubs.has(clubName)) {
+        const ok = await verifyClubAccess(clubName);
+        if (!ok) return;
       }
+
+      const confirmMsg = STATE.lang === "zh-TW"
+        ? `🗑️ 確定要刪除賽事「${tournamentName}」(${id}) 嗎？\n（此操作無法復原）`
+        : `🗑️ Are you sure you want to delete "${tournamentName}" (${id})?\n(This cannot be undone)`;
+      if (!confirm(confirmMsg)) return;
 
       if (STATE.db) {
         try {
@@ -4945,49 +4926,11 @@
           return;
         }
 
-        // 2. 檢查社團密碼 (若有社團且有設密碼)
-        const clubPwdHash = clubName ? await getClubPassword(clubName) : null;
+        // 2. 檢查社團密碼 (若有社團且當前尚未解鎖，全面由後端 verifyClubAccess 驗證)
         const isSessionAuth = clubName && STATE.authenticatedClubs.has(clubName);
-
-        if (clubPwdHash && !isSessionAuth) {
-          const promptMsg = isZh
-            ? `🔒 此為社團專屬球局。\n請輸入社團「${clubName}」防護密碼以解鎖操作模式：`
-            : `🔒 Club tournament.\nEnter password for "${clubName}" to unlock edit mode:`;
-
-          const input = prompt(promptMsg);
-          if (input === null) return;
-          const cleanInput = input.trim();
-          if (!cleanInput) {
-            showToast(isZh ? "密碼不得為空！" : "Password cannot be empty!", "error");
-            return;
-          }
-
-          const inputHash = await sha256(cleanInput);
-          const masterHash = STATE.masterPinHash;
-          let isValid = (inputHash === clubPwdHash) || (masterHash && inputHash === masterHash);
-
-          if (!isValid) {
-            try {
-              const res = await fetch(`${FUNCTIONS_BASE_URL}/verifyClubPassword`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ clubName, password: cleanInput })
-              });
-              if (res.ok) {
-                const data = await res.json();
-                if (data.valid === true && !data.message) {
-                  isValid = true;
-                }
-              }
-            } catch (err) {}
-          }
-
-          if (!isValid) {
-            showToast(isZh ? "❌ 密碼錯誤，維持唯讀瀏覽模式！" : "❌ Password incorrect, remaining in read-only mode!", "error");
-            return;
-          }
-
-          STATE.authenticatedClubs.add(clubName);
+        if (clubName && !isSessionAuth) {
+          const ok = await verifyClubAccess(clubName);
+          if (!ok) return;
         }
 
         if (isFinished) {
@@ -7030,12 +6973,10 @@
       // Fetch from Firebase or fallback
       if (STATE.db) {
         const tournamentsRef = ref(STATE.db, "tournaments");
-        const passwordsRef = ref(STATE.db, "club_passwords");
         Promise.all([
           get(tournamentsRef),
-          get(passwordsRef).catch(() => null),
           get(ref(STATE.db, "clubs_metadata")).catch(() => null)
-        ]).then(([snapshot, pwdSnap, metaSnap]) => {
+        ]).then(([snapshot, metaSnap]) => {
           let list = [];
           if (snapshot && snapshot.exists()) {
             const data = snapshot.val();
@@ -7043,9 +6984,6 @@
             localStorage.setItem("pb_tournaments", JSON.stringify(data));
           } else {
             localStorage.setItem("pb_tournaments", JSON.stringify({}));
-          }
-          if (pwdSnap && pwdSnap.exists()) {
-            STATE.clubPasswordsMap = pwdSnap.val() || {};
           }
           if (metaSnap && metaSnap.exists()) {
             STATE.clubsMetadataMap = metaSnap.val() || {};
@@ -7201,15 +7139,11 @@
         });
       }
       const uniqueClubs = Array.from(set).sort((a, b) => a.localeCompare(b, "zh-Hant"));
-      const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
       const isZh = STATE.lang === "zh-TW";
       const defaultLabel = isZh ? "賽事大廳" : "LOBBY";
       const createClubOptionLabel = t("navCreateClubOption") || (isZh ? "建立新社團..." : "Create New Club...");
 
-      const hasPassword = (c) => {
-        const safeKey = encodeClubKey(c);
-        return !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
-      };
+      const hasPassword = (c) => (typeof hasClubPassword === "function" ? hasClubPassword(c) : false);
 
       // 1.「我的社團」清單 (STATE.myClubs，並確保在 uniqueClubs 內)
       const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
@@ -7424,11 +7358,10 @@
       if (!c || !c.trim()) return false;
       const clean = c.trim();
       const safeKey = typeof encodeClubKey === "function" ? encodeClubKey(clean) : encodeURIComponent(clean);
-      let localPasswords = {};
-      try {
-        localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
-      } catch (e) {}
-      return !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[clean]);
+      if (STATE.clubsMetadataMap && STATE.clubsMetadataMap[safeKey]) {
+        return !!STATE.clubsMetadataMap[safeKey].hasPassword;
+      }
+      return false;
     }
     window.hasClubPassword = hasClubPassword;
     window.hasPassword = hasClubPassword;
@@ -7622,22 +7555,28 @@
         showToast(t("clubPasswordSet"), "success");
       }
 
-      // 3. 儲存社團隱私中繼資料 (clubs_metadata)
+      // 3. 儲存社團隱私中繼資料 (clubs_metadata - 包含 hasPassword 標記)
       const safeKey = encodeClubKey(rawName);
+      const metaObj = {
+        isPrivate: isPrivate,
+        hasPassword: !!pwd,
+        createdAt: Date.now()
+      };
       if (STATE.db) {
         try {
-          await set(ref(STATE.db, `clubs_metadata/${safeKey}`), {
-            isPrivate: isPrivate,
-            createdAt: Date.now()
-          });
+          await set(ref(STATE.db, `clubs_metadata/${safeKey}`), metaObj);
         } catch (err) {
           console.warn("[Firebase] clubs_metadata set error:", err);
         }
       }
 
+      if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
+      STATE.clubsMetadataMap[safeKey] = metaObj;
+      STATE.clubsMetadataMap[rawName] = metaObj;
+
       const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
-      localMeta[safeKey] = { isPrivate: isPrivate, createdAt: Date.now() };
-      localMeta[rawName] = { isPrivate: isPrivate, createdAt: Date.now() };
+      localMeta[safeKey] = metaObj;
+      localMeta[rawName] = metaObj;
       localStorage.setItem("pb_clubs_metadata", JSON.stringify(localMeta));
 
       if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
@@ -8820,44 +8759,18 @@
     }
 
     async function getClubPassword(clubName) {
-      if (!clubName || !clubName.trim()) return null;
-      const safeKey = encodeClubKey(clubName);
-      if (STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey] !== undefined) {
-        return STATE.clubPasswordsMap[safeKey];
-      }
-      if (STATE.db) {
-        try {
-          const snap = await get(ref(STATE.db, `club_passwords/${safeKey}`));
-          const val = snap.exists() ? snap.val() : null;
-          if (!STATE.clubPasswordsMap) STATE.clubPasswordsMap = {};
-          STATE.clubPasswordsMap[safeKey] = val;
-          return val;
-        } catch (e) {
-          console.error("getClubPassword error:", e);
-        }
-      }
-      // Fallback to localStorage
-      const passwords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
-      return passwords[clubName.trim()] || null;
+      // 資安加固：前端全面禁止讀取密碼 Hash，此函式僅回傳該社團是否有密碼保護
+      return typeof hasClubPassword === "function" ? hasClubPassword(clubName) : false;
     }
 
     async function setClubPasswordDB(clubName, password) {
       if (!clubName || !clubName.trim()) return;
       const key = clubName.trim();
       const safeKey = encodeClubKey(clubName);
-      // Hash password before storing (empty string = remove password)
       const hashToStore = password ? await sha256(password) : null;
-      if (!STATE.clubPasswordsMap) STATE.clubPasswordsMap = {};
-      STATE.clubPasswordsMap[safeKey] = hashToStore;
-      // Save to localStorage
-      const passwords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
-      if (hashToStore) {
-        passwords[key] = hashToStore;
-      } else {
-        delete passwords[key];
-      }
-      localStorage.setItem("pb_club_passwords", JSON.stringify(passwords));
-      // Save to Firebase
+      const hasPassword = !!hashToStore;
+
+      // 儲存至 Firebase (club_passwords 僅允許後端讀取，前端無法讀取)
       if (STATE.db) {
         try {
           if (hashToStore) {
@@ -8865,10 +8778,18 @@
           } else {
             await remove(ref(STATE.db, `club_passwords/${safeKey}`));
           }
+          // 同步更新 clubs_metadata 的 hasPassword 標記 (供前端判定鎖頭狀態，不洩漏 Hash)
+          await update(ref(STATE.db, `clubs_metadata/${safeKey}`), { hasPassword });
         } catch (e) {
           console.error("setClubPassword error:", e);
         }
       }
+
+      // 同步本地中繼快取
+      if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
+      if (!STATE.clubsMetadataMap[safeKey]) STATE.clubsMetadataMap[safeKey] = {};
+      STATE.clubsMetadataMap[safeKey].hasPassword = hasPassword;
+      localStorage.setItem("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
     }
 
     async function verifyClubAccess(clubName) {
@@ -8877,9 +8798,29 @@
       const cleanClub = clubName.trim();
       if (STATE.authenticatedClubs.has(cleanClub)) return true;
 
-      // 優先檢查該社團是否有密碼保護：無密碼直接放行
-      const storedHash = await getClubPassword(cleanClub);
-      if (!storedHash) {
+      const safeKey = encodeClubKey(cleanClub);
+      let hasPwd = false;
+      if (STATE.clubsMetadataMap && STATE.clubsMetadataMap[safeKey]) {
+        hasPwd = !!STATE.clubsMetadataMap[safeKey].hasPassword;
+      } else {
+        // 向後端確認該社團是否有密碼保護 (不洩漏 Hash)
+        try {
+          const checkRes = await fetch(`${FUNCTIONS_BASE_URL}/verifyClubPassword`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clubName: cleanClub, checkOnly: true })
+          });
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            hasPwd = !!checkData.hasPassword;
+          }
+        } catch (e) {
+          console.warn("[Auth] Check club password status error:", e);
+        }
+      }
+
+      // 若該社團未設定密碼保護，直接放行
+      if (!hasPwd) {
         STATE.authenticatedClubs.add(cleanClub);
         return true;
       }
@@ -8892,15 +8833,7 @@
         return false;
       }
 
-      // 1. 本地 SHA-256 嚴格即時驗證
-      const inputHash = await sha256(cleanInput);
-      const masterHash = STATE.masterPinHash;
-      if (inputHash === storedHash || (masterHash && inputHash === masterHash)) {
-        STATE.authenticatedClubs.add(cleanClub);
-        return true;
-      }
-
-      // 2. 本地不相符時，向後端 Cloud Function 再次驗證（防止社團密碼已被其他裝置修改）
+      // 密碼比對全面走後端 Cloud Function，前端完全不讀取、不比對、不保存 Hash
       try {
         const res = await fetch(`${FUNCTIONS_BASE_URL}/verifyClubPassword`, {
           method: "POST",
@@ -8909,8 +8842,7 @@
         });
         if (res.ok) {
           const data = await res.json();
-          // 嚴格校驗：必須 valid 為 true 且排除無密碼保護的誤判訊息
-          if (data.valid === true && !data.message) {
+          if (data.valid === true) {
             STATE.authenticatedClubs.add(cleanClub);
             return true;
           }
@@ -9217,11 +9149,13 @@
       });
       localStorage.setItem("pb_tournaments", JSON.stringify(localT));
 
-      // 2. Migrate club password
-      const oldPwd = await getClubPassword(oldName);
-      if (oldPwd) {
-        await setClubPasswordDB(cleanNew, oldPwd);
-        await setClubPasswordDB(oldName, null);
+      // 2. Migrate club password status
+      const hadPwd = hasClubPassword(oldName);
+      if (hadPwd) {
+        const newSafeKey = encodeClubKey(cleanNew);
+        if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
+        if (!STATE.clubsMetadataMap[newSafeKey]) STATE.clubsMetadataMap[newSafeKey] = {};
+        STATE.clubsMetadataMap[newSafeKey].hasPassword = true;
       }
 
       // 3. Migrate club members list

@@ -4,6 +4,7 @@
     ".write": false,
     "tournaments": {
       ".read": true,
+      ".indexOn": ["createdAt"],
       "$tournament_id": {
         ".write": true,
         ".validate": "newData.hasChildren(['id', 'name'])"
@@ -16,7 +17,7 @@
       }
     },
     "club_passwords": {
-      ".read": true,
+      ".read": false,
       "$club_key": {
         ".write": true,
         ".validate": "newData.val() === null || (newData.isString() && newData.val().length === 64)"

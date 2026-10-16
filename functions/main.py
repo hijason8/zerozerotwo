@@ -176,9 +176,10 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
     body = req.get_json(silent=True) or {}
     club_name = (body.get("clubName") or "").strip()
     password = (body.get("password") or "").strip()
+    check_only = bool(body.get("checkOnly", False))
 
-    if not club_name or not password:
-        return https_fn.Response(json.dumps({"valid": False, "error": "缺少參數"}), status=400, mimetype="application/json")
+    if not club_name:
+        return https_fn.Response(json.dumps({"valid": False, "error": "缺少社團名稱"}), status=400, mimetype="application/json")
 
     try:
         safe_key = quote(club_name, safe="").replace(".", "%2E")
@@ -186,12 +187,21 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
         if not stored_hash:
             stored_hash = db.reference(f"/clubs/{safe_key}/password_hash").get()
 
-        if not stored_hash:
-            return https_fn.Response(json.dumps({"valid": False, "error": "社團未設定密碼或不存在"}), status=200, mimetype="application/json")
+        has_password = bool(stored_hash)
+
+        # 僅檢查是否有密碼保護 (不洩漏 Hash)
+        if check_only:
+            return https_fn.Response(json.dumps({"hasPassword": has_password}), status=200, mimetype="application/json")
+
+        if not has_password:
+            return https_fn.Response(json.dumps({"valid": True, "hasPassword": False, "message": "無密碼保護"}), status=200, mimetype="application/json")
+
+        if not password:
+            return https_fn.Response(json.dumps({"valid": False, "hasPassword": True, "error": "請輸入密碼"}), status=200, mimetype="application/json")
 
         input_hash = sha256(password)
         if input_hash == stored_hash:
-            return https_fn.Response(json.dumps({"valid": True}), status=200, mimetype="application/json")
+            return https_fn.Response(json.dumps({"valid": True, "hasPassword": True}), status=200, mimetype="application/json")
 
         # 容錯比對 Master PIN
         master_ref = db.reference("/app_config/master_pin_hash")
@@ -200,9 +210,9 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
             master_hash = db.reference("/admin_config/master_pin_hash").get()
 
         if master_hash and input_hash == master_hash:
-            return https_fn.Response(json.dumps({"valid": True, "byMasterPin": True}), status=200, mimetype="application/json")
+            return https_fn.Response(json.dumps({"valid": True, "byMasterPin": True, "hasPassword": True}), status=200, mimetype="application/json")
 
-        return https_fn.Response(json.dumps({"valid": False}), status=200, mimetype="application/json")
+        return https_fn.Response(json.dumps({"valid": False, "hasPassword": True}), status=200, mimetype="application/json")
     except Exception as err:
         return https_fn.Response(json.dumps({"error": str(err)}), status=500, mimetype="application/json")
 
