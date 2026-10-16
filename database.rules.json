@@ -22,6 +22,12 @@
         ".validate": "newData.val() === null || (newData.isString() && newData.val().length === 64)"
       }
     },
+    "club_mappings": {
+      ".read": true,
+      "$club_key": {
+        ".write": true
+      }
+    },
     "clubs_metadata": {
       ".read": true,
       "$club_key": {

@@ -1136,38 +1136,22 @@
       <!-- 分隔線 -->
       <div class="relative flex py-1 items-center">
         <div class="flex-grow border-t border-stone-300 dark:border-slate-800"></div>
-        <span class="flex-shrink mx-3 text-[11px] sub-text">我是新加入或找不到名字</span>
+        <span class="flex-shrink mx-3 text-[11px] sub-text font-bold">我是新加入的球員</span>
         <div class="flex-grow border-t border-stone-300 dark:border-slate-800"></div>
       </div>
 
-      <!-- 新朋友註冊區塊 -->
-      <div class="space-y-2">
-        <button type="button" id="btn-claim-new-friend-direct" onclick="handleClaimNewFriendDirect()"
-          class="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
-          <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-          <span id="btn-claim-new-friend-text">➕ 我是新朋友 (使用 LINE 暱稱)</span>
-        </button>
-
-        <!-- 自訂名稱切換按鈕 -->
-        <div class="text-center">
-          <button type="button" onclick="toggleCustomClaimNameInput()"
-            class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer inline-flex items-center gap-1">
-            <span>不想用 LINE 暱稱？自行輸入出賽球員姓名</span>
-            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+      <!-- 新朋友直接輸入暱稱與確認綁定按鈕 (不搞二選一) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center gap-2">
+          <input type="text" id="claim-new-player-input" maxlength="10" placeholder="輸入球員姓名 (最多10字)"
+            class="flex-1 input-bg border rounded-xl px-3 py-2.5 text-xs focus:border-emerald-500 focus:outline-none"
+            onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); handleClaimNewPlayerSubmit();}" />
+          <button type="button" onclick="handleClaimNewPlayerSubmit()"
+            class="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs shrink-0 transition active:scale-95 cursor-pointer shadow-sm">
+            確認綁定
           </button>
         </div>
-
-        <!-- 自訂名稱展開輸入框 -->
-        <div id="claim-custom-name-wrap" class="hidden pt-1.5 space-y-2">
-          <div class="flex items-center gap-2">
-            <input type="text" id="claim-custom-name-input" maxlength="12" placeholder="請輸入欲顯示的球員姓名 (上限12字)"
-              class="w-full input-bg border rounded-xl p-2.5 text-xs focus:border-emerald-500 focus:outline-none" />
-            <button type="button" onclick="handleClaimCustomNameSubmit()"
-              class="px-3.5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white dark:text-slate-950 font-bold rounded-xl text-xs shrink-0 transition active:scale-95 cursor-pointer">
-              確定綁定
-            </button>
-          </div>
-        </div>
+        <p class="text-[10px] sub-text px-1">已預先填入您的 LINE 暱稱，可直接確認或修改為習慣的外號 (上限10字)</p>
       </div>
     </div>
   </div>
@@ -3635,13 +3619,20 @@
 
     function saveClubMembersList(clubName, members) {
       const key = clubName || "__general__";
+      const sanitized = Array.from(
+        new Set(
+          (members || [])
+            .map(m => (typeof m === "string" ? m.trim().slice(0, 10) : ""))
+            .filter(Boolean)
+        )
+      );
       const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
-      local[key] = members;
+      local[key] = sanitized;
       localStorage.setItem("pb_club_members", JSON.stringify(local));
 
       if (STATE.db && clubName) {
         try {
-          set(ref(STATE.db, `club_members/${encodeClubKey(clubName)}`), members);
+          set(ref(STATE.db, `club_members/${encodeClubKey(clubName)}`), sanitized);
         } catch (e) {
           console.error("Firebase save club members error:", e);
         }
@@ -3657,34 +3648,34 @@
       if (/[\n\r,，、;；\t]/.test(text)) {
         return text
           .split(/[\n\r,，、;；\t]+/)
-          .map(s => s.replace(/^\d+[\.\、\s\-]+/, "").trim())
-          .filter(s => s.length > 0 && s.length <= 25);
+          .map(s => s.replace(/^\d+[\.\、\s\-]+/, "").trim().slice(0, 10))
+          .filter(s => s.length > 0);
       }
 
       // 2. 若含有序號 (如 "1. 小明 2. 小華" 或 "1.Jason 2.Bob")
       if (/\d+[\.\、\s\-]/.test(text)) {
         return text
           .split(/(?=\d+[\.\、\s\-])/)
-          .map(s => s.replace(/^\d+[\.\、\s\-]+/, "").trim())
-          .filter(s => s.length > 0 && s.length <= 25);
+          .map(s => s.replace(/^\d+[\.\、\s\-]+/, "").trim().slice(0, 10))
+          .filter(s => s.length > 0);
       }
 
       // 3. 空格/全形空白批量分割
       const tokens = text.split(/[\s\u3000]+/).map(s => s.trim()).filter(Boolean);
 
-      // 若恰好為 2 個純英文字詞 (如 "Jason Chu")，視為單一英文全名
+      // 若恰好為 2 個純英文字詞 (如 "Jason Chu")，視為單一英文全名 (上限10字)
       if (tokens.length === 2 && /^[A-Za-z]+$/.test(tokens[0]) && /^[A-Za-z]+$/.test(tokens[1])) {
-        return [text];
+        return [text.slice(0, 10)];
       }
 
-      // 否則所有空格隔開的名字皆作為批量名字處理 (如 "小明 小華 大雄" 或 "Alice Bob Charlie")
-      return tokens.filter(s => s.length <= 25);
+      // 否則所有空格隔開的名字皆作為批量名字處理，每位選手嚴格限制上限10字
+      return tokens.map(s => s.slice(0, 10)).filter(s => s.length > 0);
     }
 
     function getSelectedPlayers() {
       const textarea = document.getElementById("create-players");
       if (!textarea || !textarea.value) return [];
-      return textarea.value.split("\n").map(s => s.trim()).filter(Boolean);
+      return textarea.value.split("\n").map(s => s.trim().slice(0, 10)).filter(Boolean);
     }
 
     const MAX_ROSTER_LIMIT = 60; // 參賽登錄上限：60 組/人
@@ -3697,7 +3688,7 @@
       const isRotating = (partnerType === "rotating");
       const isSingles = (partnerType === "singles");
 
-      let unique = Array.from(new Set((list || []).map(s => s.trim()).filter(Boolean)));
+      let unique = Array.from(new Set((list || []).map(s => s.trim().slice(0, 10)).filter(Boolean)));
       if ((isRotating || isSingles) && unique.length > MAX_ROTATING_PLAYERS) {
         unique = unique.slice(0, MAX_ROTATING_PLAYERS);
         showToast(
@@ -5308,46 +5299,71 @@
 
         const liffBannerEl = document.getElementById("lobby-liff-profile-banner");
         if (liffBannerEl) {
-          if (STATE.lineProfile && STATE.lineProfile.displayName) {
-            const lineName = STATE.lineProfile.displayName;
-            const savedCustom = localStorage.getItem("pb_custom_player_name") || "";
-            const currentRoster = data.players || [];
-            // 比對是否已在名單中 (比對自訂名稱或 LINE 暱稱)
-            const matchedName = currentRoster.find(p => p === savedCustom || p === lineName);
-            const isJoined = !!matchedName;
+          // 若沒有登入 LINE 的情境，直接隱藏
+          if (!STATE.lineUserId || !STATE.lineProfile) {
+            liffBannerEl.classList.add("hidden");
+          } else {
+            liffBannerEl.classList.remove("hidden");
+            const clubName = data.clubName || STATE.currentClub || "";
+            let boundName = clubName ? localStorage.getItem(`pb_bound_name_${clubName}`) : null;
+            if (!boundName) {
+              boundName = STATE.clubPlayerName || localStorage.getItem("pb_my_player_name") || null;
+            }
+            if (boundName && boundName.length > 10) {
+              boundName = boundName.slice(0, 10);
+            }
+
+            const currentRoster = Array.isArray(data.players) ? data.players : [];
+            const isJoined = boundName ? currentRoster.includes(boundName) : false;
+
             const avatarHtml = STATE.lineProfile.pictureUrl
               ? `<img src="${STATE.lineProfile.pictureUrl}" class="w-6 h-6 rounded-full object-cover border border-emerald-500/50 shadow-sm shrink-0" />`
               : `<span class="w-6 h-6 rounded-full bg-[#06C755] text-white flex items-center justify-center text-[10px] font-bold shrink-0">L</span>`;
 
-            liffBannerEl.classList.remove("hidden");
             if (isJoined) {
+              // 情境 1: 已在參賽名單中
               liffBannerEl.innerHTML = `
                 <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold gap-2">
                   <div class="flex items-center gap-2 min-w-0">
                     ${avatarHtml}
-                    <span class="truncate">${isZh ? `已以「${escapeHTML(matchedName)}」報名` : `Joined as "${escapeHTML(matchedName)}"`}</span>
+                    <span class="truncate">${isZh ? `已以「${escapeHTML(boundName)}」報名簽到` : `Joined as "${escapeHTML(boundName)}"`}</span>
                   </div>
-                  <button type="button" onclick="unregisterPlayerFromTournament('${escapeHTML(matchedName)}')"
+                  <button type="button" onclick="unregisterPlayerFromTournament('${escapeHTML(boundName)}')"
                     class="text-[10px] sm:text-xs px-2.5 py-1 rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold transition shrink-0 cursor-pointer">
                     ${isZh ? "取消報名" : "Withdraw"}
                   </button>
                 </div>
               `;
-            } else {
-              const btnText = savedCustom
-                ? (isZh ? `⚡ 以「${escapeHTML(savedCustom)}」報名簽到 (點擊可修改名稱)` : `⚡ Sign Up as "${escapeHTML(savedCustom)}" (Editable)`)
-                : (isZh ? `⚡ LINE 快速報名簽到 (自訂選手暱稱)` : `⚡ Sign Up (Set Display Name)`);
-
+            } else if (boundName) {
+              // 情境 2: 已綁定身分，顯示高質感一鍵報名簽到按鈕與更換身分按鈕
               liffBannerEl.innerHTML = `
-                <button type="button" onclick="promptCustomPlayerNameAndRegister()"
-                  class="w-full py-2.5 px-3 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95 cursor-pointer">
-                  ${avatarHtml}
-                  <span class="truncate">${btnText}</span>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="registerPlayerToTournament('${escapeHTML(boundName)}')"
+                    class="flex-1 py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95 cursor-pointer">
+                    ${avatarHtml}
+                    <span class="truncate">${isZh ? `➕ 以「${escapeHTML(boundName)}」報名簽到` : `➕ Join as "${escapeHTML(boundName)}"`}</span>
+                  </button>
+                  <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeHTML(clubName)}')" title="${isZh ? "更換出賽身分" : "Change Identity"}"
+                    class="p-2.5 rounded-xl border border-stone-300 dark:border-slate-700 hover:border-emerald-500 text-stone-600 dark:text-stone-300 text-xs transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0">
+                    <i data-lucide="user-cog" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              `;
+            } else {
+              // 情境 3: 尚未綁定身分，顯示社團大廳風格的認領按鈕，引導先完成認領
+              liffBannerEl.innerHTML = `
+                <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeHTML(clubName)}')"
+                  class="w-full py-2.5 px-3.5 rounded-xl card-inner border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold transition flex items-center justify-between gap-2 shadow-sm active:scale-95 cursor-pointer">
+                  <div class="flex items-center gap-2 min-w-0">
+                    ${avatarHtml}
+                    <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Identity Not Bound. Tap to Claim"}</span>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-bold shrink-0">
+                    ${isZh ? "前往認領" : "Claim"}
+                  </span>
                 </button>
               `;
             }
-          } else {
-            liffBannerEl.classList.add("hidden");
           }
         }
 
@@ -5372,6 +5388,14 @@
       lucide.createIcons();
     }
 
+    function handleLobbyClaimIdentityClick(clubName) {
+      const targetClub = clubName || STATE.currentClub || (STATE.tournamentData && STATE.tournamentData.clubName) || "";
+      if (typeof showClubIdentityClaimModal === "function") {
+        showClubIdentityClaimModal(targetClub);
+      }
+    }
+    window.handleLobbyClaimIdentityClick = handleLobbyClaimIdentityClick;
+
     // ----------------------------------------------------
     // REGISTRATION LOBBY ACTIONS & CHECK-IN CONTROLLERS
     // ----------------------------------------------------
@@ -5383,10 +5407,13 @@
         return;
       }
 
-      const name = (playerName || "").trim();
+      let name = (playerName || "").trim();
       if (!name) {
         showToast(STATE.lang === "zh-TW" ? "請輸入選手姓名！" : "Please enter player name!", "warning");
         return;
+      }
+      if (name.length > 10) {
+        name = name.slice(0, 10);
       }
 
       const currentPlayers = Array.isArray(tData.players) ? [...tData.players] : [];
@@ -5430,7 +5457,7 @@
         return;
       }
 
-      const name = (playerName || "").trim();
+      let name = (playerName || "").trim();
       if (!confirm(STATE.lang === "zh-TW" ? `確定將「${name}」自報名名單中移除嗎？` : `Remove "${name}" from registration?`)) return;
 
       const currentPlayers = (tData.players || []).filter(p => p !== name);
@@ -5452,19 +5479,22 @@
     async function promptCustomPlayerNameAndRegister() {
       const isZh = STATE.lang === "zh-TW";
       const savedCustom = localStorage.getItem("pb_custom_player_name") || "";
-      const defaultSuggest = savedCustom || (STATE.lineProfile && STATE.lineProfile.displayName) || "";
+      const defaultSuggest = (savedCustom || (STATE.lineProfile && STATE.lineProfile.displayName) || "").slice(0, 10);
 
       const promptMsg = isZh
-        ? "請輸入您在球局中要顯示的選手暱稱 (自訂打球外號，避免同名衝突)："
-        : "Enter your tournament player display name:";
+        ? "請輸入您在球局中要顯示的選手暱稱 (上限10字)："
+        : "Enter your tournament player display name (max 10 chars):";
 
       const entered = prompt(promptMsg, defaultSuggest);
       if (entered === null) return;
 
-      const clean = entered.trim();
+      let clean = entered.trim();
       if (!clean) {
         showToast(isZh ? "選手名稱不得為空！" : "Player name cannot be empty!", "warning");
         return;
+      }
+      if (clean.length > 10) {
+        clean = clean.slice(0, 10);
       }
 
       try {
@@ -5489,7 +5519,7 @@
         return;
       }
 
-      const names = raw.split(/[\n,，\s]+/).map(s => s.trim()).filter(Boolean);
+      const names = raw.split(/[\n,，\s]+/).map(s => s.trim().slice(0, 10)).filter(Boolean);
       if (input) input.value = "";
 
       for (const name of names) {
@@ -6782,12 +6812,15 @@
       const isZh = (STATE.lang === "zh-TW");
 
       const promptMsg = isTeam
-        ? (isZh ? "➕ 請輸入新加入隊伍名稱：" : "➕ Enter new team name:")
-        : (isZh ? "➕ 請輸入新加入選手姓名：" : "➕ Enter new player name:");
+        ? (isZh ? "➕ 請輸入新加入隊伍名稱 (上限10字)：" : "➕ Enter new team name (max 10 chars):")
+        : (isZh ? "➕ 請輸入新加入選手姓名 (上限10字)：" : "➕ Enter new player name (max 10 chars):");
 
       const name = prompt(promptMsg);
       if (!name || !name.trim()) return;
-      const cleanName = name.trim();
+      let cleanName = name.trim();
+      if (cleanName.length > 10) {
+        cleanName = cleanName.slice(0, 10);
+      }
 
       if (!tData.players) tData.players = [];
 
@@ -7833,34 +7866,27 @@
     window.checkAndPromptClubIdentityClaim = checkAndPromptClubIdentityClaim;
 
     async function showClubIdentityClaimModal(clubName, mappings = {}) {
-      _activeClaimClub = clubName;
+      const effectiveClub = (clubName && clubName.trim()) ? clubName.trim() : (STATE.currentClub || "球友大會");
+      _activeClaimClub = effectiveClub;
       _activeClaimMappings = mappings;
 
       const modal = document.getElementById("modal-club-claim-identity");
       const titleEl = document.getElementById("claim-modal-club-title");
       const countEl = document.getElementById("claim-available-count");
       const containerEl = document.getElementById("claim-members-container");
-      const newFriendBtnText = document.getElementById("btn-claim-new-friend-text");
-      const customWrap = document.getElementById("claim-custom-name-wrap");
-      const customInput = document.getElementById("claim-custom-name-input");
+      const newPlayerInput = document.getElementById("claim-new-player-input");
 
       if (!modal) return;
-      if (customWrap) customWrap.classList.add("hidden");
 
-      if (titleEl) titleEl.innerText = `【${clubName}】球員身分對照`;
+      if (titleEl) titleEl.innerText = `【${effectiveClub}】球員身分對照`;
 
-      // 預設 LINE 暱稱
+      // 預設填入 LINE 暱稱 (上限10字)
       const lineName = (STATE.lineProfile && STATE.lineProfile.displayName)
         ? STATE.lineProfile.displayName.trim()
         : (localStorage.getItem("pb_my_player_name") || "").trim();
 
-      if (newFriendBtnText) {
-        newFriendBtnText.innerText = lineName
-          ? `➕ 我是新朋友 (使用 LINE 暱稱：${lineName})`
-          : `➕ 我是新朋友 (建立新球員身分)`;
-      }
-      if (customInput) {
-        customInput.value = lineName;
+      if (newPlayerInput) {
+        newPlayerInput.value = lineName ? lineName.slice(0, 10) : "";
       }
 
       // 1. 取得該社團所有成員清單 (合併 Firebase 與歷史賽事)
@@ -7891,7 +7917,7 @@
         if (availableNames.length === 0) {
           containerEl.innerHTML = `
             <div class="w-full py-3 text-center text-xs sub-text">
-              目前名冊中的球員已全數認領或為全新社團，請點選下方<strong>「我是新朋友」</strong>出賽！
+              目前名冊中的球員已全數認領或為全新社團，請在下方輸入暱稱完成確認綁定！
             </div>
           `;
         } else {
@@ -7919,52 +7945,33 @@
     }
     window.closeClubIdentityClaimModal = closeClubIdentityClaimModal;
 
-    function toggleCustomClaimNameInput() {
-      const wrap = document.getElementById("claim-custom-name-wrap");
-      const input = document.getElementById("claim-custom-name-input");
-      if (!wrap) return;
-      wrap.classList.toggle("hidden");
-      if (!wrap.classList.contains("hidden") && input) {
-        input.focus();
-      }
-    }
-    window.toggleCustomClaimNameInput = toggleCustomClaimNameInput;
-
-    async function handleClaimNewFriendDirect() {
-      const lineName = (STATE.lineProfile && STATE.lineProfile.displayName)
-        ? STATE.lineProfile.displayName.trim()
-        : (localStorage.getItem("pb_my_player_name") || "").trim();
-
-      if (!lineName) {
-        toggleCustomClaimNameInput();
-        return;
-      }
-      await executeClaimBinding(lineName, true);
-    }
-    window.handleClaimNewFriendDirect = handleClaimNewFriendDirect;
-
-    async function handleClaimCustomNameSubmit() {
-      const input = document.getElementById("claim-custom-name-input");
-      const name = input ? input.value.trim() : "";
+    async function handleClaimNewPlayerSubmit() {
+      const input = document.getElementById("claim-new-player-input");
+      let name = input ? input.value.trim() : "";
       if (!name) {
         showToast("請輸入欲顯示的球員姓名！", "warning");
         if (input) input.focus();
         return;
       }
+      if (name.length > 10) {
+        name = name.slice(0, 10);
+      }
       await executeClaimBinding(name, true);
     }
-    window.handleClaimCustomNameSubmit = handleClaimCustomNameSubmit;
+    window.handleClaimNewPlayerSubmit = handleClaimNewPlayerSubmit;
 
     async function confirmClaimIdentity(name) {
       if (!name || !name.trim()) return;
+      let clean = name.trim();
+      if (clean.length > 10) clean = clean.slice(0, 10);
       const clubName = _activeClaimClub || STATE.currentClub;
       const isZh = STATE.lang === "zh-TW";
       const confirmMsg = isZh
-        ? `確定要將「${name}」認領為您在【${clubName}】的專屬球員身分嗎？\n(認領後歷史與未來戰績將直接連結至您的 LINE)`
-        : `Claim "${name}" as your identity in "${clubName}"?`;
+        ? `確定要將「${clean}」認領為您在【${clubName}】的專屬球員身分嗎？\n(認領後歷史與未來戰績將直接連結至您的 LINE)`
+        : `Claim "${clean}" as your identity in "${clubName}"?`;
 
       if (!confirm(confirmMsg)) return;
-      await executeClaimBinding(name.trim(), false);
+      await executeClaimBinding(clean, false);
     }
     window.confirmClaimIdentity = confirmClaimIdentity;
 
@@ -7972,14 +7979,13 @@
       const clubName = _activeClaimClub || STATE.currentClub;
       if (!clubName || !STATE.lineUserId) return;
 
-      const cleanName = chosenName.trim();
+      let cleanName = chosenName.trim();
       if (!cleanName) {
         showToast("姓名不可為空！", "warning");
         return;
       }
-      if (cleanName.length > 12) {
-        showToast("球員姓名不可超過 12 個字！", "warning");
-        return;
+      if (cleanName.length > 10) {
+        cleanName = cleanName.slice(0, 10);
       }
 
       const safeClub = encodeClubKey(clubName);
@@ -7988,22 +7994,32 @@
         // 1. 寫入 /club_mappings/{safeClub}/{lineUserId} = cleanName
         // 2. 寫入 /users/{lineUserId}/myClubs/{safeClub} = true
         if (STATE.db) {
-          const updates = {};
-          updates[`club_mappings/${safeClub}/${STATE.lineUserId}`] = cleanName;
-          updates[`users/${STATE.lineUserId}/myClubs/${safeClub}`] = true;
-          await update(ref(STATE.db), updates);
+          try {
+            await set(ref(STATE.db, `club_mappings/${safeClub}/${STATE.lineUserId}`), cleanName);
+          } catch (e) {
+            console.warn("[Club Identity] club_mappings write warning:", e);
+          }
+          try {
+            await set(ref(STATE.db, `users/${STATE.lineUserId}/myClubs/${safeClub}`), true);
+          } catch (e) {
+            console.warn("[Club Identity] users myClubs write warning:", e);
+          }
 
           // 3. 如果是新朋友，順便把他的名字 push 進 club_members 陣列裡
           if (isNewFriend) {
             let currentMembers = getClubMembersList(clubName) || [];
-            const snap = await get(ref(STATE.db, `club_members/${safeClub}`));
-            if (snap.exists() && Array.isArray(snap.val())) {
-              currentMembers = Array.from(new Set([...currentMembers, ...snap.val()]));
-            }
-            if (!currentMembers.includes(cleanName)) {
-              currentMembers.push(cleanName);
-              saveClubMembersList(clubName, currentMembers);
-              await set(ref(STATE.db, `club_members/${safeClub}`), currentMembers);
+            try {
+              const snap = await get(ref(STATE.db, `club_members/${safeClub}`));
+              if (snap.exists() && Array.isArray(snap.val())) {
+                currentMembers = Array.from(new Set([...currentMembers, ...snap.val()]));
+              }
+              if (!currentMembers.includes(cleanName)) {
+                currentMembers.push(cleanName);
+                saveClubMembersList(clubName, currentMembers);
+                await set(ref(STATE.db, `club_members/${safeClub}`), currentMembers);
+              }
+            } catch (e) {
+              console.warn("[Club Identity] club_members write warning:", e);
             }
           }
         }
@@ -8030,12 +8046,24 @@
         showToast(`✅ 身分綁定成功！歡迎【${cleanName}】！`, "success");
 
         // 5. 繼續原本的頁面渲染流程
-        if (typeof renderHistoryCategorized === "function") {
+        if (STATE.currentPage === "live" && STATE.tournamentData) {
+          renderLiveUI(STATE.tournamentData);
+        } else if (typeof renderHistoryCategorized === "function") {
           renderHistoryCategorized(STATE.allTournamentsCache || []);
         }
       } catch (err) {
         console.error("[Club Identity] executeClaimBinding error:", err);
-        showToast("身分綁定失敗，請稍後再試！", "error");
+        // 本地保底成功
+        STATE.clubPlayerName = cleanName;
+        localStorage.setItem(`pb_bound_name_${clubName}`, cleanName);
+        closeClubIdentityClaimModal();
+        if (typeof updateClubIdentityBadge === "function") {
+          updateClubIdentityBadge(clubName);
+        }
+        showToast(`✅ 身分綁定完成！歡迎【${cleanName}】！`, "success");
+        if (STATE.currentPage === "live" && STATE.tournamentData) {
+          renderLiveUI(STATE.tournamentData);
+        }
       }
     }
     window.executeClaimBinding = executeClaimBinding;
@@ -9665,6 +9693,110 @@
     window.addEventListener("popstate", () => {
       initRouting();
     });
+
+    // ----------------------------------------------------
+    // EDGE SWIPE RIGHT TO GO BACK / CLOSE MODAL
+    // 螢幕左邊緣向右滑動返回上一頁或關閉彈窗
+    // ----------------------------------------------------
+    (function initEdgeSwipeBack() {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchStartTime = 0;
+      let isEdgeSwipe = false;
+
+      window.addEventListener("touchstart", (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchStartTime = Date.now();
+        // 限制在螢幕左側 90px 邊緣觸發
+        isEdgeSwipe = touchStartX <= 90;
+      }, { passive: true });
+
+      window.addEventListener("touchend", (e) => {
+        if (!isEdgeSwipe || !e.changedTouches || e.changedTouches.length !== 1) {
+          isEdgeSwipe = false;
+          return;
+        }
+        const touch = e.changedTouches[0];
+        const diffX = touch.clientX - touchStartX;
+        const diffY = touch.clientY - touchStartY;
+        const duration = Date.now() - touchStartTime;
+
+        isEdgeSwipe = false;
+
+        // 向右滑動大於 60px，水平位移明顯大於垂直位移 1.3 倍，且時間小於 600ms
+        if (diffX > 60 && Math.abs(diffX) > Math.abs(diffY) * 1.3 && duration < 600) {
+          handleEdgeSwipeBack();
+        }
+      }, { passive: true });
+
+      function handleEdgeSwipeBack() {
+        // 1. 先關閉打開中的 Modal 彈窗
+        const modalConfigs = [
+          { id: "modal-club-claim-identity", closeFn: window.closeClubIdentityClaimModal },
+          { id: "modal-bracket-fullscreen", closeFn: window.closeFullscreenBracketModal },
+          { id: "modal-export", closeFn: window.closeExportModal },
+          { id: "modal-share", closeFn: window.closeShareModal },
+          { id: "modal-create-club", closeFn: window.closeCreateClubModal },
+          { id: "modal-explore-clubs", closeFn: window.closeExploreClubsModal },
+          { id: "modal-quick-code", closeFn: window.closeQuickCodeModal },
+          { id: "modal-edit-duration", closeFn: window.closeEditDurationModal },
+          { id: "modal-line-bind", closeFn: window.closeLineBindModal }
+        ];
+
+        for (const item of modalConfigs) {
+          const el = document.getElementById(item.id);
+          if (el && !el.classList.contains("hidden")) {
+            if (typeof item.closeFn === "function") {
+              item.closeFn();
+              if (navigator.vibrate) navigator.vibrate(10);
+              return;
+            }
+          }
+        }
+
+        // 2. 尋找是否有其他全螢幕彈窗未關閉
+        const anyModal = document.querySelector(".fixed.inset-0:not(.hidden)");
+        if (anyModal && anyModal.id) {
+          const closeBtn = anyModal.querySelector("button[onclick*='close'], button[onclick*='Close']");
+          if (closeBtn) {
+            closeBtn.click();
+            if (navigator.vibrate) navigator.vibrate(10);
+            return;
+          }
+        }
+
+        // 3. 頁面導航返回
+        if (navigator.vibrate) navigator.vibrate(12);
+
+        if (STATE.currentPage === "live") {
+          // 即時對戰 / 報名大廳：返回所屬社團或賽事大廳
+          if (STATE.currentClub) {
+            navigateTo("history");
+          } else {
+            navigateTo("hub");
+          }
+        } else if (STATE.currentPage === "create") {
+          // 排賽建立頁：返回大廳
+          navigateTo("hub");
+        } else if (STATE.currentPage === "history") {
+          // 社團大廳：如果有歷史紀錄優先 back，否則回 hub
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            navigateTo("hub");
+          }
+        } else if (STATE.currentPage === "admin") {
+          navigateTo("history");
+        } else {
+          if (window.history.length > 1) {
+            window.history.back();
+          }
+        }
+      }
+    })();
   </script>
 </body>
 
