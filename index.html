@@ -1025,13 +1025,13 @@
       <div class="p-3.5 rounded-2xl card-inner border flex flex-col items-center justify-center text-center space-y-2.5">
         <div class="p-2 bg-white rounded-xl shadow-sm border border-stone-200">
           <img id="line-oa-qr-img"
-            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40zerozerotwo"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40451lupmp"
             alt="ZZTWO-LINE QR Code"
             class="w-36 h-36 object-contain" />
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-mono font-bold bg-[#06C755]/10 text-[#06C755] px-2.5 py-1 rounded-lg border border-[#06C755]/30">
-            ID: <span id="line-oa-id-display">@zerozerotwo</span>
+            ID: <span id="line-oa-id-display">@451lupmp</span>
           </span>
           <button type="button" onclick="copyLineOAId()"
             class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold transition flex items-center gap-1 active:scale-95 cursor-pointer"
@@ -1827,8 +1827,8 @@
     window.LIFF_URL = LIFF_URL;
 
     // LINE 官方帳號 (LINE Official Account) 設定
-    const LINE_OA_URL = "https://line.me/R/ti/p/@zerozerotwo";
-    const LINE_OA_ID = "@zerozerotwo";
+    const LINE_OA_URL = "https://line.me/R/ti/p/@451lupmp";
+    const LINE_OA_ID = "@451lupmp";
     window.LINE_OA_URL = LINE_OA_URL;
     window.LINE_OA_ID = LINE_OA_ID;
 
@@ -4366,8 +4366,8 @@
     function openLineOAModal() {
       const modal = document.getElementById("modal-line-oa");
       if (!modal) return;
-      const oaUrl = window.LINE_OA_URL || "https://line.me/R/ti/p/@zerozerotwo";
-      const oaId = window.LINE_OA_ID || "@zerozerotwo";
+      const oaUrl = window.LINE_OA_URL || "https://line.me/R/ti/p/@451lupmp";
+      const oaId = window.LINE_OA_ID || "@451lupmp";
       const qrImg = document.getElementById("line-oa-qr-img");
       const idDisplay = document.getElementById("line-oa-id-display");
       if (qrImg) {
@@ -4389,7 +4389,7 @@
     window.closeLineOAModal = closeLineOAModal;
 
     function openLineOAUrl() {
-      const oaUrl = window.LINE_OA_URL || "https://line.me/R/ti/p/@zerozerotwo";
+      const oaUrl = window.LINE_OA_URL || "https://line.me/R/ti/p/@451lupmp";
       if (window.liff && typeof liff.isInClient === "function" && liff.isInClient()) {
         liff.openWindow({ url: oaUrl, external: false });
       } else {
@@ -4399,7 +4399,7 @@
     window.openLineOAUrl = openLineOAUrl;
 
     function copyLineOAId() {
-      const oaId = window.LINE_OA_ID || "@zerozerotwo";
+      const oaId = window.LINE_OA_ID || "@451lupmp";
       const isZh = (STATE.lang === "zh-TW");
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(oaId).then(() => {
