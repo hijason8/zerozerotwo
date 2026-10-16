@@ -169,17 +169,14 @@
     <!-- ==================== SHARED LOBBY HEADER (大廳 / 社團共用頂部工具列) ==================== -->
     <div id="lobby-shared-header"
       class="flex items-center justify-between gap-1 sm:gap-2 border-b border-stone-300 dark:border-slate-800 pb-2 mb-3 sm:mb-6 text-left">
-      <!-- 賽事大廳 / 社團 下拉切換按鈕 (大氣字體、自訂全寬面板杜絕斷行與留白) -->
+      <!-- 賽事大廳 / 社團 下拉切換選單 (位置與字體圖案在全站大廳與各社團絕對一致) -->
       <div class="relative flex items-center min-w-0 flex-1 sm:flex-initial">
-        <button type="button" id="hub-club-selector-btn" onclick="openClubSelectorSheet()"
-          class="flex items-center gap-1.5 font-display font-black text-xl sm:text-2xl text-stone-900 dark:text-white hover:opacity-80 transition cursor-pointer text-left min-w-0 py-0.5">
-          <span id="hub-club-selector-label" class="truncate max-w-[190px] xs:max-w-[240px] sm:max-w-md">賽事大廳</span>
-          <i data-lucide="chevron-down" class="w-5 h-5 text-stone-900 dark:text-stone-100 shrink-0"></i>
-        </button>
-        <!-- 保持隱藏 select 相容舊邏輯與查詢 -->
-        <select id="hub-club-selector" class="hidden">
+        <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
+          class="appearance-none font-display font-black text-lg sm:text-2xl bg-transparent border-0 pl-0 pr-6 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition truncate max-w-full sm:max-w-md">
           <option value="" selected>賽事大廳</option>
         </select>
+        <i data-lucide="chevron-down"
+          class="w-5 h-5 text-stone-900 dark:text-stone-100 absolute right-0 sm:right-1 pointer-events-none shrink-0 transition-transform"></i>
       </div>
 
       <!-- 右側動作按鈕組 (建立新賽事 + 分享社團 + 取消常用) -->
@@ -315,12 +312,10 @@
         <div id="wrap-create-club">
           <label id="t-label-club" class="block text-xs sm:text-sm font-semibold mb-1">2. 所屬社團 / 球團 (選填)</label>
           <div class="space-y-2">
-            <button type="button" onclick="openClubSelectorSheet('create')" id="create-club-picker-btn"
-              class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm flex items-center justify-between text-left cursor-pointer hover:border-emerald-500 transition active:scale-[0.99]">
-              <span id="create-club-picker-label" class="truncate font-medium text-stone-700 dark:text-stone-300">-- 臨打球局 (不綁定社團) --</span>
-              <i data-lucide="chevron-down" class="w-4 h-4 text-stone-400 shrink-0"></i>
-            </button>
-            <input type="hidden" id="create-club-select" value="" />
+            <select id="create-club-select" onchange="onClubSelectChange()"
+              class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none">
+              <option value="">-- 臨打球局 --</option>
+            </select>
           </div>
         </div>
 
@@ -492,30 +487,8 @@
         </div>
         <input type="hidden" id="create-selected-total-games" value="" />
 
-        <!-- 6. Privacy Setting (球局隱私設定) -->
-        <div id="wrap-create-privacy" class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5" id="t-label-privacy">
-              <i data-lucide="shield" class="w-4 h-4 text-emerald-500"></i>
-              <span>6. 球局隱私設定</span>
-            </label>
-            <span
-              class="text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold sub-text border border-stone-200 dark:border-slate-800"
-              id="badge-privacy-status">公開 (預設)</span>
-          </div>
-
-          <button type="button" id="btn-privacy-private" onclick="toggleCreatePrivacy()"
-            class="mode-btn-inactive w-full py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-between hover-lift active:scale-95 shadow-sm text-left">
-            <div class="flex items-center gap-2">
-              <i data-lucide="lock" class="w-3.5 h-3.5 shrink-0"></i>
-              <span class="text-xs sm:text-sm font-display font-bold" id="t-privacy-private-title">設為私密球局</span>
-            </div>
-            <span class="text-[10.5px] opacity-75 font-normal" id="t-privacy-private-desc">
-              僅持專屬連結可進入，不在公開列表顯示
-            </span>
-          </button>
-          <input type="hidden" id="create-is-private" value="false" />
-        </div>
+        <!-- Tournament Privacy hidden input (defaults to false, club controls its own privacy) -->
+        <input type="hidden" id="create-is-private" value="false" />
 
         <!-- Action Buttons: 立即開打 (翡翠綠) VS 建立報名 (冷杉青綠) -->
         <div class="grid grid-cols-2 gap-2 sm:gap-3 pt-3">
@@ -1089,37 +1062,7 @@
     </div>
   </div>
 
-  <!-- ==================== CLUB SELECTOR SHEET MODAL (滿版無斷行社團切換選單) ==================== -->
-  <div id="modal-club-selector-sheet" onclick="if(event.target === this) closeClubSelectorSheet()"
-    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="glass-card rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-5 space-y-3.5 border relative shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-      <div class="flex items-center justify-between border-b pb-2.5">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <i data-lucide="layout-grid" class="w-4 h-4"></i>
-          </div>
-          <h3 id="t-club-sheet-title" class="text-base font-bold font-display">切換賽事社團</h3>
-        </div>
-        <button onclick="closeClubSelectorSheet()" class="p-1.5 sub-text hover:text-emerald-500 cursor-pointer">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
 
-      <!-- 社團清單容器 (滿版單行不折行) -->
-      <div id="club-sheet-list" class="max-h-[60vh] overflow-y-auto space-y-3 pr-1">
-        <!-- 動態渲染 -->
-      </div>
-
-      <!-- 底部按鈕：建立新社團 -->
-      <div class="border-t pt-3">
-        <button type="button" onclick="closeClubSelectorSheet(); openCreateClubModal();"
-          class="w-full py-2.5 px-4 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer text-emerald-600 dark:text-emerald-400">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i>
-          <span id="t-sheet-create-club-btn">➕ 建立新社團...</span>
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- ==================== CLUB CREATED CREDENTIAL MODAL (社團建立憑證與 QR CODE) ==================== -->
   <div id="modal-club-created-credential"
@@ -2034,6 +1977,20 @@
             checkAndPromptClubIdentityClaim(STATE.currentClub);
           }
         } else {
+          // 在 LINE App 客戶端內部，未登入時自動呼叫 liff.login() 進行無縫認證
+          if (liff.isInClient()) {
+            console.info("[LIFF] In LINE client but not logged in, auto calling liff.login()...");
+            liff.login();
+            return;
+          }
+          // 在外部瀏覽器，若網址帶有 code 或 liff.state，嘗試呼叫 liff.login() 解析授權
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.has("code") || urlParams.has("liffClientId") || urlParams.has("liff.state")) {
+            console.info("[LIFF] Redirect params detected, calling liff.login()...");
+            liff.login();
+            return;
+          }
+
           STATE.lineUserId = null;
           STATE.lineProfile = null;
           console.info("[LIFF] Not logged in, running in guest/fallback mode.");
@@ -2300,18 +2257,7 @@
       const quickCodeBtnEl = document.getElementById("t-quick-code-btn");
       if (quickCodeBtnEl) quickCodeBtnEl.innerText = t("quickCodeBtn");
 
-      const labelPrivacyEl = document.getElementById("t-label-privacy");
-      if (labelPrivacyEl) labelPrivacyEl.innerHTML = `<i data-lucide="shield" class="w-4 h-4 text-emerald-500"></i> <span>${t("labelPrivacy")}</span>`;
-      const privPrivateTitleEl = document.getElementById("t-privacy-private-title");
-      if (privPrivateTitleEl) privPrivateTitleEl.innerText = t("privacyPrivateTitle");
-      const privPrivateDescEl = document.getElementById("t-privacy-private-desc");
-      if (privPrivateDescEl) privPrivateDescEl.innerText = t("privacyPrivateDesc");
-      const privPublicTitleEl = document.getElementById("t-privacy-public-title");
-      if (privPublicTitleEl) privPublicTitleEl.innerText = t("privacyPublicTitle");
-      const privPublicDescEl = document.getElementById("t-privacy-public-desc");
-      if (privPublicDescEl) privPublicDescEl.innerText = t("privacyPublicDesc");
-      const isPrivateVal = document.getElementById("create-is-private")?.value === "true";
-      setCreatePrivacy(isPrivateVal);
+
 
       const createNewBtnTextEl = document.getElementById("t-create-new-btn-text");
       if (createNewBtnTextEl) createNewBtnTextEl.innerText = t("createNewBtn");
@@ -2379,6 +2325,16 @@
       if (modalCreateClubDesc) modalCreateClubDesc.innerText = t("createClubModalDesc");
       const modalClubNameLabel = document.getElementById("t-label-modal-club-name");
       if (modalClubNameLabel) modalClubNameLabel.innerHTML = `${t("labelModalClubName")} <span class="text-rose-500">*</span>`;
+      const modalClubPrivacyLabel = document.getElementById("t-label-modal-club-privacy");
+      if (modalClubPrivacyLabel) modalClubPrivacyLabel.innerText = t("labelModalClubPrivacy");
+      const modalClubPublicTitle = document.getElementById("t-modal-club-public-title");
+      if (modalClubPublicTitle) modalClubPublicTitle.innerText = t("modalClubPublicTitle");
+      const modalClubPublicDesc = document.getElementById("t-modal-club-public-desc");
+      if (modalClubPublicDesc) modalClubPublicDesc.innerText = t("modalClubPublicDesc");
+      const modalClubPrivateTitle = document.getElementById("t-modal-club-private-title");
+      if (modalClubPrivateTitle) modalClubPrivateTitle.innerText = t("modalClubPrivateTitle");
+      const modalClubPrivateDesc = document.getElementById("t-modal-club-private-desc");
+      if (modalClubPrivateDesc) modalClubPrivateDesc.innerText = t("modalClubPrivateDesc");
       const modalClubPwdLabel = document.getElementById("t-label-modal-club-pwd");
       if (modalClubPwdLabel) modalClubPwdLabel.innerText = t("labelModalClubPwd");
       const modalClubPwdHint = document.getElementById("t-modal-club-pwd-hint");
@@ -2621,6 +2577,14 @@
           STATE.firebaseApp = getApp();
         }
         STATE.db = getDatabase(STATE.firebaseApp);
+
+        // Firebase RTDB 就緒後，主動依目前所在頁面立即觸發載入，絕不在初次進入時卡住停滯
+        if (STATE.currentPage === "hub") {
+          renderHubTournaments();
+        } else if (STATE.currentPage === "history") {
+          renderHistoryPage();
+        }
+
         const connectedRef = ref(STATE.db, ".info/connected");
         onValue(connectedRef, (snap) => {
           const isOnline = snap.val() === true;
@@ -3675,11 +3639,10 @@
 
     function setupCreateFormContext(clubName) {
       const wrapClub = document.getElementById("wrap-create-club");
-      const wrapPrivacy = document.getElementById("wrap-create-privacy");
       const nameInput = document.getElementById("create-name");
 
       if (clubName) {
-        // 社團模式：直接鎖定為當前社團，隱藏隱私開關
+        // 社團模式：直接鎖定為當前社團
         if (wrapClub) {
           wrapClub.innerHTML = `
             <div class="flex items-center justify-between mb-1">
@@ -3698,9 +3661,6 @@
             </select>
           `;
         }
-        if (wrapPrivacy) wrapPrivacy.classList.add("hidden");
-        const isPrivateInput = document.getElementById("create-is-private");
-        if (isPrivateInput) isPrivateInput.value = "false";
 
         if (nameInput && !nameInput.value.trim()) {
           const today = new Date();
@@ -3708,7 +3668,7 @@
           nameInput.value = `${clubName} ${dStr} 球局`;
         }
       } else {
-        // 臨打模式：顯示社團選單（嚴格遵循 B 類分組：我的社團 + 探索公開社團，絕不暴露私密社團）
+        // 臨打模式：顯示社團選單（我的社團 + 探索公開社團）
         if (wrapClub) {
           const uniqueClubs = getAllUniqueClubs();
           const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
@@ -3750,17 +3710,13 @@
           wrapClub.innerHTML = `
             <label id="t-label-club" class="block text-xs sm:text-sm font-semibold mb-1">${t("labelClub")}</label>
             <div class="space-y-2">
-              <button type="button" onclick="openClubSelectorSheet('create')" id="create-club-picker-btn"
-                class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm flex items-center justify-between text-left cursor-pointer hover:border-emerald-500 transition active:scale-[0.99]">
-                <span id="create-club-picker-label" class="truncate font-medium text-stone-700 dark:text-stone-300">${isZh ? "-- 臨打球局 (不綁定社團) --" : "-- Open Play --"}</span>
-                <i data-lucide="chevron-down" class="w-4 h-4 text-stone-400 shrink-0"></i>
-              </button>
-              <input type="hidden" id="create-club-select" value="" />
+              <select id="create-club-select" onchange="onClubSelectChange()"
+                class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none">
+                ${optionsHtml}
+              </select>
             </div>
           `;
         }
-        if (wrapPrivacy) wrapPrivacy.classList.remove("hidden");
-        setCreatePrivacy(false);
       }
       if (typeof onClubSelectChange === "function") onClubSelectChange();
       lucide.createIcons();
@@ -3842,7 +3798,7 @@
           effectiveMode = "round-robin";
         }
 
-        const isPrivate = document.getElementById("create-is-private")?.value !== "false";
+        const isPrivate = false;
 
         const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
         const isTeamMode = (partnerType === "fixed");
@@ -4175,39 +4131,10 @@
       }
     });
 
-    function toggleCreatePrivacy() {
-      const current = document.getElementById("create-is-private")?.value === "true";
-      setCreatePrivacy(!current);
-    }
+    function toggleCreatePrivacy() {}
     window.toggleCreatePrivacy = toggleCreatePrivacy;
 
-    function setCreatePrivacy(isPrivate) {
-      const hiddenInput = document.getElementById("create-is-private");
-      const btnPrivate = document.getElementById("btn-privacy-private");
-      const badge = document.getElementById("badge-privacy-status");
-      if (hiddenInput) hiddenInput.value = isPrivate ? "true" : "false";
-
-      const isZh = (STATE.lang === "zh-TW");
-
-      if (isPrivate) {
-        if (btnPrivate) {
-          btnPrivate.className = "mode-btn-active w-full py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-between hover-lift active:scale-95 shadow-sm text-left";
-        }
-        if (badge) {
-          badge.innerText = isZh ? "🔒 私密球局 (已選定)" : "🔒 Private (Selected)";
-          badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30";
-        }
-      } else {
-        if (btnPrivate) {
-          btnPrivate.className = "mode-btn-inactive w-full py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-between hover-lift active:scale-95 shadow-sm text-left";
-        }
-        if (badge) {
-          badge.innerText = isZh ? "公開 (預設)" : "Public (Default)";
-          badge.className = "text-[10px] px-2 py-0.5 rounded-full card-inner font-mono font-bold sub-text border border-stone-200 dark:border-slate-800";
-        }
-      }
-      lucide.createIcons();
-    }
+    function setCreatePrivacy(isPrivate) {}
     window.setCreatePrivacy = setCreatePrivacy;
 
     function saveToLocalTournaments(tObj) {
@@ -4493,7 +4420,16 @@
         });
       } else {
         const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
-        displayHubTournamentsList(Object.values(localData));
+        const cached = Object.values(localData);
+        if (cached.length > 0) {
+          displayHubTournamentsList(cached);
+        }
+        // 若 Firebase 尚未就緒，在 250ms 後重試，確保連線成功後自動刷新大廳
+        setTimeout(() => {
+          if (STATE.db && STATE.currentPage === "hub" && !STATE.hubUnsubscribe) {
+            renderHubTournaments();
+          }
+        }, 250);
       }
     }
 
@@ -6369,7 +6305,22 @@
         });
       }
 
-      // 6. 當前選定或記錄的社團
+      // 6. 社團中繼資料庫 (clubs_metadata - 包含所有公開與私密社團)
+      try {
+        const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
+        Object.keys(localMeta).forEach(k => {
+          const d = decodeClubKey(k);
+          if (d && d !== "__general__" && d.trim()) clubsSet.add(d.trim());
+        });
+      } catch (e) { }
+      if (STATE.clubsMetadataMap && typeof STATE.clubsMetadataMap === "object") {
+        Object.keys(STATE.clubsMetadataMap).forEach(k => {
+          const d = decodeClubKey(k);
+          if (d && d !== "__general__" && d.trim()) clubsSet.add(d.trim());
+        });
+      }
+
+      // 7. 當前選定或記錄的社團
       if (STATE.currentClub && STATE.currentClub.trim()) {
         clubsSet.add(STATE.currentClub.trim());
       }
@@ -6388,6 +6339,8 @@
 
       const filteredClubs = Array.from(clubsSet).filter(c => {
         if (!c) return false;
+        // 最高權限管理者可以看到全站所有社團（包含私密社團）
+        if (STATE.isAdmin) return true;
         if (typeof isClubPrivate === "function" && isClubPrivate(c)) {
           return userMyClubsList.includes(c) || currentActive === c;
         }
@@ -6412,7 +6365,7 @@
       const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
       const isZh = STATE.lang === "zh-TW";
       const defaultLabel = isZh ? "賽事大廳" : "LOBBY";
-      const createClubOptionLabel = isZh ? "➕ 建立新社團..." : "➕ Create New Club...";
+      const createClubOptionLabel = t("navCreateClubOption") || (isZh ? "建立新社團..." : "Create New Club...");
 
       const hasPassword = (c) => {
         const safeKey = encodeClubKey(c);
@@ -6429,12 +6382,14 @@
       }
       const myClubsList = uniqueClubs.filter(c => userMyClubs.includes(c));
 
-      // 2.「探索社團」清單 (排除我的社團，且「只可以探索沒有設定密碼且未設私密的社團」)
-      const exploreClubsList = uniqueClubs.filter(c => 
-        !userMyClubs.includes(c) && 
-        !hasPassword(c) && 
-        !(typeof isClubPrivate === "function" && isClubPrivate(c))
-      );
+      // 2.「探索社團 / 全站社團」清單
+      // 一般用戶：排除我的社團，且只可探索未設密碼且未設私密的社團
+      // 最高權限管理員 (STATE.isAdmin)：顯示全站所有未加入我的社團中的其餘社團 (含私密與密碼社團)
+      const exploreClubsList = uniqueClubs.filter(c => {
+        if (userMyClubs.includes(c)) return false;
+        if (STATE.isAdmin) return true;
+        return !hasPassword(c) && !(typeof isClubPrivate === "function" && isClubPrivate(c));
+      });
 
       let html = `<option value="" ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>`;
 
@@ -6444,17 +6399,28 @@
         html += `<optgroup label="${groupLabel}">`;
         myClubsList.forEach(c => {
           const hasPwd = hasPassword(c);
-          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${hasPwd ? ' 🔒' : ''}</option>`;
+          const isPriv = typeof isClubPrivate === "function" && isClubPrivate(c);
+          let tag = '';
+          if (isPriv) tag += ' 🔒[私密]';
+          else if (hasPwd) tag += ' 🔒';
+          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${tag}</option>`;
         });
         html += `</optgroup>`;
       }
 
-      // 區塊二：探索社團 (無圖案純文字標籤，僅無密碼公開社團)
+      // 區塊二：探索社團 / 全站社團
       if (exploreClubsList.length > 0) {
-        const exploreLabel = isZh ? "探索社團" : "Explore Clubs";
+        const exploreLabel = STATE.isAdmin 
+          ? (isZh ? "全站所有社團 (管理員解鎖)" : "All Clubs (Admin)")
+          : (isZh ? "探索社團" : "Explore Clubs");
         html += `<optgroup label="${exploreLabel}">`;
         exploreClubsList.forEach(c => {
-          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}</option>`;
+          const hasPwd = hasPassword(c);
+          const isPriv = typeof isClubPrivate === "function" && isClubPrivate(c);
+          let tag = '';
+          if (isPriv) tag += ' 🔒[私密]';
+          else if (hasPwd) tag += ' 🔒';
+          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${tag}</option>`;
         });
         html += `</optgroup>`;
       }
@@ -6465,148 +6431,35 @@
       `;
 
       navSelect.innerHTML = html;
-
-      // 3. 渲染自訂滿版選單 (Club Selector Sheet)
-      const sheetListEl = document.getElementById("club-sheet-list");
-      if (sheetListEl) {
-        let sheetHtml = `
-          <!-- 賽事大廳 (置頂項目) -->
-          <button type="button" onclick="selectClubFromSheet('')"
-            class="w-full p-3 rounded-xl border ${!STATE.currentClub ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold' : 'card-inner hover:border-emerald-500/40 font-medium'} transition flex items-center justify-between text-left cursor-pointer active:scale-[0.99]">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <i data-lucide="compass" class="w-4 h-4 shrink-0 text-emerald-500"></i>
-              <span class="text-sm truncate">${defaultLabel}</span>
-            </div>
-            ${!STATE.currentClub ? '<i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0"></i>' : ''}
-          </button>
-        `;
-
-        if (myClubsList.length > 0) {
-          const groupLabel = isZh ? "我的社團" : "My Clubs";
-          sheetHtml += `
-            <div class="pt-1 space-y-1.5">
-              <div class="text-[11px] font-bold sub-text px-1 flex items-center gap-1.5">
-                <span>${groupLabel}</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono">${myClubsList.length}</span>
-              </div>
-              <div class="space-y-1">
-                ${myClubsList.map(c => {
-                  const hasPwd = hasPassword(c);
-                  const isSelected = STATE.currentClub === c;
-                  return `
-                    <button type="button" onclick="selectClubFromSheet('${escapeHTML(c).replace(/'/g, "\\'")}')"
-                      class="w-full p-2.5 sm:p-3 rounded-xl border ${isSelected ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold' : 'card-inner hover:border-emerald-500/40 font-medium'} transition flex items-center justify-between text-left cursor-pointer active:scale-[0.99]">
-                      <div class="flex items-center gap-2 min-w-0 pr-2">
-                        <i data-lucide="${hasPwd ? 'lock' : 'users'}" class="w-4 h-4 shrink-0 ${hasPwd ? 'text-amber-500' : 'text-slate-400'}"></i>
-                        <span class="text-sm truncate whitespace-nowrap">${escapeHTML(c)}</span>
-                      </div>
-                      ${isSelected ? '<i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0"></i>' : ''}
-                    </button>
-                  `;
-                }).join("")}
-              </div>
-            </div>
-          `;
-        }
-
-        if (exploreClubsList.length > 0) {
-          const exploreLabel = isZh ? "探索社團 (公開無密碼)" : "Explore Public Clubs";
-          sheetHtml += `
-            <div class="pt-1 space-y-1.5">
-              <div class="text-[11px] font-bold sub-text px-1 flex items-center gap-1.5">
-                <span>${exploreLabel}</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-stone-500/10 sub-text font-mono">${exploreClubsList.length}</span>
-              </div>
-              <div class="space-y-1">
-                ${exploreClubsList.map(c => {
-                  const isSelected = STATE.currentClub === c;
-                  return `
-                    <button type="button" onclick="selectClubFromSheet('${escapeHTML(c).replace(/'/g, "\\'")}')"
-                      class="w-full p-2.5 sm:p-3 rounded-xl border ${isSelected ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold' : 'card-inner hover:border-emerald-500/40 font-medium'} transition flex items-center justify-between text-left cursor-pointer active:scale-[0.99]">
-                      <div class="flex items-center gap-2 min-w-0 pr-2">
-                        <i data-lucide="globe" class="w-4 h-4 shrink-0 text-slate-400"></i>
-                        <span class="text-sm truncate whitespace-nowrap">${escapeHTML(c)}</span>
-                      </div>
-                      ${isSelected ? '<i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0"></i>' : ''}
-                    </button>
-                  `;
-                }).join("")}
-              </div>
-            </div>
-          `;
-        }
-
-        sheetListEl.innerHTML = sheetHtml;
-        if (window.lucide) lucide.createIcons();
-      }
-
       updateNavClubSelectValue();
     }
     window.populateNavClubSelect = populateNavClubSelect;
-
-    let _clubSheetTarget = 'nav'; // 'nav' or 'create'
-
-    function openClubSelectorSheet(target = 'nav') {
-      _clubSheetTarget = target;
-      const modal = document.getElementById("modal-club-selector-sheet");
-      if (modal) {
-        modal.classList.remove("hidden");
-        if (typeof populateNavClubSelect === "function") populateNavClubSelect();
-        if (window.lucide) lucide.createIcons();
-      }
-    }
-    window.openClubSelectorSheet = openClubSelectorSheet;
-
-    function closeClubSelectorSheet() {
-      const modal = document.getElementById("modal-club-selector-sheet");
-      if (modal) modal.classList.add("hidden");
-    }
-    window.closeClubSelectorSheet = closeClubSelectorSheet;
-
-    async function selectClubFromSheet(clubName) {
-      closeClubSelectorSheet();
-      if (_clubSheetTarget === 'create') {
-        const input = document.getElementById("create-club-select");
-        const label = document.getElementById("create-club-picker-label");
-        if (input) input.value = clubName || "";
-        if (label) {
-          const isZh = STATE.lang === "zh-TW";
-          label.innerText = clubName || (isZh ? "-- 臨打球局 (不綁定社團) --" : "-- Open Play --");
-        }
-        if (typeof onClubSelectChange === "function") {
-          await onClubSelectChange();
-        }
-      } else {
-        await onNavClubSelectChange(clubName);
-      }
-    }
-    window.selectClubFromSheet = selectClubFromSheet;
 
     function updateNavClubSelectValue() {
       const navSelect = document.getElementById("hub-club-selector") || document.getElementById("nav-btn-history");
       const shareBtn = document.getElementById("btn-share-club");
       const removeBtn = document.getElementById("btn-remove-my-club");
-      const labelEl = document.getElementById("hub-club-selector-label");
-      const isZh = STATE.lang === "zh-TW";
 
       if (STATE.currentPage === "history" && STATE.currentClub) {
         if (navSelect) navSelect.value = STATE.currentClub;
-        if (labelEl) labelEl.innerText = STATE.currentClub;
         if (shareBtn) shareBtn.classList.remove("hidden");
 
-        // 僅當目前的 currentClub 存在於 myClubs 陣列中，且有 lineUserId 時才顯示「取消常用」按鈕
         const isMyClub = !!(
           Array.isArray(STATE.myClubs) &&
-          STATE.myClubs.includes(STATE.currentClub) &&
-          STATE.lineUserId
+          STATE.myClubs.includes(STATE.currentClub)
         );
         if (removeBtn) {
-          if (isMyClub) removeBtn.classList.remove("hidden");
-          else removeBtn.classList.add("hidden");
+          removeBtn.classList.remove("hidden");
+          const textEl = document.getElementById("t-btn-remove-my-club");
+          if (textEl) {
+            const isZh = STATE.lang === "zh-TW";
+            textEl.innerText = isMyClub 
+              ? (isZh ? "退出常用" : "Leave Club")
+              : (isZh ? "退出社團" : "Exit Lobby");
+          }
         }
       } else {
         if (navSelect) navSelect.value = "";
-        if (labelEl) labelEl.innerText = isZh ? "賽事大廳" : "LOBBY";
         if (shareBtn) shareBtn.classList.add("hidden");
         if (removeBtn) removeBtn.classList.add("hidden");
       }
@@ -6618,35 +6471,43 @@
       if (!clubToRemove) return;
 
       const isZh = STATE.lang === "zh-TW";
-      const confirmMsg = isZh
-        ? `確定要將「${clubToRemove}」從您的專屬社團清單移除嗎？\n(這不會刪除任何戰績紀錄)`
-        : `Are you sure you want to remove "${clubToRemove}" from your club list?\n(No match records will be deleted)`;
+      const isMyClub = Array.isArray(STATE.myClubs) && STATE.myClubs.includes(clubToRemove);
 
-      if (!confirm(confirmMsg)) {
-        return;
-      }
+      if (isMyClub) {
+        const confirmMsg = isZh
+          ? `確定要將「${clubToRemove}」從您的專屬社團清單移除嗎？\n(這不會刪除任何戰績紀錄)`
+          : `Are you sure you want to remove "${clubToRemove}" from your club list?\n(No match records will be deleted)`;
 
-      // 1. Firebase 雲端更新：將 users/${lineUserId}/myClubs/${club} 設為 null
-      // ⚠️【安全防呆】：僅刪除 users/{lineUserId}/myClubs 內屬性，絕不碰 tournaments、club_members 或 club_passwords！
-      if (STATE.db && STATE.lineUserId) {
-        try {
-          const updates = {};
-          updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(clubToRemove)}`] = null;
-          await update(ref(STATE.db), updates);
-        } catch (err) {
-          console.warn("[Firebase] removeMyClub error:", err);
+        if (!confirm(confirmMsg)) {
+          return;
         }
+
+        // 1. Firebase 雲端更新：將 users/${lineUserId}/myClubs/${club} 設為 null
+        if (STATE.db && STATE.lineUserId) {
+          try {
+            const updates = {};
+            updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(clubToRemove)}`] = null;
+            await update(ref(STATE.db), updates);
+          } catch (err) {
+            console.warn("[Firebase] removeMyClub error:", err);
+          }
+        }
+
+        // 2. 前端狀態同步
+        STATE.myClubs = (STATE.myClubs || []).filter(c => c !== clubToRemove);
+        try {
+          localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
+        } catch (e) {}
+
+        showToast(isZh ? "已從專屬社團移除" : "Removed from My Clubs", "info");
       }
 
-      // 2. 前端狀態同步
-      STATE.myClubs = (STATE.myClubs || []).filter(c => c !== clubToRemove);
       try {
-        localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
         localStorage.removeItem("pb_last_club");
       } catch (e) {}
 
       STATE.currentClub = null;
-      showToast(isZh ? "已從我的社團移除" : "Removed from My Clubs", "info");
+      STATE.createContextClub = null;
 
       // 3. 重新渲染頂部導覽列下拉選單
       if (typeof populateNavClubSelect === "function") {
@@ -6695,6 +6556,7 @@
       if (nameInput) nameInput.value = "";
       if (pwdInput) pwdInput.value = "";
       setModalClubPrivacy(false);
+      if (typeof applyLanguageUI === "function") applyLanguageUI();
       modal.classList.remove("hidden");
       if (nameInput) setTimeout(() => nameInput.focus(), 60);
       lucide.createIcons();
@@ -8041,6 +7903,7 @@
           const data = await res.json();
           if (data.valid) {
             setIsAdmin(true);
+            if (typeof populateNavClubSelect === "function") populateNavClubSelect();
             navigateTo("admin");
             return;
           }
@@ -8056,6 +7919,7 @@
         const inputHash = await sha256(pin.trim());
         if (inputHash === STATE.masterPinHash) {
           setIsAdmin(true);
+          if (typeof populateNavClubSelect === "function") populateNavClubSelect();
           navigateTo("admin");
           return;
         }
@@ -8070,15 +7934,36 @@
 
       const allT = STATE.allTournamentsCache || [];
 
-      // Get unique clubs from both tournaments and saved club_members
+      // 獲取全站所有社團（管理員專屬全集：賽事 + 成員庫 + 密碼庫 + 隱私中繼資料）
       const clubsSet = new Set();
       allT.forEach(t => { if (t.clubName && t.clubName.trim()) clubsSet.add(t.clubName.trim()); });
       const localMembers = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
       Object.keys(localMembers).forEach(c => { if (c && c.trim()) clubsSet.add(c.trim()); });
+
+      if (STATE.clubPasswordsMap) {
+        Object.keys(STATE.clubPasswordsMap).forEach(k => {
+          const d = decodeClubKey(k);
+          if (d && d.trim()) clubsSet.add(d.trim());
+        });
+      }
+      const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
+      Object.keys(localMeta).forEach(k => {
+        const d = decodeClubKey(k);
+        if (d && d.trim()) clubsSet.add(d.trim());
+      });
+      if (STATE.clubsMetadataMap) {
+        Object.keys(STATE.clubsMetadataMap).forEach(k => {
+          const d = decodeClubKey(k);
+          if (d && d.trim()) clubsSet.add(d.trim());
+        });
+      }
+
+      clubsSet.delete("");
+
       const uniqueClubs = Array.from(clubsSet).sort((a, b) => {
         if (a === "__general__") return 1;
         if (b === "__general__") return -1;
-        return a.localeCompare(b);
+        return a.localeCompare(b, "zh-Hant");
       });
 
       // Fetch club passwords
@@ -8127,6 +8012,7 @@
             const isGeneral = club === "__general__";
             const displayName = isGeneral ? (STATE.lang === "zh-TW" ? "臨打通用成員庫" : "General / Casual Roster") : club;
             const hasPwd = !!clubPasswordMap[club];
+            const isPrivate = typeof isClubPrivate === "function" && isClubPrivate(club);
             const members = getClubMembersList(club);
             const escapedClub = safeEscape(club);
             const safeClubId = encodeURIComponent(club).replace(/%/g, "_");
@@ -8134,20 +8020,40 @@
               <div class="p-3 rounded-xl card-inner border space-y-2.5 ${isGeneral ? 'border-emerald-500/30 bg-emerald-500/5' : ''}">
                 <!-- Row 1: Club Header, Badges & Actions -->
                 <div class="flex items-center justify-between gap-2 flex-wrap">
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                     <i data-lucide="${isGeneral ? 'globe' : 'shield'}" class="w-4 h-4 ${isGeneral ? 'text-emerald-500' : 'text-amber-500'} shrink-0"></i>
                     <span class="text-xs sm:text-sm font-bold">${displayName}</span>
-                    ${!isGeneral ? `<span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${hasPwd ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-stone-500/10 sub-text border'}">${hasPwd ? t("adminHasPassword") : t("adminNoPassword")}</span>` : `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${STATE.lang === 'zh-TW' ? '臨打通用' : 'General'}</span>`}
-                  </div>
-                  <div class="flex items-center gap-1.5">
                     ${!isGeneral ? `
-                    <button onclick="adminRenameClub('${escapedClub}')" class="px-2.5 py-1 card-inner border hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95" title="Rename Club">
+                      <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${isPrivate ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'}">
+                        ${isPrivate ? (STATE.lang === 'zh-TW' ? '🔒 私密' : '🔒 Private') : (STATE.lang === 'zh-TW' ? '🌐 公開' : '🌐 Public')}
+                      </span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${hasPwd ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-stone-500/10 sub-text border'}">
+                        ${hasPwd ? t("adminHasPassword") : t("adminNoPassword")}
+                      </span>
+                    ` : `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${STATE.lang === 'zh-TW' ? '臨打通用' : 'General'}</span>`}
+                  </div>
+                  <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                    ${!isGeneral ? `
+                    <button onclick="adminEnterClub('${escapedClub}')" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30 rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer" title="進入社團大廳">
+                      <i data-lucide="external-link" class="w-3 h-3"></i>
+                      <span>${STATE.lang === "zh-TW" ? "進入大廳" : "Enter Club"}</span>
+                    </button>
+                    <button onclick="adminRenameClub('${escapedClub}')" class="px-2.5 py-1 card-inner border hover:border-emerald-500 text-stone-700 dark:text-stone-300 font-bold rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer" title="Rename Club">
                       ${t("adminRenameBtn")}
                     </button>
-                    <button onclick="adminDeleteClub('${escapedClub}')" class="px-2 py-1 border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold rounded-lg text-[11px] transition shadow-sm active:scale-95" title="刪除社團">
+                    <button onclick="adminDeleteClub('${escapedClub}')" class="px-2 py-1 border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold rounded-lg text-[11px] transition shadow-sm active:scale-95 cursor-pointer" title="刪除社團">
                       <i data-lucide="trash-2" class="w-3 h-3"></i>
-                    </button>` : ''}
-                    <button onclick="adminToggleClubMembers('${safeClubId}')" class="px-2.5 py-1 card-inner border hover:border-blue-500 text-blue-600 dark:text-blue-400 font-bold rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95">
+                    </button>` : `
+                    <button onclick="navigateTo('hub')" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30 rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer">
+                      <i data-lucide="compass" class="w-3 h-3"></i>
+                      <span>${STATE.lang === "zh-TW" ? "返回賽事大廳" : "Go to Lobby"}</span>
+                    </button>
+                    `}
+                    <button onclick="adminToggleClubMembers('${safeClubId}')" class="px-2.5 py-1 card-inner border hover:border-blue-500 text-blue-600 dark:text-blue-400 font-bold rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer">
+                      ${t("adminMembersBtn")} (${members.length})
+                    </button>
+                  </div>
+                </div>
                       ${t("adminMembersBtn")} (${members.length})
                     </button>
                   </div>
@@ -8314,6 +8220,16 @@
     }
     window.adminRenameClub = adminRenameClub;
 
+    async function adminEnterClub(clubName) {
+      if (!clubName || clubName === "__general__") {
+        navigateTo("hub");
+        return;
+      }
+      STATE.authenticatedClubs.add(clubName);
+      await openClubSpace(clubName);
+    }
+    window.adminEnterClub = adminEnterClub;
+
     function adminToggleClubMembers(safeClubId) {
       const el = document.getElementById(`admin-members-wrap-${safeClubId}`);
       if (el) {
@@ -8440,6 +8356,7 @@
 
     function exitAdminMode() {
       setIsAdmin(false);
+      if (typeof populateNavClubSelect === "function") populateNavClubSelect();
       navigateTo('hub');
       showToast(STATE.lang === "zh-TW" ? "已退出管理員模式" : "Admin mode exited", "warning");
     }
@@ -8611,13 +8528,22 @@
     // ----------------------------------------------------
     function initApp() {
       applyThemeUI();
-      initFirebase(DEFAULT_FIREBASE_CONFIG);
       applyLanguageUI();
       renderClubMemberChips();
       renderSelectedPlayerChips();
       updatePlayerCountBadge();
       initRouting();
       initPwa();
+
+      // 非同步啟動 Firebase，就緒後主動確保大廳/賽事載入
+      initFirebase(DEFAULT_FIREBASE_CONFIG).then(() => {
+        if (STATE.currentPage === "hub") {
+          renderHubTournaments();
+        } else if (STATE.currentPage === "history") {
+          renderHistoryPage();
+        }
+      });
+
       initLiffAndUser();
       lucide.createIcons();
     }

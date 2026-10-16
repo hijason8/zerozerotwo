@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&family=Plus+Jakarta+Sans:wght@700;800&family=Noto+Sans+TC:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 1040px;
+      height: 350px;
+      overflow: hidden;
+      background-color: #FAF9F6;
+      background-image: 
+        radial-gradient(circle at 92% 15%, rgba(16, 185, 129, 0.15) 0%, transparent 55%),
+        radial-gradient(circle at 8% 85%, rgba(20, 184, 166, 0.12) 0%, transparent 50%),
+        linear-gradient(to bottom, #FFFFFF 0%, #FAF9F6 100%);
+      font-family: 'Outfit', 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* 微妙網格背景線 */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+      pointer-events: none;
+    }
+
+    /* 右側幾何匹克球透視裝飾環 */
+    .deco-circle-1 {
+      position: absolute;
+      right: -20px;
+      top: -30px;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      border: 2.5px dashed rgba(16, 185, 129, 0.25);
+      pointer-events: none;
+    }
+    .deco-circle-2 {
+      position: absolute;
+      right: 80px;
+      bottom: -70px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(16, 185, 129, 0.15);
+      pointer-events: none;
+    }
+
+    /* 主要容器：緊湊高張力，最大化手機顯示比例 */
+    .brand-container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
+
+    /* 獎杯 Logo 圖標卡片 */
+    .logo-box {
+      width: 178px;
+      height: 178px;
+      border-radius: 42px;
+      background: #FFFFFF;
+      border: 3px solid rgba(16, 185, 129, 0.32);
+      box-shadow: 
+        0 18px 40px -8px rgba(16, 185, 129, 0.20),
+        0 8px 18px -4px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-box svg {
+      width: 102px;
+      height: 102px;
+    }
+
+    /* 文字內容包裹器：使用 Table Layout 保證寬度由標題完全決定，下層 100% 嚴格切齊 */
+    .brand-content {
+      display: table;
+      width: auto;
+    }
+
+    .title-row {
+      display: block;
+      white-space: nowrap;
+      line-height: 0.95;
+      margin-bottom: 16px;
+    }
+
+    .brand-zero {
+      font-size: 112px;
+      font-weight: 900;
+      letter-spacing: -3.5px;
+      color: #18181B; /* 曜石深黑 */
+    }
+
+    .brand-two {
+      font-size: 112px;
+      font-weight: 900;
+      letter-spacing: -3.5px;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      padding-left: 2px;
+    }
+
+    /* 下方標籤列：100% 與上方 ZeroZeroTwo 左右兩側嚴格切齊 */
+    .sub-badge {
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1.5px solid rgba(16, 185, 129, 0.30);
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      gap: 16px;
+    }
+
+    .sub-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .status-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background-color: #10B981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+      flex-shrink: 0;
+    }
+
+    .sub-text {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 29px;
+      font-weight: 900;
+      color: #0F172A; /* Slate 900 超高對比，手機縮小依然清晰無比 */
+      letter-spacing: 1.5px;
+      white-space: nowrap;
+    }
+
+    /* 中間細緻連接線 */
+    .sub-divider {
+      flex: 1;
+      height: 1.5px;
+      background: linear-gradient(to right, rgba(16, 185, 129, 0.35), rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.35));
+      border-radius: 2px;
+      min-width: 20px;
+    }
+
+    .domain-tag {
+      font-size: 21px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 800;
+      color: #FFFFFF;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      padding: 6px 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="deco-circle-1"></div>
+  <div class="deco-circle-2"></div>
+
+  <div class="brand-container">
+    <!-- 獎杯 Logo 圖標 -->
+    <div class="logo-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+        <path d="M4 22h16" />
+        <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34" />
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" fill="#10b981" fill-opacity="0.16" />
+      </svg>
+    </div>
+
+    <!-- 品牌標題與副標題 -->
+    <div class="brand-content">
+      <div class="title-row" id="title-row">
+        <span class="brand-zero">ZeroZero</span><span class="brand-two">Two</span>
+      </div>
+      <div class="sub-badge" id="sub-badge">
+        <div class="sub-left">
+          <span class="status-dot"></span>
+          <span class="sub-text">匹克球社團排賽計分系統</span>
+        </div>
+        <div class="sub-divider"></div>
+        <span class="domain-tag">zztwo.com</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function syncBadgeWidth() {
+      const title = document.getElementById('title-row');
+      const badge = document.getElementById('sub-badge');
+      if (title && badge) {
+        const w = title.getBoundingClientRect().width;
+        badge.style.width = Math.round(w) + 'px';
+      }
+    }
+    if (document.fonts) {
+      document.fonts.ready.then(syncBadgeWidth);
+    }
+    window.addEventListener('load', syncBadgeWidth);
+  </script>
+</body>
+</html>
