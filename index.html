@@ -1564,7 +1564,7 @@
       if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("./sw.js?v=4")
+            .register("./sw.js?v=5")
             .then((reg) => {
               console.log("[PWA] Service Worker registered successfully, scope:", reg.scope);
             })
@@ -1745,6 +1745,10 @@
         } catch (err) {
           console.warn("[Firebase] addUserClub failed:", err);
         }
+      }
+
+      if (typeof populateNavClubSelect === "function") {
+        populateNavClubSelect();
       }
     }
     window.addUserClubToFirebase = addUserClubToFirebase;
@@ -4814,6 +4818,7 @@
       localStorage.setItem("pb_my_player_name", name);
 
       if (tData.clubName) {
+        addUserClubToFirebase(tData.clubName);
         const clubMembers = getClubMembersList(tData.clubName);
         if (!clubMembers.includes(name)) {
           clubMembers.push(name);
@@ -6117,17 +6122,53 @@
       const defaultLabel = isZh ? "賽事大廳" : "LOBBY";
       const createClubOptionLabel = isZh ? "➕ 建立新社團..." : "➕ Create New Club...";
 
-      navSelect.innerHTML = `
-        <option value="" ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>
-        ${uniqueClubs.map(c => {
+      const hasPassword = (c) => {
         const safeKey = encodeClubKey(c);
-        const hasPwd = !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
-        return `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${hasPwd ? ' 🔒' : ''}</option>`;
-      }).join("")}
+        return !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
+      };
+
+      // 1.「我的社團」清單 (STATE.myClubs，並確保在 uniqueClubs 內)
+      const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
+        .filter(c => c && c.trim())
+        .map(c => c.trim());
+      // 若當前正造訪某社團，也一併確保出現在使用者列表中
+      if (STATE.currentClub && !userMyClubs.includes(STATE.currentClub)) {
+        userMyClubs.push(STATE.currentClub);
+      }
+      const myClubsList = uniqueClubs.filter(c => userMyClubs.includes(c));
+
+      // 2.「探索社團」清單 (排除我的社團，且「只可以探索沒有設定密碼的社團」)
+      const exploreClubsList = uniqueClubs.filter(c => !userMyClubs.includes(c) && !hasPassword(c));
+
+      let html = `<option value="" ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>`;
+
+      // 區塊一：我的社團 (無圖案純文字標籤)
+      if (myClubsList.length > 0) {
+        const groupLabel = isZh ? "我的社團" : "My Clubs";
+        html += `<optgroup label="${groupLabel}">`;
+        myClubsList.forEach(c => {
+          const hasPwd = hasPassword(c);
+          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${hasPwd ? ' 🔒' : ''}</option>`;
+        });
+        html += `</optgroup>`;
+      }
+
+      // 區塊二：探索社團 (無圖案純文字標籤，僅無密碼公開社團)
+      if (exploreClubsList.length > 0) {
+        const exploreLabel = isZh ? "探索社團" : "Explore Clubs";
+        html += `<optgroup label="${exploreLabel}">`;
+        exploreClubsList.forEach(c => {
+          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}</option>`;
+        });
+        html += `</optgroup>`;
+      }
+
+      html += `
         <option value="" disabled>──────────</option>
         <option value="__create_new_club__">${createClubOptionLabel}</option>
       `;
 
+      navSelect.innerHTML = html;
       updateNavClubSelectValue();
     }
     window.populateNavClubSelect = populateNavClubSelect;
@@ -6243,6 +6284,7 @@
       // 5. 關閉 Modal 並切換進入該社團大廳
       closeCreateClubModal();
       showToast(t("clubCreatedSuccess").replace("{club}", rawName), "success");
+      addUserClubToFirebase(rawName);
       await openClubSpace(rawName);
     }
     window.handleModalCreateClubSubmit = handleModalCreateClubSubmit;
@@ -6258,12 +6300,14 @@
         }
         STATE.currentClub = clubName;
         localStorage.setItem("pb_last_club", clubName);
+        addUserClubToFirebase(clubName);
       } else if (!STATE.currentClub) {
         const lastClub = localStorage.getItem("pb_last_club");
         if (lastClub) {
           const canAccess = await verifyClubAccess(lastClub);
           if (canAccess) {
             STATE.currentClub = lastClub;
+            addUserClubToFirebase(lastClub);
           }
         }
       }
