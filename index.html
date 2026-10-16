@@ -208,43 +208,7 @@
     <!-- ==================== PAGE B: TOURNAMENT HUB ==================== -->
     <section id="page-hub" class="space-y-4 sm:space-y-6">
 
-      <!-- PWA Install Banner (Lobby) -->
-      <div id="pwa-install-banner"
-        class="hidden relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent p-3 sm:p-4 shadow-sm">
-        <div class="flex items-start sm:items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-emerald-500/30 overflow-hidden bg-white shadow-sm shrink-0 flex items-center justify-center p-1">
-              <img src="icon-192.png" alt="ZeroZeroTwo" class="w-full h-full object-contain rounded-lg" />
-            </div>
-            <div>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <h3 id="t-pwa-banner-title"
-                  class="text-xs sm:text-sm font-bold font-display text-emerald-800 dark:text-emerald-300">
-                  將 ZeroZeroTwo 加入手機主畫面
-                </h3>
-                <span
-                  class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">APP</span>
-              </div>
-              <p id="t-pwa-banner-desc" class="text-[11px] sm:text-xs sub-text mt-0.5 leading-snug">
-                享受全螢幕無干擾體驗、即時離線支援，一鍵啟動球局！
-              </p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="triggerPwaInstall()" id="btn-pwa-banner-install"
-              class="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-md hover:shadow-emerald-500/20 transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i>
-              <span id="t-pwa-banner-btn">安裝 App</span>
-            </button>
-            <button type="button" onclick="dismissPwaBanner()"
-              class="w-7 h-7 rounded-lg card-inner border flex items-center justify-center sub-text hover:text-stone-900 transition text-xs cursor-pointer"
-              title="稍後再說">
-              <i data-lucide="x" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-        </div>
-      </div>
+
 
       <!-- Section 1: Active Tournaments (臨打球局) -->
       <div class="space-y-3">
@@ -1822,14 +1786,6 @@
         e.preventDefault();
         deferredPrompt = e;
         window.deferredPrompt = e;
-
-        // 若本次工作階段 (Session) 使用者未手動關閉，則顯示橫幅
-        const isDismissed = sessionStorage.getItem("pwa_install_dismissed") === "1";
-        const banner = document.getElementById("pwa-install-banner");
-        if (banner && !isDismissed) {
-          banner.classList.remove("hidden");
-          if (window.lucide) lucide.createIcons();
-        }
       });
 
       // 3. 監聽安裝完成事件 (appinstalled)
@@ -1842,16 +1798,6 @@
         if (dropdownBtn) dropdownBtn.classList.add("hidden");
         showToast(t("pwaInstalledToast"), "success");
       });
-
-      // 4. iOS 裝置偵測：若為 iOS 且非 standalone，顯示大廳專屬加入主畫面橫幅
-      if (isIos() && !isPwaStandalone()) {
-        const isDismissed = sessionStorage.getItem("pwa_install_dismissed") === "1";
-        const banner = document.getElementById("pwa-install-banner");
-        if (banner && !isDismissed) {
-          banner.classList.remove("hidden");
-          if (window.lucide) lucide.createIcons();
-        }
-      }
     }
     window.initPwa = initPwa;
 
@@ -6990,36 +6936,38 @@
       if (!listContainer) return;
 
       const isZh = STATE.lang === "zh-TW";
-      const uniqueClubs = getAllUniqueClubs();
-      const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
-      const hasPassword = (c) => {
-        const safeKey = encodeClubKey(c);
-        return !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
-      };
+      const q = (keyword || "").trim().toLowerCase();
 
+      // 需輸入相應關鍵兩個字以上才顯現未設定隱私的社團
+      if (q.length < 2) {
+        listContainer.innerHTML = `
+          <div class="py-8 text-center space-y-1.5">
+            <p class="text-xs sub-text">${isZh ? "請輸入至少 2 個關鍵字搜尋公開社團" : "Enter at least 2 characters to search clubs"}</p>
+          </div>
+        `;
+        return;
+      }
+
+      const uniqueClubs = getAllUniqueClubs();
       const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
         .filter(c => c && c.trim())
         .map(c => c.trim());
 
+      // 篩選未設定隱私 (公開) 且非我的社團
       let clubs = uniqueClubs.filter(c => {
         if (userMyClubs.includes(c)) return false;
         if (STATE.isAdmin) return true;
-        return !hasPassword(c) && !(typeof isClubPrivate === "function" && isClubPrivate(c));
+        return !(typeof isClubPrivate === "function" && isClubPrivate(c));
       });
 
-      if (keyword && keyword.trim()) {
-        const q = keyword.trim().toLowerCase();
-        clubs = clubs.filter(c => c.toLowerCase().includes(q));
-      }
+      clubs = clubs.filter(c => c.toLowerCase().includes(q));
 
       if (clubs.length === 0) {
         listContainer.innerHTML = `
-          <div class="py-8 text-center space-y-2">
-            <i data-lucide="compass" class="w-8 h-8 text-stone-300 dark:text-slate-700 mx-auto"></i>
-            <p class="text-xs sub-text">${t("modalExploreClubsEmpty") || (isZh ? "目前尚無其他可探索社團" : "No clubs available to explore")}</p>
+          <div class="py-8 text-center space-y-1.5">
+            <p class="text-xs sub-text">${isZh ? "查無符合的公開社團" : "No matching public clubs found"}</p>
           </div>
         `;
-        lucide.createIcons();
         return;
       }
 
