@@ -80,30 +80,22 @@
         </h1>
       </div>
 
-      <!-- Action Buttons Bar (3 Unified Nav Buttons + Settings Gear Dropdown) -->
+      <!-- Action Buttons Bar (Nav + Search + Settings) -->
       <div class="flex items-center gap-1.5 sm:gap-2 relative">
         <!-- Nav: Hub -->
         <button id="nav-btn-hub" onclick="navigateTo('hub')"
           class="px-2.5 sm:px-3.5 py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95"
-          title="臨打球局">
+          title="賽事大廳">
           <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-          <span id="t-nav-hub" class="hidden xs:inline sm:inline">臨打球局</span>
+          <span id="t-nav-hub" class="hidden xs:inline sm:inline">大廳</span>
         </button>
 
-        <!-- Nav: Club Lobby Dropdown (社團大廳下拉切換) -->
-        <div class="relative flex items-center">
-          <i data-lucide="shield" id="nav-club-icon"
-            class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-stone-600 dark:text-slate-400"></i>
-          <select id="nav-btn-history" onchange="onNavClubSelectChange(this.value)"
-            class="w-[104px] sm:w-[116px] pl-6 pr-[22px] py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition text-xs font-bold shadow-sm cursor-pointer focus:border-emerald-500 focus:outline-none appearance-none truncate"
-            title="社團大廳">
-            <option value="" disabled selected hidden>社團大廳</option>
-          </select>
-          <i data-lucide="chevron-down"
-            class="w-3 h-3 text-stone-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-        </div>
-
-
+        <!-- Search Tournament Code Button (移動至右上角，設置按鈕旁邊) -->
+        <button id="btn-header-search-toggle" onclick="openQuickCodeModal()"
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl card-inner border hover:border-emerald-500/50 flex items-center justify-center sub-text hover:text-stone-900 dark:hover:text-white transition shadow-sm active:scale-95 cursor-pointer"
+          title="搜尋賽事代碼">
+          <i data-lucide="search" class="w-4 h-4 text-emerald-500"></i>
+        </button>
 
         <!-- Settings Gear Dropdown Button -->
         <div class="relative">
@@ -172,15 +164,19 @@
 
     <!-- ==================== PAGE B: TOURNAMENT HUB ==================== -->
     <section id="page-hub" class="space-y-4 sm:space-y-6">
-      <!-- Hub Top Bar: Title + Quick Create -->
+      <!-- Hub Top Bar: Title Dropdown (賽事大廳 / 社團切換) + Quick Create -->
       <div
         class="flex items-center justify-between gap-2 border-b border-stone-300 dark:border-slate-800 pb-3 text-left">
-        <div class="text-left">
-          <h2 id="t-hub-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2 text-left">
-            <i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500 dark:text-emerald-400"></i>
-            <span>臨打球局</span>
-          </h2>
+        <!-- 賽事大廳下拉切換 -->
+        <div class="relative flex items-center min-w-0">
+          <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
+            class="appearance-none font-display font-black text-xl sm:text-2xl bg-transparent border-0 pl-0 pr-7 sm:pr-8 py-0.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 hover:text-emerald-600 dark:hover:text-emerald-400 transition truncate max-w-[210px] sm:max-w-md">
+            <option value="" selected>賽事大廳</option>
+          </select>
+          <i data-lucide="chevron-down"
+            class="w-5 h-5 text-emerald-500 absolute right-1 pointer-events-none shrink-0 transition-transform"></i>
         </div>
+
         <div class="flex items-center gap-2 shrink-0">
           <button onclick="STATE.createContextClub = null; navigateTo('create')" id="t-create-new-btn"
             class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1.5 transition active:scale-95 shrink-0">
@@ -227,28 +223,15 @@
         </div>
       </div>
 
-      <!-- Quick Action Panel: Direct Code Entry -->
-      <div class="glass-card rounded-2xl p-3 sm:p-4 border border-stone-200 dark:border-slate-800/80 shadow-sm">
-        <form onsubmit="handleQuickCodeSubmit(event)" class="flex items-center gap-2 max-w-lg">
-          <div class="relative flex-1">
-            <i data-lucide="search"
-              class="w-4 h-4 text-stone-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input type="text" id="hub-quick-code-input" placeholder="輸入賽事代碼 (例: T-123456)" autocomplete="off"
-              class="w-full input-bg border rounded-xl pl-9 pr-3 py-2 text-xs font-mono focus:border-emerald-500 focus:outline-none placeholder:text-stone-400 placeholder:font-sans" />
-          </div>
-          <button type="submit" id="btn-quick-code-submit"
-            class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold text-xs shadow-sm hover:shadow-emerald-500/20 transition active:scale-95 shrink-0 flex items-center gap-1.5 cursor-pointer">
-            <span id="t-quick-code-btn">前往</span>
-            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-          </button>
-        </form>
-      </div>
-
-      <!-- Section 1: Active Tournaments (進行中球局) -->
+      <!-- Section 1: Active Tournaments (臨打球局) -->
       <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 id="t-hub-active-heading"
-            class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-display">進行中球局</h3>
+        <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center gap-2">
+            <i data-lucide="layout-grid" class="w-4 h-4 text-emerald-500"></i>
+            <h3 id="t-hub-active-heading"
+              class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display">臨打球局</h3>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          </div>
           <span id="hub-active-count" class="text-xs sub-text font-semibold"></span>
         </div>
         <div id="hub-active-tournaments-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
@@ -896,6 +879,39 @@
     </section>
 
   </main>
+
+  <!-- ==================== QUICK CODE SEARCH MODAL ==================== -->
+  <div id="modal-quick-code"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4"
+    onclick="if(event.target === this) closeQuickCodeModal()">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border relative text-left shadow-2xl">
+      <button onclick="closeQuickCodeModal()" class="absolute top-3.5 right-3.5 sub-text hover:text-emerald-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 id="t-modal-search-title" class="text-base font-bold font-display">前往指定賽事</h3>
+          <p id="t-modal-search-desc" class="text-xs sub-text">輸入賽事代碼直接進入計分大廳</p>
+        </div>
+      </div>
+
+      <form onsubmit="handleQuickCodeModalSubmit(event)" class="space-y-3">
+        <div class="relative">
+          <input type="text" id="quick-code-modal-input" placeholder="例: T-123456" autocomplete="off"
+            class="w-full input-bg border rounded-xl pl-3 pr-3 py-2.5 text-sm font-mono uppercase focus:border-emerald-500 focus:outline-none" />
+        </div>
+        <button type="submit"
+          class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-md active:scale-95 cursor-pointer">
+          <span id="t-modal-search-btn">前往賽事</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- ==================== SHARE / QR MODAL ==================== -->
   <div id="modal-share"
@@ -1690,11 +1706,24 @@
       const pwaIosDoneBtnEl = document.getElementById("t-pwa-ios-done-btn");
       if (pwaIosDoneBtnEl) pwaIosDoneBtnEl.innerText = t("pwaIosDoneBtn");
 
-      // Hub Page
-      const hubTitle = document.getElementById("t-hub-title");
-      if (hubTitle) hubTitle.innerHTML = `<i data-lucide="layout-grid" class="w-5 h-5 text-emerald-500"></i> <span>${t("hubTitle")}</span>`;
+      // Hub Page & Club Selector
+      const hubClubSelector = document.getElementById("hub-club-selector");
+      if (hubClubSelector && hubClubSelector.options.length > 0) {
+        hubClubSelector.options[0].text = isZh ? "賽事大廳" : "Tournament Lobby";
+      }
       const hubPrivacyHintEl = document.getElementById("t-hub-privacy-hint");
       if (hubPrivacyHintEl) hubPrivacyHintEl.innerText = t("hubPrivacyHint");
+
+      // Quick Code Search Modal
+      const modalSearchTitleEl = document.getElementById("t-modal-search-title");
+      if (modalSearchTitleEl) modalSearchTitleEl.innerText = t("modalSearchTitle");
+      const modalSearchDescEl = document.getElementById("t-modal-search-desc");
+      if (modalSearchDescEl) modalSearchDescEl.innerText = t("modalSearchDesc");
+      const modalSearchBtnEl = document.getElementById("t-modal-search-btn");
+      if (modalSearchBtnEl) modalSearchBtnEl.innerText = t("modalSearchBtn");
+      const modalSearchInputEl = document.getElementById("quick-code-modal-input");
+      if (modalSearchInputEl) modalSearchInputEl.placeholder = t("modalSearchPlaceholder");
+
       const quickCodeInputEl = document.getElementById("hub-quick-code-input");
       if (quickCodeInputEl) quickCodeInputEl.placeholder = t("quickCodePlaceholder");
       const quickCodeBtnEl = document.getElementById("t-quick-code-btn");
@@ -3446,9 +3475,47 @@
     }
     window.quickEnterTournament = quickEnterTournament;
 
+    function openQuickCodeModal() {
+      const modal = document.getElementById("modal-quick-code");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      lucide.createIcons();
+      setTimeout(() => {
+        const input = document.getElementById("quick-code-modal-input");
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 50);
+    }
+    window.openQuickCodeModal = openQuickCodeModal;
+
+    function closeQuickCodeModal() {
+      const modal = document.getElementById("modal-quick-code");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      const input = document.getElementById("quick-code-modal-input");
+      if (input) input.value = "";
+    }
+    window.closeQuickCodeModal = closeQuickCodeModal;
+
+    function handleQuickCodeModalSubmit(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById("quick-code-modal-input");
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) {
+        showToast(STATE.lang === "zh-TW" ? "請輸入賽事代碼" : "Please enter tournament code", "warning");
+        return;
+      }
+      closeQuickCodeModal();
+      quickEnterTournament(val);
+    }
+    window.handleQuickCodeModalSubmit = handleQuickCodeModalSubmit;
+
     function handleQuickCodeSubmit(e) {
-      e.preventDefault();
-      const input = document.getElementById("hub-quick-code-input");
+      if (e) e.preventDefault();
+      const input = document.getElementById("hub-quick-code-input") || document.getElementById("quick-code-modal-input");
       if (!input) return;
       const val = input.value.trim();
       if (!val) {
@@ -3459,6 +3526,15 @@
       input.value = "";
     }
     window.handleQuickCodeSubmit = handleQuickCodeSubmit;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        const searchModal = document.getElementById("modal-quick-code");
+        if (searchModal && !searchModal.classList.contains("hidden")) {
+          closeQuickCodeModal();
+        }
+      }
+    });
 
     function toggleCreatePrivacy() {
       const current = document.getElementById("create-is-private")?.value === "true";
@@ -5666,7 +5742,7 @@
     window.getAllUniqueClubs = getAllUniqueClubs;
 
     function populateNavClubSelect(clubs) {
-      const navSelect = document.getElementById("nav-btn-history");
+      const navSelect = document.getElementById("hub-club-selector") || document.getElementById("nav-btn-history");
       if (!navSelect) return;
 
       const set = new Set(getAllUniqueClubs());
@@ -5678,11 +5754,11 @@
       const uniqueClubs = Array.from(set).sort((a, b) => a.localeCompare(b, "zh-Hant"));
       const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
       const isZh = STATE.lang === "zh-TW";
-      const defaultLabel = isZh ? "社團大廳" : "Club Lobby";
+      const defaultLabel = isZh ? "賽事大廳" : "Tournament Lobby";
       const createClubOptionLabel = isZh ? "➕ 建立新社團..." : "➕ Create New Club...";
 
       navSelect.innerHTML = `
-        <option value="" disabled hidden ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>
+        <option value="" ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>
         ${uniqueClubs.map(c => {
         const safeKey = encodeClubKey(c);
         const hasPwd = !!((STATE.clubPasswordsMap && STATE.clubPasswordsMap[safeKey]) || localPasswords[c]);
@@ -5697,7 +5773,7 @@
     window.populateNavClubSelect = populateNavClubSelect;
 
     function updateNavClubSelectValue() {
-      const navSelect = document.getElementById("nav-btn-history");
+      const navSelect = document.getElementById("hub-club-selector") || document.getElementById("nav-btn-history");
       if (!navSelect) return;
 
       if (STATE.currentPage === "history" && STATE.currentClub) {
@@ -5709,7 +5785,15 @@
     window.updateNavClubSelectValue = updateNavClubSelectValue;
 
     async function onNavClubSelectChange(clubName) {
-      if (!clubName) return;
+      if (!clubName || clubName === "") {
+        STATE.currentClub = null;
+        STATE.createContextClub = null;
+        if (STATE.currentPage !== "hub") {
+          navigateTo("hub");
+        }
+        updateNavClubSelectValue();
+        return;
+      }
       if (clubName === "__create_new_club__") {
         updateNavClubSelectValue();
         openCreateClubModal();

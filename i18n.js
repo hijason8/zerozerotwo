@@ -218,7 +218,11 @@ export const I18N = {
     clubPasswordRemoved: "✅ 社團密碼已移除",
 
     // Hub & Sections
-    hubActiveTitle: "進行中球局",
+    hubActiveTitle: "臨打球局",
+    modalSearchTitle: "前往指定賽事",
+    modalSearchDesc: "輸入賽事代碼直接進入計分大廳",
+    modalSearchBtn: "前往賽事",
+    modalSearchPlaceholder: "例: T-123456",
     hubCompletedTitle: "近期完賽球局 (3日內)",
     hubActiveCountSuffix: "場進行中",
     hubCompletedCountSuffix: "場",
@@ -361,7 +365,11 @@ export const I18N = {
     copiedLinkToast: "✅ Match link copied! Send to LINE or messaging app",
 
     // Hub & Sections
-    hubActiveTitle: "Active Drop-in Matches",
+    hubActiveTitle: "Drop-in Tournaments",
+    modalSearchTitle: "Go to Tournament",
+    modalSearchDesc: "Enter tournament code to enter scoring lobby",
+    modalSearchBtn: "Enter Tournament",
+    modalSearchPlaceholder: "e.g. T-123456",
     hubCompletedTitle: "Recent Completed (3 Days)",
     hubActiveCountSuffix: "Active",
     hubCompletedCountSuffix: "games",
