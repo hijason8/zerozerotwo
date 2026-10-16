@@ -80,15 +80,19 @@
         </h1>
       </div>
 
-      <!-- Action Buttons Bar (Nav + Search + Settings) -->
+      <!-- Action Buttons Bar (LINE User + Search + Settings) -->
       <div class="flex items-center gap-1.5 sm:gap-2 relative">
-        <!-- Nav: Hub -->
-        <button id="nav-btn-hub" onclick="navigateTo('hub')"
-          class="px-2.5 sm:px-3.5 py-1.5 rounded-xl card-inner border hover:border-stone-400 dark:hover:border-slate-600 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm active:scale-95"
-          title="賽事大廳">
-          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-          <span id="t-nav-hub" class="hidden xs:inline sm:inline">大廳</span>
-        </button>
+        <!-- LINE User Profile / Status Indicator -->
+        <div id="nav-line-profile-container" class="flex items-center">
+          <button type="button" onclick="handleLineLoginClick()"
+            class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-[#06C755]/10 hover:bg-[#06C755]/20 text-[#06C755] border border-[#06C755]/30 hover:border-[#06C755] transition shadow-sm active:scale-95 text-xs font-bold cursor-pointer shrink-0"
+            title="尚未登入 LINE，點擊進行連動">
+            <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
+            </svg>
+            <span class="text-[11px] sm:text-xs">未登入 LINE</span>
+          </button>
+        </div>
 
         <!-- Search Tournament Code Button (移動至右上角，設置按鈕旁邊) -->
         <button id="btn-header-search-toggle" onclick="openQuickCodeModal()"
@@ -880,6 +884,103 @@
 
   </main>
 
+  <!-- ==================== LINE PROFILE INFO MODAL ==================== -->
+  <div id="modal-line-profile-info"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4"
+    onclick="if(event.target === this) closeLineProfileModal()">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border relative text-center shadow-2xl">
+      <button onclick="closeLineProfileModal()" class="absolute top-3.5 right-3.5 sub-text hover:text-emerald-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="relative w-16 h-16 mx-auto">
+        <img id="line-modal-profile-avatar" src="" alt="Avatar"
+          class="w-16 h-16 rounded-full object-cover border-2 border-[#06C755] shadow-md mx-auto" />
+        <span
+          class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#06C755] border-2 border-white dark:border-slate-900 flex items-center justify-center text-[8px] text-white font-black">✓</span>
+      </div>
+
+      <div>
+        <h3 id="line-modal-profile-name" class="text-base font-bold font-display text-stone-900 dark:text-white">LINE 球友</h3>
+        <p class="text-xs text-[#06C755] font-semibold flex items-center justify-center gap-1 mt-0.5">
+          <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/></svg>
+          <span id="t-line-modal-connected">LINE 已連動</span>
+        </p>
+      </div>
+
+      <div class="p-3 rounded-xl bg-stone-100 dark:bg-slate-900/60 border text-left text-xs space-y-1.5 sub-text">
+        <div class="flex items-center justify-between">
+          <span>預設報名暱稱：</span>
+          <span id="line-modal-default-name" class="font-bold text-stone-900 dark:text-white"></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>一鍵報名簽到：</span>
+          <span class="text-emerald-500 font-bold">已啟用</span>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="button" onclick="handleLineLogoutOrSwitch()"
+          class="flex-1 py-2 px-3 rounded-xl border border-stone-300 dark:border-slate-700 hover:border-stone-400 text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition">
+          切換 / 登出
+        </button>
+        <button type="button" onclick="closeLineProfileModal()"
+          class="flex-1 py-2 px-3 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer">
+          確定
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LINE LOGIN PROMPT MODAL ==================== -->
+  <div id="modal-line-login-prompt"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4"
+    onclick="if(event.target === this) closeLineLoginPromptModal()">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border relative text-center shadow-2xl">
+      <button onclick="closeLineLoginPromptModal()" class="absolute top-3.5 right-3.5 sub-text hover:text-emerald-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="w-12 h-12 rounded-2xl bg-[#06C755]/10 text-[#06C755] flex items-center justify-center mx-auto">
+        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/></svg>
+      </div>
+
+      <div>
+        <h3 class="text-base font-bold font-display text-stone-900 dark:text-white">未登入 LINE</h3>
+        <p class="text-xs sub-text mt-1">連動 LINE 後可享有專屬便利功能：</p>
+      </div>
+
+      <div class="text-left text-xs space-y-2 p-3 rounded-xl bg-stone-100 dark:bg-slate-900/60 border">
+        <div class="flex items-start gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
+          <span>一鍵帶入 LINE 暱稱與頭像極速報名</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i data-lucide="share-2" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
+          <span>一鍵將即時賽況與戰報分享至 LINE 群組</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i data-lucide="trophy" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
+          <span>社團個人累積戰績與積分專屬記錄</span>
+        </div>
+      </div>
+
+      <div class="space-y-2 pt-1">
+        <button type="button" onclick="triggerLineLoginAction()"
+          class="w-full py-2.5 px-4 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95 cursor-pointer">
+          <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/></svg>
+          <span>立即以 LINE 帳號登入</span>
+        </button>
+
+        <a href="https://liff.line.me/2012043789-KvKpHLCt" target="_blank"
+          class="w-full py-2 px-3 rounded-xl border border-stone-200 dark:border-slate-800 hover:border-emerald-500/50 text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center justify-center gap-1.5">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          <span>在 LINE App 中開啟本系統</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== QUICK CODE SEARCH MODAL ==================== -->
   <div id="modal-quick-code"
     class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4"
@@ -1585,10 +1686,13 @@
     window.closePwaIosModal = closePwaIosModal;
 
     // ============================================================
-    // LINE LIFF INTEGRATION
+    // LINE LIFF INTEGRATION & USER STATUS
     // ============================================================
     async function initLiff() {
-      if (!window.liff) return;
+      if (!window.liff) {
+        updateNavLineProfileUI();
+        return;
+      }
       try {
         await liff.init({ liffId: LIFF_ID });
         STATE.isLiff = true;
@@ -1609,9 +1713,142 @@
         }
       } catch (err) {
         console.warn("[LIFF] Initialization warning:", err);
+      } finally {
+        updateNavLineProfileUI();
       }
     }
     window.initLiff = initLiff;
+
+    function updateNavLineProfileUI() {
+      const container = document.getElementById("nav-line-profile-container");
+      if (!container) return;
+
+      const isZh = STATE.lang === "zh-TW";
+      const profile = STATE.lineProfile;
+
+      if (profile && profile.displayName) {
+        // 已連動 LINE
+        const avatarHtml = profile.pictureUrl
+          ? `<img src="${profile.pictureUrl}" alt="${escapeHTML(profile.displayName)}" class="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover border border-[#06C755]" />`
+          : `<span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#06C755] text-white flex items-center justify-center text-[10px] font-bold">L</span>`;
+
+        container.innerHTML = `
+          <button type="button" onclick="openLineProfileModal()"
+            class="flex items-center gap-1.5 px-2 py-1 rounded-xl card-inner border hover:border-[#06C755] transition shadow-sm active:scale-95 cursor-pointer max-w-[120px] sm:max-w-[160px]"
+            title="${isZh ? `LINE 已連動：${escapeHTML(profile.displayName)}` : `Logged in: ${escapeHTML(profile.displayName)}`}">
+            <div class="relative shrink-0">
+              ${avatarHtml}
+              <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#06C755] ring-1 ring-white dark:ring-slate-900"></span>
+            </div>
+            <span class="text-xs font-bold truncate text-stone-800 dark:text-stone-200">${escapeHTML(profile.displayName)}</span>
+          </button>
+        `;
+      } else {
+        // 未登入 LINE
+        container.innerHTML = `
+          <button type="button" onclick="handleLineLoginClick()"
+            class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-[#06C755]/10 hover:bg-[#06C755]/20 text-[#06C755] border border-[#06C755]/30 hover:border-[#06C755] transition shadow-sm active:scale-95 text-xs font-bold cursor-pointer shrink-0"
+            title="${isZh ? '尚未連動 LINE，點擊查看與登入' : 'LINE Not Connected, click to login'}">
+            <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
+            </svg>
+            <span class="text-[11px] sm:text-xs">${isZh ? "未登入 LINE" : "LINE Login"}</span>
+          </button>
+        `;
+      }
+    }
+    window.updateNavLineProfileUI = updateNavLineProfileUI;
+
+    function openLineProfileModal() {
+      const modal = document.getElementById("modal-line-profile-info");
+      if (!modal) return;
+      const profile = STATE.lineProfile;
+      if (!profile) {
+        openLineLoginPromptModal();
+        return;
+      }
+      const avatarEl = document.getElementById("line-modal-profile-avatar");
+      if (avatarEl) {
+        if (profile.pictureUrl) {
+          avatarEl.src = profile.pictureUrl;
+          avatarEl.style.display = "block";
+        } else {
+          avatarEl.style.display = "none";
+        }
+      }
+      const nameEl = document.getElementById("line-modal-profile-name");
+      if (nameEl) nameEl.innerText = profile.displayName || "LINE 球友";
+      const defNameEl = document.getElementById("line-modal-default-name");
+      if (defNameEl) defNameEl.innerText = profile.displayName || "未設定";
+
+      modal.classList.remove("hidden");
+      lucide.createIcons();
+    }
+    window.openLineProfileModal = openLineProfileModal;
+
+    function closeLineProfileModal() {
+      const modal = document.getElementById("modal-line-profile-info");
+      if (modal) modal.classList.add("hidden");
+    }
+    window.closeLineProfileModal = closeLineProfileModal;
+
+    function openLineLoginPromptModal() {
+      const modal = document.getElementById("modal-line-login-prompt");
+      if (modal) {
+        modal.classList.remove("hidden");
+        lucide.createIcons();
+      }
+    }
+    window.openLineLoginPromptModal = openLineLoginPromptModal;
+
+    function closeLineLoginPromptModal() {
+      const modal = document.getElementById("modal-line-login-prompt");
+      if (modal) modal.classList.add("hidden");
+    }
+    window.closeLineLoginPromptModal = closeLineLoginPromptModal;
+
+    function handleLineLoginClick() {
+      if (window.liff && !liff.isLoggedIn()) {
+        if (liff.isInClient()) {
+          liff.login();
+          return;
+        }
+      }
+      openLineLoginPromptModal();
+    }
+    window.handleLineLoginClick = handleLineLoginClick;
+
+    function triggerLineLoginAction() {
+      if (window.liff) {
+        try {
+          if (!liff.isLoggedIn()) {
+            liff.login({ redirectUri: window.location.href });
+            return;
+          }
+        } catch (e) {
+          console.warn("[LIFF] liff.login error:", e);
+        }
+      }
+      window.location.href = "https://liff.line.me/2012043789-KvKpHLCt";
+    }
+    window.triggerLineLoginAction = triggerLineLoginAction;
+
+    function handleLineLogoutOrSwitch() {
+      if (window.liff && liff.isLoggedIn()) {
+        try {
+          liff.logout();
+        } catch (e) {
+          console.warn("[LIFF] liff.logout error:", e);
+        }
+        STATE.lineProfile = null;
+        updateNavLineProfileUI();
+        closeLineProfileModal();
+        showToast(STATE.lang === "zh-TW" ? "已登出 LINE" : "Logged out from LINE", "info");
+      } else {
+        triggerLineLoginAction();
+      }
+    }
+    window.handleLineLogoutOrSwitch = handleLineLogoutOrSwitch;
 
     function updateNavActiveState(pageName) {
       const btnHub = document.getElementById("nav-btn-hub");
@@ -1665,6 +1902,10 @@
       if (navClubBtn) navClubBtn.title = t("navClub");
       const navCreateEl = document.getElementById("t-nav-create");
       if (navCreateEl) navCreateEl.innerText = t("navCreate");
+
+      if (typeof updateNavLineProfileUI === "function") {
+        updateNavLineProfileUI();
+      }
 
       // Dropdown labels
       const dropTheme = document.getElementById("t-dropdown-theme");
@@ -3532,6 +3773,14 @@
         const searchModal = document.getElementById("modal-quick-code");
         if (searchModal && !searchModal.classList.contains("hidden")) {
           closeQuickCodeModal();
+        }
+        const lineProfileModal = document.getElementById("modal-line-profile-info");
+        if (lineProfileModal && !lineProfileModal.classList.contains("hidden")) {
+          closeLineProfileModal();
+        }
+        const linePromptModal = document.getElementById("modal-line-login-prompt");
+        if (linePromptModal && !linePromptModal.classList.contains("hidden")) {
+          closeLineLoginPromptModal();
         }
       }
     });
