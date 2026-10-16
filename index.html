@@ -5299,15 +5299,20 @@
 
         const liffBannerEl = document.getElementById("lobby-liff-profile-banner");
         if (liffBannerEl) {
-          // 若沒有登入 LINE 的情境，直接隱藏
+          // 1. 未登入 LINE：直接隱藏該按鈕，維持版面俐落
           if (!STATE.lineUserId || !STATE.lineProfile) {
             liffBannerEl.classList.add("hidden");
           } else {
             liffBannerEl.classList.remove("hidden");
             const clubName = data.clubName || STATE.currentClub || "";
-            let boundName = clubName ? localStorage.getItem(`pb_bound_name_${clubName}`) : null;
-            if (!boundName) {
-              boundName = STATE.clubPlayerName || localStorage.getItem("pb_my_player_name") || null;
+            let boundName = null;
+            if (clubName) {
+              boundName = localStorage.getItem(`pb_bound_name_${clubName}`);
+              if (!boundName && STATE.currentClub === clubName && STATE.clubPlayerName) {
+                boundName = STATE.clubPlayerName;
+              }
+            } else {
+              boundName = localStorage.getItem("pb_bound_name___general__") || STATE.clubPlayerName || null;
             }
             if (boundName && boundName.length > 10) {
               boundName = boundName.slice(0, 10);
@@ -5316,16 +5321,12 @@
             const currentRoster = Array.isArray(data.players) ? data.players : [];
             const isJoined = boundName ? currentRoster.includes(boundName) : false;
 
-            const avatarHtml = STATE.lineProfile.pictureUrl
-              ? `<img src="${STATE.lineProfile.pictureUrl}" class="w-6 h-6 rounded-full object-cover border border-emerald-500/50 shadow-sm shrink-0" />`
-              : `<span class="w-6 h-6 rounded-full bg-[#06C755] text-white flex items-center justify-center text-[10px] font-bold shrink-0">L</span>`;
-
             if (isJoined) {
-              // 情境 1: 已在參賽名單中
+              // 4. 已在名單中：顯示「已以『球員姓名』報名簽到」狀態條與「取消報名」按鈕
               liffBannerEl.innerHTML = `
                 <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold gap-2">
                   <div class="flex items-center gap-2 min-w-0">
-                    ${avatarHtml}
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0"></i>
                     <span class="truncate">${isZh ? `已以「${escapeHTML(boundName)}」報名簽到` : `Joined as "${escapeHTML(boundName)}"`}</span>
                   </div>
                   <button type="button" onclick="unregisterPlayerFromTournament('${escapeHTML(boundName)}')"
@@ -5335,27 +5336,19 @@
                 </div>
               `;
             } else if (boundName) {
-              // 情境 2: 已綁定身分，顯示高質感一鍵報名簽到按鈕與更換身分按鈕
+              // 3. 已在社團內綁定球員身分：顯示簡潔高質感的「➕ 以『球員姓名』報名」翡翠綠按鈕，前面不要照片，點擊直接一鍵加入名單，後面的按鈕拿掉
               liffBannerEl.innerHTML = `
-                <div class="flex items-center gap-2">
-                  <button type="button" onclick="registerPlayerToTournament('${escapeHTML(boundName)}')"
-                    class="flex-1 py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95 cursor-pointer">
-                    ${avatarHtml}
-                    <span class="truncate">${isZh ? `➕ 以「${escapeHTML(boundName)}」報名簽到` : `➕ Join as "${escapeHTML(boundName)}"`}</span>
-                  </button>
-                  <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeHTML(clubName)}')" title="${isZh ? "更換出賽身分" : "Change Identity"}"
-                    class="p-2.5 rounded-xl border border-stone-300 dark:border-slate-700 hover:border-emerald-500 text-stone-600 dark:text-stone-300 text-xs transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0">
-                    <i data-lucide="user-cog" class="w-4 h-4"></i>
-                  </button>
-                </div>
+                <button type="button" onclick="registerPlayerToTournament('${escapeHTML(boundName)}')"
+                  class="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center transition shadow-md active:scale-95 cursor-pointer">
+                  <span class="truncate">${isZh ? `➕ 以「${escapeHTML(boundName)}」報名` : `➕ Join as "${escapeHTML(boundName)}"`}</span>
+                </button>
               `;
             } else {
-              // 情境 3: 尚未綁定身分，顯示社團大廳風格的認領按鈕，引導先完成認領
+              // 2. 登入 LINE 但未綁定社團球員身分：顯示社團大廳風格的質感琥珀按鈕「⚠️ 尚未綁定球員身分，請先完成認領」，點擊立即開啟認領彈窗
               liffBannerEl.innerHTML = `
                 <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeHTML(clubName)}')"
                   class="w-full py-2.5 px-3.5 rounded-xl card-inner border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold transition flex items-center justify-between gap-2 shadow-sm active:scale-95 cursor-pointer">
-                  <div class="flex items-center gap-2 min-w-0">
-                    ${avatarHtml}
+                  <div class="flex items-center gap-1.5 min-w-0">
                     <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Identity Not Bound. Tap to Claim"}</span>
                   </div>
                   <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-bold shrink-0">
