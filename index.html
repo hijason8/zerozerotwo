@@ -1678,7 +1678,18 @@
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script type="module">
     import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      update,
+      remove,
+      onValue,
+      query,
+      orderByChild,
+      limitToLast
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { I18N } from "./i18n.js";
     import {
       getFullRoundRobinGames,
@@ -4689,11 +4700,27 @@
     window.toggleHubCompletedCollapse = toggleHubCompletedCollapse;
 
     function renderHubTournaments() {
-      const activeContainer = document.getElementById("hub-active-tournaments-list");
-      if (activeContainer) {
-        activeContainer.innerHTML = `<div class="col-span-full text-center py-6 sub-text"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-1"></i>Loading...</div>`;
+      // 1. 優先以本地快取資料零秒立即渲染，避免球友盯著 Loading 空等
+      const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+      const cached = Object.values(localData);
+      if (cached.length > 0) {
+        displayHubTournamentsList(cached);
+      } else {
+        const activeContainer = document.getElementById("hub-active-tournaments-list");
+        if (activeContainer) {
+          activeContainer.innerHTML = `<div class="col-span-full text-center py-6 sub-text"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-1"></i>Loading...</div>`;
+        }
+        lucide.createIcons();
       }
-      lucide.createIcons();
+
+      // 2. 逾時安全閥：如果 2 秒內雲端未回傳，且大廳仍在 Loading，強制顯示目前狀態，杜絕無限卡死
+      const loadingTimeout = setTimeout(() => {
+        const activeContainer = document.getElementById("hub-active-tournaments-list");
+        if (activeContainer && activeContainer.innerHTML.includes("Loading...")) {
+          const fallbackData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+          displayHubTournamentsList(Object.values(fallbackData));
+        }
+      }, 2000);
 
       if (STATE.hubUnsubscribe) {
         STATE.hubUnsubscribe();
@@ -4701,13 +4728,9 @@
       }
 
       if (STATE.db) {
-        // 使用限制查詢：僅監聽最新 40 筆賽事，避免全站資料庫全量推播導致手機發燙與流量耗盡
-        const hubTournamentsQuery = query(
-          ref(STATE.db, "tournaments"),
-          orderByChild("createdAt"),
-          limitToLast(40)
-        );
-        STATE.hubUnsubscribe = onValue(hubTournamentsQuery, (snapshot) => {
+        const tournamentsRef = ref(STATE.db, "tournaments");
+        STATE.hubUnsubscribe = onValue(tournamentsRef, (snapshot) => {
+          clearTimeout(loadingTimeout);
           let list = [];
           if (snapshot.exists()) {
             const data = snapshot.val();
@@ -4718,16 +4741,13 @@
           }
           displayHubTournamentsList(list);
         }, (error) => {
+          clearTimeout(loadingTimeout);
           console.error("Fetch tournaments error:", error);
-          const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
-          displayHubTournamentsList(Object.values(localData));
+          const fallbackData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+          displayHubTournamentsList(Object.values(fallbackData));
         });
       } else {
-        const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
-        const cached = Object.values(localData);
-        if (cached.length > 0) {
-          displayHubTournamentsList(cached);
-        }
+        clearTimeout(loadingTimeout);
         // 若 Firebase 尚未就緒，在 250ms 後重試，確保連線成功後自動刷新大廳
         setTimeout(() => {
           if (STATE.db && STATE.currentPage === "hub" && !STATE.hubUnsubscribe) {
