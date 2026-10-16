@@ -325,11 +325,11 @@
           <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
             <button type="button" id="btn-mode-fair" onclick="setCreateMode('fair')"
               class="mode-btn-active py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
-              <span class="text-xs sm:text-sm font-display font-black" id="t-mode-fair-title">平均分配</span>
+              <span class="text-xs sm:text-sm font-display font-black" id="t-mode-fair-title">平均模式</span>
             </button>
             <button type="button" id="btn-mode-free" onclick="setCreateMode('free')"
               class="mode-btn-inactive py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
-              <span class="text-xs sm:text-sm font-display font-black" id="t-mode-free-title">手動分配</span>
+              <span class="text-xs sm:text-sm font-display font-black" id="t-mode-free-title">自由模式/練球</span>
             </button>
           </div>
           <input type="hidden" id="create-tournament-mode" value="fair" />
@@ -593,6 +593,11 @@
             <i data-lucide="user-plus" class="w-4 h-4 text-emerald-500"></i> <span
               id="t-btn-add-live-player">補入名單</span>
           </button>
+          <button type="button" onclick="completeTournamentAndReturn()" id="btn-finish-practice"
+            class="hidden py-2.5 px-3 rounded-xl card-inner border hover:border-teal-500/50 text-black dark:text-white font-bold text-xs items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
+            <i data-lucide="check-circle" class="w-4 h-4 text-teal-500"></i>
+            <span id="t-btn-finish-practice">結束練球</span>
+          </button>
           <button type="button" onclick="completeTournamentAndReturn()" id="btn-complete-and-return"
             class="py-2.5 px-3 rounded-xl card-inner border hover:border-amber-500/50 text-black dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-500"></i> <span
@@ -691,10 +696,18 @@
             <input type="hidden" id="lobby-selected-total-games" value="" />
           </div>
 
-          <button type="button" id="btn-lobby-start-tournament" onclick="startTournamentFromLobby()"
+          <!-- 主按鈕：依方案自動排賽開打 -->
+          <button type="button" id="btn-lobby-start-tournament" onclick="startTournamentFromLobby('schedule')"
             class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-black py-4 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 tracking-wide cursor-pointer">
             <i data-lucide="rocket" class="w-4 h-4"></i>
             <span id="t-lobby-start-btn-text">全員到齊，立即排賽開打！</span>
+          </button>
+
+          <!-- 副按鈕：不排賽程，直接開始自由練球 / 暢打 -->
+          <button type="button" id="btn-lobby-start-practice" onclick="startTournamentFromLobby('practice')"
+            class="w-full card-inner border hover:border-emerald-500/50 hover:bg-emerald-500/5 font-bold py-3 rounded-2xl transition text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 text-stone-700 dark:text-slate-300 cursor-pointer">
+            <i data-lucide="activity" class="w-4 h-4 text-teal-500"></i>
+            <span id="t-lobby-practice-btn-text">自由模式/練球 (不排賽程，直接開始)</span>
           </button>
         </div>
       </div>
@@ -3762,8 +3775,7 @@
           if (myClubsList.length > 0) {
             optionsHtml += `<optgroup label="${isZh ? "我的社團" : "My Clubs"}">`;
             myClubsList.forEach(c => {
-              const hasPwd = hasPassword(c);
-              optionsHtml += `<option value="${c.replace(/"/g, '&quot;')}">${c}${hasPwd ? ' 🔒' : ''}</option>`;
+              optionsHtml += `<option value="${c.replace(/"/g, '&quot;')}">${c}</option>`;
             });
             optionsHtml += `</optgroup>`;
           }
@@ -4355,7 +4367,9 @@
                 <span class="flex items-center gap-1">
                   <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
                 </span>
-                ${tData.tournamentMode === "free"
+                ${(tData.isPracticeMode || (tData.tournamentMode === "free" && total === 0))
+            ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 inline-flex items-center gap-1"><i data-lucide="activity" class="w-3 h-3"></i> ${STATE.lang === "zh-TW" ? "自由練球" : "Practice"}</span>`
+            : tData.tournamentMode === "free"
             ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`
             : tData.tournamentMode === "round-robin"
               ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>`
@@ -4366,20 +4380,30 @@
                 <span>👥 ${pCount} ${isRegistering ? (STATE.lang === 'zh-TW' ? '已報名' : 'Signed up') : t("playersCountLabel")}</span>
               </div>
 
-              <!-- Visual Progress Meter (僅在賽事進行中或完賽後顯示，報名階段不顯示光條與重複資訊) -->
-              ${!isRegistering ? `
-                <div class="space-y-1 pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
-                  <div class="flex items-center justify-between text-[11px] sub-text font-mono">
-                    <span>${STATE.lang === 'zh-TW' ? '賽程進度' : 'Progress'}</span>
-                    <span class="font-bold ${isFinished ? 'text-emerald-500' : 'text-amber-500 dark:text-amber-400'}">
-                      ${completedCount}/${total} (${pct}%)
+              <!-- Visual Progress Meter (僅在賽事進行中或完賽後顯示) -->
+              ${!isRegistering ? (
+                (tData.isPracticeMode || (tData.tournamentMode === "free" && total === 0)) ? `
+                  <div class="flex items-center justify-between text-[11px] sub-text font-mono pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
+                    <span class="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold">
+                      <i data-lucide="${isFinished ? 'check-circle' : 'activity'}" class="w-3 h-3"></i>
+                      ${isFinished ? (STATE.lang === 'zh-TW' ? '練球已存檔' : 'Completed') : (STATE.lang === 'zh-TW' ? '自由暢打中' : 'In Practice')}
                     </span>
+                    <span class="font-bold text-stone-700 dark:text-slate-300">${pCount} ${STATE.lang === 'zh-TW' ? '人出席' : 'attendees'}</span>
                   </div>
-                  <div class="w-full h-1.5 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden">
-                    <div class="h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'progress-shimmer'}" style="width: ${pct}%"></div>
+                ` : `
+                  <div class="space-y-1 pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
+                    <div class="flex items-center justify-between text-[11px] sub-text font-mono">
+                      <span>${STATE.lang === 'zh-TW' ? '賽程進度' : 'Progress'}</span>
+                      <span class="font-bold ${isFinished ? 'text-emerald-500' : 'text-amber-500 dark:text-amber-400'}">
+                        ${completedCount}/${total} (${pct}%)
+                      </span>
+                    </div>
+                    <div class="w-full h-1.5 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden">
+                      <div class="h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'progress-shimmer'}" style="width: ${pct}%"></div>
+                    </div>
                   </div>
-                </div>
-              ` : ''}
+                `
+              ) : ''}
             </div>
 
             <!-- Action Buttons -->
@@ -4893,10 +4917,24 @@
         progressTextEl.innerText = `${doneMatches}/${totalMatches} (${matchPct}%)`;
       }
 
+      // 自由模式 / 練球 專屬「結束練球」按鈕 (無賽車旗子，無額外贅字)
+      const isFreeOrPractice = !!(data.tournamentMode === "free" || data.isPracticeMode);
+      const finishPracticeBtn = document.getElementById("btn-finish-practice");
+      if (finishPracticeBtn) {
+        if (hasAdmin && !isFinished && isFreeOrPractice) {
+          finishPracticeBtn.classList.remove("hidden");
+          finishPracticeBtn.classList.add("flex");
+        } else {
+          finishPracticeBtn.classList.add("hidden");
+          finishPracticeBtn.classList.remove("flex");
+        }
+      }
+
       // Complete & Return to Hub Button (visible if hasAdmin and NOT finished)
       const completeBtn = document.getElementById("btn-complete-and-return");
       if (completeBtn) {
-        if (hasAdmin && !isFinished) {
+        const hasMatches = (data.matches && data.matches.length > 0);
+        if (hasAdmin && !isFinished && (!isFreeOrPractice || hasMatches)) {
           completeBtn.classList.remove("hidden");
           completeBtn.classList.add("flex");
         } else {
@@ -4945,6 +4983,8 @@
       if (btnAddMatchToolbar) btnAddMatchToolbar.innerText = t("btnAddMatchToolbar");
       const btnCompleteReturn = document.getElementById("t-btn-complete-and-return");
       if (btnCompleteReturn) btnCompleteReturn.innerText = t("finishAndReturnBtn");
+      const finishPracticeText = document.getElementById("t-btn-finish-practice");
+      if (finishPracticeText) finishPracticeText.innerText = isZh ? "結束練球" : "Finish Practice";
       const btnLiveDelete = document.getElementById("t-btn-live-delete");
       if (btnLiveDelete) btnLiveDelete.innerText = t("deleteTournamentBtn");
       const liveCopyReportText = document.getElementById("text-live-copy-report");
@@ -5240,6 +5280,7 @@
       const badge = document.getElementById("lobby-plans-count-badge");
       const hiddenInput = document.getElementById("lobby-selected-total-games");
       const startBtn = document.getElementById("btn-lobby-start-tournament");
+      const practiceBtn = document.getElementById("btn-lobby-start-practice");
       if (!wrap || !container) return;
 
       const isZh = (STATE.lang === "zh-TW");
@@ -5250,7 +5291,20 @@
       const unitLabel = isTeamMode ? (isZh ? "隊" : "teams") : (isZh ? "人" : "players");
       const n = players.length;
 
-      // 若人數不足開賽門檻
+      // 自由模式 / 練球 按鈕狀態控制 (只要有 1 人以上簽到隨時可開練)
+      if (practiceBtn) {
+        if (n >= 1) {
+          practiceBtn.disabled = false;
+          practiceBtn.classList.remove("opacity-50", "cursor-not-allowed");
+          practiceBtn.innerHTML = `<i data-lucide="activity" class="w-4 h-4 text-teal-500"></i> <span>${isZh ? `自由模式/練球 (不排賽程，以目前 ${n} 人直接開打)` : `Free Mode / Practice (${n} players)`}</span>`;
+        } else {
+          practiceBtn.disabled = true;
+          practiceBtn.classList.add("opacity-50", "cursor-not-allowed");
+          practiceBtn.innerHTML = `<i data-lucide="activity" class="w-4 h-4 text-stone-400"></i> <span>${isZh ? '自由模式/練球 (等待人員報名簽到)' : 'Free Mode / Practice (Waiting for players)'}</span>`;
+        }
+      }
+
+      // 若人數不足自動排賽開賽門檻
       if (n < minUnits) {
         wrap.classList.add("hidden");
         if (startBtn) {
@@ -5263,7 +5317,7 @@
         return;
       }
 
-      // 人數已達門檻，展開排賽方案選擇區
+      // 人數已達門檻，展開排賽方案選擇區 (無論建立時選平均模式或自由模式皆可自由切換)
       wrap.classList.remove("hidden");
       if (startBtn) {
         startBtn.disabled = false;
@@ -5272,15 +5326,6 @@
 
       const durationHours = parseFloat(tData.durationHours) || 2.0;
       const totalMinutes = Math.round(durationHours * 60);
-
-      // 自由模式：不需排方案
-      if (tData.tournamentMode === "free") {
-        wrap.classList.add("hidden");
-        if (startBtn) {
-          startBtn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i> <span>${isZh ? "自由暢打模式：全員到齊，立即開打！" : "Free Mode: Start Tournament"}</span>`;
-        }
-        return;
-      }
 
       // 計算輪播參數
       function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
@@ -5400,7 +5445,7 @@
       // 更新開賽按鈕文字
       const currentPlan = plans.find(p => p.totalGames === selectedGames);
       if (startBtn && currentPlan) {
-        startBtn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i> <span>${isZh ? `全員到齊，依【${currentPlan.totalGames} 局方案 (每${unitLabel} ${currentPlan.gamesEach} 場)】立即開打！` : `Ready! Start with ${currentPlan.totalGames} Games`}</span>`;
+        startBtn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i> <span>${isZh ? `依【${currentPlan.totalGames} 局方案 (每${unitLabel} ${currentPlan.gamesEach} 場)】平均模式開賽！` : `Start with Fair Mode (${currentPlan.totalGames} Games)`}</span>`;
       }
 
       lucide.createIcons();
@@ -5416,31 +5461,52 @@
     }
     window.selectLobbySchedulePlan = selectLobbySchedulePlan;
 
-    async function startTournamentFromLobby() {
+    async function startTournamentFromLobby(startMode = 'schedule') {
       const tData = STATE.tournamentData;
       if (!tData || !tData.id) return;
 
+      const isZh = (STATE.lang === "zh-TW");
       const players = (tData.players || []).map(p => p.trim()).filter(Boolean);
       const isSingles = (tData.partnerType === "singles");
       const isTeamMode = !!(tData.isTeamMode || tData.partnerType === "fixed");
       const minUnits = isSingles ? 2 : 4;
 
-      if (tData.tournamentMode === "free") {
-        if (players.length < 2) {
-          showToast(STATE.lang === "zh-TW" ? "自由模式至少需 2 人即可開打！" : "At least 2 players needed for free mode!", "warning");
+      // 1. 若點選「自由練球 / 暢打」
+      if (startMode === 'practice') {
+        if (players.length < 1) {
+          showToast(isZh ? "至少需 1 位選手才能開始練球！" : "At least 1 player needed to start practice!", "warning");
           return;
         }
-      } else {
-        if (players.length < minUnits) {
-          showToast(
-            STATE.lang === "zh-TW"
-              ? (isSingles ? `個人單打至少需 ${minUnits} 位選手！目前僅 ${players.length} 人。` : `雙打輪轉至少需 ${minUnits} 位參賽單位！目前僅 ${players.length} 人。`)
-              : `At least ${minUnits} players required! Currently: ${players.length}`,
-            "warning"
-          );
-          return;
+
+        tData.tournamentMode = "free";
+        tData.isPracticeMode = true;
+        tData.matches = [];
+        tData.status = "active";
+        tData.startedAt = new Date().toISOString();
+
+        saveToLocalTournaments(tData);
+        if (STATE.db) {
+          await set(ref(STATE.db, `tournaments/${tData.id}`), tData);
         }
+
+        showToast(isZh ? "自由練球開始！隨意暢打，打完點擊「結束練球」即可存檔。" : "Practice Started! Have fun!", "success");
+        renderLiveUI(tData);
+        return;
       }
+
+      // 2. 若點選「平均模式開賽」
+      if (players.length < minUnits) {
+        showToast(
+          isZh
+            ? (isSingles ? `個人單打至少需 ${minUnits} 位選手！目前僅 ${players.length} 人。` : `雙打輪轉至少需 ${minUnits} 位參賽單位！目前僅 ${players.length} 人。`)
+            : `At least ${minUnits} players required! Currently: ${players.length}`,
+          "warning"
+        );
+        return;
+      }
+
+      tData.tournamentMode = "fair";
+      tData.isPracticeMode = false;
 
       const startBtn = document.getElementById("btn-lobby-start-tournament");
       const originalBtnHtml = startBtn ? startBtn.innerHTML : "開賽";
@@ -5458,7 +5524,7 @@
         const selectedLobbyGames = parseInt(document.getElementById("lobby-selected-total-games")?.value) || 0;
         const customTotalGames = selectedLobbyGames || tData.customTotalGames || 0;
         tData.customTotalGames = customTotalGames;
-        const effectiveMode = tData.tournamentMode || "fair";
+        const effectiveMode = "fair";
 
         if (effectiveMode !== "free") {
           try {
@@ -5665,6 +5731,43 @@
       document.getElementById("completed-count").innerText = `${doneCount} / ${validMatches.length} ${t("completedGamesBadge")}`;
 
       if (matches.length === 0) {
+        const isPractice = STATE.tournamentData && (STATE.tournamentData.isPracticeMode || STATE.tournamentData.tournamentMode === "free");
+        if (isPractice) {
+          const players = (STATE.tournamentData.players || []);
+          const isZh = STATE.lang === 'zh-TW';
+          container.innerHTML = `
+            <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-4 border shadow-sm">
+              <div class="w-14 h-14 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto border border-teal-500/20 shadow-sm animate-pulse">
+                <i data-lucide="activity" class="w-7 h-7"></i>
+              </div>
+              <div class="space-y-1">
+                <h4 class="font-bold text-base sm:text-lg text-stone-900 dark:text-white">${isZh ? '自由練球暢打進行中' : 'Practice Session in Progress'}</h4>
+                <p class="sub-text text-xs">${isZh ? '今日不排定死板賽程，球友可自由熱身、拉球與暢快對打！' : 'Free play session without fixed schedule.'}</p>
+              </div>
+
+              <!-- 出席球友名冊 Chips -->
+              <div class="pt-3 border-t border-stone-200/60 dark:border-slate-800/60 space-y-2">
+                <div class="flex items-center justify-between text-xs font-bold sub-text">
+                  <span>👥 ${isZh ? '今日出席名冊' : 'Attendees'} (${players.length} ${isZh ? '人' : 'players'})</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5 justify-center">
+                  ${players.map(p => `
+                    <span class="px-2.5 py-1 rounded-xl card-inner border text-xs font-semibold flex items-center gap-1 shadow-xs">
+                      <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> ${escapeHTML(p)}
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-teal-500/5 border border-teal-500/20 text-teal-700 dark:text-teal-300 text-xs text-left sm:text-center leading-relaxed">
+                💡 ${isZh ? '練球結束時，請主辦人點擊上方「結束練球」即可完賽！若想記分亦可點擊「➕ 新增場次」。' : 'When finished, click Finish Practice. You can also click Add Match to record scores.'}
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
         container.innerHTML = `
           <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2.5 border">
             <div class="w-12 h-12 rounded-2xl card-inner sub-text flex items-center justify-center mx-auto text-emerald-500 border shadow-sm">
@@ -6722,17 +6825,12 @@
         const groupLabel = isZh ? "我的社團" : "My Clubs";
         html += `<optgroup label="${groupLabel}">`;
         myClubsList.forEach(c => {
-          const hasPwd = hasPassword(c);
-          const isPriv = typeof isClubPrivate === "function" && isClubPrivate(c);
-          let tag = '';
-          if (isPriv) tag += ' 🔒[私密]';
-          else if (hasPwd) tag += ' 🔒';
-          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}${tag}</option>`;
+          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}</option>`;
         });
         html += `</optgroup>`;
       }
 
-      const exploreOptionLabel = t("navExploreClubsOption") || (isZh ? "🔍 探索更多社團..." : "🔍 Explore More Clubs...");
+      const exploreOptionLabel = t("navExploreClubsOption") || (isZh ? "探索更多社團..." : "Explore More Clubs...");
 
       html += `
         <option value="" disabled>──────────</option>
@@ -6944,8 +7042,6 @@
                 <div class="text-xs sm:text-sm font-bold truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition">${c}</div>
                 <div class="flex items-center gap-2 text-[10px] sub-text mt-0.5">
                   <span>👥 ${memberCount} ${isZh ? '成員' : 'members'}</span>
-                  ${hasPwd ? `<span class="text-amber-500 font-mono">🔒 ${isZh ? '密碼保護' : 'Password'}</span>` : ''}
-                  ${isPriv ? `<span class="text-purple-500 font-mono font-bold">🔒 ${isZh ? '私密社團' : 'Private'}</span>` : ''}
                 </div>
               </div>
             </div>
