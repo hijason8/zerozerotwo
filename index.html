@@ -1564,7 +1564,7 @@
       if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("./sw.js")
+            .register("./sw.js?v=4")
             .then((reg) => {
               console.log("[PWA] Service Worker registered successfully, scope:", reg.scope);
             })
