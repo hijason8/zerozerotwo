@@ -42,8 +42,14 @@
       }
     },
     "app_config": {
-      ".read": true,
-      ".write": false
+      "master_pin_hash": {
+        ".read": true,
+        ".write": false
+      },
+      "line_bot": {
+        ".read": false,
+        ".write": false
+      }
     }
   }
 }
