@@ -363,6 +363,7 @@
           <textarea id="create-notes" maxlength="50" rows="2"
             placeholder="例：公館球場4號場、費用150元、請自備球拍..."
             oninput="updateCreateNotesCounter()"
+            onkeydown="handleCreateNotesKeyDown(event)"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none leading-relaxed transition"></textarea>
         </div>
 
@@ -398,6 +399,20 @@
           <p class="sub-text text-[11px] leading-relaxed" id="t-reg-hint-desc">
             建立報名房間後，將網址發至 LINE 群組供球友即時簽到。全員到齊後，可於現場決定以「平均模式」自動排賽或「自由模式/練球」開打！
           </p>
+        </div>
+
+        <!-- 接龍人數上限 (選填，預設8，上限100) -->
+        <div id="wrap-create-max-players" class="space-y-1.5">
+          <label id="t-label-max-players" class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500"></i>
+            <span id="t-label-max-players-text">接龍人數上限</span>
+            <span id="t-label-max-players-opt" class="text-[10px] font-normal sub-text">(選填，預設 8 人，上限 100 人)</span>
+          </label>
+          <div class="relative">
+            <input type="number" id="create-max-players" min="2" max="100" value="8" placeholder="8"
+              class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none transition pr-10 font-bold font-mono" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs sub-text font-bold">人</span>
+          </div>
         </div>
 
         <!-- Instant Play Sections Wrapper (Hidden when entryMode === 'registration') -->
@@ -2788,6 +2803,11 @@
       if (liveNotesHeadingEl) {
         liveNotesHeadingEl.innerText = isZh ? "活動說明 / 備註：" : "Event Notes / Details:";
       }
+      // Max Players Limit i18n
+      const labelMaxText = document.getElementById("t-label-max-players-text");
+      if (labelMaxText) labelMaxText.innerText = t("labelMaxPlayers");
+      const labelMaxOpt = document.getElementById("t-label-max-players-opt");
+      if (labelMaxOpt) labelMaxOpt.innerText = t("labelMaxPlayersOpt");
       // Modal Create Club
       const modalCreateClubTitle = document.getElementById("t-modal-create-club-title");
       if (modalCreateClubTitle) modalCreateClubTitle.innerText = t("createClubModalTitle");
@@ -3314,10 +3334,13 @@
       const activeCls = "mode-btn-active py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
       const inactiveCls = "mode-btn-inactive py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
 
+      const maxPlayersWrap = document.getElementById("wrap-create-max-players");
+
       if (entryType === "registration") {
         if (btnReg) btnReg.className = activeCls;
         if (btnInstant) btnInstant.className = inactiveCls;
         if (regHint) regHint.classList.remove("hidden");
+        if (maxPlayersWrap) maxPlayersWrap.classList.remove("hidden");
         if (instantSections) instantSections.classList.add("hidden");
         if (submitBtn) {
           submitBtn.innerHTML = `<i data-lucide="clipboard-check" class="w-4 h-4"></i> <span id="t-btn-submit-create-text">${isZh ? "確認" : "Confirm"}</span>`;
@@ -3326,6 +3349,7 @@
         if (btnReg) btnReg.className = inactiveCls;
         if (btnInstant) btnInstant.className = activeCls;
         if (regHint) regHint.classList.add("hidden");
+        if (maxPlayersWrap) maxPlayersWrap.classList.add("hidden");
         if (instantSections) instantSections.classList.remove("hidden");
         if (submitBtn) {
           submitBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> <span id="t-btn-submit-create-text">${isZh ? "確認並立即開打" : "Start Tournament Now"}</span>`;
@@ -4270,10 +4294,30 @@
     }
     window.setupCreateFormContext = setupCreateFormContext;
 
+    function handleCreateNotesKeyDown(e) {
+      if (e.key === "Enter") {
+        const textarea = e.target;
+        const lines = (textarea.value || "").split("\n");
+        if (lines.length >= 10 && textarea.selectionStart === textarea.selectionEnd) {
+          e.preventDefault();
+          showToast(STATE.lang === "zh-TW" ? "⚠️ 備註最多限制 10 行！" : "⚠️ Notes limited to 10 lines max!", "warning");
+        }
+      }
+    }
+    window.handleCreateNotesKeyDown = handleCreateNotesKeyDown;
+
     function updateCreateNotesCounter() {
       const textarea = document.getElementById("create-notes");
       const counter = document.getElementById("create-notes-counter");
       if (!textarea || !counter) return;
+
+      // 限制不能超過 10 行
+      const lines = textarea.value.split("\n");
+      if (lines.length > 10) {
+        textarea.value = lines.slice(0, 10).join("\n");
+      }
+
+      // 限制總長度不能超過 50 字
       if (textarea.value.length > 50) {
         textarea.value = textarea.value.slice(0, 50);
       }
@@ -4296,6 +4340,8 @@
       if (createPlayers) createPlayers.value = "";
       const createNotes = document.getElementById("create-notes");
       if (createNotes) createNotes.value = "";
+      const maxPlayersInput = document.getElementById("create-max-players");
+      if (maxPlayersInput) maxPlayersInput.value = "8";
       updateCreateNotesCounter();
       setSelectedPlayers([]);
       renderSelectedPlayerChips();
@@ -4322,7 +4368,19 @@
       }
 
       try {
-        const maxPlayers = null;
+        let maxPlayers = null;
+        if (isReg) {
+          const rawMax = parseInt(document.getElementById("create-max-players")?.value, 10);
+          if (isNaN(rawMax) || rawMax <= 0) {
+            maxPlayers = 8;
+          } else if (rawMax > 100) {
+            maxPlayers = 100;
+          } else if (rawMax < 2) {
+            maxPlayers = 2;
+          } else {
+            maxPlayers = rawMax;
+          }
+        }
 
         const mode = document.getElementById("create-tournament-mode")?.value || "fair";
         const nameInput = document.getElementById("create-name");
@@ -4333,7 +4391,8 @@
           return;
         }
 
-        const notes = (document.getElementById("create-notes")?.value || "").trim().slice(0, 50);
+        let notes = (document.getElementById("create-notes")?.value || "").trim().slice(0, 50);
+        notes = notes.split("\n").slice(0, 10).join("\n");
 
         const clubSelect = document.getElementById("create-club-select");
         const clubName = clubSelect ? (clubSelect.value || "").trim() : "";
@@ -5413,7 +5472,7 @@
             <button onclick="enterTournament('${tData.id}')"
               class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white">
               <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-              <span>${isZh ? '➕ 前往報名接龍' : '➕ Sign Up'}</span>
+              <span>${isZh ? '前往報名接龍' : 'Sign Up'}</span>
             </button>
           `;
         } else {
@@ -5458,6 +5517,18 @@
                 </div>
                 ${regNameBadge ? `<div class="pt-1">${regNameBadge}</div>` : ''}
               </div>
+
+              ${(() => {
+                if (!tData.notes || !tData.notes.trim()) return '';
+                const firstLine = tData.notes.trim().split('\n')[0].trim();
+                if (!firstLine) return '';
+                return `
+                  <div class="px-2 py-1 rounded-lg card-inner border text-[11px] sub-text flex items-center gap-1.5 bg-stone-500/5 overflow-hidden">
+                    <i data-lucide="file-text" class="w-3 h-3 text-emerald-500 shrink-0"></i>
+                    <span class="truncate font-medium">${escapeHTML(firstLine)}</span>
+                  </div>
+                `;
+              })()}
             </div>
 
             <!-- Bottom Actions -->
@@ -5986,7 +6057,15 @@
 
         const regCountText = document.getElementById("lobby-registered-count-text");
         if (regCountText) {
-          regCountText.innerText = isZh ? `共 ${pCount} 人` : `Total: ${pCount}`;
+          const maxLimit = data.maxPlayers ? Number(data.maxPlayers) : null;
+          if (maxLimit) {
+            const isFull = pCount >= maxLimit;
+            regCountText.innerHTML = isZh
+              ? `已報名 <span class="font-black ${isFull ? 'text-rose-500' : 'text-emerald-500'}">${pCount}</span> / 上限 ${maxLimit} 人 ${isFull ? '<span class="text-rose-500 font-bold">(已滿額)</span>' : ''}`
+              : `Signed up <span class="font-black ${isFull ? 'text-rose-500' : 'text-emerald-500'}">${pCount}</span> / ${maxLimit} max ${isFull ? '<span class="text-rose-500 font-bold">(Full)</span>' : ''}`;
+          } else {
+            regCountText.innerText = isZh ? `共 ${pCount} 人` : `Total: ${pCount}`;
+          }
         }
 
         const chipsEl = document.getElementById("lobby-registered-chips");
@@ -6157,6 +6236,17 @@
       const currentPlayers = Array.isArray(tData.players) ? [...tData.players] : [];
       if (currentPlayers.includes(name)) {
         showToast(STATE.lang === "zh-TW" ? `「${name}」已經在報名名單中了！` : `"${name}" is already registered!`, "info");
+        return;
+      }
+
+      const maxLimit = (tData.maxPlayers && !isNaN(Number(tData.maxPlayers))) ? Number(tData.maxPlayers) : null;
+      if (maxLimit && currentPlayers.length >= maxLimit) {
+        showToast(
+          STATE.lang === "zh-TW"
+            ? `⚠️ 報名人數已達上限（${maxLimit} 人），名額已滿！`
+            : `⚠️ Registration is full (${maxLimit} max)!`,
+          "error"
+        );
         return;
       }
 
@@ -9259,6 +9349,17 @@
                   </div>
                   <h4 class="text-sm font-bold font-display line-clamp-1">${tData.name}</h4>
                   <div class="text-xs sub-text">👥 ${pCount} ${isReg ? (STATE.lang === 'zh-TW' ? '人已報名' : 'signed up') : (STATE.lang === 'zh-TW' ? '人參賽' : 'players')}</div>
+                  ${(() => {
+                    if (!tData.notes || !tData.notes.trim()) return '';
+                    const firstLine = tData.notes.trim().split('\n')[0].trim();
+                    if (!firstLine) return '';
+                    return `
+                      <div class="px-2 py-0.5 rounded-md card-inner border text-[10px] sub-text flex items-center gap-1 bg-stone-500/5 overflow-hidden">
+                        <i data-lucide="file-text" class="w-2.5 h-2.5 text-emerald-500 shrink-0"></i>
+                        <span class="truncate font-medium">${escapeHTML(firstLine)}</span>
+                      </div>
+                    `;
+                  })()}
                 </div>
                 <button onclick="enterTournament('${tData.id}')" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm active:scale-95">
                   <i data-lucide="${isReg ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isReg ? '' : 'fill-current'}"></i> ${isReg ? t("enterRegistration") : (STATE.lang === 'zh-TW' ? '進入計分' : 'Enter')}
