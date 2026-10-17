@@ -2171,6 +2171,22 @@
         STATE.isLiff = true;
 
         if (liff.isLoggedIn()) {
+          // 1. 成功登入，立即關閉登入彈窗
+          closeLineLoginPromptModal();
+
+          // 2. 乾淨清理 URL 上的 OAuth code 參數，避免重整時重複解析或受污染
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.has("code") || urlParams.has("state") || urlParams.has("liffClientId") || urlParams.has("liff.state")) {
+            urlParams.delete("code");
+            urlParams.delete("state");
+            urlParams.delete("liffClientId");
+            urlParams.delete("liff.state");
+            const newSearch = urlParams.toString();
+            const cleanUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+            window.history.replaceState({}, document.title, cleanUrl);
+          }
+
+          // 3. 取得 LINE Profile
           const profile = await liff.getProfile();
           STATE.lineUserId = profile.userId;
           STATE.lineProfile = profile;
@@ -2182,7 +2198,7 @@
             }
           }
 
-          // 等待 Firebase RTDB 初始化就緒 (最多等待 2 秒)
+          // 4. 等待 Firebase RTDB 初始化就緒 (最多等待 2 秒)
           let waitCount = 0;
           while (!STATE.db && waitCount < 20) {
             await new Promise(r => setTimeout(r, 100));
@@ -2217,11 +2233,11 @@
             await addUserClubToFirebase(STATE.currentClub);
           }
 
-          console.info(`[LIFF] Logged in: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
+          console.info(`[LIFF] Logged in successfully: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
 
           // 會員視角：若無指定參數且處於訪客大廳，自動切換至我的活動總表
-          const urlParams = new URLSearchParams(window.location.search);
-          if (!urlParams.get("t") && !urlParams.get("club") && (!urlParams.get("page") || urlParams.get("page") === "activities")) {
+          const currentParams = new URLSearchParams(window.location.search);
+          if (!currentParams.get("t") && !currentParams.get("club") && (!currentParams.get("page") || currentParams.get("page") === "activities")) {
             navigateTo("activities", false);
           }
 
@@ -2240,12 +2256,17 @@
             liff.login();
             return;
           }
-          // 在外部瀏覽器，若網址帶有 code 或 liff.state，嘗試呼叫 liff.login() 解析授權
+
+          // 清理 URL 殘留或失效的 OAuth 參數，杜絕無效重定向
           const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.has("code") || urlParams.has("liffClientId") || urlParams.has("liff.state")) {
-            console.info("[LIFF] Redirect params detected, calling liff.login()...");
-            liff.login();
-            return;
+          if (urlParams.has("code") || urlParams.has("state") || urlParams.has("liffClientId") || urlParams.has("liff.state")) {
+            urlParams.delete("code");
+            urlParams.delete("state");
+            urlParams.delete("liffClientId");
+            urlParams.delete("liff.state");
+            const newSearch = urlParams.toString();
+            const cleanUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+            window.history.replaceState({}, document.title, cleanUrl);
           }
 
           STATE.lineUserId = null;
@@ -2258,6 +2279,8 @@
         }
       } catch (err) {
         console.warn("[LIFF] Initialization error (safe fallback enabled):", err);
+        STATE.lineUserId = null;
+        STATE.lineProfile = null;
         STATE.myClubs = [];
       } finally {
         updateNavLineProfileUI();
@@ -2369,10 +2392,12 @@
     window.handleLineLoginClick = handleLineLoginClick;
 
     function triggerLineLoginAction() {
+      closeLineLoginPromptModal();
+      const redirectUri = window.location.origin + window.location.pathname;
       if (window.liff) {
         try {
           if (!liff.isLoggedIn()) {
-            liff.login({ redirectUri: window.location.href });
+            liff.login({ redirectUri });
             return;
           }
         } catch (e) {
