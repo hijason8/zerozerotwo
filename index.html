@@ -69,7 +69,7 @@
   <header class="sticky top-0 z-40 glass-nav border-b transition-colors">
     <div class="max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-3">
       <!-- Logo & Title -->
-      <div class="flex items-center gap-2 sm:gap-2.5 cursor-pointer shrink-0" onclick="navigateTo('hub')">
+      <div class="flex items-center gap-2 sm:gap-2.5 cursor-pointer shrink-0" onclick="navigateTo('activities')">
         <div
           class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl card-inner border flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold shadow-sm shrink-0">
           <i data-lucide="trophy" class="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5"></i>
@@ -275,6 +275,48 @@
             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             <!-- Rendered dynamically -->
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PAGE ACTIVITIES: MY ACTIVITIES OVERVIEW (我的活動總表) ==================== -->
+    <section id="page-activities" class="space-y-4 sm:space-y-6 hidden">
+      <!-- SECTION 1: 報名與比賽中 (上方區塊：跟自己有關的報名與比賽中球局) -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between pt-1">
+          <h3 id="t-activities-registered-heading" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
+            <span id="t-activities-reg-text">已報名與比賽中</span>
+            <span id="activities-registered-count" class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">0</span>
+          </h3>
+        </div>
+        <div id="activities-registered-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- SECTION 2: 開放接龍報名 (中間區塊：自己能報名但是未報名的活動接龍) -->
+      <div class="space-y-3 pt-2">
+        <div class="flex items-center justify-between pt-1">
+          <h3 id="t-activities-available-heading" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
+            <span id="t-activities-avail-text">開放接龍報名</span>
+            <span id="activities-available-count" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold">0</span>
+          </h3>
+        </div>
+        <div id="activities-available-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- SECTION 3: 近期完賽球局 (3日內) (最下方區塊：跟自己有關的近期完賽球局) -->
+      <div class="space-y-3 pt-2">
+        <div class="flex items-center justify-between pt-1">
+          <h3 id="t-activities-completed-heading" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
+            <span id="t-activities-comp-text">近期完賽球局 (3日內)</span>
+            <span id="activities-completed-count" class="text-xs px-2 py-0.5 rounded-full bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 font-bold">0</span>
+          </h3>
+        </div>
+        <div id="activities-completed-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+          <!-- Rendered dynamically -->
         </div>
       </div>
     </section>
@@ -2072,6 +2114,13 @@
 
     async function addUserClubToFirebase(clubName) {
       if (!clubName || !clubName.trim()) return;
+      if (!STATE.lineUserId) {
+        showToast(STATE.lang === "zh-TW" ? "請先透過 LINE 登入，才能加入專屬社團！" : "Please log in with LINE to join clubs!", "warning");
+        if (window.liff && !liff.isLoggedIn()) {
+          liff.login();
+        }
+        return;
+      }
       const safeClub = clubName.trim();
 
       if (!STATE.myClubs.includes(safeClub)) {
@@ -2079,7 +2128,7 @@
       }
 
       try {
-        localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
+        localStorage.setItem(`pb_my_clubs_${STATE.lineUserId}`, JSON.stringify(STATE.myClubs));
         localStorage.setItem("pb_last_club", safeClub);
       } catch (e) {}
 
@@ -2097,24 +2146,23 @@
       if (typeof populateNavClubSelect === "function") {
         populateNavClubSelect();
       }
+      if (typeof updateNavClubSelectValue === "function") {
+        updateNavClubSelectValue();
+      }
     }
     window.addUserClubToFirebase = addUserClubToFirebase;
 
     // ============================================================
-    // LINE LIFF INTEGRATION & USER STATUS (DUAL FALLBACK)
+    // LINE LIFF INTEGRATION & USER STATUS (STRICT DUAL TRACK)
     // ============================================================
     async function initLiffAndUser() {
-      // 1. 預設降級：先從 LocalStorage 取出快取資料
-      try {
-        const cachedClubs = JSON.parse(localStorage.getItem("pb_my_clubs") || "[]");
-        STATE.myClubs = Array.isArray(cachedClubs) ? cachedClubs : [];
-      } catch (e) {
-        STATE.myClubs = [];
-      }
+      // 訪客預設無社團清單，杜絕依賴本機舊快取猜測身分
+      STATE.myClubs = [];
 
       if (!window.liff) {
-        console.info("[LIFF] SDK not found, using LocalStorage fallback.");
+        console.info("[LIFF] SDK not found, running in guest mode.");
         updateNavLineProfileUI();
+        if (typeof populateNavClubSelect === "function") populateNavClubSelect();
         return;
       }
 
@@ -2141,29 +2189,47 @@
             waitCount++;
           }
 
-          // 2. 雲端同步：自動在 Firebase 建立/更新 /users/{lineUserId}
+          // 雲端同步：讀取 /users/{lineUserId} 專屬社團
           const userData = await syncUserProfileToFirebase(profile);
 
           if (userData && userData.myClubs) {
             const cloudClubs = Object.keys(userData.myClubs).map(c => decodeURIComponent(c));
-            const mergedSet = new Set([...cloudClubs, ...STATE.myClubs]);
-            STATE.myClubs = Array.from(mergedSet);
-
-            localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
+            STATE.myClubs = cloudClubs;
+            try {
+              localStorage.setItem(`pb_my_clubs_${STATE.lineUserId}`, JSON.stringify(STATE.myClubs));
+            } catch (e) {}
 
             if (userData.lastClub && !STATE.currentClub) {
               STATE.currentClub = userData.lastClub;
             }
+          } else {
+            // 嘗試讀取該會員專屬快取
+            try {
+              const cached = JSON.parse(localStorage.getItem(`pb_my_clubs_${STATE.lineUserId}`) || "[]");
+              STATE.myClubs = Array.isArray(cached) ? cached : [];
+            } catch (e) {
+              STATE.myClubs = [];
+            }
           }
 
-          // 若當前社團本已在 myClubs 中，確認同步寫入 Firebase
+          // 若當前社團已在 myClubs 中，確認同步寫入 Firebase
           if (STATE.currentClub && Array.isArray(STATE.myClubs) && STATE.myClubs.includes(STATE.currentClub)) {
             await addUserClubToFirebase(STATE.currentClub);
           }
 
           console.info(`[LIFF] Logged in: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
 
-          // 若當前已處於某社團，檢查並提示 LINE 身分認領
+          // 會員視角：若無指定參數且處於訪客大廳，自動切換至我的活動總表
+          const urlParams = new URLSearchParams(window.location.search);
+          if (!urlParams.get("t") && !urlParams.get("club") && (!urlParams.get("page") || urlParams.get("page") === "activities")) {
+            navigateTo("activities", false);
+          }
+
+          // 刷新頂部導航下拉選單與身分認領檢查
+          if (typeof populateNavClubSelect === "function") {
+            populateNavClubSelect();
+          }
+
           if (STATE.currentClub && typeof checkAndPromptClubIdentityClaim === "function") {
             checkAndPromptClubIdentityClaim(STATE.currentClub);
           }
@@ -2184,12 +2250,20 @@
 
           STATE.lineUserId = null;
           STATE.lineProfile = null;
-          console.info("[LIFF] Not logged in, running in guest/fallback mode.");
+          STATE.myClubs = [];
+          console.info("[LIFF] Not logged in, running in guest mode.");
+          if (typeof populateNavClubSelect === "function") {
+            populateNavClubSelect();
+          }
         }
       } catch (err) {
         console.warn("[LIFF] Initialization error (safe fallback enabled):", err);
+        STATE.myClubs = [];
       } finally {
         updateNavLineProfileUI();
+        if (typeof populateNavClubSelect === "function") {
+          populateNavClubSelect();
+        }
       }
     }
     window.initLiffAndUser = initLiffAndUser;
@@ -2311,14 +2385,42 @@
 
     function handleLineLogoutOrSwitch() {
       if (window.liff && liff.isLoggedIn()) {
+        const oldUserId = STATE.lineUserId;
         try {
           liff.logout();
         } catch (e) {
           console.warn("[LIFF] liff.logout error:", e);
         }
+
+        // 登出時，徹底清空 LINE Profile、會員 ID 與記憶體社團狀態
         STATE.lineProfile = null;
+        STATE.lineUserId = null;
+        STATE.myClubs = [];
+        STATE.currentClub = null;
+        STATE.clubPlayerName = null;
+
+        // 清除所有會造成錯亂的本地快取
+        localStorage.removeItem("pb_my_clubs");
+        localStorage.removeItem("pb_last_club");
+        localStorage.removeItem("pb_my_player_name");
+        if (oldUserId) {
+          localStorage.removeItem(`pb_my_clubs_${oldUserId}`);
+        }
+
+        // 將大廳視角重置為公開訪客
+        STATE.hubView = "all";
+
         updateNavLineProfileUI();
         closeLineProfileModal();
+
+        // 重新渲染頂部導覽列為訪客選單 (賽事大廳)
+        if (typeof populateNavClubSelect === "function") {
+          populateNavClubSelect();
+        }
+
+        // 返回訪客首頁 (賽事大廳)
+        navigateTo("hub");
+
         showToast(STATE.lang === "zh-TW" ? "已登出 LINE" : "Logged out from LINE", "info");
       } else {
         triggerLineLoginAction();
@@ -2443,12 +2545,19 @@
       // Hub Page & Club Selector
       const hubClubSelector = document.getElementById("hub-club-selector");
       if (hubClubSelector && hubClubSelector.options.length > 0) {
-        hubClubSelector.options[0].text = isZh ? "賽事大廳" : "LOBBY";
+        if (STATE.lineUserId) {
+          hubClubSelector.options[0].text = isZh ? "我的活動總表" : "My Activities";
+        } else {
+          hubClubSelector.options[0].text = isZh ? "賽事大廳" : "LOBBY";
+        }
       }
       const hubPrivacyHintEl = document.getElementById("t-hub-privacy-hint");
       if (hubPrivacyHintEl) hubPrivacyHintEl.innerText = t("hubPrivacyHint");
       const btnRemoveMyClubEl = document.getElementById("t-btn-remove-my-club");
-      if (btnRemoveMyClubEl) btnRemoveMyClubEl.innerText = isZh ? "取消常用" : "Remove";
+      if (btnRemoveMyClubEl) {
+        const isMyClub = !!(STATE.lineUserId && Array.isArray(STATE.myClubs) && STATE.currentClub && STATE.myClubs.includes(STATE.currentClub));
+        btnRemoveMyClubEl.innerText = isMyClub ? (isZh ? "退出社團" : "Leave Club") : (isZh ? "+ 加入社團" : "+ Join Club");
+      }
 
       // Quick Code Search Modal
       const modalSearchTitleEl = document.getElementById("t-modal-search-title");
@@ -2495,6 +2604,14 @@
       if (switcherSelect && switcherSelect.options.length > 0) {
         switcherSelect.options[0].text = t("clubSwitcherAllOption");
       }
+
+      // My Activities Overview Page
+      const actRegTextEl = document.getElementById("t-activities-reg-text");
+      if (actRegTextEl) actRegTextEl.innerText = isZh ? "已報名與比賽中" : "Registered & In Progress";
+      const actAvailTextEl = document.getElementById("t-activities-avail-text");
+      if (actAvailTextEl) actAvailTextEl.innerText = isZh ? "開放接龍報名" : "Available for Sign Up";
+      const actCompTextEl = document.getElementById("t-activities-comp-text");
+      if (actCompTextEl) actCompTextEl.innerText = isZh ? "近期完賽球局 (3日內)" : "Recent Completed Matches (3 Days)";
 
       const histTitle = document.getElementById("t-history-title");
       if (histTitle) histTitle.innerHTML = `<i data-lucide="history" class="w-5 h-5 text-emerald-500"></i> ${t("historyTitle")}`;
@@ -2926,19 +3043,32 @@
         navigateTo("history", false);
       } else if (page === "create") {
         navigateTo("create", false);
+      } else if (page === "activities") {
+        if (STATE.lineUserId) {
+          navigateTo("activities", false);
+        } else {
+          navigateTo("hub", false);
+        }
+      } else if (page === "hub") {
+        navigateTo("hub", false);
       } else if (page === "club") {
         STATE.currentClub = null;
         navigateTo("history", false);
       } else if (page === "history") {
         navigateTo("history", false);
       } else {
-        navigateTo("hub", false);
+        // 嚴格雙軌默認首頁：未登入訪客為賽事大廳 (hub)，已登入會員為我的活動總表 (activities)
+        if (STATE.lineUserId) {
+          navigateTo("activities", false);
+        } else {
+          navigateTo("hub", false);
+        }
       }
     }
 
     function navigateTo(pageName, pushHistory = true) {
       STATE.currentPage = pageName;
-      const pages = ["hub", "create", "live", "history", "admin"];
+      const pages = ["hub", "create", "live", "history", "admin", "activities"];
       pages.forEach(p => {
         const el = document.getElementById(`page-${p}`);
         if (el) el.classList.add("hidden");
@@ -2947,10 +3077,10 @@
       const target = document.getElementById(`page-${pageName}`);
       if (target) target.classList.remove("hidden");
 
-      // 控制共用大廳頂部工具列顯示狀態 (僅在賽事大廳與社團大廳時顯示)
+      // 控制共用大廳頂部工具列顯示狀態 (在賽事大廳、社團大廳與社團活動總表時顯示)
       const sharedHeader = document.getElementById("lobby-shared-header");
       if (sharedHeader) {
-        if (pageName === "hub" || pageName === "history") {
+        if (pageName === "hub" || pageName === "history" || pageName === "activities") {
           sharedHeader.classList.remove("hidden");
         } else {
           sharedHeader.classList.add("hidden");
@@ -2958,10 +3088,15 @@
       }
 
       updateNavActiveState(pageName);
+      if (typeof updateNavClubSelectValue === "function") {
+        updateNavClubSelectValue();
+      }
 
       if (pushHistory) {
-        if (pageName === "hub") {
+        if (pageName === "activities") {
           window.history.pushState({}, "", window.location.pathname);
+        } else if (pageName === "hub") {
+          window.history.pushState({}, "", `${window.location.pathname}?page=hub`);
         } else if (pageName === "create") {
           window.history.pushState({}, "", `${window.location.pathname}?page=create`);
         } else if (pageName === "history") {
@@ -2979,6 +3114,8 @@
 
       if (pageName === "hub") {
         renderHubTournaments();
+      } else if (pageName === "activities") {
+        renderActivitiesPage();
       } else if (pageName === "create") {
         resetCreateForm();
       } else if (pageName === "history") {
@@ -2994,6 +3131,10 @@
       if (pageName !== "hub" && pageName !== "history" && STATE.hubUnsubscribe) {
         STATE.hubUnsubscribe();
         STATE.hubUnsubscribe = null;
+      }
+      if (pageName !== "activities" && STATE.activitiesUnsubscribe) {
+        STATE.activitiesUnsubscribe();
+        STATE.activitiesUnsubscribe = null;
       }
       lucide.createIcons();
     }
@@ -3900,20 +4041,10 @@
       if (!clubSelect) return;
 
       const currentVal = clubSelect.value;
-      const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
+      // 僅登入會員才具備專屬社團，未登入訪客無專屬社團 (不透過 localStorage 拼湊猜測)
+      const userMyClubs = (STATE.lineUserId && Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
         .filter(c => c && c.trim())
         .map(c => c.trim());
-
-      if (userMyClubs.length === 0) {
-        try {
-          const cached = JSON.parse(localStorage.getItem("pb_my_clubs") || "[]");
-          if (Array.isArray(cached)) {
-            cached.forEach(c => {
-              if (c && c.trim() && !userMyClubs.includes(c.trim())) userMyClubs.push(c.trim());
-            });
-          }
-        } catch (e) {}
-      }
 
       // 嚴格過濾：僅保留全站真實有效（未被刪除）的社團
       const allActiveClubs = typeof getAllUniqueClubs === "function" ? getAllUniqueClubs() : [];
@@ -4764,6 +4895,440 @@
       loadLiveTournament(id, true);
     }
     window.enterTournament = enterTournament;
+
+    // ----------------------------------------------------
+    // PAGE ACTIVITIES: CLUB ACTIVITIES OVERVIEW LOGIC
+    // 社團活動總表：已報名/已接龍 VS 未報名活動展示
+    // ----------------------------------------------------
+    let activitiesSearchKeyword = "";
+
+    function onActivitiesSearchInput(keyword) {
+      activitiesSearchKeyword = (keyword || "").trim().toLowerCase();
+      const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+      const list = (Array.isArray(STATE.allTournamentsCache) && STATE.allTournamentsCache.length > 0)
+        ? STATE.allTournamentsCache
+        : Object.values(localData);
+      displayActivitiesList(list);
+    }
+    window.onActivitiesSearchInput = onActivitiesSearchInput;
+
+    function getUserKnownIdentityNames() {
+      const names = new Set();
+      // 1. 各社團本地身分綁定 (pb_bound_name_*)
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("pb_bound_name_")) {
+            const val = localStorage.getItem(key);
+            if (val && val.trim()) names.add(val.trim());
+          }
+        }
+      } catch (e) {}
+
+      // 2. STATE 當前身分
+      if (STATE.clubPlayerName && STATE.clubPlayerName.trim()) {
+        names.add(STATE.clubPlayerName.trim());
+      }
+
+      // 3. 全域自訂姓名
+      const customName = localStorage.getItem("pb_custom_player_name") || localStorage.getItem("pb_my_player_name") || localStorage.getItem("my_player_name");
+      if (customName && customName.trim()) names.add(customName.trim());
+
+      // 4. LINE profile 暱稱
+      if (STATE.lineProfile && STATE.lineProfile.displayName && STATE.lineProfile.displayName.trim()) {
+        names.add(STATE.lineProfile.displayName.trim());
+      }
+
+      names.delete("");
+      return Array.from(names);
+    }
+
+    function checkTournamentRegistrationStatus(t) {
+      if (!t || !Array.isArray(t.players)) {
+        return { isRegistered: false, registeredName: null };
+      }
+      // 嚴格雙軌：訪客未登入 LINE 無法綁定或預定個人活動
+      if (!STATE.lineUserId) {
+        return { isRegistered: false, registeredName: null };
+      }
+
+      const clubName = (t.clubName || "").trim();
+      let boundName = null;
+      if (clubName) {
+        boundName = localStorage.getItem(`pb_bound_name_${clubName}`);
+        if (!boundName && STATE.currentClub === clubName && STATE.clubPlayerName) {
+          boundName = STATE.clubPlayerName;
+        }
+      } else {
+        boundName = localStorage.getItem("pb_bound_name___general__") || STATE.clubPlayerName || null;
+      }
+      if (boundName) boundName = boundName.trim();
+
+      const allKnownNames = getUserKnownIdentityNames();
+
+      for (const p of t.players) {
+        let pName = "";
+        let pLineId = "";
+        if (typeof p === "string") {
+          pName = p.trim();
+        } else if (p && typeof p === "object") {
+          pName = (p.name || "").trim();
+          pLineId = (p.lineUserId || "").trim();
+        }
+
+        // 1. 若 LINE User ID 相符，直接判定已報名
+        if (STATE.lineUserId && pLineId && pLineId === STATE.lineUserId) {
+          return { isRegistered: true, registeredName: pName || boundName || STATE.lineProfile?.displayName || "我" };
+        }
+
+        // 2. 若為該社團明確綁定身分相符
+        if (boundName && pName === boundName) {
+          return { isRegistered: true, registeredName: boundName };
+        }
+
+        // 3. 若為使用者其他已知姓名相符
+        if (pName && allKnownNames.includes(pName)) {
+          return { isRegistered: true, registeredName: pName };
+        }
+      }
+
+      return { isRegistered: false, registeredName: null };
+    }
+
+    function renderActivitiesPage() {
+      // 訪客未登入 LINE 嚴格導回賽事大廳
+      if (!STATE.lineUserId) {
+        navigateTo("hub");
+        return;
+      }
+
+      // 1. 優先使用快取資料立即可見
+      const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+      const cached = Object.values(localData);
+      if (cached.length > 0) {
+        displayActivitiesList(cached);
+      } else {
+        const regContainer = document.getElementById("activities-registered-list");
+        const availContainer = document.getElementById("activities-available-list");
+        if (regContainer) {
+          regContainer.innerHTML = `<div class="col-span-full text-center py-6 sub-text"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-1"></i>Loading...</div>`;
+        }
+        if (availContainer) {
+          availContainer.innerHTML = `<div class="col-span-full text-center py-6 sub-text"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-1"></i>Loading...</div>`;
+        }
+        lucide.createIcons();
+      }
+
+      // 2. 逾時安全閥
+      const loadingTimeout = setTimeout(() => {
+        const regContainer = document.getElementById("activities-registered-list");
+        if (regContainer && regContainer.innerHTML.includes("animate-spin")) {
+          const fallback = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+          displayActivitiesList(Object.values(fallback));
+        }
+      }, 2000);
+
+      // 3. 清除舊訂閱
+      if (STATE.activitiesUnsubscribe) {
+        STATE.activitiesUnsubscribe();
+        STATE.activitiesUnsubscribe = null;
+      }
+
+      // 4. 即時監聽 Firebase
+      if (STATE.db) {
+        const tournamentsRef = ref(STATE.db, "tournaments");
+        STATE.activitiesUnsubscribe = onValue(tournamentsRef, (snapshot) => {
+          clearTimeout(loadingTimeout);
+          let list = [];
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            list = Object.values(data);
+            localStorage.setItem("pb_tournaments", JSON.stringify(data));
+          } else {
+            localStorage.setItem("pb_tournaments", JSON.stringify({}));
+          }
+          displayActivitiesList(list);
+        }, (error) => {
+          clearTimeout(loadingTimeout);
+          console.warn("[Activities] onValue error:", error);
+          const fallback = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+          displayActivitiesList(Object.values(fallback));
+        });
+      } else {
+        clearTimeout(loadingTimeout);
+        setTimeout(() => {
+          if (STATE.db && STATE.currentPage === "activities" && !STATE.activitiesUnsubscribe) {
+            renderActivitiesPage();
+          }
+        }, 250);
+      }
+    }
+    window.renderActivitiesPage = renderActivitiesPage;
+
+    function displayActivitiesList(list) {
+      STATE.allTournamentsCache = list || [];
+      const isZh = STATE.lang === "zh-TW";
+
+      // 更新區塊標題與搜尋框中英文字串
+      const regTextEl = document.getElementById("t-activities-reg-text");
+      if (regTextEl) regTextEl.innerText = isZh ? "已報名與比賽中" : "Registered & In Progress";
+
+      const availTextEl = document.getElementById("t-activities-avail-text");
+      if (availTextEl) availTextEl.innerText = isZh ? "開放接龍報名" : "Available for Sign Up";
+
+      const compTextEl = document.getElementById("t-activities-comp-text");
+      if (compTextEl) compTextEl.innerText = isZh ? "近期完賽球局 (3日內)" : "Recent Completed Matches (3 Days)";
+
+      // 搜尋過濾
+      let filtered = (list || []).filter(t => {
+        if (!t) return false;
+        if (!activitiesSearchKeyword) return true;
+        const name = (t.name || "").toLowerCase();
+        const club = (t.clubName || "").toLowerCase();
+        const venue = (t.venue || "").toLowerCase();
+        return name.includes(activitiesSearchKeyword) || club.includes(activitiesSearchKeyword) || venue.includes(activitiesSearchKeyword);
+      });
+
+      // 依建立時間倒序
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      // 三大分流清單：
+      // 1. 上方：跟自己有關的報名與比賽中的球局
+      const registeredActiveList = [];
+      // 2. 中間：自己能報名但是未報名的活動接龍
+      const availableSignUpList = [];
+      // 3. 最下方：跟自己有關的近期完賽球局 (3日內)
+      const registeredCompletedList = [];
+
+      const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+      const nowMs = Date.now();
+
+      filtered.forEach(tData => {
+        const regStatus = checkTournamentRegistrationStatus(tData);
+        const totalMatches = tData.matches ? tData.matches.length : 0;
+        const completedMatches = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
+        const voidedMatches = tData.matches ? tData.matches.filter(m => m.voided).length : 0;
+        const doneMatches = completedMatches + voidedMatches;
+        const isFinished = tData.status === "completed" || (totalMatches > 0 && doneMatches === totalMatches);
+
+        if (regStatus.isRegistered) {
+          // 跟自己有關
+          if (isFinished) {
+            // 最下方：跟自己有關的近期完賽球局 (3日內)
+            const tDate = parseTournamentDate(tData.createdAt);
+            const isWithin3Days = tDate ? (nowMs - tDate.getTime()) <= THREE_DAYS_MS : true;
+            if (isWithin3Days) {
+              registeredCompletedList.push({ ...tData, _registeredName: regStatus.registeredName });
+            }
+          } else {
+            // 上方：跟自己有關的報名與比賽中的球局
+            registeredActiveList.push({ ...tData, _registeredName: regStatus.registeredName });
+          }
+        } else {
+          // 自己未報名：中間放「自己能報名但是未報名的活動接龍」
+          const isRegistering = (tData.status === "registering");
+          const isClosed = tData.registrationClosed === true || tData.isRegistrationClosed === true || tData.isClosed === true;
+          if (isRegistering && !isClosed && !isFinished) {
+            availableSignUpList.push(tData);
+          }
+        }
+      });
+
+      // 排序中間接龍清單
+      availableSignUpList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      // 更新徽章數字
+      const totalActivitiesCount = registeredActiveList.length + availableSignUpList.length + registeredCompletedList.length;
+      const totalBadge = document.getElementById("activities-total-badge");
+      if (totalBadge) totalBadge.innerText = `${totalActivitiesCount} ${isZh ? '場' : 'matches'}`;
+
+      const regCountEl = document.getElementById("activities-registered-count");
+      if (regCountEl) regCountEl.innerText = `${registeredActiveList.length}`;
+
+      const availCountEl = document.getElementById("activities-available-count");
+      if (availCountEl) availCountEl.innerText = `${availableSignUpList.length}`;
+
+      const compCountEl = document.getElementById("activities-completed-count");
+      if (compCountEl) compCountEl.innerText = `${registeredCompletedList.length}`;
+
+      // 卡片渲染函式
+      const renderActivityCard = (tData, mode) => {
+        // mode: 'active_registered' | 'available_signup' | 'completed_registered'
+        const isRegistering = (tData.status === "registering");
+        const total = tData.matches ? tData.matches.length : 0;
+        const completedCount = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
+        const voidedCount = tData.matches ? tData.matches.filter(m => m.voided).length : 0;
+        const done = completedCount + voidedCount;
+        const isFinished = tData.status === "completed" || (total > 0 && done === total);
+        const dateStr = formatTournamentDate(tData.createdAt);
+        const pCount = tData.players ? tData.players.length : 0;
+        const maxPlayers = tData.maxPlayers ? Number(tData.maxPlayers) : null;
+        const isFull = maxPlayers ? pCount >= maxPlayers : false;
+
+        const clubBadge = tData.clubName && tData.clubName.trim() ? `
+          <span class="text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+            <i data-lucide="shield" class="w-2.5 h-2.5"></i> ${escapeHTML(tData.clubName.trim())}
+          </span>
+        ` : `
+          <span class="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 flex items-center gap-0.5">
+            <i data-lucide="zap" class="w-2.5 h-2.5"></i> ${isZh ? '公開球局' : 'Public'}
+          </span>
+        `;
+
+        const regNameBadge = tData._registeredName ? `
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+            <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `已以「${escapeHTML(tData._registeredName)}」出賽` : `Joined: ${escapeHTML(tData._registeredName)}`}
+          </span>
+        ` : '';
+
+        const statusBadge = isRegistering ? `
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1 shadow-xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${isZh ? '開放接龍' : 'Registering'}
+          </span>
+        ` : (isFinished ? `
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/25 flex items-center gap-1 shadow-xs">
+            <i data-lucide="check" class="w-2.5 h-2.5"></i> ${isZh ? '已完賽' : 'Finished'}
+          </span>
+        ` : `
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ${isZh ? '進行中' : 'Active'}
+          </span>
+        `);
+
+        // 名額進度
+        const quotaInfo = maxPlayers ? `
+          <span class="font-mono ${isFull ? 'text-rose-500 font-bold' : ''}">👥 ${pCount}/${maxPlayers} ${isFull ? (isZh ? '(已滿額)' : '(Full)') : ''}</span>
+        ` : `
+          <span class="font-mono">👥 ${pCount} ${isZh ? '人' : 'players'}</span>
+        `;
+
+        let actionBtn = "";
+        if (mode === "active_registered") {
+          actionBtn = `
+            <button onclick="enterTournament('${tData.id}')"
+              class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer ${
+                isRegistering
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white'
+                  : 'card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white'
+              }">
+              <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5"></i>
+              <span>${isRegistering ? (isZh ? '進入活動接龍' : 'View Signup') : (isZh ? '進入即時比分' : 'View Live')}</span>
+            </button>
+          `;
+        } else if (mode === "available_signup") {
+          actionBtn = `
+            <button onclick="enterTournament('${tData.id}')"
+              class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+              <span>${isZh ? '➕ 前往報名接龍' : '➕ Sign Up'}</span>
+            </button>
+          `;
+        } else {
+          // completed_registered
+          actionBtn = `
+            <button onclick="enterTournament('${tData.id}')"
+              class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white">
+              <i data-lucide="award" class="w-3.5 h-3.5 text-amber-500"></i>
+              <span>${isZh ? '查看賽事戰果' : 'View Results'}</span>
+            </button>
+          `;
+        }
+
+        return `
+          <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3 border flex flex-col justify-between shadow-sm relative overflow-hidden group ${
+            mode === 'active_registered' ? 'border-emerald-500/30 bg-emerald-500/[0.02]' : ''
+          }">
+            <div class="space-y-2.5">
+              <!-- Top Badges -->
+              <div class="flex items-center justify-between gap-1.5 flex-wrap">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
+                  ${clubBadge}
+                </div>
+                ${statusBadge}
+              </div>
+
+              <!-- Title -->
+              <div>
+                <h3 class="text-base sm:text-lg font-bold font-display line-clamp-1 group-hover:text-emerald-500 transition-colors">
+                  ${escapeHTML(tData.name || '未命名賽事')}
+                </h3>
+              </div>
+
+              <!-- Meta info -->
+              <div class="space-y-1.5 text-xs sub-text">
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                  <span class="flex items-center gap-1">
+                    <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
+                  </span>
+                  ${quotaInfo}
+                </div>
+                ${regNameBadge ? `<div class="pt-1">${regNameBadge}</div>` : ''}
+              </div>
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="pt-2">
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+      };
+
+      // 1. 渲染上方區塊：報名與比賽中
+      const regContainer = document.getElementById("activities-registered-list");
+      if (regContainer) {
+        if (registeredActiveList.length === 0) {
+          regContainer.innerHTML = `
+            <div class="col-span-full glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2 border">
+              <p class="text-xs sm:text-sm font-semibold sub-text">
+                ${isZh ? '目前沒有進行中或已報名的活動' : 'No active or registered activities'}
+              </p>
+              <p class="text-[11px] sub-text opacity-80">
+                ${isZh ? '快查看下方開放接龍報名的活動加入吧！' : 'Check out open activities below to sign up!'}
+              </p>
+            </div>
+          `;
+        } else {
+          regContainer.innerHTML = registeredActiveList.map(t => renderActivityCard(t, 'active_registered')).join("");
+        }
+      }
+
+      // 2. 渲染中間區塊：開放接龍報名
+      const availContainer = document.getElementById("activities-available-list");
+      if (availContainer) {
+        if (availableSignUpList.length === 0) {
+          availContainer.innerHTML = `
+            <div class="col-span-full glass-card rounded-2xl p-6 text-center space-y-1.5 border">
+              <p class="text-xs font-semibold sub-text">
+                ${isZh ? '目前暫無開放接龍報名的活動' : 'No sign-up activities available'}
+              </p>
+            </div>
+          `;
+        } else {
+          availContainer.innerHTML = availableSignUpList.map(t => renderActivityCard(t, 'available_signup')).join("");
+        }
+      }
+
+      // 3. 渲染最下方區塊：近期完賽球局 (3日內)
+      const compContainer = document.getElementById("activities-completed-list");
+      if (compContainer) {
+        if (registeredCompletedList.length === 0) {
+          compContainer.innerHTML = `
+            <div class="col-span-full glass-card rounded-2xl p-6 text-center space-y-1.5 border">
+              <p class="text-xs font-semibold sub-text">
+                ${isZh ? '近 3 日無完賽球局' : 'No completed matches in the past 3 days'}
+              </p>
+            </div>
+          `;
+        } else {
+          compContainer.innerHTML = registeredCompletedList.map(t => renderActivityCard(t, 'completed_registered')).join("");
+        }
+      }
+
+      lucide.createIcons();
+    }
+    window.displayActivitiesList = displayActivitiesList;
 
     async function deleteTournament(id) {
       // Find tournament object to check club
@@ -7165,34 +7730,45 @@
       const isZh = STATE.lang === "zh-TW";
       const defaultLabel = isZh ? "賽事大廳" : "LOBBY";
       const createClubOptionLabel = t("navCreateClubOption") || (isZh ? "建立新社團..." : "Create New Club...");
-
-      const hasPassword = (c) => (typeof hasClubPassword === "function" ? hasClubPassword(c) : false);
-
-      // 1.「我的社團」清單 (STATE.myClubs，並確保在 uniqueClubs 內)
-      const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
-        .filter(c => c && c.trim())
-        .map(c => c.trim());
-      const myClubsList = uniqueClubs.filter(c => userMyClubs.includes(c));
-
-      let html = `<option value="" ${!STATE.currentClub ? 'selected' : ''}>${defaultLabel}</option>`;
-
-      // 若當前正處於某社團，但使用者尚未將其加入「我的社團」（訪客瀏覽中）
-      if (STATE.currentClub && !userMyClubs.includes(STATE.currentClub)) {
-        const safeCurrent = STATE.currentClub.replace(/"/g, '&quot;');
-        html += `<option value="${safeCurrent}" selected>📍 ${STATE.currentClub} (${isZh ? "訪客瀏覽" : "Visiting"})</option>`;
-      }
-
-      // 區塊一：我的社團 (無圖案純文字標籤)
-      if (myClubsList.length > 0) {
-        const groupLabel = isZh ? "我的社團" : "My Clubs";
-        html += `<optgroup label="${groupLabel}">`;
-        myClubsList.forEach(c => {
-          html += `<option value="${c.replace(/"/g, '&quot;')}" ${STATE.currentClub === c ? 'selected' : ''}>${c}</option>`;
-        });
-        html += `</optgroup>`;
-      }
-
       const exploreOptionLabel = t("navExploreClubsOption") || (isZh ? "探索更多社團..." : "Explore More Clubs...");
+
+      const isLoggedIn = !!STATE.lineUserId;
+      let html = "";
+
+      if (isLoggedIn) {
+        // 會員視角：首選項為「我的活動總表」，並渲染「我的社團」分組
+        const myActivitiesLabel = isZh ? "我的活動總表" : "My Activities";
+        html += `<option value="" ${(!STATE.currentClub && (STATE.currentPage === 'activities' || STATE.currentPage === 'hub')) ? 'selected' : ''}>${myActivitiesLabel}</option>`;
+
+        const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
+          .filter(c => c && c.trim())
+          .map(c => c.trim());
+        const myClubsList = uniqueClubs.filter(c => userMyClubs.includes(c));
+
+        // 若當前正處於某社團，但使用者尚未將其加入「我的社團」
+        if (STATE.currentClub && !userMyClubs.includes(STATE.currentClub)) {
+          const safeCurrent = STATE.currentClub.replace(/"/g, '&quot;');
+          html += `<option value="${safeCurrent}" selected>${STATE.currentClub} (${isZh ? "瀏覽中" : "Visiting"})</option>`;
+        }
+
+        // 區塊一：我的社團 (無圖案純文字標籤)
+        if (myClubsList.length > 0) {
+          const groupLabel = isZh ? "我的社團" : "My Clubs";
+          html += `<optgroup label="${groupLabel}">`;
+          myClubsList.forEach(c => {
+            html += `<option value="${c.replace(/"/g, '&quot;')}" ${(STATE.currentClub === c && STATE.currentPage !== 'activities') ? 'selected' : ''}>${c}</option>`;
+          });
+          html += `</optgroup>`;
+        }
+      } else {
+        // 訪客視角 (未登入 LINE)：下拉選單僅保留「賽事大廳」以及訪客瀏覽中的社團
+        html += `<option value="" ${(!STATE.currentClub && (STATE.currentPage === 'hub' || STATE.currentPage === 'activities')) ? 'selected' : ''}>${defaultLabel}</option>`;
+
+        if (STATE.currentClub) {
+          const safeCurrent = STATE.currentClub.replace(/"/g, '&quot;');
+          html += `<option value="${safeCurrent}" selected>${STATE.currentClub} (${isZh ? "訪客瀏覽" : "Visiting"})</option>`;
+        }
+      }
 
       html += `
         <option value="" disabled>──────────</option>
@@ -7208,8 +7784,15 @@
     async function toggleAddCurrentClub() {
       const current = STATE.currentClub;
       if (!current) return;
+      if (!STATE.lineUserId) {
+        showToast(STATE.lang === "zh-TW" ? "請先透過 LINE 登入，才能加入專屬社團！" : "Please log in with LINE to join clubs!", "warning");
+        if (window.liff && !liff.isLoggedIn()) {
+          liff.login();
+        }
+        return;
+      }
       await addUserClubToFirebase(current);
-      showToast(STATE.lang === "zh-TW" ? `已將「${current}」加入常用社團！` : `Added "${current}" to My Clubs!`, "success");
+      showToast(STATE.lang === "zh-TW" ? `已將「${current}」加入專屬社團！` : `Added "${current}" to My Clubs!`, "success");
       updateNavClubSelectValue();
       populateNavClubSelect();
       if (typeof populateCreateClubSelect === "function") populateCreateClubSelect();
@@ -7220,34 +7803,45 @@
       const navSelect = document.getElementById("hub-club-selector") || document.getElementById("nav-btn-history");
       const shareBtn = document.getElementById("btn-share-club");
       const removeBtn = document.getElementById("btn-remove-my-club");
+      const idBtn = document.getElementById("btn-club-identity");
+
+      if (STATE.currentPage === "activities" || (STATE.currentPage === "hub" && !STATE.currentClub)) {
+        if (navSelect) navSelect.value = "";
+        if (shareBtn) shareBtn.classList.add("hidden");
+        if (removeBtn) removeBtn.classList.add("hidden");
+        if (idBtn) idBtn.classList.add("hidden");
+        return;
+      }
 
       if (STATE.currentPage === "history" && STATE.currentClub) {
         if (navSelect) navSelect.value = STATE.currentClub;
         if (shareBtn) shareBtn.classList.remove("hidden");
 
         const isMyClub = !!(
+          STATE.lineUserId &&
           Array.isArray(STATE.myClubs) &&
           STATE.myClubs.includes(STATE.currentClub)
         );
         if (removeBtn) {
           removeBtn.classList.remove("hidden");
-          const textEl = document.getElementById("t-btn-remove-my-club");
           const isZh = STATE.lang === "zh-TW";
           if (isMyClub) {
+            // 已加入社團：顯示 X 號圖示與退出功能
             removeBtn.onclick = removeMyClub;
             removeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-rose-500/50 text-xs font-semibold sub-text hover:text-rose-500 transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer";
             removeBtn.title = isZh ? "從專屬社團清單移除" : "Remove from My Clubs";
             removeBtn.innerHTML = `
-              <i data-lucide="x-circle" class="w-3.5 h-3.5 text-rose-500"></i>
-              <span id="t-btn-remove-my-club" class="hidden xs:inline">${isZh ? "退出常用" : "Leave Club"}</span>
+              <i data-lucide="x" class="w-3.5 h-3.5 text-rose-500"></i>
+              <span id="t-btn-remove-my-club" class="hidden xs:inline">${isZh ? "退出社團" : "Leave Club"}</span>
             `;
           } else {
+            // 尚未加入社團：顯示 + 號圖示與主動加入功能
             removeBtn.onclick = toggleAddCurrentClub;
             removeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-teal-500/50 text-xs font-semibold text-teal-600 dark:text-teal-400 hover:bg-teal-500/5 transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer";
-            removeBtn.title = isZh ? "加入我的常用社團" : "Add to My Clubs";
+            removeBtn.title = isZh ? "加入專屬社團" : "Add to My Clubs";
             removeBtn.innerHTML = `
-              <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-teal-500"></i>
-              <span id="t-btn-remove-my-club" class="hidden xs:inline">${isZh ? "+ 加入常用" : "+ Join Club"}</span>
+              <i data-lucide="plus" class="w-3.5 h-3.5 text-teal-500"></i>
+              <span id="t-btn-remove-my-club" class="hidden xs:inline">${isZh ? "+ 加入社團" : "+ Join Club"}</span>
             `;
           }
           lucide.createIcons();
@@ -7260,7 +7854,6 @@
         if (navSelect) navSelect.value = "";
         if (shareBtn) shareBtn.classList.add("hidden");
         if (removeBtn) removeBtn.classList.add("hidden");
-        const idBtn = document.getElementById("btn-club-identity");
         if (idBtn) idBtn.classList.add("hidden");
       }
     }
@@ -7271,7 +7864,7 @@
       if (!clubToRemove) return;
 
       const isZh = STATE.lang === "zh-TW";
-      const isMyClub = Array.isArray(STATE.myClubs) && STATE.myClubs.includes(clubToRemove);
+      const isMyClub = !!(STATE.lineUserId && Array.isArray(STATE.myClubs) && STATE.myClubs.includes(clubToRemove));
 
       if (isMyClub) {
         const confirmMsg = isZh
@@ -7296,7 +7889,9 @@
         // 2. 前端狀態同步
         STATE.myClubs = (STATE.myClubs || []).filter(c => c !== clubToRemove);
         try {
-          localStorage.setItem("pb_my_clubs", JSON.stringify(STATE.myClubs));
+          if (STATE.lineUserId) {
+            localStorage.setItem(`pb_my_clubs_${STATE.lineUserId}`, JSON.stringify(STATE.myClubs));
+          }
         } catch (e) {}
 
         showToast(isZh ? "已從專屬社團移除" : "Removed from My Clubs", "info");
@@ -7314,8 +7909,8 @@
         populateNavClubSelect();
       }
 
-      // 4. 返回公開賽事大廳
-      navigateTo("hub");
+      // 4. 返回默認首頁（登入返回我的活動總表，未登入返回賽事大廳）
+      navigateTo(STATE.lineUserId ? "activities" : "hub");
     }
     window.removeMyClub = removeMyClub;
 
@@ -7330,11 +7925,12 @@
     window.handleSharedCreateTournament = handleSharedCreateTournament;
 
     async function onNavClubSelectChange(clubName) {
-      if (!clubName || clubName === "") {
+      if (!clubName || clubName === "" || clubName === "__club_activities__") {
         STATE.currentClub = null;
         STATE.createContextClub = null;
-        if (STATE.currentPage !== "hub") {
-          navigateTo("hub");
+        const targetPage = STATE.lineUserId ? "activities" : "hub";
+        if (STATE.currentPage !== targetPage) {
+          navigateTo(targetPage);
         }
         updateNavClubSelectValue();
         return;
@@ -9051,10 +9647,6 @@
                     </button>
                   </div>
                 </div>
-                      ${t("adminMembersBtn")} (${members.length})
-                    </button>
-                  </div>
-                </div>
 
                 ${!isGeneral ? `
                 <!-- Row 2: Password Management -->
@@ -9627,6 +10219,8 @@
           renderHubTournaments();
         } else if (STATE.currentPage === "history") {
           renderHistoryPage();
+        } else if (STATE.currentPage === "activities") {
+          renderActivitiesPage();
         }
       });
 
@@ -9721,22 +10315,27 @@
         // 3. 頁面導航返回
         if (navigator.vibrate) navigator.vibrate(12);
 
+        const defaultHome = STATE.lineUserId ? "activities" : "hub";
         if (STATE.currentPage === "live") {
-          // 即時對戰 / 報名大廳：返回所屬社團或賽事大廳
+          // 即時對戰 / 報名大廳：返回所屬社團或預設首頁
           if (STATE.currentClub) {
             navigateTo("history");
           } else {
-            navigateTo("hub");
+            navigateTo(defaultHome);
           }
         } else if (STATE.currentPage === "create") {
-          // 排賽建立頁：返回大廳
-          navigateTo("hub");
+          // 排賽建立頁：返回預設首頁
+          navigateTo(defaultHome);
         } else if (STATE.currentPage === "history") {
-          // 社團大廳：如果有歷史紀錄優先 back，否則回 hub
+          // 社團大廳：如果有歷史紀錄優先 back，否則回預設首頁
           if (window.history.length > 1) {
             window.history.back();
           } else {
-            navigateTo("hub");
+            navigateTo(defaultHome);
+          }
+        } else if (STATE.currentPage === "activities") {
+          if (window.history.length > 1) {
+            window.history.back();
           }
         } else if (STATE.currentPage === "admin") {
           navigateTo("history");
