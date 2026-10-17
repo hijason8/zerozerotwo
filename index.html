@@ -401,15 +401,14 @@
           </p>
         </div>
 
-        <!-- 接龍人數上限 (選填，未填寫預設100) -->
+        <!-- 人數上限 (選填) -->
         <div id="wrap-create-max-players" class="space-y-1.5">
           <label id="t-label-max-players" class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5">
             <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500"></i>
-            <span id="t-label-max-players-text">接龍人數上限</span>
-            <span id="t-label-max-players-opt" class="text-[10px] font-normal sub-text">(選填，未填寫預設 100 人)</span>
+            <span id="t-label-max-players-text">人數上限（選填）</span>
           </label>
           <div class="relative">
-            <input type="number" id="create-max-players" min="2" max="100" placeholder="未填寫預設 100"
+            <input type="number" id="create-max-players" min="2" max="100" placeholder=""
               class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none transition pr-10 font-bold font-mono" />
             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs sub-text font-bold">人</span>
           </div>
@@ -2806,10 +2805,8 @@
       // Max Players Limit i18n
       const labelMaxText = document.getElementById("t-label-max-players-text");
       if (labelMaxText) labelMaxText.innerText = t("labelMaxPlayers");
-      const labelMaxOpt = document.getElementById("t-label-max-players-opt");
-      if (labelMaxOpt) labelMaxOpt.innerText = t("labelMaxPlayersOpt");
       const maxPlayersInput = document.getElementById("create-max-players");
-      if (maxPlayersInput) maxPlayersInput.placeholder = t("placeholderMaxPlayers");
+      if (maxPlayersInput) maxPlayersInput.placeholder = "";
       // Modal Create Club
       const modalCreateClubTitle = document.getElementById("t-modal-create-club-title");
       if (modalCreateClubTitle) modalCreateClubTitle.innerText = t("createClubModalTitle");
