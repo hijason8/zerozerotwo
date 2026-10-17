@@ -2115,10 +2115,6 @@
     async function addUserClubToFirebase(clubName) {
       if (!clubName || !clubName.trim()) return;
       if (!STATE.lineUserId) {
-        showToast(STATE.lang === "zh-TW" ? "請先透過 LINE 登入，才能加入專屬社團！" : "Please log in with LINE to join clubs!", "warning");
-        if (window.liff && !liff.isLoggedIn()) {
-          liff.login();
-        }
         return;
       }
       const safeClub = clubName.trim();
@@ -6049,10 +6045,12 @@
       currentPlayers.push(name);
       tData.players = currentPlayers;
 
-      localStorage.setItem("pb_my_player_name", name);
+      // 訪客無痕離開，不保留本地追蹤；僅已登入會員保留輸入慣用名稱
+      if (STATE.lineUserId) {
+        localStorage.setItem("pb_my_player_name", name);
+      }
 
       if (tData.clubName) {
-        addUserClubToFirebase(tData.clubName);
         const clubMembers = getClubMembersList(tData.clubName);
         if (!clubMembers.includes(name)) {
           clubMembers.push(name);
@@ -7885,10 +7883,7 @@
       const current = STATE.currentClub;
       if (!current) return;
       if (!STATE.lineUserId) {
-        showToast(STATE.lang === "zh-TW" ? "請先透過 LINE 登入，才能加入專屬社團！" : "Please log in with LINE to join clubs!", "warning");
-        if (window.liff && !liff.isLoggedIn()) {
-          liff.login();
-        }
+        openLineLoginPromptModal();
         return;
       }
       await addUserClubToFirebase(current);
