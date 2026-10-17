@@ -350,18 +350,18 @@
           </div>
         </div>
 
-        <!-- 活動備註 / 補充說明 (選填，限200字) -->
+        <!-- 活動備註 / 補充說明 (選填，限50字) -->
         <div id="wrap-create-notes">
           <div class="flex items-center justify-between mb-1">
             <label id="t-label-notes" class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5">
               <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-500"></i>
-              <span>活動備註 / 補充說明</span>
-              <span class="text-[10px] font-normal sub-text">(選填)</span>
+              <span id="t-label-notes-text">活動備註 / 補充說明</span>
+              <span id="t-label-notes-opt" class="text-[10px] font-normal sub-text">(選填)</span>
             </label>
-            <span id="create-notes-counter" class="text-[10px] font-mono sub-text">0/200</span>
+            <span id="create-notes-counter" class="text-[10px] font-mono sub-text">0/50</span>
           </div>
-          <textarea id="create-notes" maxlength="200" rows="3"
-            placeholder="例：公館球場4號場、費用150元現場收、球館有供球請自備球拍、請提前10分鐘到場熱身..."
+          <textarea id="create-notes" maxlength="50" rows="2"
+            placeholder="例：公館球場4號場、費用150元、請自備球拍..."
             oninput="updateCreateNotesCounter()"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none leading-relaxed transition"></textarea>
         </div>
@@ -626,7 +626,7 @@
           class="hidden p-3 rounded-xl card-inner border border-emerald-500/25 bg-emerald-500/5 text-xs text-stone-700 dark:text-slate-300 flex items-start gap-2 shadow-sm">
           <i data-lucide="info" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
           <div class="space-y-0.5 flex-1 break-words">
-            <span class="font-bold text-emerald-600 dark:text-emerald-400 block text-[11px]">活動說明 / 備註：</span>
+            <span id="live-notes-heading" class="font-bold text-emerald-600 dark:text-emerald-400 block text-[11px]">活動說明 / 備註：</span>
             <p id="live-notes-text" class="leading-relaxed whitespace-pre-line text-xs font-medium"></p>
           </div>
         </div>
@@ -2772,6 +2772,22 @@
       if (typeof populateCreateClubSelect === "function") {
         populateCreateClubSelect();
       }
+
+      // Event Notes / Details i18n
+      const labelNotesText = document.getElementById("t-label-notes-text");
+      if (labelNotesText) labelNotesText.innerText = isZh ? "活動備註 / 補充說明" : "Notes / Details";
+      const labelNotesOpt = document.getElementById("t-label-notes-opt");
+      if (labelNotesOpt) labelNotesOpt.innerText = isZh ? "(選填)" : "(Optional)";
+      const createNotesInput = document.getElementById("create-notes");
+      if (createNotesInput) {
+        createNotesInput.placeholder = isZh
+          ? "例：公館球場4號場、費用150元、請自備球拍..."
+          : "e.g. Court 4, Fee $150, Bring your own paddle...";
+      }
+      const liveNotesHeadingEl = document.getElementById("live-notes-heading");
+      if (liveNotesHeadingEl) {
+        liveNotesHeadingEl.innerText = isZh ? "活動說明 / 備註：" : "Event Notes / Details:";
+      }
       // Modal Create Club
       const modalCreateClubTitle = document.getElementById("t-modal-create-club-title");
       if (modalCreateClubTitle) modalCreateClubTitle.innerText = t("createClubModalTitle");
@@ -4258,14 +4274,14 @@
       const textarea = document.getElementById("create-notes");
       const counter = document.getElementById("create-notes-counter");
       if (!textarea || !counter) return;
-      if (textarea.value.length > 200) {
-        textarea.value = textarea.value.slice(0, 200);
+      if (textarea.value.length > 50) {
+        textarea.value = textarea.value.slice(0, 50);
       }
       const len = textarea.value.length;
-      counter.innerText = `${len}/200`;
-      if (len >= 200) {
+      counter.innerText = `${len}/50`;
+      if (len >= 50) {
         counter.className = "text-[10px] font-mono font-bold text-rose-500";
-      } else if (len >= 180) {
+      } else if (len >= 45) {
         counter.className = "text-[10px] font-mono font-bold text-amber-500";
       } else {
         counter.className = "text-[10px] font-mono sub-text";
@@ -4317,7 +4333,7 @@
           return;
         }
 
-        const notes = (document.getElementById("create-notes")?.value || "").trim().slice(0, 200);
+        const notes = (document.getElementById("create-notes")?.value || "").trim().slice(0, 50);
 
         const clubSelect = document.getElementById("create-club-select");
         const clubName = clubSelect ? (clubSelect.value || "").trim() : "";
@@ -4888,12 +4904,17 @@
                 <span>👥 ${pCount} ${isRegistering ? (STATE.lang === 'zh-TW' ? '已報名' : 'Signed up') : t("playersCountLabel")}</span>
               </div>
 
-              ${tData.notes && tData.notes.trim() ? `
-                <div class="p-2 rounded-xl card-inner border text-[11px] sub-text leading-relaxed flex items-start gap-1.5 bg-stone-500/5">
-                  <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5"></i>
-                  <span class="break-words line-clamp-2">${escapeHTML(tData.notes.trim())}</span>
-                </div>
-              ` : ''}
+              ${(() => {
+                if (!tData.notes || !tData.notes.trim()) return '';
+                const firstLine = tData.notes.trim().split('\n')[0].trim();
+                if (!firstLine) return '';
+                return `
+                  <div class="px-2 py-1 rounded-lg card-inner border text-[11px] sub-text flex items-center gap-1.5 bg-stone-500/5 overflow-hidden">
+                    <i data-lucide="file-text" class="w-3 h-3 text-emerald-500 shrink-0"></i>
+                    <span class="truncate font-medium">${escapeHTML(firstLine)}</span>
+                  </div>
+                `;
+              })()}
 
               <!-- Visual Progress Meter (僅在賽事進行中或完賽後顯示) -->
               ${!isRegistering ? (
