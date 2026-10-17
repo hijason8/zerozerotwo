@@ -2910,8 +2910,15 @@
       }
       const adminText = document.getElementById("text-toggle-live-admin");
       if (adminText) {
-        const hasAdmin = STATE.tournamentData ? isTournamentAdmin(STATE.tournamentData) : false;
-        adminText.innerText = hasAdmin ? t("liveAdminToggleViewer") : t("liveAdminToggleAdmin");
+        const tData = STATE.tournamentData;
+        const isFinished = tData ? isTournamentFinished(tData) : false;
+        const isFrozen = isFinished && !STATE.isAdmin;
+        if (isFrozen) {
+          adminText.innerText = STATE.lang === "zh-TW" ? "已完賽 (已凍結)" : "Completed (Frozen)";
+        } else {
+          const hasAdmin = tData ? isTournamentAdmin(tData) : false;
+          adminText.innerText = hasAdmin ? t("liveAdminToggleViewer") : t("liveAdminToggleAdmin");
+        }
       }
       const liveCopyReportText = document.getElementById("text-live-copy-report");
       if (liveCopyReportText) liveCopyReportText.innerText = t("copyReportBtn");
@@ -4711,9 +4718,7 @@
       const nowMs = Date.now();
 
       filteredList.forEach(tData => {
-        const total = tData.matches ? tData.matches.length : 0;
-        const done = tData.matches ? tData.matches.filter(m => m.completed || m.voided).length : 0;
-        const isDone = tData.status === "completed" || (total > 0 && done === total);
+        const isDone = isTournamentFinished(tData);
         if (isDone) {
           const tDate = parseTournamentDate(tData.createdAt);
           const isWithin3Days = tDate ? (nowMs - tDate.getTime()) <= THREE_DAYS_MS : true;
@@ -4738,11 +4743,9 @@
       // Helper to render tournament card
       const renderCard = (tData) => {
         const isRegistering = (tData.status === "registering");
+        const isFinished = isTournamentFinished(tData);
         const total = tData.matches ? tData.matches.length : 0;
         const completedCount = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
-        const voidedCount = tData.matches ? tData.matches.filter(m => m.voided).length : 0;
-        const done = completedCount + voidedCount;
-        const isFinished = tData.status === "completed" || (total > 0 && done === total);
         const dateStr = formatTournamentDate(tData.createdAt);
         const pCount = tData.players ? tData.players.length : 0;
 
@@ -5183,11 +5186,7 @@
 
       filtered.forEach(tData => {
         const regStatus = checkTournamentRegistrationStatus(tData);
-        const totalMatches = tData.matches ? tData.matches.length : 0;
-        const completedMatches = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
-        const voidedMatches = tData.matches ? tData.matches.filter(m => m.voided).length : 0;
-        const doneMatches = completedMatches + voidedMatches;
-        const isFinished = tData.status === "completed" || (totalMatches > 0 && doneMatches === totalMatches);
+        const isFinished = isTournamentFinished(tData);
 
         if (regStatus.isRegistered) {
           // 跟自己有關
@@ -5244,11 +5243,7 @@
       const renderActivityCard = (tData, mode) => {
         // mode: 'active_registered' | 'available_signup' | 'completed_registered'
         const isRegistering = (tData.status === "registering");
-        const total = tData.matches ? tData.matches.length : 0;
-        const completedCount = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
-        const voidedCount = tData.matches ? tData.matches.filter(m => m.voided).length : 0;
-        const done = completedCount + voidedCount;
-        const isFinished = tData.status === "completed" || (total > 0 && done === total);
+        const isFinished = isTournamentFinished(tData);
         const dateStr = formatTournamentDate(tData.createdAt);
         const pCount = tData.players ? tData.players.length : 0;
         const maxPlayers = tData.maxPlayers ? Number(tData.maxPlayers) : null;
@@ -5434,10 +5429,7 @@
         tObj = local[id];
       }
 
-      // 完賽賽事只有 Admin 才能刪除
-      const total = tObj?.matches ? tObj.matches.length : 0;
-      const done = tObj?.matches ? tObj.matches.filter(m => m.completed || m.voided).length : 0;
-      const isFinished = tObj?.status === "completed" || (total > 0 && done === total);
+      const isFinished = isTournamentFinished(tObj);
       if (isFinished && !STATE.isAdmin) {
         showToast(
           STATE.lang === "zh-TW" ? "🔒 完賽賽事需進入管理員後台才能刪除" : "🔒 Admin required to delete completed tournaments",
@@ -5569,10 +5561,9 @@
       // 若當前手動切換為「瀏覽模式」，一律回傳 false
       if (STATE.isViewerMode) return false;
 
-      // 完賽賽事需特別解鎖
+      // 所有的完賽，包含社團，包含有密碼的，完賽後一律凍結（僅超級管理員可操作）
       const isFinished = isTournamentFinished(tData);
       if (isFinished) {
-        if (STATE.activeTournamentAdmin === tData.id) return true;
         if (STATE.isAdmin) return true;
         return false;
       }
@@ -5584,10 +5575,7 @@
 
     function isTournamentFinished(tData) {
       if (!tData) return false;
-      const matches = tData.matches || [];
-      const total = matches.length;
-      const done = matches.filter(m => m.completed || m.voided).length;
-      return tData.status === "completed" || (total > 0 && done === total);
+      return tData.status === "completed";
     }
     window.isTournamentFinished = isTournamentFinished;
 
@@ -5610,15 +5598,16 @@
           return;
         }
 
+        // 所有的完賽，包含社團，包含有密碼的，完賽後皆全面凍結，無法切換至操作模式
+        if (isFinished) {
+          return;
+        }
+
         // 2. 檢查社團密碼 (若有社團且當前尚未解鎖，全面由後端 verifyClubAccess 驗證)
         const isSessionAuth = clubName && STATE.authenticatedClubs.has(clubName);
         if (clubName && !isSessionAuth) {
           const ok = await verifyClubAccess(clubName);
           if (!ok) return;
-        }
-
-        if (isFinished) {
-          STATE.activeTournamentAdmin = tData.id;
         }
 
         STATE.isViewerMode = false;
@@ -5648,6 +5637,18 @@
         data.matches = (Array.isArray(data.matches) ? data.matches : Object.values(data.matches)).filter(Boolean);
       } else {
         data.matches = [];
+      }
+
+      const totalMatches = data.matches ? data.matches.length : 0;
+      const doneMatches = data.matches ? data.matches.filter(m => m.completed || m.voided).length : 0;
+      const isFinished = isTournamentFinished(data);
+
+      // 核心防護：所有的完賽（包含社團、包含有密碼的），完賽後一律全面凍結（僅超級管理員例外）
+      if (isFinished && !STATE.isAdmin) {
+        STATE.isViewerMode = true;
+        if (STATE.activeTournamentAdmin === data.id) {
+          STATE.activeTournamentAdmin = null;
+        }
       }
 
       const hasAdmin = isTournamentAdmin(data);
@@ -5724,9 +5725,6 @@
       }
       document.getElementById("live-duration").innerText = data.durationHours || "2.0";
 
-      const totalMatches = data.matches ? data.matches.length : 0;
-      const doneMatches = data.matches ? data.matches.filter(m => m.completed || m.voided).length : 0;
-      const isFinished = typeof isTournamentFinished === "function" ? isTournamentFinished(data) : (data.status === "completed" || (totalMatches > 0 && doneMatches === totalMatches));
       const matchPct = totalMatches > 0 ? Math.round((doneMatches / totalMatches) * 100) : 0;
 
       // Admin Mode Toggle Button Styling (操作模式 vs 唯讀瀏覽模式)
@@ -5734,7 +5732,13 @@
       const adminText = document.getElementById("text-toggle-live-admin");
       const adminIcon = document.getElementById("icon-toggle-live-admin");
       if (adminBtn && adminText) {
-        if (hasAdmin) {
+        const isFrozen = isFinished && !STATE.isAdmin;
+        if (isFrozen) {
+          // 所有的完賽，包含社團，包含有密碼的，完賽後都標示 已完賽（已凍結）
+          adminBtn.className = "px-3.5 py-2 rounded-xl card-inner border border-stone-200/50 dark:border-stone-800/80 text-xs font-bold flex items-center justify-center gap-1.5 transition opacity-60 text-stone-400 dark:text-stone-500 cursor-not-allowed pointer-events-none select-none";
+          adminText.innerText = isZh ? "已完賽 (已凍結)" : "Completed (Frozen)";
+          if (adminIcon) adminIcon.setAttribute("data-lucide", "lock");
+        } else if (hasAdmin) {
           adminBtn.className = "px-3.5 py-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none cursor-pointer";
           adminText.innerText = isZh ? "操作模式 (可記分)" : "Edit Mode";
           if (adminIcon) adminIcon.setAttribute("data-lucide", "edit-3");
@@ -6687,8 +6691,8 @@
           : `There are still ${uncompletedCount} unplayed matches. Complete "${tData.name}" early?\n\n(Unplayed matches will automatically be marked as "Void" and archived)`;
       } else {
         confirmMsg = STATE.lang === "zh-TW"
-          ? `確定要結束「${tData.name}」並標記為完賽嗎？\n（完賽後將歸檔至完賽紀錄，並返回臨打球局）`
-          : `Complete "${tData.name}" and return to Drop-in Play?`;
+          ? `確定要結束「${tData.name}」並標記為完賽嗎？\n\n⚠️ 提醒：完賽後賽事將全面凍結，無法再修正分數！`
+          : `Complete "${tData.name}"?\n\n⚠️ Note: The tournament will be frozen and scores cannot be modified!`;
       }
 
       if (!confirm(confirmMsg)) return;
@@ -7349,6 +7353,10 @@
     async function submitAddMatch() {
       const tData = STATE.tournamentData;
       if (!tData) return;
+      if (!isTournamentAdmin(tData)) {
+        showToast(STATE.lang === "zh-TW" ? "請先開啟操作模式！" : "Please unlock Edit Mode first!", "warning");
+        return;
+      }
       const isTeam = getTournamentIsTeamMode(tData);
       const isSingles = (STATE.addMatchFormat === "singles");
 
@@ -7530,6 +7538,25 @@
         }
       } else {
         showToast(STATE.lang === "zh-TW" ? `第 ${matchId} 局比分已儲存 (本地)` : `Game ${matchId} saved (Local)`, "success");
+      }
+
+      // 檢查是否完成所有有效場次之比分登錄，跳出提醒引導點選上方「結束賽事」
+      const validMatches = (tObj.matches || []).filter(m => !m.voided);
+      const allScored = validMatches.length > 0 && validMatches.every(m => m.completed && m.blueScore !== null && m.redScore !== null);
+      if (allScored && tObj.status !== "completed") {
+        setTimeout(() => {
+          showToast(
+            STATE.lang === "zh-TW"
+              ? "🔔 所有分數已登錄完成！請點選上方「結束賽事」，完賽後無法修正分數。"
+              : "🔔 All scores entered! Please click 'End Tournament' above. Scores cannot be edited after finishing.",
+            "info",
+            7000
+          );
+          const completeBtn = document.getElementById("btn-complete-and-return");
+          if (completeBtn) {
+            completeBtn.classList.add("ring-2", "ring-amber-500", "animate-pulse");
+          }
+        }, 400);
       }
     }
     window.saveMatchScore = saveMatchScore;
@@ -8879,12 +8906,7 @@
         }
       }
 
-      // Filter Completed Tournaments for this Club
-      const completedClubTournaments = clubTournamentsAll.filter(tData => {
-        const total = tData.matches ? tData.matches.length : 0;
-        const done = tData.matches ? tData.matches.filter(m => m.completed || m.voided).length : 0;
-        return tData.status === "completed" || (total > 0 && done === total);
-      });
+      const completedClubTournaments = clubTournamentsAll.filter(tData => isTournamentFinished(tData));
 
       // Render Aggregate Leaderboard
       if (aggregateSection) aggregateSection.classList.remove("hidden");
