@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&family=Plus+Jakarta+Sans:wght@700;800&family=Noto+Sans+TC:wght@600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 2500px;
+      height: 1686px;
+      overflow: hidden;
+      background-color: #FAF9F6;
+      font-family: 'Outfit', 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, sans-serif;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 全局背景微網格 */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-size: 77px 77px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 光暈裝飾 */
+    .glow-top-right {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 1100px;
+      height: 750px;
+      background: radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.16) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .glow-bottom-left {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 1200px;
+      height: 800px;
+      background: radial-gradient(circle at 10% 85%, rgba(20, 184, 166, 0.14) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 透視匹克球幾何裝飾環 (右上) */
+    .deco-circle-1 {
+      position: absolute;
+      right: -48px;
+      top: -72px;
+      width: 770px;
+      height: 770px;
+      border-radius: 50%;
+      border: 6px dashed rgba(16, 185, 129, 0.25);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .deco-circle-2 {
+      position: absolute;
+      right: 192px;
+      top: 180px;
+      width: 577px;
+      height: 577px;
+      border-radius: 50%;
+      border: 3.6px solid rgba(16, 185, 129, 0.15);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ========================================================
+       上半部：官方橫幅 BANNER (0 ~ 843px)
+       ======================================================== */
+    .top-banner {
+      width: 2500px;
+      height: 843px;
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 3.6px solid rgba(16, 185, 129, 0.22);
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9) 0%, rgba(250, 249, 246, 0.8) 100%);
+    }
+
+    /* 頂部右上角引導小標籤 */
+    .banner-hint-tag {
+      position: absolute;
+      top: 42px;
+      right: 64px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 32px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2.5px solid rgba(16, 185, 129, 0.35);
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
+      font-size: 32px;
+      font-weight: 800;
+      color: #059669;
+      letter-spacing: 1px;
+    }
+    .banner-hint-tag svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 87px;
+    }
+
+    /* 獎杯 Logo 圖標卡片 */
+    .logo-box {
+      width: 428px;
+      height: 428px;
+      border-radius: 101px;
+      background: #FFFFFF;
+      border: 7.2px solid rgba(16, 185, 129, 0.32);
+      box-shadow: 
+        0 43px 96px -19px rgba(16, 185, 129, 0.20),
+        0 19px 43px -10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-box svg {
+      width: 245px;
+      height: 245px;
+    }
+
+    .brand-content {
+      display: table;
+      width: auto;
+    }
+
+    .title-row {
+      display: block;
+      white-space: nowrap;
+      line-height: 0.95;
+      margin-bottom: 38px;
+    }
+    .brand-zero {
+      font-size: 269px;
+      font-weight: 900;
+      letter-spacing: -8.4px;
+      color: #18181B;
+    }
+    .brand-two {
+      font-size: 269px;
+      font-weight: 900;
+      letter-spacing: -8.4px;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      padding-left: 5px;
+    }
+
+    .sub-badge {
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 43px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 3.6px solid rgba(16, 185, 129, 0.30);
+      border-radius: 38px;
+      box-shadow: 0 10px 38px rgba(0, 0, 0, 0.04);
+      gap: 38px;
+    }
+    .sub-left {
+      display: flex;
+      align-items: center;
+      gap: 29px;
+      flex-shrink: 0;
+    }
+    .status-dot {
+      width: 31px;
+      height: 31px;
+      border-radius: 50%;
+      background-color: #10B981;
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.8);
+      flex-shrink: 0;
+    }
+    .sub-text {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 70px;
+      font-weight: 900;
+      color: #0F172A;
+      letter-spacing: 3.6px;
+      white-space: nowrap;
+    }
+    .sub-divider {
+      flex: 1;
+      height: 3.6px;
+      background: linear-gradient(to right, rgba(16, 185, 129, 0.35), rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.35));
+      border-radius: 5px;
+      min-width: 48px;
+    }
+    .domain-tag {
+      font-size: 50px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 800;
+      color: #FFFFFF;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      padding: 14px 38px;
+      border-radius: 24px;
+      box-shadow: 0 5px 19px rgba(16, 185, 129, 0.28);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ========================================================
+       下半部：三個等分功能方塊 (843 ~ 1686px，高度 843px)
+       ======================================================== */
+    .bottom-grid {
+      width: 2500px;
+      height: 843px;
+      display: flex;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* 單個方塊容器 (三等分，每格 833.3px) */
+    .menu-col {
+      flex: 1;
+      height: 100%;
+      padding: 38px 36px 42px 36px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .menu-col:not(:last-child) {
+      border-right: 3.6px solid rgba(16, 185, 129, 0.18);
+    }
+
+    /* 方塊內部的白色主要卡片 */
+    .action-card {
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      border: 3.6px solid rgba(16, 185, 129, 0.28);
+      border-radius: 46px;
+      box-shadow: 
+        0 24px 60px -15px rgba(16, 185, 129, 0.14),
+        0 10px 24px -8px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 48px 42px 42px 42px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    /* 卡片微背景漸層點綴 */
+    .card-glow-bg {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.10) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 大型精緻 ICON 容器 (與上方 Logo 卡片一脈相承) */
+    .hero-icon-box {
+      width: 260px;
+      height: 260px;
+      border-radius: 68px;
+      background: #FFFFFF;
+      border: 5.5px solid rgba(16, 185, 129, 0.32);
+      box-shadow: 
+        0 28px 64px -12px rgba(16, 185, 129, 0.22),
+        0 12px 28px -6px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      margin-top: 10px;
+      margin-bottom: 24px;
+      flex-shrink: 0;
+    }
+    .hero-icon-box svg {
+      width: 140px;
+      height: 140px;
+    }
+
+    /* 浮動特點小標籤 */
+    .floating-pill {
+      position: absolute;
+      top: -14px;
+      right: -16px;
+      font-size: 24px;
+      font-weight: 900;
+      padding: 6px 20px;
+      border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      white-space: nowrap;
+    }
+    .pill-green {
+      background: #10B981;
+      color: #FFFFFF;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+    }
+    .pill-blue {
+      background: #0284C7;
+      color: #FFFFFF;
+      box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+    }
+    .pill-amber {
+      background: #D97706;
+      color: #FFFFFF;
+      box-shadow: 0 6px 18px rgba(217, 119, 6, 0.4);
+    }
+
+    /* 文字內容包裹區 */
+    .card-text-block {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .main-title {
+      font-size: 64px;
+      font-weight: 900;
+      color: #0F172A;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      line-height: 1.1;
+    }
+
+    .desc-text {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: #475569;
+      line-height: 1.45;
+      letter-spacing: 0.5px;
+      margin-bottom: 28px;
+      max-width: 650px;
+    }
+
+    /* 底部操作引導鈕 (Button Pill) */
+    .action-cta-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px 44px;
+      border-radius: 999px;
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      transition: all 0.2s ease;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    }
+    .cta-pill-green {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #FFFFFF;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+    }
+    .cta-pill-teal {
+      background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%);
+      color: #FFFFFF;
+      box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35);
+    }
+    .cta-pill-dark {
+      background: linear-gradient(135deg, #18181B 0%, #27272A 100%);
+      color: #FFFFFF;
+      box-shadow: 0 8px 24px rgba(24, 24, 27, 0.35);
+    }
+    .action-cta-pill svg {
+      width: 28px;
+      height: 28px;
+      stroke-width: 3.5;
+    }
+  </style>
+</head>
+<body>
+  <!-- 背景飾線與光暈 -->
+  <div class="bg-grid"></div>
+  <div class="glow-top-right"></div>
+  <div class="glow-bottom-left"></div>
+  <div class="deco-circle-1"></div>
+  <div class="deco-circle-2"></div>
+
+  <!-- ========================================================
+       【上方區域】：官方網站橫幅 BANNER (2500 x 843 px)
+       ======================================================== -->
+  <div class="top-banner">
+    <!-- 右上方提示標籤 -->
+    <div class="banner-hint-tag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
+      </svg>
+      <span>點擊進入官方首頁</span>
+    </div>
+
+    <div class="brand-container">
+      <!-- 獎杯 Logo 圖標卡片 -->
+      <div class="logo-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34" />
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" fill="#10b981" fill-opacity="0.16" />
+        </svg>
+      </div>
+
+      <!-- 品牌標題與副標題 -->
+      <div class="brand-content">
+        <div class="title-row" id="title-row">
+          <span class="brand-zero">ZeroZero</span><span class="brand-two">Two</span>
+        </div>
+        <div class="sub-badge" id="sub-badge">
+          <div class="sub-left">
+            <span class="status-dot"></span>
+            <span class="sub-text">匹克球社團排賽計分系統</span>
+          </div>
+          <div class="sub-divider"></div>
+          <span class="domain-tag">zztwo.com</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       【下方區域】：三個等分功能方塊 (2500 x 843 px)
+       ======================================================== -->
+  <div class="bottom-grid">
+
+    <!-- ----------------------------------------------------
+         方塊 1：我的活動總表
+         ---------------------------------------------------- -->
+    <div class="menu-col">
+      <div class="action-card">
+        <div class="card-glow-bg"></div>
+
+        <!-- 核心大圖標 -->
+        <div class="hero-icon-box">
+          <span class="floating-pill pill-green">個人專屬</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- 日曆輪廓 -->
+            <rect x="3" y="4" width="18" height="18" rx="3" ry="3" fill="#10B981" fill-opacity="0.08"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+            <!-- 賽程確認打勾符號 -->
+            <path d="m9 16 2 2 4-4" stroke="#059669" stroke-width="2.6"/>
+          </svg>
+        </div>
+
+        <!-- 文字與操作引導 -->
+        <div class="card-text-block">
+          <h2 class="main-title">我的活動總表</h2>
+          <p class="desc-text">查詢報名球局，即時查閱賽況</p>
+          <div class="action-cta-pill cta-pill-green">
+            <span>立即查閱</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------
+         方塊 2：搜尋接龍列表
+         ---------------------------------------------------- -->
+    <div class="menu-col">
+      <div class="action-card">
+        <div class="card-glow-bg"></div>
+
+        <!-- 核心大圖標 -->
+        <div class="hero-icon-box">
+          <span class="floating-pill pill-blue">揪團臨打</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0D9488" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- 群組與接龍名冊 -->
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" fill="#0D9488" fill-opacity="0.08"/>
+            <circle cx="9" cy="7" r="4" fill="#0D9488" fill-opacity="0.08"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <!-- 搜尋放大鏡疊合在右下 -->
+            <circle cx="18" cy="15" r="3" stroke="#059669" stroke-width="2.4" fill="#FFFFFF"/>
+            <line x1="20.5" y1="17.5" x2="22.5" y2="19.5" stroke="#059669" stroke-width="2.6"/>
+          </svg>
+        </div>
+
+        <!-- 文字與操作引導 -->
+        <div class="card-text-block">
+          <h2 class="main-title">搜尋接龍列表</h2>
+          <p class="desc-text">探索群組公開接龍，一鍵報名完成</p>
+          <div class="action-cta-pill cta-pill-teal">
+            <span>探索接龍</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------
+         方塊 3：創建比賽
+         ---------------------------------------------------- -->
+    <div class="menu-col">
+      <div class="action-card">
+        <div class="card-glow-bg"></div>
+
+        <!-- 核心大圖標 -->
+        <div class="hero-icon-box">
+          <span class="floating-pill pill-amber">主辦開團</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#18181B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- 創建加號與排賽獎牌輪廓 -->
+            <circle cx="12" cy="12" r="9" fill="#18181B" fill-opacity="0.05" stroke="#10B981" stroke-width="2.4"/>
+            <line x1="12" y1="7" x2="12" y2="17" stroke="#10B981" stroke-width="2.8"/>
+            <line x1="7" y1="12" x2="17" y2="12" stroke="#10B981" stroke-width="2.8"/>
+            <!-- 點綴閃亮星芒 -->
+            <path d="M19 5v4m2-2h-4" stroke="#F59E0B" stroke-width="2.2"/>
+          </svg>
+        </div>
+
+        <!-- 文字與操作引導 -->
+        <div class="card-text-block">
+          <h2 class="main-title">創建比賽</h2>
+          <p class="desc-text">社團賽事開局，多元排程</p>
+          <div class="action-cta-pill cta-pill-dark">
+            <span>一鍵開局</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function syncBadgeWidth() {
+      const title = document.getElementById('title-row');
+      const badge = document.getElementById('sub-badge');
+      if (title && badge) {
+        const w = title.getBoundingClientRect().width;
+        badge.style.width = Math.round(w) + 'px';
+      }
+    }
+    if (document.fonts) {
+      document.fonts.ready.then(() => {
+        syncBadgeWidth();
+        setTimeout(syncBadgeWidth, 200);
+      });
+    }
+    window.addEventListener('load', () => {
+      syncBadgeWidth();
+      setTimeout(syncBadgeWidth, 200);
+    });
+  </script>
+</body>
+</html>
