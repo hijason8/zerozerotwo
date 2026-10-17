@@ -5039,23 +5039,24 @@
           pLineId = (p.lineUserId || "").trim();
         }
 
-        // 1. 若 LINE User ID 相符，100% 絕對確定為本人出賽
+        // 1. 若 LINE User ID 相符，100% 絕對確定為本人出賽 (判定為綁定出賽)
         if (pLineId && pLineId === STATE.lineUserId) {
-          return { isRegistered: true, registeredName: pName || boundName || myDisplayName || "我" };
+          return { isRegistered: true, registeredName: pName || boundName || myDisplayName || "我", isBound: true };
         }
 
-        // 2. 若為該賽事所屬社團的明確綁定身分相符 (僅本社團，絕不跨社團猜測)
+        // 2. 若為該賽事所屬社團的明確綁定身分相符 (僅本社團，絕不跨社團猜測) -> 綁定出賽
         if (boundName && pName === boundName) {
-          return { isRegistered: true, registeredName: boundName };
+          return { isRegistered: true, registeredName: boundName, isBound: true };
         }
 
-        // 3. 若為公開賽事或自己的社團，且球員名與 LINE 暱稱完全相符
+        // 3. 若為公開賽事或自己的社團，且球員名與 LINE 暱稱完全相符 -> 視是否已綁定區分
         if (isMyClubOrPublic && myDisplayName && pName === myDisplayName) {
-          return { isRegistered: true, registeredName: myDisplayName };
+          const isActuallyBound = Boolean(boundName && boundName === pName);
+          return { isRegistered: true, registeredName: myDisplayName, isBound: isActuallyBound };
         }
       }
 
-      return { isRegistered: false, registeredName: null };
+      return { isRegistered: false, registeredName: null, isBound: false };
     }
 
     function renderActivitiesPage() {
@@ -5199,11 +5200,19 @@
             const tDate = parseTournamentDate(tData.createdAt);
             const isWithin3Days = tDate ? (nowMs - tDate.getTime()) <= THREE_DAYS_MS : true;
             if (isWithin3Days) {
-              registeredCompletedList.push({ ...tData, _registeredName: regStatus.registeredName });
+              registeredCompletedList.push({
+                ...tData,
+                _registeredName: regStatus.registeredName,
+                _isBound: regStatus.isBound
+              });
             }
           } else {
             // 上方：跟自己有關的報名與比賽中的球局
-            registeredActiveList.push({ ...tData, _registeredName: regStatus.registeredName });
+            registeredActiveList.push({
+              ...tData,
+              _registeredName: regStatus.registeredName,
+              _isBound: regStatus.isBound
+            });
           }
         } else {
           // 自己未報名：中間放「自己能報名但是未報名的活動接龍」
@@ -5259,11 +5268,18 @@
           </span>
         `;
 
-        const regNameBadge = tData._registeredName ? `
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-            <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `已以「${escapeHTML(tData._registeredName)}」出賽` : `Joined: ${escapeHTML(tData._registeredName)}`}
-          </span>
-        ` : '';
+        const isBound = (tData._isBound !== false);
+        const regNameBadge = tData._registeredName ? (
+          isBound ? `
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+              <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `綁定『${escapeHTML(tData._registeredName)}』出賽` : `Bound: ${escapeHTML(tData._registeredName)}`}
+            </span>
+          ` : `
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
+              <i data-lucide="alert-circle" class="w-3 h-3 text-amber-500"></i> ${isZh ? `未綁定『${escapeHTML(tData._registeredName)}』出賽` : `Unbound: ${escapeHTML(tData._registeredName)}`}
+            </span>
+          `
+        ) : '';
 
         const statusBadge = isRegistering ? `
           <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1 shadow-xs">
