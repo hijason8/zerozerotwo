@@ -350,6 +350,22 @@
           </div>
         </div>
 
+        <!-- 活動備註 / 補充說明 (選填，限200字) -->
+        <div id="wrap-create-notes">
+          <div class="flex items-center justify-between mb-1">
+            <label id="t-label-notes" class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-500"></i>
+              <span>活動備註 / 補充說明</span>
+              <span class="text-[10px] font-normal sub-text">(選填)</span>
+            </label>
+            <span id="create-notes-counter" class="text-[10px] font-mono sub-text">0/200</span>
+          </div>
+          <textarea id="create-notes" maxlength="200" rows="3"
+            placeholder="例：公館球場4號場、費用150元現場收、球館有供球請自備球拍、請提前10分鐘到場熱身..."
+            oninput="updateCreateNotesCounter()"
+            class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none leading-relaxed transition"></textarea>
+        </div>
+
         <!-- 3. Entry Type Selector (建立接龍 VS 直接開打) -->
         <div id="wrap-create-entry-type">
           <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-entry-type">3. 開局方式</label>
@@ -602,6 +618,16 @@
                 <span id="live-progress-text">0/0 (0%)</span>
               </span>
             </div>
+          </div>
+        </div>
+
+        <!-- 活動備註說明卡片 (有設定時動態顯示) -->
+        <div id="live-notes-card"
+          class="hidden p-3 rounded-xl card-inner border border-emerald-500/25 bg-emerald-500/5 text-xs text-stone-700 dark:text-slate-300 flex items-start gap-2 shadow-sm">
+          <i data-lucide="info" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
+          <div class="space-y-0.5 flex-1 break-words">
+            <span class="font-bold text-emerald-600 dark:text-emerald-400 block text-[11px]">活動說明 / 備註：</span>
+            <p id="live-notes-text" class="leading-relaxed whitespace-pre-line text-xs font-medium"></p>
           </div>
         </div>
 
@@ -4228,11 +4254,33 @@
     }
     window.setupCreateFormContext = setupCreateFormContext;
 
+    function updateCreateNotesCounter() {
+      const textarea = document.getElementById("create-notes");
+      const counter = document.getElementById("create-notes-counter");
+      if (!textarea || !counter) return;
+      if (textarea.value.length > 200) {
+        textarea.value = textarea.value.slice(0, 200);
+      }
+      const len = textarea.value.length;
+      counter.innerText = `${len}/200`;
+      if (len >= 200) {
+        counter.className = "text-[10px] font-mono font-bold text-rose-500";
+      } else if (len >= 180) {
+        counter.className = "text-[10px] font-mono font-bold text-amber-500";
+      } else {
+        counter.className = "text-[10px] font-mono sub-text";
+      }
+    }
+    window.updateCreateNotesCounter = updateCreateNotesCounter;
+
     function resetCreateForm() {
       const form = document.getElementById("form-create-tournament");
       if (form) form.reset();
       const createPlayers = document.getElementById("create-players");
       if (createPlayers) createPlayers.value = "";
+      const createNotes = document.getElementById("create-notes");
+      if (createNotes) createNotes.value = "";
+      updateCreateNotesCounter();
       setSelectedPlayers([]);
       renderSelectedPlayerChips();
       renderClubMemberChips();
@@ -4268,6 +4316,8 @@
           if (nameInput) nameInput.focus();
           return;
         }
+
+        const notes = (document.getElementById("create-notes")?.value || "").trim().slice(0, 200);
 
         const clubSelect = document.getElementById("create-club-select");
         const clubName = clubSelect ? (clubSelect.value || "").trim() : "";
@@ -4352,6 +4402,7 @@
             partnerType: partnerType,
             isTeamMode: isTeamMode,
             name: name,
+            notes: notes,
             clubName: clubName,
             isPrivate: isPrivate,
             durationHours: duration,
@@ -4440,6 +4491,7 @@
           partnerType: partnerType,
           isTeamMode: isTeamMode,
           name: name,
+          notes: notes,
           clubName: clubName,
           isPrivate: isPrivate,
           durationHours: duration,
@@ -4835,6 +4887,13 @@
           }
                 <span>👥 ${pCount} ${isRegistering ? (STATE.lang === 'zh-TW' ? '已報名' : 'Signed up') : t("playersCountLabel")}</span>
               </div>
+
+              ${tData.notes && tData.notes.trim() ? `
+                <div class="p-2 rounded-xl card-inner border text-[11px] sub-text leading-relaxed flex items-start gap-1.5 bg-stone-500/5">
+                  <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5"></i>
+                  <span class="break-words line-clamp-2">${escapeHTML(tData.notes.trim())}</span>
+                </div>
+              ` : ''}
 
               <!-- Visual Progress Meter (僅在賽事進行中或完賽後顯示) -->
               ${!isRegistering ? (
@@ -5713,6 +5772,18 @@
         } else {
           clubBadge.classList.add("hidden");
           clubBadge.classList.remove("inline-flex");
+        }
+      }
+
+      // Notes Card (活動說明與備註)
+      const notesCard = document.getElementById("live-notes-card");
+      const notesText = document.getElementById("live-notes-text");
+      if (notesCard && notesText) {
+        if (data.notes && data.notes.trim()) {
+          notesText.innerText = data.notes.trim();
+          notesCard.classList.remove("hidden");
+        } else {
+          notesCard.classList.add("hidden");
         }
       }
 
