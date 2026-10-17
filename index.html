@@ -2235,9 +2235,34 @@
 
           console.info(`[LIFF] Logged in successfully: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
 
-          // 會員視角：若無指定參數且處於訪客大廳，自動切換至我的活動總表
+          // 雲端同步：抓取該會員在所屬社團的綁定身分，寫入本地快取並同步 STATE
+          if (STATE.db && Array.isArray(STATE.myClubs) && STATE.myClubs.length > 0) {
+            for (const clubName of STATE.myClubs) {
+              const safeClub = typeof encodeClubKey === "function" ? encodeClubKey(clubName) : encodeURIComponent(clubName.trim()).replace(/\./g, "%2E");
+              try {
+                const snap = await get(ref(STATE.db, `club_mappings/${safeClub}/${STATE.lineUserId}`));
+                if (snap.exists() && snap.val()) {
+                  const bName = String(snap.val()).trim();
+                  localStorage.setItem(`pb_bound_name_${clubName}`, bName);
+                  if (STATE.currentClub === clubName) {
+                    STATE.clubPlayerName = bName;
+                  }
+                }
+              } catch (e) {}
+            }
+          }
+
+          // 會員視角：若無指定特定賽事(t)或特定社團(club)或指定管理(admin)/建立(create)頁面，登入後一律進入我的活動總表
           const currentParams = new URLSearchParams(window.location.search);
-          if (!currentParams.get("t") && !currentParams.get("club") && (!currentParams.get("page") || currentParams.get("page") === "activities")) {
+          const pageParam = currentParams.get("page");
+          const isNeutralPage = !pageParam || pageParam === "activities" || pageParam === "hub";
+          if (!currentParams.get("t") && !currentParams.get("club") && isNeutralPage) {
+            if (pageParam === "hub") {
+              currentParams.delete("page");
+              const newSearch = currentParams.toString();
+              const cleanUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+              window.history.replaceState({}, document.title, cleanUrl);
+            }
             navigateTo("activities", false);
           }
 
@@ -2424,13 +2449,26 @@
         STATE.currentClub = null;
         STATE.clubPlayerName = null;
 
-        // 清除所有會造成錯亂的本地快取
+        // 清除所有會造成錯亂的本地快取與深層身分資料
         localStorage.removeItem("pb_my_clubs");
         localStorage.removeItem("pb_last_club");
         localStorage.removeItem("pb_my_player_name");
+        localStorage.removeItem("pb_custom_player_name");
+        localStorage.removeItem("my_player_name");
+        localStorage.removeItem("pb_tournaments");
         if (oldUserId) {
           localStorage.removeItem(`pb_my_clubs_${oldUserId}`);
         }
+        try {
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && (k.startsWith("pb_bound_name_") || k.startsWith("pb_my_clubs_"))) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+        } catch (e) {}
 
         // 將大廳視角重置為公開訪客
         STATE.hubView = "all";
@@ -2967,6 +3005,8 @@
           renderHubTournaments();
         } else if (STATE.currentPage === "history") {
           renderHistoryPage();
+        } else if (STATE.currentPage === "activities") {
+          renderActivitiesPage();
         }
 
         const connectedRef = ref(STATE.db, ".info/connected");
@@ -4937,37 +4977,6 @@
     }
     window.onActivitiesSearchInput = onActivitiesSearchInput;
 
-    function getUserKnownIdentityNames() {
-      const names = new Set();
-      // 1. 各社團本地身分綁定 (pb_bound_name_*)
-      try {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith("pb_bound_name_")) {
-            const val = localStorage.getItem(key);
-            if (val && val.trim()) names.add(val.trim());
-          }
-        }
-      } catch (e) {}
-
-      // 2. STATE 當前身分
-      if (STATE.clubPlayerName && STATE.clubPlayerName.trim()) {
-        names.add(STATE.clubPlayerName.trim());
-      }
-
-      // 3. 全域自訂姓名
-      const customName = localStorage.getItem("pb_custom_player_name") || localStorage.getItem("pb_my_player_name") || localStorage.getItem("my_player_name");
-      if (customName && customName.trim()) names.add(customName.trim());
-
-      // 4. LINE profile 暱稱
-      if (STATE.lineProfile && STATE.lineProfile.displayName && STATE.lineProfile.displayName.trim()) {
-        names.add(STATE.lineProfile.displayName.trim());
-      }
-
-      names.delete("");
-      return Array.from(names);
-    }
-
     function checkTournamentRegistrationStatus(t) {
       if (!t || !Array.isArray(t.players)) {
         return { isRegistered: false, registeredName: null };
@@ -4980,16 +4989,21 @@
       const clubName = (t.clubName || "").trim();
       let boundName = null;
       if (clubName) {
+        // 嚴格僅查詢該賽事所屬社團之綁定身分，絕不跨社團污染比對
         boundName = localStorage.getItem(`pb_bound_name_${clubName}`);
         if (!boundName && STATE.currentClub === clubName && STATE.clubPlayerName) {
           boundName = STATE.clubPlayerName;
         }
       } else {
-        boundName = localStorage.getItem("pb_bound_name___general__") || STATE.clubPlayerName || null;
+        boundName = localStorage.getItem("pb_bound_name___general__") || null;
       }
       if (boundName) boundName = boundName.trim();
 
-      const allKnownNames = getUserKnownIdentityNames();
+      const myDisplayName = (STATE.lineProfile && STATE.lineProfile.displayName)
+        ? STATE.lineProfile.displayName.trim()
+        : null;
+
+      const isMyClubOrPublic = !clubName || (Array.isArray(STATE.myClubs) && STATE.myClubs.includes(clubName));
 
       for (const p of t.players) {
         let pName = "";
@@ -5001,19 +5015,19 @@
           pLineId = (p.lineUserId || "").trim();
         }
 
-        // 1. 若 LINE User ID 相符，直接判定已報名
-        if (STATE.lineUserId && pLineId && pLineId === STATE.lineUserId) {
-          return { isRegistered: true, registeredName: pName || boundName || STATE.lineProfile?.displayName || "我" };
+        // 1. 若 LINE User ID 相符，100% 絕對確定為本人出賽
+        if (pLineId && pLineId === STATE.lineUserId) {
+          return { isRegistered: true, registeredName: pName || boundName || myDisplayName || "我" };
         }
 
-        // 2. 若為該社團明確綁定身分相符
+        // 2. 若為該賽事所屬社團的明確綁定身分相符 (僅本社團，絕不跨社團猜測)
         if (boundName && pName === boundName) {
           return { isRegistered: true, registeredName: boundName };
         }
 
-        // 3. 若為使用者其他已知姓名相符
-        if (pName && allKnownNames.includes(pName)) {
-          return { isRegistered: true, registeredName: pName };
+        // 3. 若為公開賽事或自己的社團，且球員名與 LINE 暱稱完全相符
+        if (isMyClubOrPublic && myDisplayName && pName === myDisplayName) {
+          return { isRegistered: true, registeredName: myDisplayName };
         }
       }
 
@@ -5060,7 +5074,9 @@
       }
 
       // 4. 即時監聽 Firebase
-      if (STATE.db) {
+      const attachFirebaseListener = () => {
+        if (!STATE.db) return false;
+        if (STATE.activitiesUnsubscribe) return true;
         const tournamentsRef = ref(STATE.db, "tournaments");
         STATE.activitiesUnsubscribe = onValue(tournamentsRef, (snapshot) => {
           clearTimeout(loadingTimeout);
@@ -5079,13 +5095,18 @@
           const fallback = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
           displayActivitiesList(Object.values(fallback));
         });
-      } else {
+        return true;
+      };
+
+      if (!attachFirebaseListener()) {
         clearTimeout(loadingTimeout);
-        setTimeout(() => {
-          if (STATE.db && STATE.currentPage === "activities" && !STATE.activitiesUnsubscribe) {
-            renderActivitiesPage();
+        let retries = 0;
+        const checkInterval = setInterval(() => {
+          retries++;
+          if (attachFirebaseListener() || retries > 25 || STATE.currentPage !== "activities") {
+            clearInterval(checkInterval);
           }
-        }, 250);
+        }, 200);
       }
     }
     window.renderActivitiesPage = renderActivitiesPage;
@@ -5151,9 +5172,12 @@
           }
         } else {
           // 自己未報名：中間放「自己能報名但是未報名的活動接龍」
+          // 嚴格限制：僅限「公開臨打球局」或「自己已加入的專屬社團 (STATE.myClubs)」
+          const cName = (tData.clubName || "").trim();
+          const canSignUp = !cName || (Array.isArray(STATE.myClubs) && STATE.myClubs.includes(cName));
           const isRegistering = (tData.status === "registering");
           const isClosed = tData.registrationClosed === true || tData.isRegistrationClosed === true || tData.isClosed === true;
-          if (isRegistering && !isClosed && !isFinished) {
+          if (canSignUp && isRegistering && !isClosed && !isFinished) {
             availableSignUpList.push(tData);
           }
         }
@@ -10229,14 +10253,19 @@
     // ----------------------------------------------------
     // APP BOOTSTRAP INITIALIZATION
     // ----------------------------------------------------
-    function initApp() {
+    async function initApp() {
       applyThemeUI();
       applyLanguageUI();
       renderClubMemberChips();
       renderSelectedPlayerChips();
       updatePlayerCountBadge();
-      initRouting();
       initPwa();
+
+      // 先啟動 LIFF 與身分驗證，確保已登入會員第一時間掌握 lineUserId 與 myClubs
+      await initLiffAndUser();
+
+      // LIFF 驗證完畢後執行路由，此時 STATE.lineUserId 狀態準確無誤，登入會員 100% 直達活動總表
+      initRouting();
 
       // 非同步啟動 Firebase，就緒後主動確保大廳/賽事載入
       initFirebase(DEFAULT_FIREBASE_CONFIG).then(() => {
@@ -10249,7 +10278,6 @@
         }
       });
 
-      initLiffAndUser();
       lucide.createIcons();
     }
 
