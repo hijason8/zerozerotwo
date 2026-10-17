@@ -762,7 +762,7 @@
 
             <div class="flex items-center gap-2">
               <div class="relative flex-1">
-                <input type="text" id="lobby-player-input" placeholder="輸入姓名，支援空格批量輸入"
+                <input type="text" id="lobby-player-input" placeholder="未綁定 輸入姓名 (支援空格批量輸入)"
                   class="w-full input-bg border rounded-xl pl-3 pr-24 py-2.5 text-xs sm:text-sm focus:border-teal-500 focus:outline-none shadow-inner"
                   onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); joinRegistrationFromInput();}" />
                 <button type="button" onclick="joinRegistrationFromInput()" id="btn-lobby-join"
@@ -6164,11 +6164,12 @@
                 </div>
               `;
             } else if (boundName) {
-              // 3. 已在社團內綁定球員身分：顯示簡潔高質感的「➕ 以『球員姓名』報名」翡翠綠按鈕，前面不要照片，點擊直接一鍵加入名單，後面的按鈕拿掉
+              // 3. 已在社團內綁定球員身分：顯示「使用社團綁定身分報名」按鈕
               liffBannerEl.innerHTML = `
                 <button type="button" onclick="registerPlayerToTournament('${escapeHTML(boundName)}')"
-                  class="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center transition shadow-md active:scale-95 cursor-pointer">
-                  <span class="truncate">${isZh ? `➕ 以「${escapeHTML(boundName)}」報名` : `➕ Join as "${escapeHTML(boundName)}"`}</span>
+                  class="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-md active:scale-95 cursor-pointer">
+                  <i data-lucide="user-check" class="w-4 h-4 shrink-0"></i>
+                  <span class="truncate">${isZh ? `使用社團綁定身分報名（${escapeHTML(boundName)}）` : `Join with club identity (${escapeHTML(boundName)})`}</span>
                 </button>
               `;
             } else {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "zerozerotwo-v40";
+const CACHE_NAME = "zerozerotwo-v41";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
