@@ -197,9 +197,17 @@
         </div>
       </div>
 
-      <!-- 右側動作按鈕組 (建立新賽事 + 分享社團 + 取消常用) -->
+      <!-- 右側動作按鈕組 (1.加入/退出社團 + 2.分享社團 + 3.身分綁定 + 4.建立新賽事) -->
       <div id="club-space-header-actions" class="flex items-center gap-1 sm:gap-2 shrink-0">
-        <!-- 分享社團按鈕 (僅在社團大廳且有選定社團時顯示) -->
+        <!-- 1. 加入社團的+號 / 退出社團按鈕 (第一個) -->
+        <button type="button" id="btn-remove-my-club" onclick="removeMyClub()"
+          class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-rose-500/50 text-xs font-semibold sub-text hover:text-rose-500 transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
+          title="加入或退出社團">
+          <i data-lucide="plus" class="w-3.5 h-3.5 text-teal-500"></i>
+          <span id="t-btn-remove-my-club" class="hidden xs:inline">+ 加入社團</span>
+        </button>
+
+        <!-- 2. 分享符號按鈕 (第二個) -->
         <button type="button" id="btn-share-club" onclick="copyClubLink()"
           class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
           title="分享此社團專屬連結">
@@ -207,23 +215,15 @@
           <span id="t-btn-share-club" class="hidden xs:inline">分享社團</span>
         </button>
 
-        <!-- 社團球員身分檢測與主動綁定按鈕 (僅在社團大廳且有選定社團時顯示) -->
+        <!-- 3. 未綁定身分按鈕 (第三個) -->
         <button type="button" id="btn-club-identity" onclick="handleClubIdentityBadgeClick()"
           class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
           title="社團球員身分狀態">
           <i data-lucide="user" class="w-3.5 h-3.5" id="club-identity-icon"></i>
-          <span id="t-club-identity-text">身分綁定</span>
+          <span id="t-club-identity-text">未綁定身分</span>
         </button>
 
-        <!-- 取消常用按鈕 (僅在社團大廳且為我的社團且已登入 LINE 時顯示) -->
-        <button type="button" id="btn-remove-my-club" onclick="removeMyClub()"
-          class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-rose-500/50 text-xs font-semibold sub-text hover:text-rose-500 transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
-          title="從專屬社團清單移除">
-          <i data-lucide="x-circle" class="w-3.5 h-3.5 text-rose-500"></i>
-          <span id="t-btn-remove-my-club" class="hidden xs:inline">取消常用</span>
-        </button>
-
-        <!-- 建立新賽事按鈕 (全站大廳建立公開賽事，社團大廳建立社團賽事) -->
+        <!-- 4. 建立新賽事按鈕 (第四個) -->
         <button type="button" id="t-create-new-btn" onclick="handleSharedCreateTournament()"
           class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1 transition active:scale-95 shrink-0 cursor-pointer">
           <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-create-new-btn-text">建立新賽事</span>
@@ -2299,7 +2299,8 @@
 
           // 清理 URL 殘留或失效的 OAuth 參數，杜絕無效重定向
           const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.has("code") || urlParams.has("state") || urlParams.has("liffClientId") || urlParams.has("liff.state")) {
+          const hadOAuthParams = urlParams.has("code") || urlParams.has("state") || urlParams.has("liffClientId");
+          if (hadOAuthParams) {
             urlParams.delete("code");
             urlParams.delete("state");
             urlParams.delete("liffClientId");
@@ -2307,6 +2308,18 @@
             const newSearch = urlParams.toString();
             const cleanUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
             window.history.replaceState({}, document.title, cleanUrl);
+
+            // 私密瀏覽/無痕模式攔截提示：授權跳回但瀏覽器未保存 Session
+            const isZh = STATE.lang === "zh-TW";
+            setTimeout(() => {
+              showToast(
+                isZh
+                  ? "⚠️ 私密/無痕瀏覽模式阻擋了 LINE 登入憑證儲存。請切換至一般分頁或在 LINE App 內開啟！"
+                  : "⚠️ Private browsing mode blocked LINE login credentials. Please use normal browsing mode or open in LINE App.",
+                "error",
+                8000
+              );
+            }, 600);
           }
 
           STATE.lineUserId = null;
@@ -7990,25 +8003,34 @@
 
       if (isMyClub) {
         const confirmMsg = isZh
-          ? `確定要將「${clubToRemove}」從您的專屬社團清單移除嗎？\n(這不會刪除任何戰績紀錄)`
-          : `Are you sure you want to remove "${clubToRemove}" from your club list?\n(No match records will be deleted)`;
+          ? `確定要退出「${clubToRemove}」嗎？\n\n（將解除您在此社團的球員身分綁定，但不會刪除任何歷史戰績）`
+          : `Are you sure you want to leave "${clubToRemove}"?\n\n(Your player identity will be unbound. Match records are kept.)`;
 
         if (!confirm(confirmMsg)) {
           return;
         }
 
-        // 1. Firebase 雲端更新：將 users/${lineUserId}/myClubs/${club} 設為 null
+        const safeClub = typeof encodeClubKey === "function" ? encodeClubKey(clubToRemove) : encodeURIComponent(clubToRemove.trim()).replace(/\./g, "%2E");
+
+        // 1. Firebase 雲端更新：解除專屬社團，同時徹底解除該社團球員身分綁定
         if (STATE.db && STATE.lineUserId) {
           try {
             const updates = {};
             updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(clubToRemove)}`] = null;
+            updates[`club_mappings/${safeClub}/${STATE.lineUserId}`] = null;
             await update(ref(STATE.db), updates);
           } catch (err) {
             console.warn("[Firebase] removeMyClub error:", err);
           }
         }
 
-        // 2. 前端狀態同步
+        // 2. 清除該社團本地身分綁定快取與狀態
+        localStorage.removeItem(`pb_bound_name_${clubToRemove}`);
+        if (STATE.currentClub === clubToRemove) {
+          STATE.clubPlayerName = null;
+        }
+
+        // 3. 前端狀態同步
         STATE.myClubs = (STATE.myClubs || []).filter(c => c !== clubToRemove);
         try {
           if (STATE.lineUserId) {
@@ -8016,7 +8038,7 @@
           }
         } catch (e) {}
 
-        showToast(isZh ? "已從專屬社團移除" : "Removed from My Clubs", "info");
+        showToast(isZh ? `已退出「${clubToRemove}」並解除身分綁定` : `Left "${clubToRemove}" and unbound identity`, "info");
       }
 
       try {
@@ -8444,17 +8466,25 @@
       const safeClub = typeof encodeClubKey === "function" ? encodeClubKey(cleanClub) : encodeURIComponent(cleanClub);
       const isZh = (STATE.lang === "zh-TW");
 
-      // 1. 若未登入 LINE
-      if (!STATE.lineUserId) {
-        badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-stone-400 text-xs font-semibold sub-text transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer";
-        badgeBtn.title = isZh ? "登入 LINE 即可認領社團專屬球員姓名" : "Log in with LINE to bind player identity";
-        if (textEl) textEl.innerText = isZh ? "LINE 綁定" : "Bind ID";
-        if (iconEl) iconEl.className = "w-3.5 h-3.5 text-stone-400";
+      // 檢查是否為該社團會員
+      const isMyClub = !!(
+        STATE.lineUserId &&
+        Array.isArray(STATE.myClubs) &&
+        STATE.myClubs.includes(cleanClub)
+      );
+
+      // 核心原則：若未登入 LINE 或 尚未加入此社團，在該社團 100% 視為未綁定身分
+      if (!STATE.lineUserId || !isMyClub) {
+        STATE.clubPlayerName = null;
+        badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-amber-500/80";
+        badgeBtn.title = isZh ? "您尚未加入此社團，加入社團後即可綁定球員姓名" : "Not joined. Join club to bind identity";
+        if (textEl) textEl.innerText = isZh ? "未綁定身分" : "Claim ID";
+        if (iconEl) iconEl.className = "w-3.5 h-3.5 text-amber-500";
         lucide.createIcons();
         return;
       }
 
-      // 2. 本地快取
+      // 2. 只有已加入社團的會員，才去讀取綁定身分
       let boundName = localStorage.getItem(`pb_bound_name_${cleanClub}`);
 
       // 3. 從雲端 /club_mappings/{safeClub}/{lineUserId} 同步確認
@@ -8505,6 +8535,24 @@
           showToast(isZh ? "請先使用 LINE 登入，即可綁定社團球員身分與個人戰績！" : "Please log in with LINE to bind identity!", "info");
         }
         return;
+      }
+
+      // 核心門禁：若尚未加入社團，提示先加入社團
+      const isMyClub = Array.isArray(STATE.myClubs) && STATE.myClubs.includes(clubName);
+      if (!isMyClub) {
+        const joinConfirm = confirm(
+          isZh
+            ? `您尚未加入「${clubName}」。\n加入社團後即可綁定專屬球員姓名！是否現在加入？`
+            : `You haven't joined "${clubName}".\nJoin this club to bind your player identity now?`
+        );
+        if (joinConfirm) {
+          await addUserClubToFirebase(clubName);
+          showToast(isZh ? `已加入「${clubName}」！` : `Joined "${clubName}"!`, "success");
+          updateNavClubSelectValue();
+          populateNavClubSelect();
+        } else {
+          return;
+        }
       }
 
       const boundName = localStorage.getItem(`pb_bound_name_${clubName}`) || STATE.clubPlayerName;
