@@ -586,6 +586,4 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps({"error": str(err)} if "err" in locals() else {"error": str(e)}), status=500, mimetype="application/json")
 
 
-# 別名導出以確保命名相容性
-line_webhook = lineWebhook
 
