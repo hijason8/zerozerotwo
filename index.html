@@ -761,12 +761,12 @@
 
             <div class="flex items-center gap-2">
               <div class="relative flex-1">
-                <input type="text" id="lobby-player-input" placeholder="未綁定 輸入姓名 (支援空格批量輸入)"
-                  class="w-full input-bg border rounded-xl pl-3 pr-24 py-2.5 text-xs sm:text-sm focus:border-teal-500 focus:outline-none shadow-inner"
+                <input type="text" id="lobby-player-input" placeholder="未綁定，請輸入姓名（支援空格批量輸入）"
+                  class="w-full input-bg border rounded-xl pl-3 pr-20 py-2.5 text-xs sm:text-sm focus:border-teal-500 focus:outline-none shadow-inner"
                   onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); joinRegistrationFromInput();}" />
                 <button type="button" onclick="joinRegistrationFromInput()" id="btn-lobby-join"
                   class="absolute right-1 top-1 bottom-1 px-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 transition shadow-sm active:scale-95">
-                  <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> <span id="t-lobby-btn-join">我要報名</span>
+                  <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> <span id="t-lobby-btn-join">報名</span>
                 </button>
               </div>
             </div>

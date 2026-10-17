@@ -142,7 +142,7 @@ export const I18N = {
     lobbyTitle: "球局報名",
     lobbyRegisteredTitle: "👥 目前已報名名單：",
     lobbyClubMembersTitle: "🛡️ 社團成員快速點選簽到 (+1)：",
-    lobbyBtnJoin: "我要報名",
+    lobbyBtnJoin: "報名",
     lobbyShareBtn: "分享報名連結",
     lobbyAdminTitle: "賽事發起人 / 管理控制",
     lobbyStartBtnText: "👥 全員到齊，立即排賽開打！",
@@ -150,7 +150,7 @@ export const I18N = {
     enterRegistration: "進入報名",
     btnWaitCancel: "再等等 / 取消",
     lobbyEmptyHint: "目前尚無人報名，請在下方輸入姓名或點選社團成員加入！",
-    lobbyInputPlaceholder: "未綁定 輸入姓名 (支援空格批量輸入)",
+    lobbyInputPlaceholder: "未綁定，請輸入姓名（支援空格批量輸入）",
 
     // Club Member Roster
     clubMembersTitle: "社團常用成員名單 (點擊選取)",
@@ -532,7 +532,7 @@ export const I18N = {
     enterRegistration: "Join Registration",
     btnWaitCancel: "Wait / Cancel",
     lobbyEmptyHint: "No players registered yet. Enter name below or pick club members to join!",
-    lobbyInputPlaceholder: "Unbound: Enter names (supports space batch input)",
+    lobbyInputPlaceholder: "Unbound: Please enter name (supports space batch input)",
 
     // Club Member Roster
     clubMembersTitle: "Club Members (Click to select)",
