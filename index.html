@@ -279,13 +279,13 @@
       </div>
     </section>
 
-    <!-- ==================== PAGE ACTIVITIES: MY ACTIVITIES OVERVIEW (我的活動總表) ==================== -->
+    <!-- ==================== PAGE ACTIVITIES: IN PROGRESS & REGISTERED (比賽中/已報名) ==================== -->
     <section id="page-activities" class="space-y-4 sm:space-y-6 hidden">
       <!-- SECTION 1: 報名與比賽中 (上方區塊：跟自己有關的報名與比賽中球局) -->
       <div class="space-y-3">
         <div class="flex items-center justify-between pt-1">
           <h3 id="t-activities-registered-heading" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
-            <span id="t-activities-reg-text">比賽中與已報名</span>
+            <span id="t-activities-reg-text">比賽中/已報名</span>
             <span id="activities-registered-count" class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">0</span>
           </h3>
         </div>
@@ -294,20 +294,7 @@
         </div>
       </div>
 
-      <!-- SECTION 2: 開放接龍報名 (中間區塊：自己能報名但是未報名的活動接龍) -->
-      <div class="space-y-3 pt-2">
-        <div class="flex items-center justify-between pt-1">
-          <h3 id="t-activities-available-heading" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
-            <span id="t-activities-avail-text">開放接龍報名</span>
-            <span id="activities-available-count" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold">0</span>
-          </h3>
-        </div>
-        <div id="activities-available-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-          <!-- Rendered dynamically -->
-        </div>
-      </div>
-
-      <!-- SECTION 3: 近期完賽球局 (3日內) (最下方區塊：跟自己有關的近期完賽球局) -->
+      <!-- SECTION 2: 近期完賽球局 (3日內) (最下方區塊：跟自己有關的近期完賽球局) -->
       <div class="space-y-3 pt-2">
         <div class="flex items-center justify-between pt-1">
           <h3 id="t-activities-completed-heading" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
@@ -316,6 +303,21 @@
           </h3>
         </div>
         <div id="activities-completed-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PAGE WAITING: WAITING FOR SIGN UP (等待報名) ==================== -->
+    <section id="page-waiting" class="space-y-4 sm:space-y-6 hidden">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between pt-1">
+          <h3 id="t-waiting-heading" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
+            <span id="t-waiting-title-text">等待報名</span>
+            <span id="activities-available-count" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold">0</span>
+          </h3>
+        </div>
+        <div id="activities-available-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <!-- Rendered dynamically -->
         </div>
       </div>
@@ -2316,10 +2318,10 @@
             keysToRemove.forEach(k => localStorage.removeItem(k));
           } catch (e) {}
 
-          // 會員視角：若無指定特定賽事(t)或特定社團(club)或指定管理(admin)/建立(create)頁面，登入後一律進入我的活動總表
+          // 會員視角：若無指定特定賽事(t)或特定社團(club)或指定管理(admin)/建立(create)頁面，登入後進入比賽中/已報名或等待報名
           const currentParams = new URLSearchParams(window.location.search);
           const pageParam = currentParams.get("page");
-          const isNeutralPage = !pageParam || pageParam === "activities" || pageParam === "hub";
+          const isNeutralPage = !pageParam || pageParam === "activities" || pageParam === "hub" || pageParam === "waiting";
           if (!currentParams.get("t") && !currentParams.get("club") && isNeutralPage) {
             if (pageParam === "hub") {
               currentParams.delete("page");
@@ -2327,7 +2329,11 @@
               const cleanUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
               window.history.replaceState({}, document.title, cleanUrl);
             }
-            navigateTo("activities", false);
+            if (pageParam === "waiting") {
+              navigateTo("waiting", false);
+            } else {
+              navigateTo("activities", false);
+            }
           }
 
           // 刷新頂部導航下拉選單與身分認領檢查
@@ -2686,7 +2692,7 @@
       const hubClubSelector = document.getElementById("hub-club-selector");
       if (hubClubSelector && hubClubSelector.options.length > 0) {
         if (STATE.lineUserId) {
-          hubClubSelector.options[0].text = isZh ? "我的活動總表" : "My Activities";
+          if (typeof populateNavClubSelect === "function") populateNavClubSelect();
         } else {
           hubClubSelector.options[0].text = isZh ? "賽事大廳" : "LOBBY";
         }
@@ -3219,6 +3225,12 @@
         } else {
           navigateTo("hub", false);
         }
+      } else if (page === "waiting") {
+        if (STATE.lineUserId) {
+          navigateTo("waiting", false);
+        } else {
+          navigateTo("hub", false);
+        }
       } else if (page === "hub") {
         navigateTo("hub", false);
       } else if (page === "club") {
@@ -3227,7 +3239,7 @@
       } else if (page === "history") {
         navigateTo("history", false);
       } else {
-        // 嚴格雙軌默認首頁：未登入訪客為賽事大廳 (hub)，已登入會員為我的活動總表 (activities)
+        // 嚴格雙軌默認首頁：未登入訪客為賽事大廳 (hub)，已登入會員為比賽中/已報名 (activities)
         if (STATE.lineUserId) {
           navigateTo("activities", false);
         } else {
@@ -3238,7 +3250,7 @@
 
     function navigateTo(pageName, pushHistory = true) {
       STATE.currentPage = pageName;
-      const pages = ["hub", "create", "live", "history", "admin", "activities"];
+      const pages = ["hub", "create", "live", "history", "admin", "activities", "waiting"];
       pages.forEach(p => {
         const el = document.getElementById(`page-${p}`);
         if (el) el.classList.add("hidden");
@@ -3247,10 +3259,10 @@
       const target = document.getElementById(`page-${pageName}`);
       if (target) target.classList.remove("hidden");
 
-      // 控制共用大廳頂部工具列顯示狀態 (在賽事大廳、社團大廳與社團活動總表時顯示)
+      // 控制共用大廳頂部工具列顯示狀態 (在賽事大廳、社團大廳與比賽中/等待報名時顯示)
       const sharedHeader = document.getElementById("lobby-shared-header");
       if (sharedHeader) {
-        if (pageName === "hub" || pageName === "history" || pageName === "activities") {
+        if (pageName === "hub" || pageName === "history" || pageName === "activities" || pageName === "waiting") {
           sharedHeader.classList.remove("hidden");
         } else {
           sharedHeader.classList.add("hidden");
@@ -3265,6 +3277,8 @@
       if (pushHistory) {
         if (pageName === "activities") {
           window.history.pushState({}, "", window.location.pathname);
+        } else if (pageName === "waiting") {
+          window.history.pushState({}, "", `${window.location.pathname}?page=waiting`);
         } else if (pageName === "hub") {
           window.history.pushState({}, "", `${window.location.pathname}?page=hub`);
         } else if (pageName === "create") {
@@ -3284,7 +3298,7 @@
 
       if (pageName === "hub") {
         renderHubTournaments();
-      } else if (pageName === "activities") {
+      } else if (pageName === "activities" || pageName === "waiting") {
         renderActivitiesPage();
       } else if (pageName === "create") {
         resetCreateForm();
@@ -3302,7 +3316,7 @@
         STATE.hubUnsubscribe();
         STATE.hubUnsubscribe = null;
       }
-      if (pageName !== "activities" && STATE.activitiesUnsubscribe) {
+      if (pageName !== "activities" && pageName !== "waiting" && STATE.activitiesUnsubscribe) {
         STATE.activitiesUnsubscribe();
         STATE.activitiesUnsubscribe = null;
       }
@@ -5290,7 +5304,7 @@
         let retries = 0;
         const checkInterval = setInterval(() => {
           retries++;
-          if (attachFirebaseListener() || retries > 25 || STATE.currentPage !== "activities") {
+          if (attachFirebaseListener() || retries > 25 || (STATE.currentPage !== "activities" && STATE.currentPage !== "waiting")) {
             clearInterval(checkInterval);
           }
         }, 200);
@@ -5304,10 +5318,13 @@
 
       // 更新區塊標題與搜尋框中英文字串
       const regTextEl = document.getElementById("t-activities-reg-text");
-      if (regTextEl) regTextEl.innerText = isZh ? "比賽中與已報名" : "In Progress & Registered";
+      if (regTextEl) regTextEl.innerText = isZh ? "比賽中/已報名" : "In Progress / Registered";
+
+      const waitingTitleEl = document.getElementById("t-waiting-title-text");
+      if (waitingTitleEl) waitingTitleEl.innerText = isZh ? "等待報名" : "Waiting for Sign Up";
 
       const availTextEl = document.getElementById("t-activities-avail-text");
-      if (availTextEl) availTextEl.innerText = isZh ? "開放接龍報名" : "Available for Sign Up";
+      if (availTextEl) availTextEl.innerText = isZh ? "等待報名" : "Waiting for Sign Up";
 
       const compTextEl = document.getElementById("t-activities-comp-text");
       if (compTextEl) compTextEl.innerText = isZh ? "近期完賽球局 (3日內)" : "Recent Completed Matches (3 Days)";
@@ -5551,7 +5568,7 @@
                 ${isZh ? '目前沒有進行中或已報名的活動' : 'No active or registered activities'}
               </p>
               <p class="text-[11px] sub-text opacity-80">
-                ${isZh ? '快查看下方開放接龍報名的活動加入吧！' : 'Check out open activities below to sign up!'}
+                ${isZh ? '可切換至「等待報名」查看開放接龍報名的活動加入！' : 'Switch to "Waiting for Sign Up" to join open games!'}
               </p>
             </div>
           `;
@@ -5560,14 +5577,14 @@
         }
       }
 
-      // 2. 渲染中間區塊：開放接龍報名
+      // 2. 渲染等待報名區塊
       const availContainer = document.getElementById("activities-available-list");
       if (availContainer) {
         if (availableSignUpList.length === 0) {
           availContainer.innerHTML = `
             <div class="col-span-full glass-card rounded-2xl p-6 text-center space-y-1.5 border">
               <p class="text-xs font-semibold sub-text">
-                ${isZh ? '目前暫無開放接龍報名的活動' : 'No sign-up activities available'}
+                ${isZh ? '目前暫無等待報名中的活動' : 'No sign-up activities available'}
               </p>
             </div>
           `;
@@ -8067,9 +8084,15 @@
       let html = "";
 
       if (isLoggedIn) {
-        // 會員視角：首選項為「我的活動總表」，並渲染「我的社團」分組
-        const myActivitiesLabel = isZh ? "我的活動總表" : "My Activities";
-        html += `<option value="" ${(!STATE.currentClub && (STATE.currentPage === 'activities' || STATE.currentPage === 'hub')) ? 'selected' : ''}>${myActivitiesLabel}</option>`;
+        // 會員視角：前兩項為「比賽中/已報名」與「等待報名」，並渲染「我的社團」分組
+        const regOptionLabel = isZh ? "比賽中/已報名" : "In Progress / Registered";
+        const waitingOptionLabel = isZh ? "等待報名" : "Waiting for Sign Up";
+
+        const isRegSelected = (!STATE.currentClub && (STATE.currentPage === 'activities' || STATE.currentPage === 'hub'));
+        const isWaitingSelected = (!STATE.currentClub && STATE.currentPage === 'waiting');
+
+        html += `<option value="activities" ${isRegSelected ? 'selected' : ''}>${regOptionLabel}</option>`;
+        html += `<option value="waiting" ${isWaitingSelected ? 'selected' : ''}>${waitingOptionLabel}</option>`;
 
         const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
           .filter(c => c && c.trim())
@@ -8133,8 +8156,14 @@
       const removeBtn = document.getElementById("btn-remove-my-club");
       const idBtn = document.getElementById("btn-club-identity");
 
-      if (STATE.currentPage === "activities" || (STATE.currentPage === "hub" && !STATE.currentClub)) {
-        if (navSelect) navSelect.value = "";
+      if (STATE.currentPage === "activities" || STATE.currentPage === "waiting" || (STATE.currentPage === "hub" && !STATE.currentClub)) {
+        if (navSelect) {
+          if (STATE.lineUserId) {
+            navSelect.value = (STATE.currentPage === "waiting") ? "waiting" : "activities";
+          } else {
+            navSelect.value = "";
+          }
+        }
         if (shareBtn) shareBtn.classList.add("hidden");
         if (removeBtn) removeBtn.classList.add("hidden");
         if (idBtn) idBtn.classList.add("hidden");
@@ -8266,6 +8295,24 @@
     window.handleSharedCreateTournament = handleSharedCreateTournament;
 
     async function onNavClubSelectChange(clubName) {
+      if (clubName === "activities") {
+        STATE.currentClub = null;
+        STATE.createContextClub = null;
+        if (STATE.currentPage !== "activities") {
+          navigateTo("activities");
+        }
+        updateNavClubSelectValue();
+        return;
+      }
+      if (clubName === "waiting") {
+        STATE.currentClub = null;
+        STATE.createContextClub = null;
+        if (STATE.currentPage !== "waiting") {
+          navigateTo("waiting");
+        }
+        updateNavClubSelectValue();
+        return;
+      }
       if (!clubName || clubName === "" || clubName === "__club_activities__") {
         STATE.currentClub = null;
         STATE.createContextClub = null;
