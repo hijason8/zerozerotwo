@@ -1198,6 +1198,15 @@
         </div>
         <p class="text-[10px] sub-text px-1">已預先填入您的 LINE 暱稱，可直接確認或修改為習慣的外號 (上限10字)</p>
       </div>
+
+      <!-- 解除綁定區 (僅在已綁定時動態顯示) -->
+      <div id="claim-unbind-section" class="hidden pt-1.5 border-t border-stone-200 dark:border-slate-800 text-center">
+        <button type="button" onclick="handleDirectUnbindClick()"
+          class="text-xs text-rose-500 hover:text-rose-600 dark:text-rose-400 font-semibold inline-flex items-center gap-1 p-1 hover:underline cursor-pointer">
+          <i data-lucide="user-x" class="w-3.5 h-3.5"></i>
+          <span id="claim-unbind-btn-text">解除目前身分綁定</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -8012,22 +8021,26 @@
 
         const safeClub = typeof encodeClubKey === "function" ? encodeClubKey(clubToRemove) : encodeURIComponent(clubToRemove.trim()).replace(/\./g, "%2E");
 
-        // 1. Firebase 雲端更新：解除專屬社團，同時徹底解除該社團球員身分綁定
+        // 1. Firebase 雲端更新：解除專屬社團
         if (STATE.db && STATE.lineUserId) {
           try {
             const updates = {};
             updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(clubToRemove)}`] = null;
-            updates[`club_mappings/${safeClub}/${STATE.lineUserId}`] = null;
             await update(ref(STATE.db), updates);
           } catch (err) {
             console.warn("[Firebase] removeMyClub error:", err);
           }
         }
 
-        // 2. 清除該社團本地身分綁定快取與狀態
-        localStorage.removeItem(`pb_bound_name_${clubToRemove}`);
-        if (STATE.currentClub === clubToRemove) {
-          STATE.clubPlayerName = null;
+        // 2. 徹底執行【準則三：解除綁定與零紀錄自動抹除】
+        const currentBound = localStorage.getItem(`pb_bound_name_${clubToRemove}`) || STATE.clubPlayerName;
+        if (typeof unbindClubIdentity === "function") {
+          await unbindClubIdentity(clubToRemove, currentBound, STATE.lineUserId);
+        } else {
+          localStorage.removeItem(`pb_bound_name_${clubToRemove}`);
+          if (STATE.currentClub === clubToRemove) {
+            STATE.clubPlayerName = null;
+          }
         }
 
         // 3. 前端狀態同步
@@ -8655,6 +8668,23 @@
         }
       }
 
+      // 4. 動態顯示/隱藏「解除目前身分綁定」按鈕
+      const unbindSection = document.getElementById("claim-unbind-section");
+      const unbindBtnText = document.getElementById("claim-unbind-btn-text");
+      const currentBound = localStorage.getItem(`pb_bound_name_${clubName}`) || STATE.clubPlayerName;
+      if (unbindSection) {
+        if (currentBound) {
+          unbindSection.classList.remove("hidden");
+          if (unbindBtnText) {
+            unbindBtnText.innerText = (STATE.lang === "zh-TW")
+              ? `解除目前綁定 (【${currentBound}】)`
+              : `Unbind current identity (${currentBound})`;
+          }
+        } else {
+          unbindSection.classList.add("hidden");
+        }
+      }
+
       modal.classList.remove("hidden");
       if (window.lucide) lucide.createIcons();
     }
@@ -8710,6 +8740,43 @@
       }
 
       const safeClub = encodeClubKey(clubName);
+
+      // 【準則一：唯一性防冒領】檢查 cleanName 是否已被同社團內其他 LINE ID 綁定
+      if (STATE.db) {
+        try {
+          const mapSnap = await get(ref(STATE.db, `club_mappings/${safeClub}`));
+          if (mapSnap.exists()) {
+            const currentMappings = mapSnap.val() || {};
+            for (const [uid, bName] of Object.entries(currentMappings)) {
+              if (uid !== STATE.lineUserId && String(bName).trim() === cleanName) {
+                showToast(`「${cleanName}」已被其他球友綁定，請選擇其他姓名！`, "warning");
+                return;
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 【準則三：狀態分流處理】若使用者原本有綁定舊名字，執行分流清理
+      const oldBoundName = (localStorage.getItem(`pb_bound_name_${clubName}`) || STATE.clubPlayerName || "").trim();
+      if (oldBoundName && oldBoundName !== cleanName) {
+        const hasRecords = checkPlayerHasClubMatchRecords(clubName, oldBoundName);
+        if (!hasRecords) {
+          // 零參賽紀錄自動抹除：從社團名冊中徹底移除幽靈空殼
+          let currentMembers = getClubMembersList(clubName) || [];
+          currentMembers = currentMembers.filter(m => (m || "").trim() !== oldBoundName);
+          saveClubMembersList(clubName, currentMembers);
+          if (STATE.db) {
+            try {
+              const snap = await get(ref(STATE.db, `club_members/${safeClub}`));
+              if (snap.exists() && Array.isArray(snap.val())) {
+                const cloudMembers = snap.val().filter(m => (m || "").trim() !== oldBoundName);
+                await set(ref(STATE.db, `club_members/${safeClub}`), cloudMembers);
+              }
+            } catch (e) {}
+          }
+        }
+      }
 
       try {
         // 1. 寫入 /club_mappings/{safeClub}/{lineUserId} = cleanName
@@ -8788,6 +8855,164 @@
       }
     }
     window.executeClaimBinding = executeClaimBinding;
+
+    // 【架構準則三：出賽紀錄判定】檢查特定球員在該社團歷史賽事中是否有出賽紀錄
+    function checkPlayerHasClubMatchRecords(clubName, playerName) {
+      if (!clubName || !playerName) return false;
+      const cleanClub = clubName.trim();
+      const cleanName = playerName.trim();
+      if (!cleanClub || !cleanName) return false;
+
+      const tournaments = [];
+      if (Array.isArray(STATE.allTournamentsCache)) {
+        STATE.allTournamentsCache.forEach(t => {
+          if (t && (t.clubName || "").trim() === cleanClub) {
+            tournaments.push(t);
+          }
+        });
+      }
+
+      try {
+        const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
+        Object.values(localData).forEach(t => {
+          if (t && (t.clubName || "").trim() === cleanClub) {
+            if (!tournaments.some(existing => existing.id === t.id)) {
+              tournaments.push(t);
+            }
+          }
+        });
+      } catch (e) {}
+
+      if (STATE.tournamentData && (STATE.tournamentData.clubName || "").trim() === cleanClub) {
+        if (!tournaments.some(existing => existing.id === STATE.tournamentData.id)) {
+          tournaments.push(STATE.tournamentData);
+        }
+      }
+
+      for (const t of tournaments) {
+        const matches = t.matches || [];
+        for (const m of matches) {
+          if (!m) continue;
+          const blue = Array.isArray(m.blue) ? m.blue : [];
+          const red = Array.isArray(m.red) ? m.red : [];
+          if (blue.some(p => (p || "").trim() === cleanName) || red.some(p => (p || "").trim() === cleanName)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
+    window.checkPlayerHasClubMatchRecords = checkPlayerHasClubMatchRecords;
+
+    // 【架構準則三：解除綁定與零紀錄自動抹除 (Unbind & Auto-Cleanup)】
+    async function unbindClubIdentity(clubName, targetName, lineUserId) {
+      const cleanClub = (clubName || STATE.currentClub || "").trim();
+      if (!cleanClub) return false;
+
+      const uid = lineUserId || STATE.lineUserId;
+      const cleanTarget = (targetName || localStorage.getItem(`pb_bound_name_${cleanClub}`) || STATE.clubPlayerName || "").trim();
+      const safeClub = encodeClubKey(cleanClub);
+
+      try {
+        // 1. 刪除關聯：移除 /club_mappings/{safeClub}/{uid} 與 /users/{uid}/myClubs/{safeClub}
+        if (STATE.db && uid) {
+          try {
+            await remove(ref(STATE.db, `club_mappings/${safeClub}/${uid}`));
+          } catch (e) {
+            console.warn("[Club Identity] remove club_mappings error:", e);
+          }
+          try {
+            await remove(ref(STATE.db, `users/${uid}/myClubs/${safeClub}`));
+          } catch (e) {
+            console.warn("[Club Identity] remove user myClubs error:", e);
+          }
+        }
+
+        // 2. 本地狀態清除
+        localStorage.removeItem(`pb_bound_name_${cleanClub}`);
+        if (STATE.clubPlayerName === cleanTarget) {
+          STATE.clubPlayerName = "";
+        }
+
+        // 3. 狀態分流處理 (準則三)
+        if (cleanTarget) {
+          const hasRecords = checkPlayerHasClubMatchRecords(cleanClub, cleanTarget);
+          if (!hasRecords) {
+            // 【零參賽紀錄自動抹除】：徹底從 club_members 陣列刪除，不留幽靈空殼
+            console.log(`[Club Identity] 零參賽紀錄自動抹除：「${cleanTarget}」自社團【${cleanClub}】`);
+            let members = getClubMembersList(cleanClub) || [];
+            members = members.filter(m => (m || "").trim() !== cleanTarget);
+            saveClubMembersList(cleanClub, members);
+
+            if (STATE.db) {
+              try {
+                const snap = await get(ref(STATE.db, `club_members/${safeClub}`));
+                if (snap.exists() && Array.isArray(snap.val())) {
+                  const cloudMembers = snap.val().filter(m => (m || "").trim() !== cleanTarget);
+                  await set(ref(STATE.db, `club_members/${safeClub}`), cloudMembers);
+                }
+              } catch (e) {
+                console.warn("[Club Identity] cloud member cleanup error:", e);
+              }
+            }
+          } else {
+            // 【有參賽紀錄】：保留於 club_members，使其退回「待認領角色池」，歷史戰績原封不動
+            console.log(`[Club Identity] 保留有參賽紀錄球員：「${cleanTarget}」退回待認領角色池`);
+          }
+        }
+
+        // 4. 更新介面狀態
+        if (typeof updateClubIdentityBadge === "function") {
+          await updateClubIdentityBadge(cleanClub);
+        }
+
+        return true;
+      } catch (err) {
+        console.error("[Club Identity] unbindClubIdentity error:", err);
+        localStorage.removeItem(`pb_bound_name_${cleanClub}`);
+        if (STATE.clubPlayerName === cleanTarget) {
+          STATE.clubPlayerName = "";
+        }
+        if (typeof updateClubIdentityBadge === "function") {
+          updateClubIdentityBadge(cleanClub);
+        }
+        return false;
+      }
+    }
+    window.unbindClubIdentity = unbindClubIdentity;
+
+    // 點擊彈窗內「解除目前身分綁定」按鈕處理器
+    async function handleDirectUnbindClick() {
+      const clubName = _activeClaimClub || STATE.currentClub;
+      if (!clubName) return;
+
+      const currentBound = (localStorage.getItem(`pb_bound_name_${clubName}`) || STATE.clubPlayerName || "").trim();
+      if (!currentBound) {
+        showToast("目前尚未綁定任何球員身分", "info");
+        closeClubIdentityClaimModal();
+        return;
+      }
+
+      const isZh = STATE.lang === "zh-TW";
+      const confirmMsg = isZh
+        ? `確定要解除在【${clubName}】綁定的身分「${currentBound}」嗎？\n\n• 若無出賽紀錄：系統將自動徹底抹除此名字，不留幽靈資料。\n• 若有出賽紀錄：戰績將原封不動保留，此角色退回待認領池。`
+        : `Are you sure you want to unbind "${currentBound}" in "${clubName}"?`;
+
+      if (!confirm(confirmMsg)) return;
+
+      await unbindClubIdentity(clubName, currentBound, STATE.lineUserId);
+      closeClubIdentityClaimModal();
+      showToast(isZh ? `已解除「${currentBound}」的身分綁定！` : `Unbound "${currentBound}" successfully!`, "success");
+
+      // 重新渲染當前頁面
+      if (STATE.currentPage === "live" && STATE.tournamentData) {
+        renderLiveUI(STATE.tournamentData);
+      } else if (typeof renderHistoryCategorized === "function") {
+        renderHistoryCategorized(STATE.allTournamentsCache || []);
+      }
+    }
+    window.handleDirectUnbindClick = handleDirectUnbindClick;
 
     async function openClubSpace(clubName) {
       if (clubName && clubName.trim()) {
