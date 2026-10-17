@@ -84,12 +84,17 @@
 
 ---
 
-## 五、 未來擴增規劃：LINE Bot Webhook 訊息回覆活動清單
+## 五、 LINE Bot Webhook 訊息回覆活動清單 (已實作)
 * **核心理念**：輕量免跳轉，點擊圖文選單直接在 LINE 聊天室以文字/卡片回覆個人活動與接龍名冊。
+* **Webhook 端點**：
+  * URL：`https://asia-southeast1-pickleball-hub-d0ab1.cloudfunctions.net/lineWebhook`
+  * 支援 Method：`POST`（LINE Webhook 事件接收）與 `GET`（健康檢查）
 * **動作分工**：
-  1. **【我的活動總表】**：點擊發送關鍵字「我的活動總表」➜ 後端 Webhook 依 `lineUserId` 查出已報名/進行中球局與即時計分板連結回覆。
-  2. **【搜尋接龍列表】**：點擊發送關鍵字「搜尋接龍列表」➜ 後端 Webhook 查出近期公開報名場次、名額進度與報名連結回覆（球友可一鍵轉傳其他群組）。
-  3. **【創建比賽】**：維持開啟網頁 URL (`https://zztwo.com/?page=create`)。
+  1. **【我的活動總表】**：點擊發送關鍵字「我的活動總表」➜ 後端 Webhook 依 `lineUserId` 與 `/club_mappings` 查出已報名/進行中球局與即時計分板連結回覆。
+  2. **【搜尋接龍列表】**：點擊發送關鍵字「搜尋接龍列表」➜ 後端 Webhook 查出近期公開報名場次、名額進度與報名連結回覆（排版利於球友一鍵轉傳其他群組）。
+  3. **【創建比賽】**：維持開啟網頁 URL (`https://zztwo.com/?page=create`)；若於聊天室輸入文字亦會回覆導引連結。
+* **安全性與憑證配置**：
+  * 支援環境變數（`LINE_CHANNEL_SECRET`、`LINE_CHANNEL_ACCESS_TOKEN`）或 Firebase RTDB `/app_config/line_bot/` 動態配置（免重新部署 Functions 即可隨時更新 Token）。
 * **成本與額度優勢**：採用 LINE Webhook 的 `replyToken` 被動回覆機制，屬於免費無限額度通訊，不消耗官方帳號每月的 Push 廣播則數。
 
 ---

@@ -5,10 +5,18 @@ Firebase Cloud Functions for ZeroZeroTwo (Python 2nd Gen)
 2. generateSchedule (HTTP REST API): 前端即時排賽運算端點
 3. verifyClubPassword (HTTP REST API): 社團密碼驗證
 4. verifyAdminPin (HTTP REST API): 管理員 Master PIN 驗證
+5. lineWebhook (HTTP REST API): LINE Bot Webhook 訊息回覆 (免跳轉輕量方案)
 """
 
+import os
 import json
 import hashlib
+import hmac
+import base64
+import urllib.request
+import urllib.error
+import urllib.parse
+from datetime import datetime, timezone
 from typing import Any, Dict
 from urllib.parse import quote
 
@@ -241,3 +249,343 @@ def verifyAdminPin(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps({"valid": is_valid}), status=200, mimetype="application/json")
     except Exception as err:
         return https_fn.Response(json.dumps({"error": str(err)}), status=500, mimetype="application/json")
+
+
+# ============================================================
+# 5. HTTP REST API: LINE Bot Webhook (免跳轉輕量訊息回覆)
+# ============================================================
+def _get_line_config() -> Dict[str, str]:
+    """取得 LINE Channel Secret 與 Access Token (優先自環境變數，次自 RTDB /app_config/line_bot)"""
+    secret = os.environ.get("LINE_CHANNEL_SECRET", "").strip()
+    token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN", "").strip()
+    if not secret or not token:
+        try:
+            cfg = db.reference("/app_config/line_bot").get() or {}
+            if not secret:
+                secret = str(cfg.get("channel_secret") or cfg.get("channelSecret") or "").strip()
+            if not token:
+                token = str(cfg.get("channel_access_token") or cfg.get("channelAccessToken") or "").strip()
+        except Exception as e:
+            print(f"[LINE Webhook] 讀取 /app_config/line_bot 發生例外: {e}")
+    return {"secret": secret, "token": token}
+
+
+def _verify_line_signature(secret: str, body_bytes: bytes, signature: str) -> bool:
+    """驗證 LINE Messaging API Webhook 簽名"""
+    if not secret:
+        # 開發/初次驗證模式：若尚未配置 Secret，放行以利 Console 測試 Verify
+        return True
+    if not signature:
+        return False
+    mac = hmac.new(secret.encode("utf-8"), body_bytes, hashlib.sha256).digest()
+    expected = base64.b64encode(mac).decode("utf-8")
+    return hmac.compare_digest(expected, signature)
+
+
+def _reply_line_message(reply_token: str, text: str, token: str) -> bool:
+    """發送 LINE Reply 訊息 (免費額度通訊)"""
+    if not reply_token or not token or not text:
+        return False
+    payload = json.dumps({
+        "replyToken": reply_token,
+        "messages": [{"type": "text", "text": text.strip()}]
+    }, ensure_ascii=False).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.line.me/v2/bot/message/reply",
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        },
+        method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.status == 200
+    except Exception as e:
+        print(f"[LINE Webhook] Reply API error: {e}")
+        return False
+
+
+def _handle_my_activities(user_id: str) -> str:
+    """處理【我的活動總表】：依據 lineUserId 查出已報名／進行中球局與即時計分板連結"""
+    if not user_id:
+        return "⚠️ 無法取得您的 LINE 帳號識別碼，請點擊下方開啟網頁查看活動總表：\nhttps://zztwo.com/?page=hub"
+
+    # 1. 查詢該使用者在各社團的綁定身分
+    bound_names = set()
+    try:
+        club_mappings = db.reference("/club_mappings").get() or {}
+        if isinstance(club_mappings, dict):
+            for safe_c, user_map in club_mappings.items():
+                if isinstance(user_map, dict) and user_id in user_map:
+                    val = str(user_map[user_id]).strip()
+                    if val:
+                        bound_names.add(val)
+    except Exception as e:
+        print(f"[LINE Webhook] 讀取 club_mappings 失敗: {e}")
+
+    # 2. 查詢全部賽事並過濾
+    tournaments_dict = db.reference("/tournaments").get() or {}
+    if not isinstance(tournaments_dict, dict):
+        tournaments_dict = {}
+
+    all_tournaments = []
+    for tid, t in tournaments_dict.items():
+        if isinstance(t, dict):
+            if "id" not in t:
+                t["id"] = tid
+            all_tournaments.append(t)
+
+    # 依建立時間倒序
+    all_tournaments.sort(key=lambda x: str(x.get("createdAt", "")), reverse=True)
+
+    active_or_reg = []
+    completed_recent = []
+    now_ts = datetime.now(timezone.utc)
+
+    for t in all_tournaments:
+        players = t.get("players", [])
+        if not isinstance(players, list):
+            continue
+
+        # 檢查本人是否出賽
+        is_my_tournament = False
+        my_reg_name = ""
+        for p in players:
+            p_name = ""
+            p_uid = ""
+            if isinstance(p, str):
+                p_name = p.strip()
+            elif isinstance(p, dict):
+                p_name = str(p.get("name", "")).strip()
+                p_uid = str(p.get("lineUserId", "")).strip()
+
+            if p_uid and p_uid == user_id:
+                is_my_tournament = True
+                my_reg_name = p_name
+                break
+            if p_name and p_name in bound_names:
+                is_my_tournament = True
+                my_reg_name = p_name
+                break
+
+        if not is_my_tournament:
+            continue
+
+        status = t.get("status", "registering")
+        t_id = t.get("id", "")
+        t_name = t.get("name", "未命名球局")
+        c_name = (t.get("clubName") or "").strip()
+        max_p = t.get("maxPlayers") or 100
+        p_count = len(players)
+
+        item = {
+            "id": t_id,
+            "name": t_name,
+            "club": c_name or "公開臨打",
+            "p_count": p_count,
+            "max_p": max_p,
+            "status": status,
+            "reg_name": my_reg_name
+        }
+
+        if status in ("registering", "active", "in_progress"):
+            active_or_reg.append(item)
+        elif status in ("completed", "finished"):
+            created_str = t.get("createdAt")
+            if created_str:
+                try:
+                    c_dt = datetime.fromisoformat(created_str.replace("Z", "+00:00"))
+                    if (now_ts - c_dt).total_seconds() <= 3 * 86400:
+                        completed_recent.append(item)
+                except Exception:
+                    completed_recent.append(item)
+
+    # 組合回覆文字
+    lines = ["🎾【ZeroZeroTwo 您的活動總表】🎾", ""]
+
+    if not active_or_reg and not completed_recent:
+        lines.append("您目前尚無進行中或已報名的球局喔！")
+        lines.append("")
+        if bound_names:
+            lines.append(f"👤 您已綁定的身分：{', '.join(bound_names)}")
+        lines.append("👉 快點擊「搜尋接龍列表」查看近期公開臨打，或開啟全站總表：")
+        lines.append("🔗 https://zztwo.com/?page=hub")
+        return "\n".join(lines)
+
+    if active_or_reg:
+        lines.append("🔥【比賽中與已報名】")
+        for idx, it in enumerate(active_or_reg[:5], 1):
+            tag = "📋 報名中" if it["status"] == "registering" else "⚔️ 比賽中"
+            link = f"https://zztwo.com/?t={it['id']}"
+            lines.append(f"{idx}. {it['name']} ({tag})")
+            lines.append(f"   🛡️ 所屬：{it['club']}")
+            if it["reg_name"]:
+                lines.append(f"   👤 出賽身分：{it['reg_name']}")
+            if it["max_p"] and it["max_p"] < 100:
+                lines.append(f"   👥 人數：{it['p_count']}/{it['max_p']} 人")
+            else:
+                lines.append(f"   👥 人數：{it['p_count']} 人")
+            lines.append(f"   👉 賽事頁面：{link}")
+            lines.append("")
+
+    if completed_recent:
+        lines.append("🏆【近 3 日完賽紀錄】")
+        for it in completed_recent[:3]:
+            lines.append(f"• {it['name']} ({it['club']})")
+            lines.append(f"  👉 查看戰果：https://zztwo.com/?t={it['id']}")
+        lines.append("")
+
+    lines.append("───────────────")
+    lines.append("🌐 查看完整網頁總表：https://zztwo.com/?page=hub")
+    return "\n".join(lines)
+
+
+def _handle_open_registrations() -> str:
+    """處理【搜尋接龍列表】：回覆近期公開場次、名額進度與報名連結 (便於轉傳)"""
+    tournaments_dict = db.reference("/tournaments").get() or {}
+    if not isinstance(tournaments_dict, dict):
+        tournaments_dict = {}
+
+    all_t = []
+    for tid, t in tournaments_dict.items():
+        if isinstance(t, dict):
+            if "id" not in t:
+                t["id"] = tid
+            all_t.append(t)
+
+    # 依建立時間倒序
+    all_t.sort(key=lambda x: str(x.get("createdAt", "")), reverse=True)
+
+    # 篩選開放接龍且非私密的賽事
+    open_t = []
+    for t in all_t:
+        if t.get("status") == "registering" and not t.get("isPrivate", False):
+            open_t.append(t)
+
+    lines = ["🔥【ZeroZeroTwo 開放接龍球局】🔥", ""]
+
+    if not open_t:
+        lines.append("目前暫無開放接龍中的公開球局！")
+        lines.append("")
+        lines.append("👉 您也可以自己發起新球局接龍：")
+        lines.append("🔗 https://zztwo.com/?page=create")
+        return "\n".join(lines)
+
+    for idx, t in enumerate(open_t[:5], 1):
+        t_id = t.get("id", "")
+        t_name = t.get("name", "未命名球局")
+        c_name = (t.get("clubName") or "").strip() or "公開臨打"
+        players = t.get("players", [])
+        p_count = len(players) if isinstance(players, list) else 0
+        max_p = t.get("maxPlayers") or 100
+        remain = max_p - p_count if max_p > p_count else 0
+        notes = (t.get("notes") or "").strip()
+        first_note = notes.split("\n")[0].strip() if notes else ""
+
+        lines.append(f"{idx}️⃣ {t_name}")
+        lines.append(f"📍 所屬：{c_name}")
+        if max_p and max_p < 100:
+            lines.append(f"👥 名額：已報名 {p_count}/{max_p} 人 (剩 {remain} 位！)")
+        else:
+            lines.append(f"👥 名額：已報名 {p_count} 人")
+        if first_note:
+            lines.append(f"📝 備註：{first_note}")
+        lines.append(f"👉 立即接龍報名：https://zztwo.com/?t={t_id}")
+        lines.append("")
+
+    lines.append("───────────────")
+    lines.append("💡 點選上方連結進入【接龍大廳】快速報名，轉傳其他群組一起揪球友！")
+    lines.append("🌐 探索全站活動：https://zztwo.com/?page=hub")
+    return "\n".join(lines)
+
+
+@https_fn.on_request(cors=CORS_CONFIG)
+def lineWebhook(req: https_fn.Request) -> https_fn.Response:
+    """
+    LINE Messaging API Webhook 端點：
+    處理「我的活動總表」、「搜尋接龍列表」等被動回覆訊息
+    """
+    if req.method == "GET":
+        # 供瀏覽器或狀態檢查訪問
+        return https_fn.Response("ZeroZeroTwo LINE Webhook Endpoint is Running.", status=200)
+
+    if req.method != "POST":
+        return https_fn.Response(json.dumps({"error": "Method Not Allowed"}), status=405, mimetype="application/json")
+
+    line_cfg = _get_line_config()
+    secret = line_cfg["secret"]
+    token = line_cfg["token"]
+
+    signature = req.headers.get("x-line-signature") or req.headers.get("X-Line-Signature") or ""
+    body_bytes = req.get_data()
+
+    if secret and not _verify_line_signature(secret, body_bytes, signature):
+        print("[LINE Webhook] 簽名驗證失敗！")
+        return https_fn.Response("Invalid signature", status=403)
+
+    try:
+        body = req.get_json(silent=True) or {}
+        events = body.get("events", [])
+
+        # LINE Developers Console 點擊「Verify」測試時 events 可能為空，需回傳 200 OK
+        if not events:
+            return https_fn.Response("OK", status=200)
+
+        for ev in events:
+            if ev.get("type") != "message":
+                continue
+
+            reply_token = ev.get("replyToken")
+            source = ev.get("source", {})
+            user_id = source.get("userId", "")
+            msg = ev.get("message", {})
+
+            if msg.get("type") != "text":
+                continue
+
+            user_text = (msg.get("text") or "").strip()
+
+            # 1. 我的活動總表
+            if any(k in user_text for k in ["我的活動總表", "我的活動", "我的球局", "總表", "活動總表"]):
+                reply_content = _handle_my_activities(user_id)
+                _reply_line_message(reply_token, reply_content, token)
+
+            # 2. 搜尋接龍列表
+            elif any(k in user_text for k in ["搜尋接龍列表", "搜尋接龍", "接龍列表", "接龍", "揪團", "臨打列表"]):
+                reply_content = _handle_open_registrations()
+                _reply_line_message(reply_token, reply_content, token)
+
+            # 3. 創建比賽
+            elif any(k in user_text for k in ["創建比賽", "建立比賽", "建立賽事", "開局", "創建賽事"]):
+                reply_content = (
+                    "🏆【創建新賽事 / 暢打球局】\n\n"
+                    "支援「平均模式自動排賽」與「自由模式暢打」，請點擊下方連結立即開局：\n"
+                    "👉 https://zztwo.com/?page=create\n\n"
+                    "🌐 探索全站活動總表：https://zztwo.com/?page=hub"
+                )
+                _reply_line_message(reply_token, reply_content, token)
+
+            # 4. 其他預設引導訊息
+            elif user_text in ["說明", "功能", "選單", "menu", "help", "幫助"]:
+                reply_content = (
+                    "🎾 歡迎使用 ZeroZeroTwo 匹克球助手！\n\n"
+                    "您可以直接點擊下方圖文選單，或輸入關鍵字：\n"
+                    "1️⃣ 輸入「我的活動總表」：查詢您的報名與進行中球局\n"
+                    "2️⃣ 輸入「搜尋接龍列表」：查看近期公開報名場次（便於一鍵轉傳群組）\n"
+                    "3️⃣ 輸入「創建比賽」：前往開局排賽\n\n"
+                    "🌐 官方網站：https://zztwo.com/"
+                )
+                _reply_line_message(reply_token, reply_content, token)
+
+        return https_fn.Response("OK", status=200)
+    except Exception as e:
+        print(f"[LINE Webhook] 處理過程發生例外: {e}")
+        return https_fn.Response(json.dumps({"error": str(err)} if "err" in locals() else {"error": str(e)}), status=500, mimetype="application/json")
+
+
+# 別名導出以確保命名相容性
+line_webhook = lineWebhook
+
