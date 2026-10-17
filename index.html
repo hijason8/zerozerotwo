@@ -2216,7 +2216,11 @@
             } catch (e) {}
 
             if (userData.lastClub && !STATE.currentClub) {
-              STATE.currentClub = userData.lastClub;
+              if (Array.isArray(STATE.myClubs) && STATE.myClubs.includes(userData.lastClub)) {
+                STATE.currentClub = userData.lastClub;
+              } else {
+                STATE.currentClub = (STATE.myClubs && STATE.myClubs.length > 0) ? STATE.myClubs[0] : null;
+              }
             }
           } else {
             // 嘗試讀取該會員專屬快取
@@ -2251,6 +2255,21 @@
               } catch (e) {}
             }
           }
+
+          // 清除本地殘留之非所屬社團幽靈綁定快取
+          try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i);
+              if (k && k.startsWith("pb_bound_name_") && k !== "pb_bound_name___general__") {
+                const cName = k.replace("pb_bound_name_", "");
+                if (!Array.isArray(STATE.myClubs) || !STATE.myClubs.includes(cName)) {
+                  keysToRemove.push(k);
+                }
+              }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+          } catch (e) {}
 
           // 會員視角：若無指定特定賽事(t)或特定社團(club)或指定管理(admin)/建立(create)頁面，登入後一律進入我的活動總表
           const currentParams = new URLSearchParams(window.location.search);
@@ -4987,6 +5006,11 @@
       }
 
       const clubName = (t.clubName || "").trim();
+      // 關鍵門禁：若為社團球局，但使用者根本未加入該社團，100% 絕不判定為本人已報名！
+      if (clubName && (!Array.isArray(STATE.myClubs) || !STATE.myClubs.includes(clubName))) {
+        return { isRegistered: false, registeredName: null };
+      }
+
       let boundName = null;
       if (clubName) {
         // 嚴格僅查詢該賽事所屬社團之綁定身分，絕不跨社團污染比對
@@ -5125,8 +5149,19 @@
       const compTextEl = document.getElementById("t-activities-comp-text");
       if (compTextEl) compTextEl.innerText = isZh ? "近期完賽球局 (3日內)" : "Recent Completed Matches (3 Days)";
 
-      // 搜尋過濾
-      let filtered = (list || []).filter(t => {
+      // 1. 嚴格社團資格過濾：我的活動總表僅能展示「公開臨打球局」或「自己已加入的社團 (STATE.myClubs)」
+      const myClubsList = (Array.isArray(STATE.myClubs) ? STATE.myClubs : []).map(c => (c || "").trim());
+      const clubScopedList = (list || []).filter(t => {
+        if (!t) return false;
+        const cName = (t.clubName || "").trim();
+        // 公開球局 (無指定社團) 一律可見
+        if (!cName) return true;
+        // 社團球局：必須是自己已加入的專屬社團
+        return myClubsList.includes(cName);
+      });
+
+      // 2. 搜尋關鍵字過濾
+      let filtered = clubScopedList.filter(t => {
         if (!t) return false;
         if (!activitiesSearchKeyword) return true;
         const name = (t.name || "").toLowerCase();
