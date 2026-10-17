@@ -58,3 +58,27 @@
   * **【有參賽紀錄】：** 若該名字在該社團的歷史賽事中已有出賽紀錄（matches 中有包含該名字），則保留該名字於 `club_members`，使其退回「待認領角色池」，歷史戰績原封不動保留。
   * **【零參賽紀錄自動抹除】：** 若該名字從未參與過任何一局比賽（通常為打錯字、創完秒退），直接將該名字從該社團的 `club_members` 陣列中徹底刪除，不留任何幽靈空殼在待認領名單中。
 
+---
+
+## 四、 LINE 圖文選單 (Rich Menu) 規格與點位定義
+* **選單尺寸**：`2500 × 1686 px`（LINE 標準大型滿版 Rich Menu）
+* **設計原始碼**：[`richmenu_2500x1686.html`](file:///Users/jasonchu/Desktop/pickleball/richmenu_2500x1686.html)
+* **輸出成品圖檔**：[`zerozerotwo-richmenu-2500x1686.png`](file:///Users/jasonchu/Desktop/pickleball/zerozerotwo-richmenu-2500x1686.png)
+
+### 點位與動作定義 (LINE Official Account Manager)
+1. **上方官方橫幅 (Banner)**：
+   * 範圍座標：`x: 0, y: 0, 寬: 2500, 高: 843`
+   * 動作：開啟 URL (`https://zztwo.com/`)
+2. **下方左 1【我的活動總表】**：
+   * 範圍座標：`x: 0, y: 843, 寬: 833, 高: 843`
+   * 動作：開啟 URL (`https://zztwo.com/?page=hub`)
+   * 文案：查詢報名球局，即時查閱賽況（標籤：個人專屬）
+3. **下方中 2【搜尋接龍列表】**：
+   * 範圍座標：`x: 833, y: 843, 寬: 834, 高: 843`
+   * 動作：開啟 URL (`https://zztwo.com/?page=hub`)
+   * 文案：探索群組公開接龍，一鍵報名完成（標籤：尋找比賽）
+4. **下方右 3【創建比賽】**：
+   * 範圍座標：`x: 1667, y: 843, 寬: 833, 高: 843`
+   * 動作：開啟 URL (`https://zztwo.com/?page=create`)
+   * 文案：社團賽事開局，多元排程（標籤：主辦開團）
+
