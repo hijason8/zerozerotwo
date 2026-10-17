@@ -285,7 +285,7 @@
       <div class="space-y-3">
         <div class="flex items-center justify-between pt-1">
           <h3 id="t-activities-registered-heading" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
-            <span id="t-activities-reg-text">已報名與比賽中</span>
+            <span id="t-activities-reg-text">比賽中與已報名</span>
             <span id="activities-registered-count" class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">0</span>
           </h3>
         </div>
@@ -2747,7 +2747,7 @@
 
       // My Activities Overview Page
       const actRegTextEl = document.getElementById("t-activities-reg-text");
-      if (actRegTextEl) actRegTextEl.innerText = isZh ? "已報名與比賽中" : "Registered & In Progress";
+      if (actRegTextEl) actRegTextEl.innerText = isZh ? "比賽中與已報名" : "In Progress & Registered";
       const actAvailTextEl = document.getElementById("t-activities-avail-text");
       if (actAvailTextEl) actAvailTextEl.innerText = isZh ? "開放接龍報名" : "Available for Sign Up";
       const actCompTextEl = document.getElementById("t-activities-comp-text");
@@ -5304,7 +5304,7 @@
 
       // 更新區塊標題與搜尋框中英文字串
       const regTextEl = document.getElementById("t-activities-reg-text");
-      if (regTextEl) regTextEl.innerText = isZh ? "已報名與比賽中" : "Registered & In Progress";
+      if (regTextEl) regTextEl.innerText = isZh ? "比賽中與已報名" : "In Progress & Registered";
 
       const availTextEl = document.getElementById("t-activities-avail-text");
       if (availTextEl) availTextEl.innerText = isZh ? "開放接龍報名" : "Available for Sign Up";
