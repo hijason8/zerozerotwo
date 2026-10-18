@@ -5015,25 +5015,11 @@
           <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3.5 border flex flex-col justify-between shadow-sm relative overflow-hidden group">
             <div class="space-y-2.5">
               <!-- Top Badges Row -->
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
-                  ${clubBadge}
-                  ${privacyBadge}
-                  ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
-                </div>
-                ${isRegistering
-            ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1.5 shadow-sm">
-                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${STATE.lang === 'zh-TW' ? '開放報名' : 'Registering'}
-                    </span>`
-            : (isFinished
-              ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-sm">
-                        <i data-lucide="check" class="w-3 h-3"></i> ${t("statusFinished")}
-                      </span>`
-              : `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1.5 shadow-sm">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${t("statusActive")}
-                      </span>`)
-          }
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
+                ${clubBadge}
+                ${privacyBadge}
+                ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
               </div>
 
               <!-- Tournament Title -->
@@ -5539,20 +5525,6 @@
           `
         ) : '';
 
-        const statusBadge = isRegistering ? `
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-xs">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ${isZh ? '開放接龍' : 'Registering'}
-          </span>
-        ` : (isFinished ? `
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/25 flex items-center gap-1 shadow-xs">
-            <i data-lucide="check" class="w-2.5 h-2.5"></i> ${isZh ? '已完賽' : 'Finished'}
-          </span>
-        ` : `
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-xs">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ${isZh ? '進行中' : 'Active'}
-          </span>
-        `);
-
         // 名額進度
         const quotaInfo = maxPlayers ? `
           <span class="font-mono ${isFull ? 'text-rose-500 font-bold' : ''}">👥 ${pCount}/${maxPlayers} ${isFull ? (isZh ? '(已滿額)' : '(Full)') : ''}</span>
@@ -5593,12 +5565,9 @@
           }">
             <div class="space-y-2.5">
               <!-- Top Badges -->
-              <div class="flex items-center justify-between gap-1.5 flex-wrap">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
-                  ${clubBadge}
-                </div>
-                ${statusBadge}
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
+                ${clubBadge}
               </div>
 
               <!-- Title -->
@@ -9475,17 +9444,8 @@
             return `
               <div class="glass-card rounded-2xl p-4 border space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1">
-                  <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
-                    ${isReg ? `
-                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ${STATE.lang === 'zh-TW' ? '報名中' : 'Registering'}
-                      </span>
-                    ` : `
-                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 進行中
-                      </span>
-                    `}
                   </div>
                   <h4 class="text-sm font-bold font-display line-clamp-1">${tData.name}</h4>
                   <div class="text-xs sub-text">👥 ${pCount} ${isReg ? (STATE.lang === 'zh-TW' ? '人已報名' : 'signed up') : (STATE.lang === 'zh-TW' ? '人參賽' : 'players')}</div>
