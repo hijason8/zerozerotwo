@@ -28,7 +28,7 @@ export const I18N = {
     activitiesSearchPlaceholder: "搜尋社團、活動或地點...",
     activitiesNoRegisteredTitle: "目前沒有進行中或已報名的活動",
     activitiesNoRegisteredDesc: "可切換至「等待報名」查看開放接龍報名的活動加入！",
-    activitiesNoAvailableTitle: "目前您的社團沒有等待報名活動",
+    activitiesNoAvailableTitle: "目前沒有臨打及已參與社團的接龍活動",
     activitiesNoCompletedTitle: "近 3 日無完賽球局",
     activitiesJoinedAs: "已報名",
     activitiesGoToRegister: "前往報名",

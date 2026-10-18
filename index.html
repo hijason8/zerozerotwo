@@ -5329,14 +5329,19 @@
       const compTextEl = document.getElementById("t-activities-comp-text");
       if (compTextEl) compTextEl.innerText = isZh ? "近期完賽球局 (3日內)" : "Recent Completed Matches (3 Days)";
 
-      // 1. 嚴格社團資格過濾：我的活動總表僅能展示「公開臨打球局」或「自己已加入的社團 (STATE.myClubs)」
+      // 1. 嚴格資格分流：
+      // - 若本人已報名 (checkTournamentRegistrationStatus 為 true)：一律納入
+      // - 若本人未報名：僅限「公開臨打球局 (!cName)」或「自己已加入的社團 (STATE.myClubs)」
       const myClubsList = (Array.isArray(STATE.myClubs) ? STATE.myClubs : []).map(c => (c || "").trim());
       const clubScopedList = (list || []).filter(t => {
         if (!t) return false;
+        const regStatus = checkTournamentRegistrationStatus(t);
+        if (regStatus.isRegistered) return true;
+
         const cName = (t.clubName || "").trim();
-        // 公開球局 (無指定社團) 一律可見
+        // 1. 沒有社團建立的接龍活動 (公開臨打)
         if (!cName) return true;
-        // 社團球局：必須是自己已加入的專屬社團
+        // 2. 該 LINE ID 帳號下的社團
         return myClubsList.includes(cName);
       });
 
@@ -5584,7 +5589,7 @@
           availContainer.innerHTML = `
             <div class="col-span-full glass-card rounded-2xl p-6 text-center space-y-1.5 border">
               <p class="text-xs font-semibold sub-text">
-                ${isZh ? '目前您的社團沒有等待報名活動' : 'No sign-up activities available for your clubs'}
+                ${isZh ? '目前沒有臨打及已參與社團的接龍活動' : 'No drop-in or joined club activities available'}
               </p>
             </div>
           `;

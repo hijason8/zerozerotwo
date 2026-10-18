@@ -308,25 +308,83 @@ def _reply_line_message(reply_token: str, text: str, token: str) -> bool:
         return False
 
 
-def _handle_my_activities(user_id: str) -> str:
-    """處理【我的活動總表】：依據 lineUserId 查出已報名／進行中球局與即時計分板連結"""
-    if not user_id:
-        return "⚠️ 無法取得您的 LINE 帳號識別碼，請點擊下方開啟網頁查看活動總表：\nhttps://zztwo.com/?page=hub"
+def _get_user_info(user_id: str):
+    """取得使用者的 myClubs 與各社團的綁定身分"""
+    user_my_clubs = set()
+    club_mappings = {}
 
-    # 1. 查詢該使用者在各社團的綁定身分
-    bound_names = set()
+    if not user_id:
+        return user_my_clubs, club_mappings
+
     try:
-        club_mappings = db.reference("/club_mappings").get() or {}
-        if isinstance(club_mappings, dict):
-            for safe_c, user_map in club_mappings.items():
-                if isinstance(user_map, dict) and user_id in user_map:
-                    val = str(user_map[user_id]).strip()
-                    if val:
-                        bound_names.add(val)
+        user_data = db.reference(f"/users/{user_id}").get() or {}
+        if isinstance(user_data, dict):
+            my_c = user_data.get("myClubs") or {}
+            if isinstance(my_c, dict):
+                user_my_clubs = {urllib.parse.unquote(k).strip() for k in my_c.keys()}
+    except Exception as e:
+        print(f"[LINE Webhook] 讀取 user myClubs 失敗: {e}")
+
+    try:
+        raw_mappings = db.reference("/club_mappings").get() or {}
+        if isinstance(raw_mappings, dict):
+            club_mappings = raw_mappings
     except Exception as e:
         print(f"[LINE Webhook] 讀取 club_mappings 失敗: {e}")
 
-    # 2. 查詢全部賽事並過濾
+    return user_my_clubs, club_mappings
+
+
+def _is_user_registered_in_tournament(t: dict, user_id: str, user_my_clubs: set, club_mappings: dict):
+    """
+    精準判斷該 LINE ID 是否為該球局已參加/已報名者：
+    1. 比對 players 陣列中是否有 lineUserId == user_id
+    2. 若為社團球局，僅在該使用者在該社團有明確綁定名字時比對 (嚴格社團層級隔離)
+    """
+    if not user_id or not isinstance(t, dict):
+        return False, ""
+
+    c_name = (t.get("clubName") or "").strip()
+    safe_c = quote(c_name, safe="").replace(".", "%2E") if c_name else ""
+
+    bound_name_in_club = ""
+    if safe_c and safe_c in club_mappings and isinstance(club_mappings[safe_c], dict):
+        bound_name_in_club = str(club_mappings[safe_c].get(user_id, "")).strip()
+
+    players = t.get("players", [])
+    if not isinstance(players, list):
+        return False, ""
+
+    for p in players:
+        p_name = ""
+        p_uid = ""
+        if isinstance(p, str):
+            p_name = p.strip()
+        elif isinstance(p, dict):
+            p_name = str(p.get("name", "")).strip()
+            p_uid = str(p.get("lineUserId", "")).strip()
+
+        # 1. 直接比對 lineUserId
+        if p_uid and p_uid == user_id:
+            return True, p_name or bound_name_in_club or "我"
+
+        # 2. 社團隔離綁定姓名比對：必須是該賽事所屬社團的綁定身分相符
+        if c_name and bound_name_in_club and p_name == bound_name_in_club:
+            return True, p_name
+
+    return False, ""
+
+
+def _handle_my_activities(user_id: str) -> str:
+    """
+    處理【比賽中/已報名】：
+    列出所有這個 LINE ID 帳下，已參加及已報名且未完賽或結束的活動。
+    """
+    if not user_id:
+        return "⚠️ 無法取得您的 LINE 帳號識別碼，請點擊下方開啟網頁查看：\nzztwo.com/?page=activities"
+
+    user_my_clubs, club_mappings = _get_user_info(user_id)
+
     tournaments_dict = db.reference("/tournaments").get() or {}
     if not isinstance(tournaments_dict, dict):
         tournaments_dict = {}
@@ -338,52 +396,30 @@ def _handle_my_activities(user_id: str) -> str:
                 t["id"] = tid
             all_tournaments.append(t)
 
-    # 依建立時間倒序
     all_tournaments.sort(key=lambda x: str(x.get("createdAt", "")), reverse=True)
 
     active_or_reg = []
-    completed_recent = []
-    now_ts = datetime.now(timezone.utc)
 
     for t in all_tournaments:
-        players = t.get("players", [])
-        if not isinstance(players, list):
-            continue
-
-        # 檢查本人是否出賽
-        is_my_tournament = False
-        my_reg_name = ""
-        for p in players:
-            p_name = ""
-            p_uid = ""
-            if isinstance(p, str):
-                p_name = p.strip()
-            elif isinstance(p, dict):
-                p_name = str(p.get("name", "")).strip()
-                p_uid = str(p.get("lineUserId", "")).strip()
-
-            if p_uid and p_uid == user_id:
-                is_my_tournament = True
-                my_reg_name = p_name
-                break
-            if p_name and p_name in bound_names:
-                is_my_tournament = True
-                my_reg_name = p_name
-                break
-
-        if not is_my_tournament:
-            continue
-
         status = t.get("status", "registering")
+        # 僅保留未完賽或結束的活動 (排除 completed / finished / archived)
+        if status in ("completed", "finished", "archived"):
+            continue
+
+        is_registered, my_reg_name = _is_user_registered_in_tournament(t, user_id, user_my_clubs, club_mappings)
+        if not is_registered:
+            continue
+
+        players = t.get("players", [])
+        p_count = len(players) if isinstance(players, list) else 0
         t_id = t.get("id", "")
         t_name = t.get("name", "未命名球局")
         c_name = (t.get("clubName") or "").strip()
         max_p = t.get("maxPlayers") or 100
-        p_count = len(players)
         notes = (t.get("notes") or "").strip()
         first_note = notes.split("\n")[0].strip() if notes else ""
 
-        item = {
+        active_or_reg.append({
             "id": t_id,
             "name": t_name,
             "club": c_name or "公開臨打",
@@ -392,62 +428,44 @@ def _handle_my_activities(user_id: str) -> str:
             "status": status,
             "reg_name": my_reg_name,
             "notes": first_note
-        }
+        })
 
-        if status in ("registering", "active", "in_progress"):
-            active_or_reg.append(item)
-        elif status in ("completed", "finished"):
-            created_str = t.get("createdAt")
-            if created_str:
-                try:
-                    c_dt = datetime.fromisoformat(created_str.replace("Z", "+00:00"))
-                    if (now_ts - c_dt).total_seconds() <= 3 * 86400:
-                        completed_recent.append(item)
-                except Exception:
-                    completed_recent.append(item)
-
-    # 組合回覆文字 (依照使用者指定精簡格式，省略 https:// 防止 LINE 自動生成預覽大縮圖)
     lines = ["【ZeroZeroTwo 比賽中與已報名】", ""]
 
-    if not active_or_reg and not completed_recent:
+    if not active_or_reg:
         lines.append("目前沒有進行中或已報名的活動。")
-        if bound_names:
-            lines.append(f"-綁定身分：{', '.join(bound_names)}")
         lines.append("")
-        lines.append("探索更多等待報名球局：")
+        lines.append("查看等待報名活動：")
         lines.append("zztwo.com/?page=waiting")
         return "\n".join(lines)
 
-    if active_or_reg:
-        for idx, it in enumerate(active_or_reg[:5], 1):
-            tag = "報名中" if it["status"] == "registering" else "比賽中"
-            link = f"zztwo.com/?t={it['id']}"
-            lines.append(f"{idx}. {it['name']} ({tag})")
-            lines.append(f"-所屬：{it['club']}")
-            if it["reg_name"]:
-                lines.append(f"-出賽身分：{it['reg_name']}")
-            if it["max_p"] and it["max_p"] < 100:
-                lines.append(f"-人數：{it['p_count']}/{it['max_p']} 人")
-            else:
-                lines.append(f"-人數：{it['p_count']} 人")
-            if it.get("notes"):
-                lines.append(f"-備註：{it['notes']}")
-            lines.append(link)
-            lines.append("")
-
-    if completed_recent:
-        lines.append("【近 3 日完賽紀錄】")
+    for idx, it in enumerate(active_or_reg[:5], 1):
+        tag = "報名中" if it["status"] == "registering" else "比賽中"
+        link = f"zztwo.com/?t={it['id']}"
+        lines.append(f"{idx}. {it['name']} ({tag})")
+        lines.append(f"-所屬：{it['club']}")
+        if it["reg_name"]:
+            lines.append(f"-出賽身分：{it['reg_name']}")
+        if it["max_p"] and it["max_p"] < 100:
+            lines.append(f"-人數：{it['p_count']}/{it['max_p']} 人")
+        else:
+            lines.append(f"-人數：{it['p_count']} 人")
+        if it.get("notes"):
+            lines.append(f"-備註：{it['notes']}")
+        lines.append(link)
         lines.append("")
-        for idx, it in enumerate(completed_recent[:3], 1):
-            lines.append(f"{idx}. {it['name']} ({it['club']})")
-            lines.append(f"zztwo.com/?t={it['id']}")
-            lines.append("")
 
     return "\n".join(lines).strip()
 
 
-def _handle_open_registrations() -> str:
-    """處理【搜尋接龍列表】：回覆近期公開場次、名額進度與報名連結 (便於轉傳)"""
+def _handle_open_registrations(user_id: str = "") -> str:
+    """
+    處理【等待報名】：
+    列出所有沒有社團建立的接龍活動以及該 LINE ID 帳號下的社團，當前可接龍報名的活動。
+    如果當前沒有活動可以參加，請寫「目前沒有臨打及已參與社團的接龍活動」。
+    """
+    user_my_clubs, club_mappings = _get_user_info(user_id) if user_id else (set(), {})
+
     tournaments_dict = db.reference("/tournaments").get() or {}
     if not isinstance(tournaments_dict, dict):
         tournaments_dict = {}
@@ -459,19 +477,39 @@ def _handle_open_registrations() -> str:
                 t["id"] = tid
             all_t.append(t)
 
-    # 依建立時間倒序
     all_t.sort(key=lambda x: str(x.get("createdAt", "")), reverse=True)
 
-    # 篩選開放接龍且非私密的賽事
     open_t = []
     for t in all_t:
-        if t.get("status") == "registering" and not t.get("isPrivate", False):
-            open_t.append(t)
+        status = t.get("status", "registering")
+        if status != "registering":
+            continue
+
+        is_closed = t.get("registrationClosed", False) or t.get("isRegistrationClosed", False) or t.get("isClosed", False)
+        if is_closed:
+            continue
+
+        c_name = (t.get("clubName") or "").strip()
+
+        # 篩選來源：
+        # 1. 沒有社團建立的接龍活動 (not c_name)
+        # 2. 或該 LINE ID 帳號下的社團 (c_name in user_my_clubs)
+        if c_name:
+            if not user_my_clubs or c_name not in user_my_clubs:
+                continue
+
+        # 且本人尚未報名
+        if user_id:
+            is_reg, _ = _is_user_registered_in_tournament(t, user_id, user_my_clubs, club_mappings)
+            if is_reg:
+                continue
+
+        open_t.append(t)
 
     lines = ["【ZeroZeroTwo 等待報名活動】", ""]
 
     if not open_t:
-        lines.append("目前暫無開放接龍中的公開球局！")
+        lines.append("目前沒有臨打及已參與社團的接龍活動")
         lines.append("")
         lines.append("發起新球局：")
         lines.append("zztwo.com/?page=create")
@@ -500,6 +538,7 @@ def _handle_open_registrations() -> str:
         lines.append("")
 
     return "\n".join(lines).strip()
+
 
 
 @https_fn.on_request(cors=CORS_CONFIG)
@@ -555,7 +594,7 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
 
             # 2. 搜尋接龍列表 (等待報名)
             elif any(k in user_text for k in ["搜尋接龍列表", "搜尋接龍", "接龍列表", "接龍", "揪團", "臨打列表", "等待報名", "開放報名"]):
-                reply_content = _handle_open_registrations()
+                reply_content = _handle_open_registrations(user_id)
                 _reply_line_message(reply_token, reply_content, token)
 
             # 3. 創建比賽
