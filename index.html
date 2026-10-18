@@ -2287,6 +2287,7 @@
           console.info(`[LIFF] Logged in successfully: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
 
           // 雲端同步：抓取該會員在所屬社團的綁定身分，寫入本地快取並同步 STATE
+          STATE.userBindings = STATE.userBindings || {};
           if (STATE.db && Array.isArray(STATE.myClubs) && STATE.myClubs.length > 0) {
             for (const clubName of STATE.myClubs) {
               const safeClub = typeof encodeClubKey === "function" ? encodeClubKey(clubName) : encodeURIComponent(clubName.trim()).replace(/\./g, "%2E");
@@ -2294,6 +2295,7 @@
                 const snap = await get(ref(STATE.db, `club_mappings/${safeClub}/${STATE.lineUserId}`));
                 if (snap.exists() && snap.val()) {
                   const bName = String(snap.val()).trim();
+                  STATE.userBindings[clubName] = bName;
                   localStorage.setItem(`pb_bound_name_${clubName}`, bName);
                   if (STATE.currentClub === clubName) {
                     STATE.clubPlayerName = bName;
@@ -3118,6 +3120,8 @@
           renderHistoryPage();
         } else if (STATE.currentPage === "activities") {
           renderActivitiesPage();
+        } else if (STATE.currentPage === "waiting") {
+          renderWaitingPage();
         }
 
         const connectedRef = ref(STATE.db, ".info/connected");
@@ -5189,13 +5193,17 @@
 
       let boundName = null;
       if (clubName) {
-        // 嚴格僅查詢該賽事所屬社團之綁定身分，絕不跨社團污染比對
-        boundName = localStorage.getItem(`pb_bound_name_${clubName}`);
+        // 嚴格僅查詢該賽事所屬社團之綁定身分，優先使用記憶體雲端快取，絕不跨社團污染比對
+        if (STATE.userBindings && STATE.userBindings[clubName]) {
+          boundName = STATE.userBindings[clubName];
+        } else {
+          boundName = localStorage.getItem(`pb_bound_name_${clubName}`);
+        }
         if (!boundName && STATE.currentClub === clubName && STATE.clubPlayerName) {
           boundName = STATE.clubPlayerName;
         }
       } else {
-        boundName = localStorage.getItem("pb_bound_name___general__") || null;
+        boundName = (STATE.userBindings && STATE.userBindings.__general__) || localStorage.getItem("pb_bound_name___general__") || null;
       }
       if (boundName) boundName = boundName.trim();
 
@@ -9050,6 +9058,8 @@
 
         // 4. 前端狀態同步
         STATE.clubPlayerName = cleanName;
+        STATE.userBindings = STATE.userBindings || {};
+        STATE.userBindings[clubName] = cleanName;
         localStorage.setItem(`pb_bound_name_${clubName}`, cleanName);
         localStorage.setItem("pb_my_player_name", cleanName);
 
@@ -9167,6 +9177,9 @@
 
         // 2. 本地狀態清除
         localStorage.removeItem(`pb_bound_name_${cleanClub}`);
+        if (STATE.userBindings) {
+          delete STATE.userBindings[cleanClub];
+        }
         if (STATE.clubPlayerName === cleanTarget) {
           STATE.clubPlayerName = "";
         }
@@ -10849,22 +10862,14 @@
       updatePlayerCountBadge();
       initPwa();
 
-      // 先啟動 LIFF 與身分驗證，確保已登入會員第一時間掌握 lineUserId 與 myClubs
+      // 1. 優先立即初始化 Firebase，保證 STATE.db 隨時在線（毫秒級就緒）
+      await initFirebase(DEFAULT_FIREBASE_CONFIG);
+
+      // 2. 啟動 LIFF 與身分驗證，此時 STATE.db 在線，100% 成功從雲端同步 myClubs 與 club_mappings 綁定身分
       await initLiffAndUser();
 
-      // LIFF 驗證完畢後執行路由，此時 STATE.lineUserId 狀態準確無誤，登入會員 100% 直達活動總表
+      // 3. LIFF 驗證完畢後執行路由，此時 STATE.lineUserId 與身分狀態 100% 準確無誤
       initRouting();
-
-      // 非同步啟動 Firebase，就緒後主動確保大廳/賽事載入
-      initFirebase(DEFAULT_FIREBASE_CONFIG).then(() => {
-        if (STATE.currentPage === "hub") {
-          renderHubTournaments();
-        } else if (STATE.currentPage === "history") {
-          renderHistoryPage();
-        } else if (STATE.currentPage === "activities") {
-          renderActivitiesPage();
-        }
-      });
 
       lucide.createIcons();
     }
