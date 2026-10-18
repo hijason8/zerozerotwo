@@ -630,7 +630,8 @@
       <div class="flex items-center justify-between px-0.5 pt-0.5">
         <button type="button" onclick="navigateTo('activities')"
           class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl card-inner border hover:border-emerald-500/50 text-stone-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-xs transition active:scale-95 shadow-2xs group cursor-pointer">
-          <i data-lucide="chevron-left" class="w-4 h-4 stroke-[2.5] text-stone-400 group-hover:text-emerald-500 transition-colors -ml-0.5"></i>
+          <i data-lucide="chevron-left"
+            class="w-4 h-4 stroke-[2.5] text-stone-400 group-hover:text-emerald-500 transition-colors -ml-0.5"></i>
           <span id="t-live-back-nav">返回活動總表</span>
         </button>
         <span class="text-[11px] sub-text font-mono font-medium">ZeroZeroTwo</span>
@@ -690,21 +691,21 @@
         </div>
 
         <!-- 3. 操作功能區 (Actions Area) -->
-        <div id="live-header-actions-wrap" class="flex items-center justify-end gap-2 flex-wrap pt-0.5">
+        <div id="live-header-actions-wrap" class="flex items-center gap-2 w-full pt-0.5">
           <!-- Mode Switch Button (Viewer vs Admin) -->
           <button onclick="toggleTournamentAdminMode()" id="btn-toggle-live-admin"
-            class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            class="flex-1 px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none cursor-pointer">
             <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-500" id="icon-toggle-live-admin"></i>
-            <span id="text-toggle-live-admin">操作模式</span>
+            <span id="text-toggle-live-admin">解鎖記分</span>
           </button>
           <!-- Copy Report Button (Only visible when tournament is completed) -->
           <button onclick="liveCopyReport()" id="btn-live-copy-report"
-            class="hidden flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            class="hidden flex-1 px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none cursor-pointer">
             <i data-lucide="file-text" class="w-3.5 h-3.5 text-stone-500 dark:text-slate-400"></i>
             <span id="text-live-copy-report">文字賽報</span>
           </button>
           <button onclick="openShareModal()" id="t-share-btn"
-            class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none">
+            class="flex-1 px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none cursor-pointer">
             <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
             <span id="t-share-btn-text">分享賽事</span>
           </button>
@@ -5986,23 +5987,23 @@
       if (adminBtn && adminText) {
         const isFrozen = isFinished && !STATE.isAdmin;
         if (isFrozen) {
-          // 所有的完賽，包含社團，包含有密碼的，完賽後都標示 已完賽（已凍結）
-          adminBtn.className = "px-3.5 py-2 rounded-xl card-inner border border-stone-200/50 dark:border-stone-800/80 text-xs font-bold flex items-center justify-center gap-1.5 transition opacity-60 text-stone-400 dark:text-stone-500 cursor-not-allowed pointer-events-none select-none";
-          adminText.innerText = isZh ? "已完賽 (已凍結)" : "Completed (Frozen)";
+          // 所有的完賽，包含社團，包含有密碼的，完賽後都標示 賽事已凍結
+          adminBtn.className = "flex-1 px-3 py-2 rounded-xl card-inner border border-stone-200/50 dark:border-stone-800/80 text-xs font-bold flex items-center justify-center gap-1.5 transition opacity-60 text-stone-400 dark:text-stone-500 cursor-not-allowed pointer-events-none select-none";
+          adminText.innerText = isZh ? "賽事已凍結" : "Frozen";
           if (adminIcon) adminIcon.setAttribute("data-lucide", "lock");
         } else if (hasAdmin) {
-          adminBtn.className = "px-3.5 py-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none cursor-pointer";
-          adminText.innerText = isZh ? "操作模式" : "Edit Mode";
+          adminBtn.className = "flex-1 px-3 py-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none cursor-pointer";
+          adminText.innerText = isZh ? "記分中 (鎖定)" : "Editing (Lock)";
           if (adminIcon) adminIcon.setAttribute("data-lucide", "edit-3");
         } else {
-          adminBtn.className = "px-3.5 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none text-stone-600 dark:text-slate-400 cursor-pointer";
+          adminBtn.className = "flex-1 px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none text-stone-700 dark:text-slate-300 cursor-pointer";
           const clubName = (data.clubName || "").trim();
           const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
           const hasClubPwd = clubName && ((STATE.clubPasswordsMap && STATE.clubPasswordsMap[encodeClubKey(clubName)]) || localPasswords[clubName]);
           adminText.innerText = hasClubPwd
-            ? (isZh ? "唯讀瀏覽 (解鎖 🔒)" : "Viewer (Unlock 🔒)")
-            : (isZh ? "唯讀瀏覽" : "Viewer");
-          if (adminIcon) adminIcon.setAttribute("data-lucide", hasClubPwd ? "lock" : "eye");
+            ? (isZh ? "解鎖記分" : "Unlock to Score")
+            : (isZh ? "開啟記分" : "Start Scoring");
+          if (adminIcon) adminIcon.setAttribute("data-lucide", hasClubPwd ? "lock" : "edit-3");
         }
       }
 
