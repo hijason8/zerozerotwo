@@ -380,6 +380,8 @@ def _handle_my_activities(user_id: str) -> str:
         c_name = (t.get("clubName") or "").strip()
         max_p = t.get("maxPlayers") or 100
         p_count = len(players)
+        notes = (t.get("notes") or "").strip()
+        first_note = notes.split("\n")[0].strip() if notes else ""
 
         item = {
             "id": t_id,
@@ -388,7 +390,8 @@ def _handle_my_activities(user_id: str) -> str:
             "p_count": p_count,
             "max_p": max_p,
             "status": status,
-            "reg_name": my_reg_name
+            "reg_name": my_reg_name,
+            "notes": first_note
         }
 
         if status in ("registering", "active", "in_progress"):
@@ -403,44 +406,44 @@ def _handle_my_activities(user_id: str) -> str:
                 except Exception:
                     completed_recent.append(item)
 
-    # 組合回覆文字
-    lines = ["🎾【ZeroZeroTwo 您的活動總表】🎾", ""]
+    # 組合回覆文字 (依照使用者指定精簡格式，省略 https:// 防止 LINE 自動生成預覽大縮圖)
+    lines = ["【ZeroZeroTwo 比賽中與已報名】", ""]
 
     if not active_or_reg and not completed_recent:
-        lines.append("您目前尚無進行中或已報名的球局喔！")
-        lines.append("")
+        lines.append("目前沒有進行中或已報名的活動。")
         if bound_names:
-            lines.append(f"👤 您已綁定的身分：{', '.join(bound_names)}")
-        lines.append("👉 快點擊「搜尋接龍列表」查看近期公開臨打，或開啟全站總表：")
-        lines.append("🔗 https://zztwo.com/?page=hub")
+            lines.append(f"-綁定身分：{', '.join(bound_names)}")
+        lines.append("")
+        lines.append("探索更多等待報名球局：")
+        lines.append("zztwo.com/?page=waiting")
         return "\n".join(lines)
 
     if active_or_reg:
-        lines.append("🔥【比賽中與已報名】")
         for idx, it in enumerate(active_or_reg[:5], 1):
-            tag = "📋 報名中" if it["status"] == "registering" else "⚔️ 比賽中"
-            link = f"https://zztwo.com/?t={it['id']}"
+            tag = "報名中" if it["status"] == "registering" else "比賽中"
+            link = f"zztwo.com/?t={it['id']}"
             lines.append(f"{idx}. {it['name']} ({tag})")
-            lines.append(f"   🛡️ 所屬：{it['club']}")
+            lines.append(f"-所屬：{it['club']}")
             if it["reg_name"]:
-                lines.append(f"   👤 出賽身分：{it['reg_name']}")
+                lines.append(f"-出賽身分：{it['reg_name']}")
             if it["max_p"] and it["max_p"] < 100:
-                lines.append(f"   👥 人數：{it['p_count']}/{it['max_p']} 人")
+                lines.append(f"-人數：{it['p_count']}/{it['max_p']} 人")
             else:
-                lines.append(f"   👥 人數：{it['p_count']} 人")
-            lines.append(f"   👉 賽事頁面：{link}")
+                lines.append(f"-人數：{it['p_count']} 人")
+            if it.get("notes"):
+                lines.append(f"-備註：{it['notes']}")
+            lines.append(link)
             lines.append("")
 
     if completed_recent:
-        lines.append("🏆【近 3 日完賽紀錄】")
-        for it in completed_recent[:3]:
-            lines.append(f"• {it['name']} ({it['club']})")
-            lines.append(f"  👉 查看戰果：https://zztwo.com/?t={it['id']}")
+        lines.append("【近 3 日完賽紀錄】")
         lines.append("")
+        for idx, it in enumerate(completed_recent[:3], 1):
+            lines.append(f"{idx}. {it['name']} ({it['club']})")
+            lines.append(f"zztwo.com/?t={it['id']}")
+            lines.append("")
 
-    lines.append("───────────────")
-    lines.append("🌐 查看完整網頁總表：https://zztwo.com/?page=hub")
-    return "\n".join(lines)
+    return "\n".join(lines).strip()
 
 
 def _handle_open_registrations() -> str:
@@ -465,13 +468,13 @@ def _handle_open_registrations() -> str:
         if t.get("status") == "registering" and not t.get("isPrivate", False):
             open_t.append(t)
 
-    lines = ["🔥【ZeroZeroTwo 開放接龍球局】🔥", ""]
+    lines = ["【ZeroZeroTwo 等待報名活動】", ""]
 
     if not open_t:
         lines.append("目前暫無開放接龍中的公開球局！")
         lines.append("")
-        lines.append("👉 您也可以自己發起新球局接龍：")
-        lines.append("🔗 https://zztwo.com/?page=create")
+        lines.append("發起新球局：")
+        lines.append("zztwo.com/?page=create")
         return "\n".join(lines)
 
     for idx, t in enumerate(open_t[:5], 1):
@@ -485,21 +488,18 @@ def _handle_open_registrations() -> str:
         notes = (t.get("notes") or "").strip()
         first_note = notes.split("\n")[0].strip() if notes else ""
 
-        lines.append(f"{idx}️⃣ {t_name}")
-        lines.append(f"📍 所屬：{c_name}")
+        lines.append(f"{idx}. {t_name}")
+        lines.append(f"-所屬：{c_name}")
         if max_p and max_p < 100:
-            lines.append(f"👥 名額：已報名 {p_count}/{max_p} 人 (剩 {remain} 位！)")
+            lines.append(f"-人數：{p_count}/{max_p} 人 (剩 {remain} 位)")
         else:
-            lines.append(f"👥 名額：已報名 {p_count} 人")
+            lines.append(f"-人數：{p_count} 人")
         if first_note:
-            lines.append(f"📝 備註：{first_note}")
-        lines.append(f"👉 立即接龍報名：https://zztwo.com/?t={t_id}")
+            lines.append(f"-備註：{first_note}")
+        lines.append(f"zztwo.com/?t={t_id}")
         lines.append("")
 
-    lines.append("───────────────")
-    lines.append("💡 點選上方連結進入【接龍大廳】快速報名，轉傳其他群組一起揪球友！")
-    lines.append("🌐 探索全站活動：https://zztwo.com/?page=hub")
-    return "\n".join(lines)
+    return "\n".join(lines).strip()
 
 
 @https_fn.on_request(cors=CORS_CONFIG)
@@ -548,13 +548,13 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
 
             user_text = (msg.get("text") or "").strip()
 
-            # 1. 我的活動總表
-            if any(k in user_text for k in ["我的活動總表", "我的活動", "我的球局", "總表", "活動總表"]):
+            # 1. 比賽中/已報名 (活動總表)
+            if any(k in user_text for k in ["我的活動總表", "我的活動", "我的球局", "總表", "活動總表", "比賽中/已報名", "比賽中與已報名", "比賽中", "已報名"]):
                 reply_content = _handle_my_activities(user_id)
                 _reply_line_message(reply_token, reply_content, token)
 
-            # 2. 搜尋接龍列表
-            elif any(k in user_text for k in ["搜尋接龍列表", "搜尋接龍", "接龍列表", "接龍", "揪團", "臨打列表"]):
+            # 2. 搜尋接龍列表 (等待報名)
+            elif any(k in user_text for k in ["搜尋接龍列表", "搜尋接龍", "接龍列表", "接龍", "揪團", "臨打列表", "等待報名", "開放報名"]):
                 reply_content = _handle_open_registrations()
                 _reply_line_message(reply_token, reply_content, token)
 
@@ -562,21 +562,20 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
             elif any(k in user_text for k in ["創建比賽", "建立比賽", "建立賽事", "開局", "創建賽事"]):
                 reply_content = (
                     "🏆【創建新賽事 / 暢打球局】\n\n"
-                    "支援「平均模式自動排賽」與「自由模式暢打」，請點擊下方連結立即開局：\n"
-                    "👉 https://zztwo.com/?page=create\n\n"
-                    "🌐 探索全站活動總表：https://zztwo.com/?page=hub"
+                    "支援「平均模式自動排賽」與「自由模式暢打」：\n"
+                    "zztwo.com/?page=create"
                 )
                 _reply_line_message(reply_token, reply_content, token)
 
             # 4. 其他預設引導訊息
             elif user_text in ["說明", "功能", "選單", "menu", "help", "幫助"]:
                 reply_content = (
-                    "🎾 歡迎使用 ZeroZeroTwo 匹克球助手！\n\n"
-                    "您可以直接點擊下方圖文選單，或輸入關鍵字：\n"
-                    "1️⃣ 輸入「我的活動總表」：查詢您的報名與進行中球局\n"
-                    "2️⃣ 輸入「搜尋接龍列表」：查看近期公開報名場次（便於一鍵轉傳群組）\n"
-                    "3️⃣ 輸入「創建比賽」：前往開局排賽\n\n"
-                    "🌐 官方網站：https://zztwo.com/"
+                    "🎾 ZeroZeroTwo 匹克球助手\n\n"
+                    "直接點擊下方圖文選單，或輸入關鍵字：\n"
+                    "1.「比賽中/已報名」：查詢您的報名與進行中球局\n"
+                    "2.「搜尋接龍列表」：查看近期開放接龍場次\n"
+                    "3.「創建比賽」：前往開局排賽\n\n"
+                    "zztwo.com"
                 )
                 _reply_line_message(reply_token, reply_content, token)
 
