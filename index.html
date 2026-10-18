@@ -294,7 +294,7 @@
             class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
             <span id="t-activities-reg-text">比賽中/已報名</span>
             <span id="activities-registered-count"
-              class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">0</span>
+              class="text-xs px-2 py-0.5 rounded-full bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 font-bold">0</span>
           </h3>
         </div>
         <div id="activities-registered-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
@@ -326,7 +326,7 @@
             class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
             <span id="t-waiting-title-text">等待報名</span>
             <span id="activities-available-count"
-              class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold">0</span>
+              class="text-xs px-2 py-0.5 rounded-full bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 font-bold">0</span>
           </h3>
         </div>
         <div id="activities-available-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
@@ -5528,8 +5528,8 @@
         ) : '';
 
         const statusBadge = isRegistering ? `
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1 shadow-xs">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${isZh ? '開放接龍' : 'Registering'}
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ${isZh ? '開放接龍' : 'Registering'}
           </span>
         ` : (isFinished ? `
           <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/25 flex items-center gap-1 shadow-xs">
@@ -5552,10 +5552,7 @@
         if (mode === "active_registered") {
           actionBtn = `
             <button onclick="enterTournament('${tData.id}')"
-              class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer ${isRegistering
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white'
-              : 'card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white'
-            }">
+              class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white">
               <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5"></i>
               <span>${isRegistering ? (isZh ? '進入活動接龍' : 'View Signup') : (isZh ? '進入即時比分' : 'View Live')}</span>
             </button>
@@ -9469,12 +9466,12 @@
                   <div class="flex items-center justify-between">
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
                     ${isReg ? `
-                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${STATE.lang === 'zh-TW' ? '報名中' : 'Registering'}
+                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ${STATE.lang === 'zh-TW' ? '報名中' : 'Registering'}
                       </span>
                     ` : `
-                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 border border-amber-500/25 flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> 進行中
+                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 進行中
                       </span>
                     `}
                   </div>
