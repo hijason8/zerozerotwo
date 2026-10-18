@@ -337,6 +337,17 @@
 
     <!-- ==================== PAGE C: CREATE TOURNAMENT ==================== -->
     <section id="page-create" class="hidden max-w-2xl mx-auto space-y-3 sm:space-y-4">
+      <!-- Top Navigation Breadcrumb (極簡返回出口，獨立一行，徹底避免在手機上堆疊擠壓) -->
+      <div class="flex items-center justify-between px-0.5 pt-0.5">
+        <button type="button" onclick="navigateTo('activities')"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl card-inner border hover:border-emerald-500/50 text-stone-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-xs transition active:scale-95 shadow-2xs group cursor-pointer">
+          <i data-lucide="chevron-left"
+            class="w-4 h-4 stroke-[2.5] text-stone-400 group-hover:text-emerald-500 transition-colors -ml-0.5"></i>
+          <span id="t-create-back-nav">返回活動總表</span>
+        </button>
+        <span class="text-[11px] sub-text font-mono font-medium">ZeroZeroTwo</span>
+      </div>
+
       <div class="border-b border-stone-300 dark:border-slate-800 pb-3">
         <h2 id="t-create-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2">
           <i data-lucide="plus-circle" class="w-5 h-5 text-orange-500"></i> 建立新賽事 / 暢打
@@ -2677,6 +2688,9 @@
       const navCreateEl = document.getElementById("t-nav-create");
       if (navCreateEl) navCreateEl.innerText = t("navCreate");
 
+      const createBackNav = document.getElementById("t-create-back-nav");
+      if (createBackNav) createBackNav.innerText = isZh ? "返回活動總表" : "Back to Activities";
+
       if (typeof updateNavLineProfileUI === "function") {
         updateNavLineProfileUI();
       }
@@ -4454,7 +4468,7 @@
         const nameInput = document.getElementById("create-name");
         const name = nameInput ? nameInput.value.trim() : "";
         if (!name) {
-          showToast(STATE.lang === "zh-TW" ? "⚠️ 請輸入賽事名稱！" : "⚠️ Please enter tournament name!", "warning");
+          showToast(STATE.lang === "zh-TW" ? "請輸入賽事名稱！" : "Please enter tournament name!", "warning");
           if (nameInput) nameInput.focus();
           return;
         }
@@ -5028,7 +5042,7 @@
                   ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "分組循環" : "Group Stage"}</span>`
                   : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5 text-stone-400"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`
           }
-                <span>👥 ${pCount} ${isRegistering ? (STATE.lang === 'zh-TW' ? '已報名' : 'Signed up') : t("playersCountLabel")}</span>
+                <span>👥 ${pCount} ${isRegistering ? (STATE.lang === 'zh-TW' ? '人已報名' : 'Signed up') : t("playersCountLabel")}</span>
               </div>
 
               ${(() => {
@@ -6943,7 +6957,6 @@
       }
       closeEditDurationModal();
       renderLiveUI(tData);
-      showToast(STATE.lang === "zh-TW" ? `✅ 預計比賽時間已調整為 ${val} 小時！` : `✅ Duration updated to ${val} hrs!`, "success");
     }
     window.saveTournamentDuration = saveTournamentDuration;
 
@@ -7772,8 +7785,8 @@
 
       renderLiveUI(tData);
       const succMsg = isTeam
-        ? (isZh ? `✅ 已加入隊伍：${cleanName}` : `✅ Added team: ${cleanName}`)
-        : (isZh ? `✅ 已加入選手：${cleanName}` : `✅ Added player: ${cleanName}`);
+        ? (isZh ? `已加入隊伍：${cleanName}` : `Added team: ${cleanName}`)
+        : (isZh ? `已加入選手：${cleanName}` : `Added player: ${cleanName}`);
       showToast(succMsg, "success");
     }
     window.addLivePlayerPrompt = addLivePlayerPrompt;
