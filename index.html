@@ -626,6 +626,16 @@
 
     <!-- ==================== PAGE D: LIVE TOURNAMENT VIEW (進入賽程頁面排版優化) ==================== -->
     <section id="page-live" class="hidden space-y-3 sm:space-y-4">
+      <!-- Top Navigation Breadcrumb (極簡返回出口，獨立一行，徹底避免在手機上堆疊擠壓) -->
+      <div class="flex items-center justify-between px-0.5 pt-0.5">
+        <button type="button" onclick="navigateTo('activities')"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl card-inner border hover:border-emerald-500/50 text-stone-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-xs transition active:scale-95 shadow-2xs group cursor-pointer">
+          <i data-lucide="chevron-left" class="w-4 h-4 stroke-[2.5] text-stone-400 group-hover:text-emerald-500 transition-colors -ml-0.5"></i>
+          <span id="t-live-back-nav">返回活動總表</span>
+        </button>
+        <span class="text-[11px] sub-text font-mono font-medium">ZeroZeroTwo</span>
+      </div>
+
       <!-- Top Compact Title Banner -->
       <div
         class="glass-card rounded-2xl p-4 sm:p-5 border-l-4 border-l-emerald-500 shadow-sm relative overflow-hidden space-y-3 sm:space-y-3.5">
@@ -2688,6 +2698,8 @@
       const navCreateEl = document.getElementById("t-nav-create");
       if (navCreateEl) navCreateEl.innerText = t("navCreate");
 
+      const liveBackNav = document.getElementById("t-live-back-nav");
+      if (liveBackNav) liveBackNav.innerText = isZh ? "返回活動總表" : "Back to Activities";
       const createBackNav = document.getElementById("t-create-back-nav");
       if (createBackNav) createBackNav.innerText = isZh ? "返回活動總表" : "Back to Activities";
 
