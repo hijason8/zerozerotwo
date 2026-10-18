@@ -34,6 +34,7 @@ initialize_app(options={
 })
 options.set_global_options(region=options.SupportedRegion.ASIA_SOUTHEAST1)
 CORS_CONFIG = options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST", "OPTIONS"])
+LIFF_BASE_URL = "https://liff.line.me/2012043789-KvKpHLCt"
 
 
 def sha256(text: str) -> str:
@@ -436,12 +437,12 @@ def _handle_my_activities(user_id: str) -> str:
         lines.append("目前沒有進行中或已報名的活動。")
         lines.append("")
         lines.append("查看等待報名活動：")
-        lines.append("zztwo.com/?page=waiting")
+        lines.append(f"{LIFF_BASE_URL}?page=waiting")
         return "\n".join(lines)
 
     for idx, it in enumerate(active_or_reg[:5], 1):
         tag = "報名中" if it["status"] == "registering" else "比賽中"
-        link = f"zztwo.com/?t={it['id']}"
+        link = f"{LIFF_BASE_URL}?t={it['id']}"
         lines.append(f"{idx}. {it['name']} ({tag})")
         lines.append(f"-所屬：{it['club']}")
         if it["reg_name"]:
@@ -512,7 +513,7 @@ def _handle_open_registrations(user_id: str = "") -> str:
         lines.append("目前沒有臨打及已參與社團的接龍活動")
         lines.append("")
         lines.append("發起新球局：")
-        lines.append("zztwo.com/?page=create")
+        lines.append(f"{LIFF_BASE_URL}?page=create")
         return "\n".join(lines)
 
     for idx, t in enumerate(open_t[:5], 1):
@@ -534,7 +535,7 @@ def _handle_open_registrations(user_id: str = "") -> str:
             lines.append(f"-人數：{p_count} 人")
         if first_note:
             lines.append(f"-備註：{first_note}")
-        lines.append(f"zztwo.com/?t={t_id}")
+        lines.append(f"{LIFF_BASE_URL}?t={t_id}")
         lines.append("")
 
     return "\n".join(lines).strip()
@@ -602,7 +603,7 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
                 reply_content = (
                     "🏆【創建新賽事 / 暢打球局】\n\n"
                     "支援「平均模式自動排賽」與「自由模式暢打」：\n"
-                    "zztwo.com/?page=create"
+                    f"{LIFF_BASE_URL}?page=create"
                 )
                 _reply_line_message(reply_token, reply_content, token)
 
@@ -614,7 +615,7 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
                     "1.「比賽中/已報名」：查詢您的報名與進行中球局\n"
                     "2.「搜尋接龍列表」：查看近期開放接龍場次\n"
                     "3.「創建比賽」：前往開局排賽\n\n"
-                    "zztwo.com"
+                    f"{LIFF_BASE_URL}"
                 )
                 _reply_line_message(reply_token, reply_content, token)
 

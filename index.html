@@ -2429,10 +2429,12 @@
             checkAndPromptClubIdentityClaim(STATE.currentClub);
           }
         } else {
-          // 在 LINE App 客戶端內部，未登入時自動呼叫 liff.login() 進行無縫認證
-          if (liff.isInClient()) {
-            console.info("[LIFF] In LINE client but not logged in, auto calling liff.login()...");
-            liff.login();
+          // 在 LINE App 內（無論是 LIFF 還是普通內嵌 Webview），未登入時自動升級轉導至 LIFF URL，實現 0 秒自動無感登入
+          const isLineBrowser = /Line\//i.test(navigator.userAgent || "");
+          if (liff.isInClient() || isLineBrowser) {
+            console.info("[LIFF] Inside LINE client/browser, auto upgrading to LIFF URL...");
+            const search = window.location.search || "";
+            window.location.replace(`https://liff.line.me/${LIFF_ID}${search}`);
             return;
           }
 
@@ -2573,30 +2575,16 @@
     window.closeLineLoginPromptModal = closeLineLoginPromptModal;
 
     function handleLineLoginClick() {
-      if (window.liff && !liff.isLoggedIn()) {
-        if (liff.isInClient()) {
-          liff.login();
-          return;
-        }
-      }
-      openLineLoginPromptModal();
+      // 一律導向官方 LIFF 登入端點，附帶當前參數，徹底杜絕 400 Bad Request
+      const search = window.location.search || "";
+      window.location.href = `https://liff.line.me/${LIFF_ID}${search}`;
     }
     window.handleLineLoginClick = handleLineLoginClick;
 
     function triggerLineLoginAction() {
       closeLineLoginPromptModal();
-      const redirectUri = window.location.origin + window.location.pathname;
-      if (window.liff) {
-        try {
-          if (!liff.isLoggedIn()) {
-            liff.login({ redirectUri });
-            return;
-          }
-        } catch (e) {
-          console.warn("[LIFF] liff.login error:", e);
-        }
-      }
-      window.location.href = "https://liff.line.me/2012043789-KvKpHLCt";
+      const search = window.location.search || "";
+      window.location.href = `https://liff.line.me/${LIFF_ID}${search}`;
     }
     window.triggerLineLoginAction = triggerLineLoginAction;
 
