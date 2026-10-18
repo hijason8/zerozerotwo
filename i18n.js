@@ -538,7 +538,7 @@ export const I18N = {
     enterRegistration: "Join Registration",
     btnWaitCancel: "Wait / Cancel",
     lobbyEmptyHint: "No players registered yet. Enter name below or pick club members to join!",
-    lobbyInputPlaceholder: "Unbound: Please enter name (supports space batch input)",
+    lobbyInputPlaceholder: "Enter name (supports space batch input)",
 
     // Club Member Roster
     clubMembersTitle: "Club Members (Click to select)",
@@ -600,7 +600,7 @@ export const I18N = {
     shareLineBtn: "Share to LINE Friends / Groups",
     copiedToast: "📋 Link copied to clipboard!",
     liffSharedToast: "✅ Shared to LINE successfully!",
-    liveAdminToolbarTitle: "Admin Control Panel",
+    liveAdminToolbarTitle: "Control Panel",
     liveAdminToggleAdmin: "Admin Mode",
     liveAdminToggleViewer: "Viewer Mode",
     shareBtnText: "Share Tournament",
