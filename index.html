@@ -117,6 +117,13 @@
           <!-- Dropdown Menu -->
           <div id="settings-dropdown-menu"
             class="hidden absolute right-0 mt-2 w-64 sm:w-72 rounded-2xl glass-card border border-stone-200 dark:border-slate-800 shadow-2xl p-1.5 space-y-1 z-50 text-xs">
+            <!-- User Guide Option (Black text, no GUIDE badge) -->
+            <button type="button" onclick="openUserGuideModal(); closeSettingsDropdown();"
+              class="w-full px-3 py-2.5 rounded-xl hover:bg-stone-500/10 text-stone-900 dark:text-white transition flex items-center gap-2.5 text-left font-semibold cursor-pointer">
+              <i data-lucide="book-open" class="w-4 h-4 text-stone-700 dark:text-slate-300 shrink-0"></i>
+              <span id="t-dropdown-guide" class="text-xs font-bold text-stone-900 dark:text-white">系統使用手冊</span>
+            </button>
+
             <!-- Language Toggle -->
             <button type="button" onclick="toggleLanguage(); closeSettingsDropdown();"
               class="w-full px-3 py-2.5 rounded-xl hover:bg-stone-500/10 transition flex items-center justify-between text-left font-semibold">
@@ -125,31 +132,6 @@
                 <span id="t-dropdown-lang" class="text-xs font-bold">語言切換</span>
               </span>
               <span id="lang-mode-label" class="sub-text text-xs font-mono font-bold">繁中</span>
-            </button>
-
-            <!-- Official LINE Account Option -->
-            <button type="button" onclick="openLineOAModal(); closeSettingsDropdown();"
-              class="w-full px-3 py-2.5 rounded-xl hover:bg-[#06C755]/10 text-[#06C755] transition flex items-center justify-between text-left font-semibold cursor-pointer">
-              <span class="flex items-center gap-2.5">
-                <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                  <path
-                    d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z" />
-                </svg>
-                <span id="t-dropdown-line-oa" class="text-xs font-bold">ZZTWO-LINE</span>
-              </span>
-              <span
-                class="text-[10px] px-1.5 py-0.5 rounded card-inner border font-mono font-bold text-[#06C755]">APP</span>
-            </button>
-
-            <!-- Install App Option -->
-            <button type="button" id="btn-dropdown-install" onclick="triggerPwaInstall(); closeSettingsDropdown();"
-              class="w-full px-3 py-2.5 rounded-xl hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 transition flex items-center justify-between text-left font-semibold cursor-pointer">
-              <span class="flex items-center gap-2.5">
-                <i data-lucide="download" class="w-4 h-4 shrink-0"></i>
-                <span id="t-dropdown-install" class="text-xs font-bold">安裝 App / 加入主畫面</span>
-              </span>
-              <span
-                class="text-[10px] px-1.5 py-0.5 rounded card-inner border font-mono font-bold text-emerald-600 dark:text-emerald-400">PWA</span>
             </button>
 
             <div class="border-t border-stone-200 dark:border-slate-800 my-1"></div>
@@ -1196,6 +1178,179 @@
           <span id="t-btn-close-line-oa">關閉</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ==================== USER GUIDE MODAL (系統使用手冊) ==================== -->
+  <div id="modal-user-guide"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4"
+    onclick="if(event.target === this) closeUserGuideModal()">
+    <div
+      class="glass-card rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border relative text-left shadow-2xl animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+
+      <!-- Header -->
+      <div
+        class="p-4 sm:p-5 border-b border-stone-200/80 dark:border-slate-800 flex items-center justify-between shrink-0 bg-stone-50/50 dark:bg-slate-900/50">
+        <div>
+          <h3 class="text-base sm:text-lg font-bold font-display tracking-tight text-stone-900 dark:text-white">
+            ZeroZeroTwo 匹克球系統使用手冊
+          </h3>
+
+        </div>
+        <button onclick="closeUserGuideModal()"
+          class="sub-text hover:text-emerald-500 p-1.5 rounded-lg transition cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Scrollable Manual Content (Clean, Professional Typography, No Emojis) -->
+      <div
+        class="p-4 sm:p-6 overflow-y-auto space-y-6 text-xs sm:text-[13px] leading-relaxed text-stone-700 dark:text-slate-300">
+
+
+
+        <!-- Section 1 -->
+        <section class="space-y-3">
+          <h4
+            class="text-sm sm:text-base font-bold text-stone-950 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-1.5">
+            一、球員身分與綁定觀念
+          </h4>
+          <p class="sub-text">
+            為了讓每位球友都能擁有專屬的「生涯戰績護照」，本系統採用了輕量級的 LINE 綁定機制。
+          </p>
+          <div class="space-y-2.5 pl-1">
+            <div>
+              <span class="font-bold text-stone-900 dark:text-slate-100">免註冊，一鍵登入：</span>
+              <span>只要透過 LINE 點擊系統連結，系統就會自動辨識您的 LINE 帳號，不需額外記憶帳號密碼。</span>
+            </div>
+            <div>
+              <span class="font-bold text-stone-900 dark:text-slate-100">「帳號」與「球員」角色分離：</span>
+              <span>您的 LINE 帳號可在不同社團裡使用不同的「球員名稱」。例如，您可以在 A 社團叫「阿翔」，在 B 社團叫「翔哥」，戰績各自獨立、互不干擾。</span>
+            </div>
+            <div class="pt-1">
+              <span class="font-bold text-stone-900 dark:text-slate-100 block mb-1">如何綁定身分？</span>
+              <ul class="list-disc pl-5 space-y-1 text-stone-600 dark:text-slate-300">
+                <li>系統不會強迫您綁定 LINE 帳號，您可以隨意觀看任何公開賽事。</li>
+                <li>只有當您準備下場打球（如：點擊報名），系統才會提示您綁定球員名字。</li>
+                <li>認領後，未來的歷史戰績與勝率都會永久跟隨您的 LINE 帳號！</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="space-y-3">
+          <h4
+            class="text-sm sm:text-base font-bold text-stone-950 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-1.5">
+            二、社團大廳與專屬清單
+          </h4>
+          <p class="sub-text">
+            系統將賽事分為「公開廣場」與「專屬社團」，讓您可以輕鬆切換視角：
+          </p>
+          <div class="space-y-2.5 pl-1">
+            <div>
+              <span class="font-bold text-stone-900 dark:text-slate-100">賽事大廳（公開廣場）：</span>
+              <span>列出全站所有未加密、設定為公開的臨打球局。</span>
+            </div>
+            <div>
+              <span class="font-bold text-stone-900 dark:text-slate-100">加入專屬社團：</span>
+              <span>當您進入某個社團的頁面時，若想長期關注，請點擊右上角的「+ 加入常用」。該社團就會永遠出現在您的下拉選單中。</span>
+            </div>
+            <div>
+              <span class="font-bold text-stone-900 dark:text-slate-100">社團活動總表：</span>
+              <span>在左上角下拉選單點擊「比賽中/已報名」或社團活動總表，系統會自動幫您過濾出「您已報名的球局」以及「您加入的社團最新球局」，打造專屬的個人儀表板，找球局不用再大海撈針！</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="space-y-3">
+          <h4
+            class="text-sm sm:text-base font-bold text-stone-950 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-1.5">
+            三、如何建立賽事？
+          </h4>
+          <p class="sub-text">
+            主辦人建立球局時，系統提供極度彈性的分流設計，請依照當下情境選擇：
+          </p>
+
+          <div class="space-y-3 pl-1">
+            <!-- Step 1 -->
+            <div class="space-y-1.5">
+              <span class="font-bold text-stone-900 dark:text-slate-100 block">步驟 1：選擇開局方式</span>
+              <ul class="list-disc pl-5 space-y-1 text-stone-600 dark:text-slate-300">
+                <li>
+                  <strong>建立接龍：</strong>
+                  適合未來的球局。創建後會生成專屬網址，主辦人將網址發到 LINE 群組，球友即可點擊自助報名（+1）。等到了球場，再一鍵按下開賽。
+                </li>
+                <li>
+                  <strong>直接開打：</strong>
+                  適合現場人數已經確定的情況。直接輸入名單，系統立刻為您算出對戰賽程。
+                </li>
+              </ul>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="space-y-1.5 pt-1">
+              <span class="font-bold text-stone-900 dark:text-slate-100 block">步驟 2：選擇賽事模式</span>
+
+              <div class="space-y-2">
+                <div class="font-bold text-stone-900 dark:text-white">平均模式（自動排賽）</div>
+                <div><strong>特色：</strong>系統智慧演算法的精華！只要輸入「預計打幾小時」或「預計打幾局」，系統會自動打破小圈圈，算出最公平的輪轉賽程。</div>
+                <div><strong>效果：</strong>保證每人上場次數平均、與不同人搭檔/對決，徹底解決「下一場該換誰上」的困擾。</div>
+
+
+                <div class="font-bold text-stone-900 dark:text-white">自由模式 / 練球（手動彈性）</div>
+                <div><strong>特色：</strong>不預先排定死板賽程。適合球友陸續到場，或是大家想自由找人練球的情境。</div>
+                <div><strong>效果：</strong>主辦人隨時可點擊「新增場次」，系統內建「場次少優先」與「隨機抽籤」按鈕，讓現場配對依然充滿樂趣與公平性。</div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 4 -->
+        <section class="space-y-3">
+          <h4
+            class="text-sm sm:text-base font-bold text-stone-950 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-1.5">
+            四、如何計分與管理權限？
+          </h4>
+          <p class="sub-text">
+            為了保護社團的歷史戰績不被路人亂改，我們設計了完善的權限與完賽凍結機制：
+          </p>
+          <div class="space-y-2.5 pl-1">
+            <div>
+              <span class="font-bold text-stone-900 dark:text-slate-100">預設唯讀模式：</span>
+              <span>任何人進入賽事，預設都是「唯讀瀏覽模式」，只能觀看比分，防止誤觸。</span>
+            </div>
+            <div class="space-y-1">
+              <span class="font-bold text-stone-900 dark:text-slate-100 block">解鎖操作模式（計分與排賽）：</span>
+              <ul class="list-disc pl-5 space-y-1 text-stone-600 dark:text-slate-300">
+                <li>
+                  <strong>若該社團「有設定防護密碼」：</strong>當天負責記分的球友，點擊上方的「操作模式」（或解鎖記分），輸入正確的社團密碼後，就能解鎖介面，成為當日的計分員（可新增比分、加場次、退賽）。
+                </li>
+                <li>
+                  <strong>若該社團「無密碼」：</strong>代表採全開放信任制，任何人點擊切換，皆可直接幫忙記分。
+                </li>
+              </ul>
+            </div>
+            <div>
+              <span class="font-bold text-stone-900 dark:text-slate-100">如何修改比分？</span>
+              <span>進入操作模式後，對戰卡片上會出現大大的 +1 與 -1 按鈕，點擊即可即時連線，同步更新全場觀眾的手機比分。</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Footer Action -->
+      <div
+        class="p-3.5 sm:p-4 border-t border-stone-200/80 dark:border-slate-800 shrink-0 bg-stone-50/50 dark:bg-slate-900/50 flex justify-end">
+        <button type="button" onclick="closeUserGuideModal()"
+          class="w-full sm:w-auto px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition active:scale-95 shadow-sm cursor-pointer">
+          關閉手冊
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -2709,6 +2864,8 @@
       }
 
       // Dropdown labels
+      const dropGuide = document.getElementById("t-dropdown-guide");
+      if (dropGuide) dropGuide.innerText = t("dropdownGuide");
       const dropLineOa = document.getElementById("t-dropdown-line-oa");
       if (dropLineOa) dropLineOa.innerText = t("dropdownLineOa");
       const dropTheme = document.getElementById("t-dropdown-theme");
@@ -4845,6 +5002,22 @@
       modal.classList.add("hidden");
     }
     window.closeLineOAModal = closeLineOAModal;
+
+    // ==================== USER GUIDE MODAL CONTROLLERS ====================
+    function openUserGuideModal() {
+      const modal = document.getElementById("modal-user-guide");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      lucide.createIcons();
+    }
+    window.openUserGuideModal = openUserGuideModal;
+
+    function closeUserGuideModal() {
+      const modal = document.getElementById("modal-user-guide");
+      if (!modal) return;
+      modal.classList.add("hidden");
+    }
+    window.closeUserGuideModal = closeUserGuideModal;
 
     function openLineOAUrl() {
       const oaUrl = window.LINE_OA_URL || "https://line.me/R/ti/p/@451lupmp";

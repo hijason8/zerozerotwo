@@ -40,6 +40,7 @@ export const I18N = {
     // Hub
     hubTitle: "臨打球局",
     hubPrivacyHint: "",
+    dropdownGuide: "系統使用手冊",
     dropdownLang: "語言切換",
     dropdownAdmin: "管理員後台",
     dropdownEmailLabel: "聯絡信箱",
@@ -390,6 +391,7 @@ export const I18N = {
 
     // Hub
     hubTitle: "Drop-in Play",
+    dropdownGuide: "User Manual",
     dropdownLang: "Language",
     dropdownAdmin: "Admin Console",
     dropdownEmailLabel: "Contact Email",
