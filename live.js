@@ -44,10 +44,10 @@ import {
 // ----------------------------------------------------
 async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
   STATE.currentTournamentId = tId;
+  // 剛進到賽事計分頁面，默認一律為閱覽模式，需要計分等操作才手動點選「開啟操作」
+  STATE.isViewerMode = true;
   if (!keepAdmin) {
     STATE.activeTournamentAdmin = null;
-    // 預設為「唯讀瀏覽模式」，只有點擊「操作模式」驗證後才解鎖修改比分
-    STATE.isViewerMode = !STATE.isAdmin;
   }
   addMyTournamentId(tId);
   navigateTo("live", false);
@@ -1198,6 +1198,8 @@ async function startTournamentFromLobby(startMode = 'schedule', confirmed = fals
     tData.matches = matches;
     tData.status = "active";
     tData.startedAt = new Date().toISOString();
+    // 正式開賽進入計分板時，默認維持閱覽模式（防止誤觸比分）
+    STATE.isViewerMode = true;
 
     saveToLocalTournaments(tData);
     if (STATE.db) {

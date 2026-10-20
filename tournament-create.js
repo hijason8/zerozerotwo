@@ -1220,7 +1220,7 @@ import {
           STATE.activeTournamentAdmin = tournamentId;
 
           resetCreateForm();
-          loadLiveTournament(tournamentId, true, true);
+          loadLiveTournament(tournamentId, true, false);
           return;
         }
 
