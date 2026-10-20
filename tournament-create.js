@@ -257,7 +257,7 @@ import {
       if (inputAdd) inputAdd.placeholder = isZh ? "姓名，支援空格批量輸入" : "Enter names (supports space/line batch input)...";
       if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "已登錄選手：" : (isRotating ? "已登錄選手：" : "已登錄隊伍：")) : (isSingles ? "Registered Singles:" : (isRotating ? "Registered Players:" : "Registered Teams:"));
       if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "社團常用隊伍：" : "社團常用選手：") : (type === "fixed" ? "Club Teams:" : "Club Players:");
-      if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "自動生成隊伍代號：" : "自動生成臨打代號：") : (type === "fixed" ? "Auto-generate team codes:" : "Auto-generate guest codes:");
+      if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "增加臨打隊伍：" : "增加臨打選手：") : (type === "fixed" ? "Add Guest Teams:" : "Add Guest Players:");
 
       updatePartnerToggleTexts();
       updatePlayerCountBadge();
@@ -897,30 +897,78 @@ import {
       const isRotating = (partnerType === "rotating" && mode !== "group");
       const isSingles = (partnerType === "singles" && mode !== "group");
       const maxLimit = (isRotating || isSingles) ? 16 : 60;
-      const minLimit = isSingles ? 2 : 4;
+      const isTeamMode = (partnerType === "fixed");
+      const isZh = (STATE.lang === "zh-TW");
+      const unitStr = isZh ? (isTeamMode ? "隊" : "人") : (isTeamMode ? "Teams" : "Players");
 
-      const defaultCount = isSingles ? 4 : 8;
-      const count = parseInt(countInput?.value) || defaultCount;
-      if (count < minLimit || count > maxLimit) {
+      const existing = (typeof getSelectedPlayers === "function") ? (getSelectedPlayers() || []) : [];
+
+      const rawVal = countInput?.value?.trim();
+      let count = parseInt(rawVal, 10);
+      if (isNaN(count) || count < 1) {
+        if (!rawVal) {
+          count = 1;
+        } else {
+          showToast(
+            isZh ? "請輸入有效的增加數量（至少 1 位）！" : "Please enter a valid count (at least 1)!",
+            "warning"
+          );
+          if (countInput) countInput.focus();
+          return;
+        }
+      }
+
+      const availableSlots = maxLimit - existing.length;
+      if (availableSlots <= 0) {
         showToast(
-          STATE.lang === "zh-TW"
-            ? `請輸入 ${minLimit} 至 ${maxLimit} 之間的數量！${(isRotating || isSingles) ? `（單場上限 ${maxLimit} 人）` : ""}`
-            : `Please enter a count between ${minLimit} and ${maxLimit}!`,
+          isZh ? `名額已達上限 ${maxLimit} ${unitStr}，無法再增加！` : `Limit of ${maxLimit} ${unitStr} reached!`,
+          "warning"
+        );
+        return;
+      }
+      if (count > availableSlots) {
+        showToast(
+          isZh
+            ? `目前已有 ${existing.length} ${unitStr}，最多只能再增加 ${availableSlots} ${unitStr}（單場上限 ${maxLimit} ${unitStr}）！`
+            : `Can only add up to ${availableSlots} more (limit ${maxLimit})!`,
           "warning"
         );
         return;
       }
 
-      const isTeamMode = (partnerType === "fixed");
       const prefix = isTeamMode
-        ? (STATE.lang === "zh-TW" ? "隊伍" : "Team")
-        : (STATE.lang === "zh-TW" ? "臨打" : "Guest");
+        ? (isZh ? "隊伍" : "Team")
+        : (isZh ? "臨打" : "Guest");
+
+      // 檢查現有名單中已存在的臨打/隊伍編號，避免編號碰撞重複
+      let maxExistingNum = 0;
+      const prefixRegex = isTeamMode
+        ? /^(?:隊伍|Team)\s*([0-9]+)$/i
+        : /^(?:臨打|Guest|選手|Player)\s*([0-9]+)$/i;
+
+      existing.forEach(name => {
+        const m = (name || "").trim().match(prefixRegex);
+        if (m && m[1]) {
+          const num = parseInt(m[1], 10);
+          if (!isNaN(num) && num > maxExistingNum) {
+            maxExistingNum = num;
+          }
+        }
+      });
 
       const generated = [];
       for (let i = 1; i <= count; i++) {
-        generated.push(`${prefix} ${i}`);
+        generated.push(`${prefix} ${maxExistingNum + i}`);
       }
-      setSelectedPlayers(generated);
+
+      // 排在原本名單後面追加
+      setSelectedPlayers([...existing, ...generated]);
+
+      if (countInput) countInput.value = "";
+      showToast(
+        isZh ? `已增加 ${count} 位${isTeamMode ? "臨打隊伍" : "臨打選手"}！` : `Added ${count} ${prefix}(s)!`,
+        "success"
+      );
     }
     window.quickGeneratePlayers = quickGeneratePlayers;
 

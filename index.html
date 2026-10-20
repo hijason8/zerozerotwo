@@ -570,17 +570,17 @@
                 </div>
               </div>
 
-              <!-- Row 4: Test Players Quick Generate (Compact Bar) -->
+              <!-- Row 4: Guest Players Quick Append (Compact Bar) -->
               <div
                 class="flex items-center justify-between gap-2 pt-2 border-t border-stone-200 dark:border-slate-800/40 text-[11px]">
-                <span id="t-auto-gen-label" class="sub-text text-[11px]">自動生成代號：</span>
+                <span id="t-auto-gen-label" class="sub-text text-[11px]">增加臨打選手：</span>
                 <div class="flex items-center gap-1.5">
-                  <input type="number" id="quick-generate-count" min="2" max="60" placeholder="數量"
+                  <input type="number" id="quick-generate-count" min="1" max="60" placeholder="數量"
                     class="w-14 input-bg border rounded-md px-1.5 py-1 text-xs text-center focus:border-emerald-500 focus:outline-none"
                     onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); quickGeneratePlayers();}" />
                   <button type="button" onclick="quickGeneratePlayers()" id="t-quick-gen-btn"
                     class="px-2.5 py-1 card-inner border hover:border-emerald-500 text-stone-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold rounded-md text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95">
-                    <i data-lucide="zap" class="w-3 h-3 text-emerald-500"></i> <span id="t-btn-quick-gen">產生</span>
+                    <i data-lucide="plus" class="w-3.5 h-3.5 text-emerald-500"></i> <span id="t-btn-quick-gen">增加</span>
                   </button>
                 </div>
               </div>
@@ -2216,12 +2216,12 @@
       isTransientPlayer
     } from "./utils.js?v=20261020-30";
     import "./club.js?v=20261020-30";
-    import "./tournament-create.js?v=20261020-30";
+    import "./tournament-create.js?v=20261020-33";
     import "./live.js?v=20261020-32";
     import "./activities.js?v=20261020-18";
     import "./hub.js?v=20261020-25";
     import "./line.js?v=20261020-18";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-30";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-33";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

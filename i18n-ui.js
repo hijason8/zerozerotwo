@@ -255,8 +255,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Singles"
   ],
   "t-btn-quick-gen": [
-    "產生",
-    "Generate"
+    "增加",
+    "Add"
   ],
   "t-label-fair-duration": [
     "6. 排賽目標與時間限制",
@@ -405,8 +405,8 @@ function applyDynamicLanguageUI(isZh) {
   const autoGenLabel = document.getElementById("t-auto-gen-label");
   if (autoGenLabel) {
     autoGenLabel.innerText = isZh
-      ? (partnerType === "fixed" ? "自動生成隊伍代號：" : "自動生成臨打代號：")
-      : (partnerType === "fixed" ? "Auto-generate team codes:" : "Auto-generate guest codes:");
+      ? (partnerType === "fixed" ? "增加臨打隊伍：" : "增加臨打選手：")
+      : (partnerType === "fixed" ? "Add Guest Teams:" : "Add Guest Players:");
   }
 
   if (typeof window.renderSelectedPlayerChips === "function") window.renderSelectedPlayerChips();
