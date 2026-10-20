@@ -2055,7 +2055,8 @@
       onValue,
       query,
       orderByChild,
-      limitToLast
+      limitToLast,
+      runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { I18N } from "./i18n.js";
     import {
@@ -6553,9 +6554,32 @@
       saveToLocalTournaments(tData);
       if (STATE.db) {
         try {
-          await update(ref(STATE.db, `tournaments/${tData.id}`), { players: currentPlayers });
+          const playersRef = ref(STATE.db, `tournaments/${tData.id}/players`);
+          const txResult = await runTransaction(playersRef, (serverPlayers) => {
+            let list = Array.isArray(serverPlayers) ? [...serverPlayers] : [];
+            if (list.includes(name)) return list; // 已存在不重複加入
+            if (maxLimit && list.length >= maxLimit) {
+              return; // 取消交易，名額滿了
+            }
+            list.push(name);
+            return list;
+          });
+
+          if (!txResult.committed) {
+            showToast(
+              STATE.lang === "zh-TW"
+                ? `⚠️ 報名失敗：名額剛好已滿（${maxLimit} 人）！`
+                : `⚠️ Registration full (${maxLimit} max)!`,
+              "error"
+            );
+            return;
+          }
+          tData.players = txResult.snapshot.val() || currentPlayers;
         } catch (err) {
-          console.error("Firebase update error:", err);
+          console.error("Firebase transaction error:", err);
+          try {
+            await update(ref(STATE.db, `tournaments/${tData.id}`), { players: currentPlayers });
+          } catch (e) { }
         }
       }
       renderLiveUI(tData);
@@ -6580,9 +6604,19 @@
       saveToLocalTournaments(tData);
       if (STATE.db) {
         try {
-          await update(ref(STATE.db, `tournaments/${tData.id}`), { players: currentPlayers });
+          const playersRef = ref(STATE.db, `tournaments/${tData.id}/players`);
+          const txResult = await runTransaction(playersRef, (serverPlayers) => {
+            if (!Array.isArray(serverPlayers)) return [];
+            return serverPlayers.filter(p => p !== name);
+          });
+          if (txResult.committed) {
+            tData.players = txResult.snapshot.val() || currentPlayers;
+          }
         } catch (err) {
-          console.error("Firebase update error:", err);
+          console.error("Firebase unregister transaction error:", err);
+          try {
+            await update(ref(STATE.db, `tournaments/${tData.id}`), { players: currentPlayers });
+          } catch (e) { }
         }
       }
       renderLiveUI(tData);
@@ -7481,7 +7515,15 @@
       saveToLocalTournaments(tData);
       if (STATE.db) {
         try {
-          await set(ref(STATE.db, `tournaments/${tData.id}/matches`), tData.matches);
+          const matchIdx = tData.matches.findIndex(m => m.id === matchId);
+          if (matchIdx !== -1) {
+            const updates = {};
+            updates[`tournaments/${tData.id}/matches/${matchIdx}/voided`] = match.voided;
+            updates[`tournaments/${tData.id}/matches/${matchIdx}/completed`] = match.completed;
+            updates[`tournaments/${tData.id}/matches/${matchIdx}/blueScore`] = match.blueScore;
+            updates[`tournaments/${tData.id}/matches/${matchIdx}/redScore`] = match.redScore;
+            await update(ref(STATE.db), updates);
+          }
         } catch (e) {
           console.error("Firebase sync error:", e);
         }
@@ -7904,7 +7946,8 @@
       saveToLocalTournaments(tData);
       if (STATE.db) {
         try {
-          await set(ref(STATE.db, `tournaments/${tData.id}/matches`), tData.matches);
+          const newMatchIndex = tData.matches.length - 1;
+          await set(ref(STATE.db, `tournaments/${tData.id}/matches/${newMatchIndex}`), newMatch);
         } catch (e) {
           console.error("Firebase sync error:", e);
         }
@@ -7963,7 +8006,16 @@
       saveToLocalTournaments(tData);
       if (STATE.db) {
         try {
-          await set(ref(STATE.db, `tournaments/${tData.id}/players`), tData.players);
+          const playersRef = ref(STATE.db, `tournaments/${tData.id}/players`);
+          const txRes = await runTransaction(playersRef, (serverPlayers) => {
+            let list = Array.isArray(serverPlayers) ? [...serverPlayers] : [];
+            if (list.includes(cleanName)) return list;
+            list.push(cleanName);
+            return list;
+          });
+          if (txRes.committed) {
+            tData.players = txRes.snapshot.val() || tData.players;
+          }
         } catch (e) {
           console.error("Firebase sync error:", e);
         }
@@ -8017,7 +8069,12 @@
 
       if (STATE.db) {
         try {
-          await set(ref(STATE.db, `tournaments/${tObj.id}/matches`), tObj.matches);
+          const updates = {};
+          updates[`tournaments/${tObj.id}/matches/${matchIdx}/blueScore`] = blueScore;
+          updates[`tournaments/${tObj.id}/matches/${matchIdx}/redScore`] = redScore;
+          updates[`tournaments/${tObj.id}/matches/${matchIdx}/completed`] = true;
+          updates[`tournaments/${tObj.id}/matches/${matchIdx}/voided`] = false;
+          await update(ref(STATE.db), updates);
           showToast(STATE.lang === "zh-TW" ? `第 ${matchId} 局比分已同步！` : `Game ${matchId} updated!`, "success");
         } catch (e) {
           console.error("Save score error:", e);
