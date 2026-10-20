@@ -1978,6 +1978,7 @@ import {
           clubActiveListEl.innerHTML = clubActiveTournaments.map(tData => {
             const isReg = tData.status === "registering";
             const pCount = tData.players ? tData.players.length : 0;
+            const dateStr = formatTournamentDate(tData.createdAt || tData.startedAt);
             return `
               <div class="glass-card rounded-2xl p-4 border space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1">
@@ -1985,7 +1986,10 @@ import {
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
                   </div>
                   <h4 class="text-sm font-bold font-display line-clamp-1">${tData.name}</h4>
-                  <div class="text-xs sub-text">👥 ${pCount} ${isReg ? (STATE.lang === 'zh-TW' ? '人已報名' : 'signed up') : (STATE.lang === 'zh-TW' ? '人參賽' : 'players')}</div>
+                  <div class="flex items-center justify-between text-xs sub-text flex-wrap gap-1">
+                    <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}</span>
+                    <span>👥 ${pCount} ${isReg ? (STATE.lang === 'zh-TW' ? '人已報名' : 'signed up') : (STATE.lang === 'zh-TW' ? '人參賽' : 'players')}</span>
+                  </div>
                   ${(() => {
                 if (!tData.notes || !tData.notes.trim()) return '';
                 const firstLine = tData.notes.trim().split('\n')[0].trim();
