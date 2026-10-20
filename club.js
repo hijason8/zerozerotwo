@@ -272,7 +272,6 @@ import {
         return;
       }
       await addUserClubToFirebase(current);
-      showToast(STATE.lang === "zh-TW" ? `已將「${current}」加入專屬社團！` : `Added "${current}" to My Clubs!`, "success");
       updateNavClubSelectValue();
       populateNavClubSelect();
       if (typeof populateCreateClubSelect === "function") populateCreateClubSelect();
@@ -413,8 +412,6 @@ import {
             localStorage.setItem(`pb_my_clubs_${STATE.lineUserId}`, JSON.stringify(STATE.myClubs));
           }
         } catch (e) { }
-
-        showToast(isZh ? `已退出「${clubToRemove}」並解除身分綁定` : `Left "${clubToRemove}" and unbound identity`, "info");
       }
 
       try {
@@ -1107,7 +1104,6 @@ import {
         );
         if (joinConfirm) {
           await addUserClubToFirebase(clubName);
-          showToast(isZh ? `已加入「${clubName}」！` : `Joined "${clubName}"!`, "success");
           updateNavClubSelectValue();
           populateNavClubSelect();
         } else {

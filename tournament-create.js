@@ -214,7 +214,6 @@ import {
       const el = document.getElementById("create-selected-total-games");
       if (el) el.value = games;
       calculateTimeEstimate();
-      showToast(STATE.lang === "zh-TW" ? `🎯 已選定 ${games} 局排賽方案` : `🎯 Selected ${games}-game plan`, "info");
     }
     window.selectFairPlan = selectFairPlan;
 
@@ -849,11 +848,6 @@ import {
 
       input.value = "";
       setSelectedPlayers(current);
-      if (names.length > 1) {
-        showToast(STATE.lang === "zh-TW" ? `⚡ 已批量新增 ${names.length} 位選手！` : `⚡ Added ${names.length} players!`, "success");
-      } else {
-        showToast(`${t("addedPlayerToast")}${names[0]}`, "success");
-      }
     }
     window.quickAddPlayer = quickAddPlayer;
 
@@ -926,7 +920,6 @@ import {
         generated.push(`${prefix} ${i}`);
       }
       setSelectedPlayers(generated);
-      showToast(STATE.lang === "zh-TW" ? `⚡ 已自動生成 ${count} 個${prefix}！` : `⚡ Auto generated ${count} ${prefix}s!`, "success");
     }
     window.quickGeneratePlayers = quickGeneratePlayers;
 

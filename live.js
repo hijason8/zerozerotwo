@@ -140,7 +140,6 @@ async function toggleTournamentAdminMode() {
     if (STATE.isAdmin) {
       STATE.isViewerMode = false;
       STATE.activeTournamentAdmin = tData.id;
-      showToast(isZh ? "✏️ 管理員已解鎖操作模式" : "✏️ Admin unlocked Edit Mode", "success");
       renderLiveUI(tData);
       return;
     }
@@ -673,7 +672,6 @@ async function registerPlayerToTournament(playerName) {
     }
   }
   renderLiveUI(tData);
-  showToast(STATE.lang === "zh-TW" ? `✅「${name}」報名成功！` : `✅ "${name}" signed up!`, "success");
 }
 window.registerPlayerToTournament = registerPlayerToTournament;
 
@@ -710,7 +708,6 @@ async function unregisterPlayerFromTournament(playerName) {
     }
   }
   renderLiveUI(tData);
-  showToast(STATE.lang === "zh-TW" ? `已將「${name}」自名單移除` : `Removed "${name}"`, "info");
 }
 window.unregisterPlayerFromTournament = unregisterPlayerFromTournament;
 
@@ -1588,7 +1585,6 @@ async function toggleVoidMatch(matchId) {
   if (match.voided) {
     match.voided = false;
     match.completed = false;
-    showToast(STATE.lang === "zh-TW" ? `第 ${matchId} 局已恢復！` : `Game ${matchId} restored!`, "info");
   } else {
     const confirmMsg = STATE.lang === "zh-TW"
       ? `🚫 確定將第 ${matchId} 局標記為「取消」嗎？\n（該局將不計入勝負與得分排行榜）`
@@ -1599,7 +1595,6 @@ async function toggleVoidMatch(matchId) {
     match.completed = true;
     match.blueScore = null;
     match.redScore = null;
-    showToast(STATE.lang === "zh-TW" ? `第 ${matchId} 局已標記為取消！` : `Game ${matchId} marked as voided!`, "warning");
   }
 
   saveToLocalTournaments(tData);
@@ -2045,7 +2040,6 @@ async function submitAddMatch() {
 
   closeAddMatchModal();
   renderLiveUI(tData);
-  showToast(STATE.lang === "zh-TW" ? `已增加第 ${newMatchId} 局！` : `Added Game ${newMatchId}!`, "success");
 }
 window.submitAddMatch = submitAddMatch;
 
@@ -2112,10 +2106,6 @@ async function addLivePlayerPrompt() {
   }
 
   renderLiveUI(tData);
-  const succMsg = isTeam
-    ? (isZh ? `已加入隊伍：${cleanName}` : `Added team: ${cleanName}`)
-    : (isZh ? `已加入選手：${cleanName}` : `Added player: ${cleanName}`);
-  showToast(succMsg, "success");
 }
 window.addLivePlayerPrompt = addLivePlayerPrompt;
 
@@ -2176,13 +2166,10 @@ async function saveMatchScore(matchId) {
       updates[`tournaments/${tObj.id}/matches/${matchIdx}/completed`] = true;
       updates[`tournaments/${tObj.id}/matches/${matchIdx}/voided`] = false;
       await update(ref(STATE.db), updates);
-      showToast(STATE.lang === "zh-TW" ? `第 ${matchId} 局比分已同步！` : `Game ${matchId} updated!`, "success");
     } catch (e) {
       console.error("Save score error:", e);
       showToast(STATE.lang === "zh-TW" ? "雲端同步失敗，已存至本地" : "Cloud sync failed, saved locally", "warning");
     }
-  } else {
-    showToast(STATE.lang === "zh-TW" ? `第 ${matchId} 局比分已儲存 (本地)` : `Game ${matchId} saved (Local)`, "success");
   }
 
   // 檢查是否完成所有有效場次之比分登錄，跳出提醒引導點選上方「結束賽事」

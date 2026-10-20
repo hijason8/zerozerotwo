@@ -2128,7 +2128,7 @@
   </nav>
 
   <!-- Toast Notification Container -->
-  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <div id="toast-container" class="fixed bottom-16 sm:bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-2 pointer-events-none"></div>
 
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script type="module">
@@ -2146,7 +2146,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261020-17";
+    import { I18N } from "./i18n.js?v=20261020-18";
     window.I18N = I18N;
 
     function t(key) {
@@ -2167,14 +2167,14 @@
       safeSetLocal,
       safeGetLocalJSON,
       sha256
-    } from "./utils.js?v=20261020-17";
-    import "./club.js?v=20261020-17";
-    import "./tournament-create.js?v=20261020-17";
-    import "./live.js?v=20261020-17";
-    import "./activities.js?v=20261020-17";
-    import "./hub.js?v=20261020-17";
-    import "./line.js?v=20261020-17";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-17";
+    } from "./utils.js?v=20261020-18";
+    import "./club.js?v=20261020-18";
+    import "./tournament-create.js?v=20261020-18";
+    import "./live.js?v=20261020-18";
+    import "./activities.js?v=20261020-18";
+    import "./hub.js?v=20261020-18";
+    import "./line.js?v=20261020-18";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-18";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2809,6 +2809,11 @@
     // ----------------------------------------------------
     function showToast(msg, type = "info") {
       const container = document.getElementById("toast-container");
+      if (!container) return;
+
+      // 避免堆疊：有新 Toast 時清空舊的，保持單一乾淨展示
+      container.innerHTML = "";
+
       const toast = document.createElement("div");
 
       let bgClass = "card-inner border text-slate-700 dark:text-slate-200";
@@ -2816,14 +2821,14 @@
       else if (type === "error") bgClass = "bg-rose-50 dark:bg-rose-950/90 border-rose-500/50 text-rose-800 dark:text-rose-300";
       else if (type === "warning") bgClass = "bg-amber-50 dark:bg-amber-950/90 border-amber-500/50 text-amber-800 dark:text-amber-300";
 
-      toast.className = `px-3.5 py-2.5 rounded-xl border text-xs font-semibold shadow-xl transition transform translate-y-2 ${bgClass} flex items-center gap-2 pointer-events-auto`;
+      toast.className = `px-3.5 py-2 rounded-xl border text-xs font-semibold shadow-xl transition transform translate-y-2 ${bgClass} flex items-center gap-2 pointer-events-auto max-w-xs sm:max-w-md`;
       toast.innerHTML = `<span>${msg}</span>`;
 
       container.appendChild(toast);
       setTimeout(() => {
         toast.classList.add("opacity-0", "-translate-y-2");
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
+        setTimeout(() => toast.remove(), 250);
+      }, 1800);
     }
     window.showToast = showToast;
     if (typeof globalThis !== "undefined") {
