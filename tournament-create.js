@@ -1113,12 +1113,6 @@ import {
         const clubSelect = document.getElementById("create-club-select");
         const clubName = clubSelect ? (clubSelect.value || "").trim() : "";
 
-        // Verify club access (password protection)
-        if (clubName) {
-          const hasAccess = await verifyClubAccess(clubName);
-          if (!hasAccess) return;
-        }
-
         let duration = parseFloat(document.getElementById("create-duration")?.value) || 2.0;
         if (duration > 6.0) duration = 6.0;
         const scoringType = "rally";
