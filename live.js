@@ -1389,7 +1389,7 @@ function renderMatchesList(matches, hasAdmin = false) {
     return;
   }
 
-  container.innerHTML = matches.map((m, idx) => {
+  const matchesHTML = matches.map((m, idx) => {
     const isDone = m.completed;
     const isVoided = m.voided;
     const bScore = m.blueScore != null ? Number(m.blueScore) : null;
