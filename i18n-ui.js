@@ -128,6 +128,14 @@ export const I18N_CUSTOM_TEXTS = {
     "LINE- APP",
     "LINE- APP"
   ],
+  "t-club-info-heading": [
+    "關於社團",
+    "About Club"
+  ],
+  "t-btn-edit-club-info": [
+    "編輯社團",
+    "Edit Club"
+  ],
   "t-activities-reg-text": [
     "比賽中與已報名",
     "In Progress & Registered"

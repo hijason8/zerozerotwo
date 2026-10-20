@@ -611,21 +611,114 @@ import {
     window.selectExploredClub = selectExploredClub;
 
     function openCreateClubModal() {
+      STATE.modalClubMode = "create";
       const modal = document.getElementById("modal-create-club");
       if (!modal) return;
+      const titleEl = document.getElementById("t-modal-create-club-title");
+      const descEl = document.getElementById("t-modal-create-club-desc");
       const nameInput = document.getElementById("modal-create-club-name");
       const pwdInput = document.getElementById("modal-create-club-pwd");
       const descInput = document.getElementById("modal-create-club-desc-input");
-      if (nameInput) nameInput.value = "";
-      if (pwdInput) pwdInput.value = "";
+      const submitTextEl = document.getElementById("t-btn-submit-create-club-text");
+      const isZh = (STATE.lang === "zh-TW");
+
+      if (titleEl) titleEl.innerText = isZh ? "建立新社團" : "Create Club";
+      if (descEl) descEl.innerText = isZh ? "建立專屬社團大廳與歷次戰績存檔" : "Create club space & record matches";
+      if (nameInput) {
+        nameInput.value = "";
+        nameInput.disabled = false;
+        nameInput.className = "w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none";
+      }
+      if (pwdInput) {
+        pwdInput.value = "";
+        pwdInput.placeholder = isZh ? "設定密碼（選填，保護社團資訊修改權限）" : "Set password (optional, protects club info)";
+      }
       if (descInput) descInput.value = "";
+      if (submitTextEl) submitTextEl.innerText = isZh ? "確認建立" : "Create";
+
       setModalClubPrivacy(false);
-      if (typeof applyLanguageUI === "function") applyLanguageUI();
       modal.classList.remove("hidden");
       if (nameInput) setTimeout(() => nameInput.focus(), 60);
       lucide.createIcons();
     }
     window.openCreateClubModal = openCreateClubModal;
+
+    async function openEditClubModal(clubName) {
+      const targetClub = clubName || STATE.currentClub;
+      if (!targetClub) return;
+
+      STATE.modalClubMode = "edit";
+      const modal = document.getElementById("modal-create-club");
+      if (!modal) return;
+
+      const titleEl = document.getElementById("t-modal-create-club-title");
+      const descEl = document.getElementById("t-modal-create-club-desc");
+      const nameInput = document.getElementById("modal-create-club-name");
+      const pwdInput = document.getElementById("modal-create-club-pwd");
+      const descInput = document.getElementById("modal-create-club-desc-input");
+      const submitTextEl = document.getElementById("t-btn-submit-create-club-text");
+      const isZh = (STATE.lang === "zh-TW");
+
+      const safeKey = encodeClubKey(targetClub);
+      let meta = (STATE.clubsMetadataMap && (STATE.clubsMetadataMap[safeKey] || STATE.clubsMetadataMap[targetClub]))
+        || (JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}")[safeKey])
+        || (JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}")[targetClub]);
+
+      if (!meta && STATE.db) {
+        try {
+          const snap = await get(ref(STATE.db, `clubs_metadata/${safeKey}`));
+          if (snap.exists()) {
+            meta = snap.val();
+            if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
+            STATE.clubsMetadataMap[safeKey] = meta;
+            STATE.clubsMetadataMap[targetClub] = meta;
+          }
+        } catch (e) {
+          console.warn("[Club Info] fetch metadata error:", e);
+        }
+      }
+
+      if (titleEl) titleEl.innerText = isZh ? "修改社團資訊" : "Edit Club Info";
+      if (descEl) descEl.innerText = isZh ? "更新社團簡介、公開隱私與防護密碼" : "Update description, privacy and password";
+      if (nameInput) {
+        nameInput.value = targetClub;
+        nameInput.disabled = true;
+        nameInput.className = "w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm opacity-70 cursor-not-allowed bg-stone-100 dark:bg-stone-900";
+      }
+      if (descInput) {
+        descInput.value = (meta && meta.description) ? meta.description : "";
+      }
+      if (pwdInput) {
+        pwdInput.value = "";
+        pwdInput.placeholder = isZh ? "若不修改密碼請留白" : "Leave blank to keep current password";
+      }
+      if (submitTextEl) {
+        submitTextEl.innerText = isZh ? "儲存修改" : "Save Changes";
+      }
+
+      const isPriv = !!(meta && meta.isPrivate);
+      setModalClubPrivacy(isPriv);
+
+      modal.classList.remove("hidden");
+      if (descInput) setTimeout(() => descInput.focus(), 60);
+      lucide.createIcons();
+    }
+    window.openEditClubModal = openEditClubModal;
+
+    async function handleEditClubInfoClick() {
+      const clubName = STATE.currentClub;
+      if (!clubName) {
+        showToast(STATE.lang === "zh-TW" ? "尚未選擇社團！" : "No club selected!", "warning");
+        return;
+      }
+      // 檢查密碼授權
+      if (typeof verifyClubAccess === "function") {
+        const ok = await verifyClubAccess(clubName);
+        if (!ok) return;
+      }
+      await openEditClubModal(clubName);
+    }
+    window.handleEditClubInfoClick = handleEditClubInfoClick;
 
     function closeCreateClubModal() {
       const modal = document.getElementById("modal-create-club");
@@ -671,28 +764,86 @@ import {
 
     async function handleModalCreateClubSubmit(e) {
       if (e) e.preventDefault();
+      const isZh = STATE.lang === "zh-TW";
       const nameInput = document.getElementById("modal-create-club-name");
       const pwdInput = document.getElementById("modal-create-club-pwd");
       const descInput = document.getElementById("modal-create-club-desc-input");
-      const rawName = nameInput ? nameInput.value.trim() : "";
       const pwd = pwdInput ? pwdInput.value.trim() : "";
       const description = descInput ? descInput.value.trim() : "";
       const isPrivate = document.getElementById("modal-club-is-private")?.value === "true";
 
+      // ==================== MODE: EDIT EXISTING CLUB ====================
+      if (STATE.modalClubMode === "edit") {
+        const clubName = STATE.currentClub;
+        if (!clubName) return;
+
+        const safeKey = encodeClubKey(clubName);
+        const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
+        const existingMeta = (STATE.clubsMetadataMap && (STATE.clubsMetadataMap[safeKey] || STATE.clubsMetadataMap[clubName]))
+          || localMeta[safeKey] || localMeta[clubName] || {};
+
+        // 1. 若有輸入新密碼，更新密碼
+        let hasPassword = existingMeta.hasPassword ?? false;
+        if (pwd) {
+          await setClubPasswordDB(clubName, pwd);
+          hasPassword = true;
+          STATE.authenticatedClubs.add(clubName);
+        }
+
+        // 2. 儲存更新後的 metadata
+        const metaObj = {
+          ...existingMeta,
+          isPrivate: isPrivate,
+          hasPassword: hasPassword,
+          description: description,
+          updatedAt: Date.now()
+        };
+
+        if (STATE.db) {
+          try {
+            await set(ref(STATE.db, `clubs_metadata/${safeKey}`), metaObj);
+          } catch (err) {
+            console.warn("[Firebase] clubs_metadata update error:", err);
+          }
+        }
+
+        if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
+        STATE.clubsMetadataMap[safeKey] = metaObj;
+        STATE.clubsMetadataMap[clubName] = metaObj;
+
+        localMeta[safeKey] = metaObj;
+        localMeta[clubName] = metaObj;
+        localStorage.setItem("pb_clubs_metadata", JSON.stringify(localMeta));
+
+        closeCreateClubModal();
+        showToast(isZh ? `已成功更新「${clubName}」社團資訊！` : `Updated "${clubName}" info successfully!`, "success");
+
+        // 3. 重新渲染說明頁與社團大廳
+        if (typeof renderClubInfoTab === "function") {
+          renderClubInfoTab(clubName);
+        }
+        if (typeof renderHistoryCategorized === "function") {
+          renderHistoryCategorized(STATE.allTournamentsCache || []);
+        }
+        return;
+      }
+
+      // ==================== MODE: CREATE NEW CLUB ====================
+      const rawName = nameInput ? nameInput.value.trim() : "";
       if (!rawName) {
-        showToast(STATE.lang === "zh-TW" ? "請輸入社團名稱！" : "Please enter a club name!", "warning");
+        showToast(isZh ? "請輸入社團名稱！" : "Please enter a club name!", "warning");
         if (nameInput) nameInput.focus();
         return;
       }
 
       if (rawName.length > 12) {
-        showToast(STATE.lang === "zh-TW" ? "社團名稱不可超過 12 個字！" : "Club name cannot exceed 12 characters!", "warning");
+        showToast(isZh ? "社團名稱不可超過 12 個字！" : "Club name cannot exceed 12 characters!", "warning");
         if (nameInput) nameInput.focus();
         return;
       }
 
       if (rawName === "__general__" || rawName === "__create_new_club__" || rawName === "__new__") {
-        showToast(STATE.lang === "zh-TW" ? "此名稱為系統保留字，請使用其他名稱！" : "This name is reserved, please choose another!", "error");
+        showToast(isZh ? "此名稱為系統保留字，請使用其他名稱！" : "This name is reserved, please choose another!", "error");
         return;
       }
 

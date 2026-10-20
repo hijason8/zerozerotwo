@@ -1057,9 +1057,17 @@
         <div id="content-tab-info" class="hidden space-y-4">
           <!-- 社團簡介卡片 -->
           <div class="glass-card rounded-2xl p-5 border space-y-3 shadow-sm text-left">
-            <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm border-b pb-2.5 border-stone-200 dark:border-slate-800">
-              <i data-lucide="info" class="w-4 h-4"></i>
-              <span>關於社團</span>
+            <div class="flex items-center justify-between border-b pb-2.5 border-stone-200 dark:border-slate-800">
+              <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+                <i data-lucide="info" class="w-4 h-4"></i>
+                <span id="t-club-info-heading">關於社團</span>
+              </div>
+              <!-- 編輯社團資訊按鈕 -->
+              <button type="button" id="btn-edit-club-info" onclick="handleEditClubInfoClick()"
+                class="px-2.5 py-1 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-semibold sub-text hover:text-emerald-500 transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                <span id="t-btn-edit-club-info">編輯社團</span>
+              </button>
             </div>
             <div>
               <p id="club-info-description-text" class="text-xs sm:text-sm sub-text whitespace-pre-wrap leading-relaxed">
@@ -2021,10 +2029,10 @@
 
         <div>
           <label id="t-label-modal-club-pwd" class="block text-xs font-semibold mb-1">社團防護密碼 (選填)</label>
-          <input type="password" id="modal-create-club-pwd" placeholder="設定密碼（選填，解鎖計分修改權限）" autocomplete="new-password"
+          <input type="password" id="modal-create-club-pwd" placeholder="設定密碼（選填，保護社團資訊修改權限）" autocomplete="new-password"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
           <p id="t-modal-club-pwd-hint" class="text-[11px] sub-text mt-1">
-            若設定密碼，未來進入該社團的計分板時，預設為唯讀瀏覽模式，須輸入此密碼解鎖『操作模式』才能修改比分與排賽，若留白則為全開放信任制。</p>
+            若設定密碼，未來修改此社團的簡介說明、公開隱私與設定時須輸入此密碼驗證，若留白則開放自由編輯；賽事計分則採現場互信制免輸密碼。</p>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2">
@@ -2166,14 +2174,14 @@
       safeSetLocal,
       safeGetLocalJSON,
       sha256
-    } from "./utils.js?v=20261020-13";
-    import "./club.js?v=20261020-13";
-    import "./tournament-create.js?v=20261020-13";
-    import "./live.js?v=20261020-13";
-    import "./activities.js?v=20261020-13";
-    import "./hub.js?v=20261020-13";
-    import "./line.js?v=20261020-13";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-13";
+    } from "./utils.js?v=20261020-14";
+    import "./club.js?v=20261020-14";
+    import "./tournament-create.js?v=20261020-14";
+    import "./live.js?v=20261020-14";
+    import "./activities.js?v=20261020-14";
+    import "./hub.js?v=20261020-14";
+    import "./line.js?v=20261020-14";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-14";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

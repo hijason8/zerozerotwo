@@ -132,7 +132,6 @@ async function toggleTournamentAdminMode() {
   if (!tData) return;
 
   const isZh = STATE.lang === "zh-TW";
-  const clubName = (tData.clubName || '').trim();
   const isFinished = isTournamentFinished(tData);
 
   // 若目前處於唯讀瀏覽模式，欲解鎖切換至「操作模式」：
@@ -151,16 +150,10 @@ async function toggleTournamentAdminMode() {
       return;
     }
 
-    // 2. 檢查社團密碼 (若有社團且當前尚未解鎖，全面由後端 verifyClubAccess 驗證)
-    const isSessionAuth = clubName && STATE.authenticatedClubs.has(clubName);
-    if (clubName && !isSessionAuth) {
-      const ok = await verifyClubAccess(clubName);
-      if (!ok) return;
-    }
-
+    // 2. 賽事計分全面採現場互信制，免輸社團密碼直接解鎖操作模式
     STATE.isViewerMode = false;
   } else {
-    // 若當前已經是操作模式，切換回唯讀瀏覽模式
+    // 若當前已經是操作模式，切換回唯讀瀏覽模式（防誤觸）
     STATE.isViewerMode = true;
   }
 
@@ -307,11 +300,8 @@ function renderLiveUI(data) {
       if (adminIcon) adminIcon.setAttribute("data-lucide", "edit-3");
     } else {
       adminBtn.className = "flex-1 px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none text-stone-700 dark:text-slate-300 cursor-pointer";
-      const clubName = (data.clubName || "").trim();
-      const localPasswords = JSON.parse(localStorage.getItem("pb_club_passwords") || "{}");
-      const hasClubPwd = clubName && ((STATE.clubPasswordsMap && STATE.clubPasswordsMap[encodeClubKey(clubName)]) || localPasswords[clubName]);
       adminText.innerText = isZh ? "開啟操作" : "Enable Controls";
-      if (adminIcon) adminIcon.setAttribute("data-lucide", hasClubPwd ? "lock" : "edit-3");
+      if (adminIcon) adminIcon.setAttribute("data-lucide", "edit-3");
     }
   }
 
