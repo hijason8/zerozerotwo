@@ -1570,6 +1570,38 @@ function renderMatchesList(matches, hasAdmin = false) {
         `;
   }).join("");
 
+  // 當所有有效場次已完成且尚未結算時，在列表底部呈現專屬的醒目完賽引導卡片
+  let completionCardHTML = "";
+  const isFinished = isTournamentFinished(STATE.tournamentData);
+  const allScored = validMatches.length > 0 && validMatches.every(m => m.completed && m.blueScore !== null && m.redScore !== null);
+  if (allScored && !isFinished && hasAdmin) {
+    const isZh = STATE.lang === "zh-TW";
+    completionCardHTML = `
+      <div class="glass-card rounded-2xl p-4 sm:p-5 border-2 border-amber-500/60 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-md animate-bounce">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+              <path d="M4 22h16"/>
+              <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" fill="#f59e0b" fill-opacity="0.3"/>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? "🎉 所有場次比分已登錄完成！" : "🎉 All matches have been scored!"}</h4>
+            <p class="text-xs sub-text">${isZh ? "請核對分數無誤後，點選右方按鈕結束賽事並凍結結算。" : "Please verify scores, then end tournament to finalize results."}</p>
+          </div>
+        </div>
+        <button type="button" onclick="completeTournamentAndReturn()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer shrink-0">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i> ${isZh ? "結束賽事並結算" : "End & Finalize"}
+        </button>
+      </div>
+    `;
+  }
+
+  container.innerHTML = matchesHTML + completionCardHTML;
+
   lucide.createIcons();
 }
 
@@ -2179,21 +2211,56 @@ async function saveMatchScore(matchId) {
   const allScored = validMatches.length > 0 && validMatches.every(m => m.completed && m.blueScore !== null && m.redScore !== null);
   if (allScored && tObj.status !== "completed") {
     setTimeout(() => {
-      showToast(
-        STATE.lang === "zh-TW"
-          ? "所有分數已登錄完成！請點選上方「結束賽事」，完賽後無法修正分數。"
-          : "All scores entered! Please click 'End Tournament' above. Scores cannot be edited after finishing.",
-        "info",
-        7000
-      );
-      const completeBtn = document.getElementById("btn-complete-and-return");
-      if (completeBtn) {
-        completeBtn.classList.add("ring-2", "ring-amber-500", "animate-pulse");
-      }
-    }, 400);
+      showCompletionNotice();
+    }, 300);
   }
 }
 window.saveMatchScore = saveMatchScore;
+
+function showCompletionNotice() {
+  const isZh = STATE.lang === "zh-TW";
+  const trophySVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 drop-shadow-md">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+      <path d="M4 22h16"/>
+      <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"/>
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" fill="#f59e0b" fill-opacity="0.3"/>
+    </svg>
+  `;
+
+  const bannerHtml = `
+    <div class="flex items-start gap-3 w-full">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-md animate-bounce">
+        ${trophySVG}
+      </div>
+      <div class="flex-1 min-w-0 pr-1">
+        <div class="flex items-center justify-between gap-1">
+          <h4 class="font-bold text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+            <span>🎉 所有場次比分已登錄完成！</span>
+          </h4>
+          <button type="button" onclick="this.closest('#toast-container').innerHTML=''" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 text-sm p-1 leading-none -mr-1 cursor-pointer">✕</button>
+        </div>
+        <p class="text-[11px] text-stone-600 dark:text-stone-300 mt-1 leading-relaxed">
+          ${isZh ? "請確認分數無誤後點選「結束賽事」，完賽後無法再修正分數。" : "All matches scored! Please review and click End Tournament."}
+        </p>
+        <div class="mt-2.5 flex items-center gap-2">
+          <button type="button" onclick="completeTournamentAndReturn()" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i> ${isZh ? "點此結束賽事並結算" : "End Tournament Now"}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  showToast(bannerHtml, "celebrate", 10000);
+
+  const completeBtn = document.getElementById("btn-complete-and-return");
+  if (completeBtn) {
+    completeBtn.classList.add("ring-4", "ring-amber-500", "animate-pulse");
+  }
+}
+window.showCompletionNotice = showCompletionNotice;
 
 // ----------------------------------------------------
 // LEADERBOARD CALCULATOR & TIE-BREAKER SORTING
