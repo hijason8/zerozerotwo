@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>ZeroZeroTwo</title>
   <!-- Google Analytics (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LB740SFV1M"></script>
@@ -78,10 +78,48 @@
     if (typeof globalThis !== "undefined") {
       globalThis.showToast = window.showToast;
     }
+
+    // 防護：防止 LINE 內建瀏覽器 / iOS 在最頂端下拉時把整個視窗拖起關閉
+    (function initOverscrollGuard() {
+      let touchStartY = 0;
+      window.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 1) {
+          touchStartY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      window.addEventListener("touchmove", (e) => {
+        if (e.touches.length !== 1) return;
+        const currentY = e.touches[0].clientY;
+        const isPullingDown = currentY > touchStartY;
+
+        // 當頁面在最頂部 (scrollTop <= 0) 且手勢為向下拉動
+        const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        if (isPullingDown && scrollY <= 0) {
+          // 檢查手指位置是否在已有向下滾動空間的內部容器
+          let el = e.target;
+          let hasInternalScroll = false;
+          while (el && el !== document.body && el !== document.documentElement) {
+            const style = window.getComputedStyle(el);
+            const overflowY = style.overflowY;
+            if ((overflowY === "auto" || overflowY === "scroll") && el.scrollTop > 0) {
+              hasInternalScroll = true;
+              break;
+            }
+            el = el.parentElement;
+          }
+
+          // 若不在可滾動容器內，阻止此下拉行為以防拖動原生視窗
+          if (!hasInternalScroll && e.cancelable) {
+            e.preventDefault();
+          }
+        }
+      }, { passive: false });
+    })();
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=20261020-21" />
 </head>
 
 <body
