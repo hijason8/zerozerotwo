@@ -1682,41 +1682,33 @@ const isTransientPlayer = (name) => {
 
       if (!STATE.lineUserId) {
         if (statusBadgeEl) {
-          statusBadgeEl.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold card-inner border text-stone-500">${isZh ? "訪客模式" : "Guest"}</span>`;
+          statusBadgeEl.innerHTML = `<span class="text-xs sm:text-sm font-bold text-amber-500">${isZh ? "（尚未綁定）" : " (Unbound)"}</span>`;
         }
-        detailWrapEl.innerHTML = `
-          <div class="text-center py-4 space-y-2">
-            <i data-lucide="shield-alert" class="w-8 h-8 text-stone-400 mx-auto"></i>
-            <p class="text-xs sub-text">${isZh ? "您目前尚未登入 LINE，無法綁定專屬球員身分及累計長期戰績。" : "Not logged in with LINE. Login to bind identity and track records."}</p>
-          </div>
-        `;
-        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "登入 LINE" : "Log in with LINE";
+        detailWrapEl.innerHTML = "";
+        detailWrapEl.classList.add("hidden");
+        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "綁定社團球員身分" : "Bind Player Identity";
         if (actionBtn) {
           actionBtn.onclick = () => {
             if (typeof showLineLoginModal === "function") showLineLoginModal();
             else openLineLoginPromptModal();
           };
         }
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
         return;
       }
 
       const isMyClub = !!(Array.isArray(STATE.myClubs) && name && STATE.myClubs.includes(name));
       if (!isMyClub) {
         if (statusBadgeEl) {
-          statusBadgeEl.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">${isZh ? "尚未加入社團" : "Not Joined"}</span>`;
+          statusBadgeEl.innerHTML = `<span class="text-xs sm:text-sm font-bold text-amber-500">${isZh ? "（尚未綁定）" : " (Unbound)"}</span>`;
         }
-        detailWrapEl.innerHTML = `
-          <div class="text-center py-4 space-y-2">
-            <i data-lucide="user-plus" class="w-8 h-8 text-amber-500 mx-auto"></i>
-            <p class="text-xs sub-text">${isZh ? "請先點擊上方「加入」，將此社團加入專屬清單後即可認領球員姓名！" : "Please join this club first to claim or bind your player identity."}</p>
-          </div>
-        `;
-        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "加入社團" : "Join Club";
+        detailWrapEl.innerHTML = "";
+        detailWrapEl.classList.add("hidden");
+        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "綁定社團球員身分" : "Bind Player Identity";
         if (actionBtn) {
-          actionBtn.onclick = () => toggleAddCurrentClub();
+          actionBtn.onclick = () => handleClubIdentityBadgeClick();
         }
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
         return;
       }
 
@@ -1743,7 +1735,7 @@ const isTransientPlayer = (name) => {
 
       if (boundName) {
         if (statusBadgeEl) {
-          statusBadgeEl.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">${isZh ? `已綁定：${escapeHTML(boundName)}` : `Bound: ${escapeHTML(boundName)}`}</span>`;
+          statusBadgeEl.innerHTML = `<span class="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">${isZh ? "（已綁定）" : " (Bound)"}</span>`;
         }
 
         let playerStats = { games: 0, wins: 0, losses: 0, winRate: 0, diff: 0 };
@@ -1805,27 +1797,24 @@ const isTransientPlayer = (name) => {
             </div>
           </div>
         `;
+        detailWrapEl.classList.remove("hidden");
         if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "更換 / 解除綁定身分" : "Change / Unbind Identity";
         if (actionBtn) {
           actionBtn.onclick = () => handleClubIdentityBadgeClick();
         }
       } else {
         if (statusBadgeEl) {
-          statusBadgeEl.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">${isZh ? "尚未綁定身分" : "Unbound"}</span>`;
+          statusBadgeEl.innerHTML = `<span class="text-xs sm:text-sm font-bold text-amber-500">${isZh ? "（尚未綁定）" : " (Unbound)"}</span>`;
         }
-        detailWrapEl.innerHTML = `
-          <div class="text-center py-4 space-y-2">
-            <i data-lucide="user-x" class="w-8 h-8 text-amber-500 mx-auto"></i>
-            <p class="text-xs sub-text">${isZh ? "您尚未在此社團綁定身分。點擊下方按鈕認領或設定球員姓名，未來戰績即可永久累積！" : "You have not bound your player identity yet. Click below to claim or set name."}</p>
-          </div>
-        `;
-        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "綁定社團身分" : "Claim Player Identity";
+        detailWrapEl.innerHTML = "";
+        detailWrapEl.classList.add("hidden");
+        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "綁定社團球員身分" : "Bind Player Identity";
         if (actionBtn) {
           actionBtn.onclick = () => handleClubIdentityBadgeClick();
         }
       }
 
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
     }
     window.renderClubProfileTab = renderClubProfileTab;
 
