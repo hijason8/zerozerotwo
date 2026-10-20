@@ -1192,10 +1192,13 @@
       <div
         class="p-4 sm:p-5 border-b border-stone-200/80 dark:border-slate-800 flex items-center justify-between shrink-0 bg-stone-50/50 dark:bg-slate-900/50">
         <div>
-          <h3 class="text-base sm:text-lg font-bold font-display tracking-tight text-stone-900 dark:text-white">
-            ZeroZeroTwo 匹克球系統使用手冊
-          </h3>
-
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-bold font-display tracking-tight text-stone-900 dark:text-white">
+              ZeroZero<span class="text-emerald-500">Two</span>
+            </h3>
+            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 px-2 py-0.5 rounded-full uppercase tracking-wider">Guide</span>
+          </div>
+          <p class="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">匹克球系統使用手冊 · 免下載、零摩擦賽事管理</p>
         </div>
         <button onclick="closeUserGuideModal()"
           class="sub-text hover:text-emerald-500 p-1.5 rounded-lg transition cursor-pointer">
@@ -1203,20 +1206,25 @@
         </button>
       </div>
 
-      <!-- Scrollable Manual Content (Clean, Professional Typography, No Emojis) -->
+      <!-- Scrollable Manual Content (Clean, Professional Typography, Matching PDF Aesthetic) -->
       <div
         class="p-4 sm:p-6 overflow-y-auto space-y-6 text-xs sm:text-[13px] leading-relaxed text-stone-700 dark:text-slate-300">
 
-
+        <!-- Hero Card -->
+        <div class="bg-stone-50 dark:bg-slate-900/60 border border-stone-200 dark:border-slate-800/80 border-l-[3.5px] border-l-emerald-500 p-3.5 sm:p-4 rounded-xl text-stone-700 dark:text-slate-300">
+          <strong class="text-stone-900 dark:text-white font-bold">歡迎使用 ZeroZeroTwo！</strong>這是一套專為匹克球友打造的「免下載、零摩擦」賽事與排賽管理系統。只要透過 LINE，就能輕鬆完成接龍報到、自動排賽與長期戰績追蹤。
+        </div>
 
         <!-- Section 1 -->
         <section class="space-y-3">
-          <h4
-            class="text-sm sm:text-base font-bold text-stone-950 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-1.5">
-            一、球員身分與綁定觀念
-          </h4>
-          <p class="sub-text">
-            為了讓每位球友都能擁有專屬的「生涯戰績護照」，本系統採用了輕量級的 LINE 綁定機制。
+          <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
+            <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">
+              一、球員身分與綁定觀念
+            </h4>
+          </div>
+          <p class="text-stone-600 dark:text-slate-400 text-xs sm:text-[13px]">
+            為了讓每位球友都能擁有專屬的「生涯戰績護照」，本系統採用了輕量級的 LINE 綁定機制：
           </p>
           <div class="space-y-2.5 pl-1">
             <div>
@@ -1240,11 +1248,13 @@
 
         <!-- Section 2 -->
         <section class="space-y-3">
-          <h4
-            class="text-sm sm:text-base font-bold text-stone-950 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-1.5">
-            二、社團大廳與專屬清單
-          </h4>
-          <p class="sub-text">
+          <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
+            <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">
+              二、社團大廳與專屬清單
+            </h4>
+          </div>
+          <p class="text-stone-600 dark:text-slate-400 text-xs sm:text-[13px]">
             系統將賽事分為「公開廣場」與「專屬社團」，讓您可以輕鬆切換視角：
           </p>
           <div class="space-y-2.5 pl-1">
@@ -1258,22 +1268,24 @@
             </div>
             <div>
               <span class="font-bold text-stone-900 dark:text-slate-100">社團活動總表：</span>
-              <span>在左上角下拉選單點擊「比賽中/已報名」或社團活動總表，系統會自動幫您過濾出「您已報名的球局」以及「您加入的社團最新球局」，打造專屬的個人儀表板，找球局不用再大海撈針！</span>
+              <span>在左上角下拉選單點擊「比賽中/已報名」或社團活動總表，系統會自動幫您過濾出「您已報名的球局」以及「您加入的社團最新球局」，打造專屬個人儀表板，找球局不用再大海撈針！</span>
             </div>
           </div>
         </section>
 
         <!-- Section 3 -->
         <section class="space-y-3">
-          <h4
-            class="text-sm sm:text-base font-bold text-stone-950 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-1.5">
-            三、如何建立賽事？
-          </h4>
-          <p class="sub-text">
+          <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
+            <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">
+              三、如何建立賽事？
+            </h4>
+          </div>
+          <p class="text-stone-600 dark:text-slate-400 text-xs sm:text-[13px]">
             主辦人建立球局時，系統提供極度彈性的分流設計，請依照當下情境選擇：
           </p>
 
-          <div class="space-y-3 pl-1">
+          <div class="space-y-3.5 pl-1">
             <!-- Step 1 -->
             <div class="space-y-1.5">
               <span class="font-bold text-stone-900 dark:text-slate-100 block">步驟 1：選擇開局方式</span>
@@ -1290,19 +1302,34 @@
             </div>
 
             <!-- Step 2 -->
-            <div class="space-y-1.5 pt-1">
+            <div class="space-y-2 pt-1">
               <span class="font-bold text-stone-900 dark:text-slate-100 block">步驟 2：選擇賽事模式</span>
 
-              <div class="space-y-2">
-                <div class="font-bold text-stone-900 dark:text-white">平均模式（自動排賽）</div>
-                <div><strong>特色：</strong>系統智慧演算法的精華！只要輸入「預計打幾小時」或「預計打幾局」，系統會自動打破小圈圈，算出最公平的輪轉賽程。</div>
-                <div><strong>效果：</strong>保證每人上場次數平均、與不同人搭檔/對決，徹底解決「下一場該換誰上」的困擾。</div>
+              <!-- 雙欄微透明卡片對比 -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div class="bg-stone-50/70 dark:bg-slate-900/50 border border-stone-200/90 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 space-y-1.5">
+                  <div class="text-[13px] font-bold text-stone-900 dark:text-white">
+                    平均模式（自動排賽）
+                  </div>
+                  <div class="text-xs text-stone-600 dark:text-slate-300">
+                    <strong class="text-stone-800 dark:text-slate-200">特色：</strong>智慧演算法精華！只要輸入「預計打幾小時」或「預計打幾局」，系統自動打破小圈圈，算出最公平的輪轉賽程。
+                  </div>
+                  <div class="text-xs text-stone-600 dark:text-slate-300">
+                    <strong class="text-stone-800 dark:text-slate-200">效果：</strong>保證每人出賽次數平均、與不同人搭檔對決，徹底解決「下一場該換誰上」的困擾。
+                  </div>
+                </div>
 
-
-                <div class="font-bold text-stone-900 dark:text-white">自由模式 / 練球（手動彈性）</div>
-                <div><strong>特色：</strong>不預先排定死板賽程。適合球友陸續到場，或是大家想自由找人練球的情境。</div>
-                <div><strong>效果：</strong>主辦人隨時可點擊「新增場次」，系統內建「場次少優先」與「隨機抽籤」按鈕，讓現場配對依然充滿樂趣與公平性。</div>
-
+                <div class="bg-stone-50/70 dark:bg-slate-900/50 border border-stone-200/90 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 space-y-1.5">
+                  <div class="text-[13px] font-bold text-stone-900 dark:text-white">
+                    自由模式 / 練球（手動彈性）
+                  </div>
+                  <div class="text-xs text-stone-600 dark:text-slate-300">
+                    <strong class="text-stone-800 dark:text-slate-200">特色：</strong>不預先排定死板賽程。適合球友陸續到場，或是大家想自由找人練球的情境。
+                  </div>
+                  <div class="text-xs text-stone-600 dark:text-slate-300">
+                    <strong class="text-stone-800 dark:text-slate-200">效果：</strong>隨時點擊「新增場次」，內建「場次少優先」與「隨機抽籤」按鈕，現場配對公平又有趣。
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1310,11 +1337,13 @@
 
         <!-- Section 4 -->
         <section class="space-y-3">
-          <h4
-            class="text-sm sm:text-base font-bold text-stone-950 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-1.5">
-            四、如何計分與管理權限？
-          </h4>
-          <p class="sub-text">
+          <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
+            <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">
+              四、如何計分與管理權限？
+            </h4>
+          </div>
+          <p class="text-stone-600 dark:text-slate-400 text-xs sm:text-[13px]">
             為了保護社團的歷史戰績不被路人亂改，我們設計了完善的權限與完賽凍結機制：
           </p>
           <div class="space-y-2.5 pl-1">
@@ -1344,7 +1373,12 @@
 
       <!-- Footer Action -->
       <div
-        class="p-3.5 sm:p-4 border-t border-stone-200/80 dark:border-slate-800 shrink-0 bg-stone-50/50 dark:bg-slate-900/50 flex justify-end">
+        class="p-3.5 sm:p-4 border-t border-stone-200/80 dark:border-slate-800 shrink-0 bg-stone-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+        <a href="ZeroZeroTwo_使用手冊.pdf" target="_blank" download="ZeroZeroTwo_匹克球系統使用手冊.pdf"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-stone-300 dark:border-slate-700 hover:border-emerald-500 text-stone-700 dark:text-slate-200 hover:text-emerald-600 text-xs font-semibold transition active:scale-95 bg-white dark:bg-slate-800/80 shadow-sm cursor-pointer">
+          <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+          <span>下載 PDF 手冊</span>
+        </a>
         <button type="button" onclick="closeUserGuideModal()"
           class="w-full sm:w-auto px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition active:scale-95 shadow-sm cursor-pointer">
           關閉手冊

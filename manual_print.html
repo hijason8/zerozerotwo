@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>ZeroZeroTwo 匹克球系統使用手冊</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 15mm 10mm 15mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      color: #1c1917;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      line-height: 1.45;
+      font-size: 9pt;
+    }
+    
+    /* Header */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #10b981;
+      margin-bottom: 10px;
+    }
+    .brand-title {
+      font-size: 16pt;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      margin: 0;
+    }
+    .brand-title span {
+      color: #10b981;
+    }
+    .brand-badge {
+      font-size: 7.5pt;
+      font-weight: 700;
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .header-meta {
+      text-align: right;
+      font-size: 8pt;
+      color: #78716c;
+      font-family: -apple-system, BlinkMacSystemFont, monospace;
+    }
+
+    /* Hero / Intro */
+    .hero-card {
+      background: #fafaf9;
+      border: 1px solid #e7e5e4;
+      border-left: 3.5px solid #10b981;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .hero-card p {
+      margin: 0;
+      color: #44403c;
+      font-size: 8.5pt;
+      line-height: 1.45;
+    }
+
+    /* Section Styles */
+    .section-block {
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 10.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 3px;
+      margin-top: 0;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .section-title::before {
+      content: "";
+      display: inline-block;
+      width: 3.5px;
+      height: 12px;
+      background: #10b981;
+      border-radius: 2px;
+    }
+    .section-lead {
+      font-size: 8.5pt;
+      color: #57534e;
+      margin-top: 0;
+      margin-bottom: 5px;
+    }
+
+    /* Content Elements */
+    .item-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .item-row {
+      font-size: 8.5pt;
+      line-height: 1.42;
+    }
+    .item-label {
+      font-weight: 700;
+      color: #1c1917;
+    }
+    .item-desc {
+      color: #44403c;
+    }
+    
+    ul.bullet-list {
+      margin: 2px 0 0 0;
+      padding-left: 18px;
+      color: #44403c;
+      font-size: 8.5pt;
+    }
+    ul.bullet-list li {
+      margin-bottom: 2px;
+    }
+
+    /* Grid / Subcards for Steps & Modes */
+    .subcard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .subcard {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 8pt;
+      line-height: 1.4;
+    }
+    .subcard-title {
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 3px;
+      font-size: 8.5pt;
+    }
+    .subcard-text {
+      color: #475569;
+    }
+
+    /* Footer */
+    .doc-footer {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #e7e5e4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7.5pt;
+      color: #78716c;
+    }
+    .doc-footer a {
+      color: #10b981;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <div class="header-bar">
+    <div>
+      <h1 class="brand-title">ZeroZero<span>Two</span></h1>
+      <div style="font-size: 8pt; font-weight: 600; color: #57534e; margin-top: 1px;">匹克球系統使用手冊</div>
+    </div>
+    <div class="header-meta">
+      <span class="brand-badge">Official Guide</span>
+      <div style="margin-top: 3px; font-weight: 700; color: #059669;">https://zztwo.com</div>
+    </div>
+  </div>
+
+  <!-- Hero Summary -->
+  <div class="hero-card">
+    <p>
+      <strong>歡迎使用 ZeroZeroTwo！</strong>這是一套專為匹克球友打造的「免下載、零摩擦」賽事與排賽管理系統。只要透過 LINE，就能輕鬆完成接龍報到、自動排賽與長期戰績追蹤。
+    </p>
+  </div>
+
+  <!-- Section 1 -->
+  <div class="section-block">
+    <div class="section-title">一、球員身分與綁定觀念</div>
+    <div class="section-lead">為了讓每位球友都能擁有專屬的「生涯戰績護照」，本系統採用了輕量級的 LINE 綁定機制：</div>
+    <div class="item-group">
+      <div class="item-row">
+        <span class="item-label">免註冊，一鍵登入：</span>
+        <span class="item-desc">只要透過 LINE 點擊系統連結，系統就會自動辨識您的 LINE 帳號，不需額外記憶帳號密碼。</span>
+      </div>
+      <div class="item-row">
+        <span class="item-label">「帳號」與「球員」角色分離：</span>
+        <span class="item-desc">您的 LINE 帳號可在不同社團裡使用不同的「球員名稱」。例如，您可以在 A 社團叫「阿翔」，在 B 社團叫「翔哥」，戰績各自獨立、互不干擾。</span>
+      </div>
+      <div class="item-row">
+        <span class="item-label">如何綁定身分？</span>
+        <ul class="bullet-list">
+          <li>系統不會強迫您綁定 LINE 帳號，您可以隨意觀看任何公開賽事。</li>
+          <li>只有當您準備下場打球（如：點擊報名），系統才會提示您綁定球員名字。</li>
+          <li>認領後，未來的歷史戰績與勝率都會永久跟隨您的 LINE 帳號！</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="section-block">
+    <div class="section-title">二、社團大廳與專屬清單</div>
+    <div class="section-lead">系統將賽事分為「公開廣場」與「專屬社團」，讓您可以輕鬆切換視角：</div>
+    <div class="item-group">
+      <div class="item-row">
+        <span class="item-label">賽事大廳（公開廣場）：</span>
+        <span class="item-desc">列出全站所有未加密、設定為公開的臨打球局。</span>
+      </div>
+      <div class="item-row">
+        <span class="item-label">加入專屬社團：</span>
+        <span class="item-desc">當您進入某個社團的頁面時，若想長期關注，請點擊右上角的「+ 加入常用」。該社團就會永遠出現在您的下拉選單中。</span>
+      </div>
+      <div class="item-row">
+        <span class="item-label">社團活動總表：</span>
+        <span class="item-desc">在左上角下拉選單點擊「比賽中/已報名」或社團活動總表，系統會自動幫您過濾出「您已報名的球局」以及「您加入的社團最新球局」，打造專屬個人儀表板，找球局不用再大海撈針！</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="section-block">
+    <div class="section-title">三、如何建立賽事？</div>
+    <div class="section-lead">主辦人建立球局時，系統提供極度彈性的分流設計，請依照當下情境選擇：</div>
+    
+    <div>
+      <div class="item-label" style="font-size: 8.5pt; margin-bottom: 2px;">步驟 1：選擇開局方式</div>
+      <ul class="bullet-list" style="margin-top: 0;">
+        <li><strong>建立接龍：</strong>適合未來的球局。創建後生成專屬網址，發到 LINE 群組自助報名（+1）。到球場後一鍵按下開賽。</li>
+        <li><strong>直接開打：</strong>適合現場人數已經確定的情況。直接輸入名單，系統立刻為您算出對戰賽程。</li>
+      </ul>
+    </div>
+
+    <div style="margin-top: 6px;">
+      <div class="item-label" style="font-size: 8.5pt; margin-bottom: 2px;">步驟 2：選擇賽事模式</div>
+      <div class="subcard-grid">
+        <div class="subcard">
+          <div class="subcard-title">平均模式（自動排賽）</div>
+          <div class="subcard-text"><strong>特色：</strong>智慧演算法精華！只要輸入「預計打幾小時」或「預計打幾局」，系統自動打破小圈圈，算出最公平的輪轉賽程。</div>
+          <div class="subcard-text" style="margin-top: 2px;"><strong>效果：</strong>保證每人出賽次數平均、與不同人搭檔對決，徹底解決「下一場該換誰上」的困擾。</div>
+        </div>
+        <div class="subcard">
+          <div class="subcard-title">自由模式 / 練球（手動彈性）</div>
+          <div class="subcard-text"><strong>特色：</strong>不預先排定死板賽程。適合球友陸續到場，或是大家想自由找人練球的情境。</div>
+          <div class="subcard-text" style="margin-top: 2px;"><strong>效果：</strong>隨時點擊「新增場次」，內建「場次少優先」與「隨機抽籤」按鈕，現場配對公平又有趣。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="section-block">
+    <div class="section-title">四、如何計分與管理權限？</div>
+    <div class="section-lead">為了保護社團的歷史戰績不被路人亂改，我們設計了完善的權限與完賽凍結機制：</div>
+    <div class="item-group">
+      <div class="item-row">
+        <span class="item-label">預設唯讀模式：</span>
+        <span class="item-desc">任何人進入賽事，預設都是「唯讀瀏覽模式」，只能觀看比分，防止誤觸。</span>
+      </div>
+      <div class="item-row">
+        <span class="item-label">解鎖操作模式（計分與排賽）：</span>
+        <ul class="bullet-list">
+          <li><strong>若該社團「有設定防護密碼」：</strong>負責記分的球友，點擊上方的「操作模式」（或解鎖記分），輸入密碼即可解鎖介面成為當日記分員（可新增比分、加場次、退賽）。</li>
+          <li><strong>若該社團「無密碼」：</strong>代表採全開放信任制，任何人點擊切換，皆可直接幫忙記分。</li>
+        </ul>
+      </div>
+      <div class="item-row">
+        <span class="item-label">如何修改比分？</span>
+        <span class="item-desc">進入操作模式後，對戰卡片上會出現大大的 +1 與 -1 按鈕，點擊即可即時連線，同步更新全場觀眾的手機比分。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Footer -->
+  <div class="doc-footer">
+    <div>ZeroZeroTwo 匹克球賽事管理系統 · 版權所有</div>
+    <div>立即體驗：<a href="https://zztwo.com/" target="_blank">zztwo.com</a></div>
+  </div>
+
+</body>
+</html>
