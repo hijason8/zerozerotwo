@@ -1340,7 +1340,7 @@ async function completeTournamentAndReturn() {
       : (STATE.lang === "zh-TW" ? "賽事已完賽並封存！" : "Tournament completed and archived"),
     "success"
   );
-  navigateTo("hub");
+  navigateTo(STATE.lineUserId ? "activities" : "hub");
 }
 window.completeTournamentAndReturn = completeTournamentAndReturn;
 

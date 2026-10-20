@@ -488,7 +488,7 @@ export async function deleteTournament(id, skipConfirm = false) {
   const isLivePageVisible = !document.getElementById("page-live")?.classList.contains("hidden");
   if (isLivePageVisible || STATE.currentPage === "live" || STATE.currentTournamentId === id) {
     STATE.currentTournamentId = null;
-    if (typeof window.navigateTo === "function") window.navigateTo("hub");
+    if (typeof window.navigateTo === "function") window.navigateTo(STATE.lineUserId ? "activities" : "hub");
   } else {
     displayHubTournamentsList(STATE.allTournamentsCache);
     renderHubTournaments();
