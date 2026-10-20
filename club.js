@@ -279,10 +279,26 @@ import {
     }
     window.toggleAddCurrentClub = toggleAddCurrentClub;
 
+    async function toggleCurrentClubStatus() {
+      const current = STATE.currentClub;
+      if (!current) return;
+      const isMyClub = !!(
+        STATE.lineUserId &&
+        Array.isArray(STATE.myClubs) &&
+        STATE.myClubs.includes(current)
+      );
+      if (isMyClub) {
+        await removeMyClub();
+      } else {
+        await toggleAddCurrentClub();
+      }
+    }
+    window.toggleCurrentClubStatus = toggleCurrentClubStatus;
+
     function updateNavClubSelectValue() {
       const navSelect = document.getElementById("hub-club-selector") || document.getElementById("nav-btn-history");
       const shareBtn = document.getElementById("btn-share-club");
-      const removeBtn = document.getElementById("btn-remove-my-club");
+      const toggleBtn = document.getElementById("btn-toggle-my-club") || document.getElementById("btn-remove-my-club");
       const idBtn = document.getElementById("btn-club-identity");
 
       if (STATE.currentPage === "activities" || STATE.currentPage === "waiting" || (STATE.currentPage === "hub" && !STATE.currentClub)) {
@@ -294,41 +310,46 @@ import {
           }
         }
         if (shareBtn) shareBtn.classList.add("hidden");
-        if (removeBtn) removeBtn.classList.add("hidden");
+        if (toggleBtn) toggleBtn.classList.add("hidden");
         if (idBtn) idBtn.classList.add("hidden");
         return;
       }
 
       if (STATE.currentPage === "history" && STATE.currentClub) {
         if (navSelect) navSelect.value = STATE.currentClub;
-        if (shareBtn) shareBtn.classList.remove("hidden");
+        if (shareBtn) shareBtn.classList.add("hidden"); // 已移入社團說明分頁
+        if (idBtn) idBtn.classList.add("hidden"); // 已移入個人資訊分頁
 
         const isMyClub = !!(
           STATE.lineUserId &&
           Array.isArray(STATE.myClubs) &&
           STATE.myClubs.includes(STATE.currentClub)
         );
-        if (removeBtn) {
-          removeBtn.classList.remove("hidden");
+        if (toggleBtn) {
+          toggleBtn.classList.remove("hidden");
           const isZh = STATE.lang === "zh-TW";
           if (isMyClub) {
-            // 已加入社團：顯示 X 號圖示與退出功能
-            removeBtn.onclick = removeMyClub;
-            removeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-rose-500/50 text-xs font-semibold sub-text hover:text-rose-500 transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer";
-            removeBtn.title = isZh ? "從專屬社團清單移除" : "Remove from My Clubs";
-            removeBtn.innerHTML = `
-              <i data-lucide="x" class="w-3.5 h-3.5 text-rose-500"></i>
-              <span id="t-btn-remove-my-club" class="hidden xs:inline">${isZh ? "退出社團" : "Leave Club"}</span>
-            `;
+            // 已經加入時：低調邊框按鈕（card-inner border text-stone-500），文字「已加入」（Hover 時顯示「退出」）
+            toggleBtn.onclick = removeMyClub;
+            toggleBtn.className = "px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-stone-200 dark:border-slate-800 text-stone-500 hover:text-rose-500 hover:border-rose-400 dark:hover:border-rose-500/50 text-xs font-semibold transition flex items-center justify-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer";
+            toggleBtn.title = isZh ? "點擊退出社團" : "Click to leave club";
+            toggleBtn.innerHTML = `<span id="t-btn-toggle-my-club">${isZh ? "已加入" : "Joined"}</span>`;
+            toggleBtn.onmouseenter = () => {
+              const textSpan = toggleBtn.querySelector("#t-btn-toggle-my-club") || toggleBtn;
+              textSpan.innerText = isZh ? "退出" : "Leave";
+            };
+            toggleBtn.onmouseleave = () => {
+              const textSpan = toggleBtn.querySelector("#t-btn-toggle-my-club") || toggleBtn;
+              textSpan.innerText = isZh ? "已加入" : "Joined";
+            };
           } else {
-            // 尚未加入社團：顯示 + 號圖示與主動加入功能
-            removeBtn.onclick = toggleAddCurrentClub;
-            removeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-teal-500/50 text-xs font-semibold text-teal-600 dark:text-teal-400 hover:bg-teal-500/5 transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer";
-            removeBtn.title = isZh ? "加入專屬社團" : "Add to My Clubs";
-            removeBtn.innerHTML = `
-              <i data-lucide="plus" class="w-3.5 h-3.5 text-teal-500"></i>
-              <span id="t-btn-remove-my-club" class="hidden xs:inline">${isZh ? "+ 加入社團" : "+ Join Club"}</span>
-            `;
+            // 尚未加入時：明顯主按鈕（bg-emerald-500 text-white），文字「加入」
+            toggleBtn.onclick = toggleAddCurrentClub;
+            toggleBtn.className = "px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer";
+            toggleBtn.title = isZh ? "加入專屬社團" : "Join Club";
+            toggleBtn.innerHTML = `<span id="t-btn-toggle-my-club">${isZh ? "加入" : "Join"}</span>`;
+            toggleBtn.onmouseenter = null;
+            toggleBtn.onmouseleave = null;
           }
           lucide.createIcons();
         }
@@ -339,7 +360,7 @@ import {
       } else {
         if (navSelect) navSelect.value = "";
         if (shareBtn) shareBtn.classList.add("hidden");
-        if (removeBtn) removeBtn.classList.add("hidden");
+        if (toggleBtn) toggleBtn.classList.add("hidden");
         if (idBtn) idBtn.classList.add("hidden");
       }
     }
@@ -594,8 +615,10 @@ import {
       if (!modal) return;
       const nameInput = document.getElementById("modal-create-club-name");
       const pwdInput = document.getElementById("modal-create-club-pwd");
+      const descInput = document.getElementById("modal-create-club-desc-input");
       if (nameInput) nameInput.value = "";
       if (pwdInput) pwdInput.value = "";
+      if (descInput) descInput.value = "";
       setModalClubPrivacy(false);
       if (typeof applyLanguageUI === "function") applyLanguageUI();
       modal.classList.remove("hidden");
@@ -650,8 +673,10 @@ import {
       if (e) e.preventDefault();
       const nameInput = document.getElementById("modal-create-club-name");
       const pwdInput = document.getElementById("modal-create-club-pwd");
+      const descInput = document.getElementById("modal-create-club-desc-input");
       const rawName = nameInput ? nameInput.value.trim() : "";
       const pwd = pwdInput ? pwdInput.value.trim() : "";
+      const description = descInput ? descInput.value.trim() : "";
       const isPrivate = document.getElementById("modal-club-is-private")?.value === "true";
 
       if (!rawName) {
@@ -691,11 +716,12 @@ import {
         showToast(t("clubPasswordSet"), "success");
       }
 
-      // 3. 儲存社團隱私中繼資料 (clubs_metadata - 包含 hasPassword 標記)
+      // 3. 儲存社團隱私與說明中繼資料 (clubs_metadata - 包含 hasPassword 與 description)
       const safeKey = encodeClubKey(rawName);
       const metaObj = {
         isPrivate: isPrivate,
         hasPassword: !!pwd,
+        description: description,
         createdAt: Date.now()
       };
       if (STATE.db) {
@@ -714,9 +740,6 @@ import {
       localMeta[safeKey] = metaObj;
       localMeta[rawName] = metaObj;
       localStorage.setItem("pb_clubs_metadata", JSON.stringify(localMeta));
-
-      if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
-      STATE.clubsMetadataMap[safeKey] = { isPrivate: isPrivate, createdAt: Date.now() };
 
       // 4. 加入目前會話已授權清單與儲存偏好
       STATE.authenticatedClubs.add(rawName);
@@ -827,15 +850,17 @@ import {
       const badgeBtn = document.getElementById("btn-club-identity");
       const iconEl = document.getElementById("club-identity-icon");
       const textEl = document.getElementById("t-club-identity-text");
-      if (!badgeBtn) return;
 
-      if (STATE.currentPage !== "history" || !clubName || !clubName.trim()) {
-        badgeBtn.classList.add("hidden");
+      const cleanClub = (clubName || STATE.currentClub || "").trim();
+      if (!cleanClub) {
+        if (badgeBtn) badgeBtn.classList.add("hidden");
         return;
       }
 
-      badgeBtn.classList.remove("hidden");
-      const cleanClub = clubName.trim();
+      if (badgeBtn) {
+        badgeBtn.classList.add("hidden"); // 頂部不再顯示身分按鈕，已移至個人資訊分頁
+      }
+
       const safeClub = typeof encodeClubKey === "function" ? encodeClubKey(cleanClub) : encodeURIComponent(cleanClub);
       const isZh = (STATE.lang === "zh-TW");
 
@@ -849,10 +874,9 @@ import {
       // 核心原則：若未登入 LINE 或 尚未加入此社團，在該社團 100% 視為未綁定身分
       if (!STATE.lineUserId || !isMyClub) {
         STATE.clubPlayerName = null;
-        badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-amber-500/80";
-        badgeBtn.title = isZh ? "您尚未加入此社團，加入社團後即可綁定球員姓名" : "Not joined. Join club to bind identity";
-        if (textEl) textEl.innerText = isZh ? "未綁定身分" : "Claim ID";
-        if (iconEl) iconEl.setAttribute("class", "w-3.5 h-3.5 text-amber-500");
+        if (typeof renderClubProfileTab === "function") {
+          renderClubProfileTab(cleanClub);
+        }
         lucide.createIcons();
         return;
       }
@@ -878,18 +902,22 @@ import {
 
       STATE.clubPlayerName = boundName || null;
 
-      if (boundName) {
-        // 已綁定狀態：顯示綠色標籤
-        badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-emerald-500/70";
-        badgeBtn.title = isZh ? `已綁定球員姓名：${boundName} (點擊可更換)` : `Bound to: ${boundName} (Click to change)`;
-        if (textEl) textEl.innerHTML = `<span class="hidden xs:inline">${isZh ? "球員：" : "Player: "}</span>${escapeHTML(boundName)}`;
-        if (iconEl) iconEl.setAttribute("class", "w-3.5 h-3.5 text-emerald-500");
-      } else {
-        // 未綁定狀態：顯示黃色/琥珀色提醒標籤
-        badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-amber-500/80";
-        badgeBtn.title = isZh ? "您在此社團尚未綁定球員姓名，點擊認領或自訂" : "No player identity bound. Click to claim";
-        if (textEl) textEl.innerText = isZh ? "未綁定身分" : "Claim ID";
-        if (iconEl) iconEl.setAttribute("class", "w-3.5 h-3.5 text-amber-500");
+      if (badgeBtn) {
+        if (boundName) {
+          badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-emerald-500/70";
+          badgeBtn.title = isZh ? `已綁定球員姓名：${boundName} (點擊可更換)` : `Bound to: ${boundName} (Click to change)`;
+          if (textEl) textEl.innerHTML = `<span class="hidden xs:inline">${isZh ? "球員：" : "Player: "}</span>${escapeHTML(boundName)}`;
+          if (iconEl) iconEl.setAttribute("class", "w-3.5 h-3.5 text-emerald-500");
+        } else {
+          badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-amber-500/80";
+          badgeBtn.title = isZh ? "您在此社團尚未綁定球員姓名，點擊認領或自訂" : "No player identity bound. Click to claim";
+          if (textEl) textEl.innerText = isZh ? "未綁定身分" : "Claim ID";
+          if (iconEl) iconEl.setAttribute("class", "w-3.5 h-3.5 text-amber-500");
+        }
+      }
+
+      if (typeof renderClubProfileTab === "function") {
+        renderClubProfileTab(cleanClub);
       }
       lucide.createIcons();
     }
@@ -1379,6 +1407,256 @@ import {
     }
     window.handleDirectUnbindClick = handleDirectUnbindClick;
 
+    // ----------------------------------------------------
+    // CLUB SPACE 4-TABS NAVIGATION & CONTENT RENDERING
+    // ----------------------------------------------------
+    function switchClubTab(targetTab) {
+      const validTabs = ["activities", "records", "profile", "info"];
+      if (!validTabs.includes(targetTab)) targetTab = "activities";
+
+      STATE.activeClubTab = targetTab;
+
+      validTabs.forEach(tName => {
+        const isCurrent = (tName === targetTab);
+        const container = document.getElementById(`content-tab-${tName}`);
+        if (container) {
+          if (isCurrent) {
+            container.classList.remove("hidden");
+          } else {
+            container.classList.add("hidden");
+          }
+        }
+
+        // 手機版底部導覽按鈕 (#tab-btn-*)
+        const bottomBtn = document.getElementById(`tab-btn-${tName}`);
+        if (bottomBtn) {
+          if (isCurrent) {
+            bottomBtn.className = "flex flex-col items-center justify-center gap-1 text-[10px] font-bold text-emerald-500 transition active:scale-95";
+          } else {
+            bottomBtn.className = "flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition active:scale-95";
+          }
+        }
+
+        // 桌面版分頁標籤按鈕 (#desktop-tab-btn-*)
+        const desktopBtn = document.getElementById(`desktop-tab-btn-${tName}`);
+        if (desktopBtn) {
+          if (isCurrent) {
+            desktopBtn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30";
+          } else {
+            desktopBtn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border";
+          }
+        }
+      });
+
+      if (targetTab === "profile") {
+        renderClubProfileTab(STATE.currentClub);
+      } else if (targetTab === "info") {
+        renderClubInfoTab(STATE.currentClub);
+      }
+
+      lucide.createIcons();
+    }
+    window.switchClubTab = switchClubTab;
+
+    async function renderClubInfoTab(clubName) {
+      const descEl = document.getElementById("club-info-description-text");
+      if (!descEl) return;
+      const name = clubName || STATE.currentClub;
+      const isZh = (STATE.lang === "zh-TW");
+      if (!name) {
+        descEl.innerText = isZh ? "尚未選擇社團" : "No club selected";
+        return;
+      }
+
+      const safeKey = typeof encodeClubKey === "function" ? encodeClubKey(name) : encodeURIComponent(name);
+      let meta = (STATE.clubsMetadataMap && (STATE.clubsMetadataMap[safeKey] || STATE.clubsMetadataMap[name]))
+        || (JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}")[safeKey])
+        || (JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}")[name]);
+
+      if ((!meta || meta.description === undefined) && STATE.db) {
+        try {
+          const snap = await get(ref(STATE.db, `clubs_metadata/${safeKey}`));
+          if (snap.exists()) {
+            meta = snap.val();
+            if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
+            STATE.clubsMetadataMap[safeKey] = meta;
+            STATE.clubsMetadataMap[name] = meta;
+          }
+        } catch (e) {
+          console.warn("[Club Info] fetch metadata error:", e);
+        }
+      }
+
+      const desc = (meta && meta.description && meta.description.trim()) ? meta.description.trim() : "";
+      if (desc) {
+        descEl.innerText = desc;
+        descEl.className = "text-xs sm:text-sm text-stone-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed";
+      } else {
+        descEl.innerText = isZh ? "此社團目前尚未填寫簡介說明。" : "No club description provided yet.";
+        descEl.className = "text-xs sm:text-sm sub-text italic whitespace-pre-wrap leading-relaxed";
+      }
+    }
+    window.renderClubInfoTab = renderClubInfoTab;
+
+    async function renderClubProfileTab(clubName) {
+      const statusBadgeEl = document.getElementById("club-profile-badge-status");
+      const detailWrapEl = document.getElementById("club-profile-detail-wrap");
+      const actionBtnTextEl = document.getElementById("btn-club-profile-action-text");
+      const actionBtn = document.getElementById("btn-club-profile-action");
+      if (!detailWrapEl) return;
+
+      const name = clubName || STATE.currentClub;
+      const isZh = (STATE.lang === "zh-TW");
+
+      if (!STATE.lineUserId) {
+        if (statusBadgeEl) {
+          statusBadgeEl.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold card-inner border text-stone-500">${isZh ? "訪客模式" : "Guest"}</span>`;
+        }
+        detailWrapEl.innerHTML = `
+          <div class="text-center py-4 space-y-2">
+            <i data-lucide="shield-alert" class="w-8 h-8 text-stone-400 mx-auto"></i>
+            <p class="text-xs sub-text">${isZh ? "您目前尚未登入 LINE，無法綁定專屬球員身分及累計長期戰績。" : "Not logged in with LINE. Login to bind identity and track records."}</p>
+          </div>
+        `;
+        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "登入 LINE" : "Log in with LINE";
+        if (actionBtn) {
+          actionBtn.onclick = () => {
+            if (typeof showLineLoginModal === "function") showLineLoginModal();
+            else openLineLoginPromptModal();
+          };
+        }
+        lucide.createIcons();
+        return;
+      }
+
+      const isMyClub = !!(Array.isArray(STATE.myClubs) && name && STATE.myClubs.includes(name));
+      if (!isMyClub) {
+        if (statusBadgeEl) {
+          statusBadgeEl.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">${isZh ? "尚未加入社團" : "Not Joined"}</span>`;
+        }
+        detailWrapEl.innerHTML = `
+          <div class="text-center py-4 space-y-2">
+            <i data-lucide="user-plus" class="w-8 h-8 text-amber-500 mx-auto"></i>
+            <p class="text-xs sub-text">${isZh ? "請先點擊上方「加入」，將此社團加入專屬清單後即可認領球員姓名！" : "Please join this club first to claim or bind your player identity."}</p>
+          </div>
+        `;
+        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "加入社團" : "Join Club";
+        if (actionBtn) {
+          actionBtn.onclick = () => toggleAddCurrentClub();
+        }
+        lucide.createIcons();
+        return;
+      }
+
+      const cleanClub = name.trim();
+      const safeClub = typeof encodeClubKey === "function" ? encodeClubKey(cleanClub) : encodeURIComponent(cleanClub);
+      let boundName = localStorage.getItem(`pb_bound_name_${cleanClub}`);
+
+      if (STATE.db) {
+        try {
+          const snap = await get(ref(STATE.db, `club_mappings/${safeClub}/${STATE.lineUserId}`));
+          if (snap.exists() && snap.val()) {
+            boundName = String(snap.val()).trim();
+            localStorage.setItem(`pb_bound_name_${cleanClub}`, boundName);
+          } else if (!snap.exists()) {
+            boundName = null;
+            localStorage.removeItem(`pb_bound_name_${cleanClub}`);
+          }
+        } catch (e) {
+          console.warn("[Club Profile Tab] fetch mapping error:", e);
+        }
+      }
+
+      STATE.clubPlayerName = boundName || null;
+
+      if (boundName) {
+        if (statusBadgeEl) {
+          statusBadgeEl.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">${isZh ? `已綁定：${escapeHTML(boundName)}` : `Bound: ${escapeHTML(boundName)}`}</span>`;
+        }
+
+        let playerStats = { games: 0, wins: 0, losses: 0, winRate: 0, diff: 0 };
+        const allT = (STATE.allTournamentsCache || []).filter(t => (t.clubName || '').trim() === cleanClub && isTournamentFinished(t));
+        allT.forEach(t => {
+          if (getTournamentIsTeamMode(t)) return;
+          (t.matches || []).forEach(m => {
+            if (m.voided || !m.completed || m.blueScore == null || m.redScore == null) return;
+            const inBlue = (m.blueTeam || []).includes(boundName);
+            const inRed = (m.redTeam || []).includes(boundName);
+            if (!inBlue && !inRed) return;
+
+            const bScore = parseInt(m.blueScore) || 0;
+            const rScore = parseInt(m.redScore) || 0;
+            playerStats.games++;
+            if (inBlue) {
+              playerStats.diff += (bScore - rScore);
+              if (bScore > rScore) playerStats.wins++;
+              else if (rScore > bScore) playerStats.losses++;
+            } else {
+              playerStats.diff += (rScore - bScore);
+              if (rScore > bScore) playerStats.wins++;
+              else if (bScore > rScore) playerStats.losses++;
+            }
+          });
+        });
+        if (playerStats.games > 0) {
+          playerStats.winRate = Math.round((playerStats.wins / playerStats.games) * 100);
+        }
+
+        detailWrapEl.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b pb-2.5 border-stone-200/60 dark:border-slate-800">
+              <div>
+                <span class="text-[10px] sub-text block">${isZh ? "當前綁定球員暱稱" : "Bound Player Name"}</span>
+                <div class="text-base sm:text-lg font-bold text-stone-900 dark:text-white">${escapeHTML(boundName)}</div>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] sub-text block">${isZh ? "LINE 身分狀態" : "LINE Status"}</span>
+                <div class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${isZh ? "已雲端同步" : "Synced"}
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-center pt-1">
+              <div class="p-2.5 rounded-xl card-inner border">
+                <div class="text-[10px] sub-text">${isZh ? "出賽局數" : "Games"}</div>
+                <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white mt-0.5">${playerStats.games}</div>
+              </div>
+              <div class="p-2.5 rounded-xl card-inner border">
+                <div class="text-[10px] sub-text">${isZh ? "個人勝率" : "Win Rate"}</div>
+                <div class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">${playerStats.winRate}%</div>
+              </div>
+              <div class="p-2.5 rounded-xl card-inner border">
+                <div class="text-[10px] sub-text">${isZh ? "勝 / 敗場" : "W / L"}</div>
+                <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white mt-0.5">${playerStats.wins} / ${playerStats.losses}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "更換 / 解除綁定身分" : "Change / Unbind Identity";
+        if (actionBtn) {
+          actionBtn.onclick = () => handleClubIdentityBadgeClick();
+        }
+      } else {
+        if (statusBadgeEl) {
+          statusBadgeEl.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">${isZh ? "尚未綁定身分" : "Unbound"}</span>`;
+        }
+        detailWrapEl.innerHTML = `
+          <div class="text-center py-4 space-y-2">
+            <i data-lucide="user-x" class="w-8 h-8 text-amber-500 mx-auto"></i>
+            <p class="text-xs sub-text">${isZh ? "您尚未在此社團綁定身分。點擊下方按鈕認領或設定球員姓名，未來戰績即可永久累積！" : "You have not bound your player identity yet. Click below to claim or set name."}</p>
+          </div>
+        `;
+        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "🔗 綁定社團身分" : "Claim Player Identity";
+        if (actionBtn) {
+          actionBtn.onclick = () => handleClubIdentityBadgeClick();
+        }
+      }
+
+      lucide.createIcons();
+    }
+    window.renderClubProfileTab = renderClubProfileTab;
+
     async function openClubSpace(clubName) {
       if (clubName && clubName.trim()) {
         const clean = clubName.trim();
@@ -1392,6 +1670,15 @@ import {
       }
       navigateTo("history");
       updateNavClubSelectValue();
+
+      // 強制將 Tab 重置為 tab-activities
+      switchClubTab("activities");
+
+      // 顯示社團底部導覽列
+      const clubBottomNav = document.getElementById("club-bottom-nav");
+      if (clubBottomNav) {
+        clubBottomNav.classList.remove("hidden");
+      }
 
       // 檢查並提示 LINE 身分認領
       if (STATE.currentClub && STATE.lineUserId) {
@@ -1492,7 +1779,7 @@ import {
       if (contentContainer) contentContainer.classList.remove("hidden");
       if (headerActionsEl) headerActionsEl.classList.remove("hidden");
       if (btnClubCreate) btnClubCreate.classList.remove("hidden");
-      if (btnShareClub) btnShareClub.classList.remove("hidden");
+      if (btnShareClub) btnShareClub.classList.add("hidden"); // 已移入社團說明分頁
       if (headerTitleEl) headerTitleEl.innerText = `${clubName} 社團大廳`;
       if (headerSubEl) headerSubEl.innerText = `${clubName} 專屬戰績榜、歷次賽事存檔與出賽名冊`;
 
@@ -1503,6 +1790,7 @@ import {
       // Render Active Tournaments for this Club
       const clubActiveSection = document.getElementById("club-active-section");
       const clubActiveListEl = document.getElementById("club-active-tournaments-list");
+      const clubNoActivitiesHint = document.getElementById("club-no-activities-hint");
       const clubActiveTournaments = clubTournamentsAll.filter(t => {
         const total = t.matches ? t.matches.length : 0;
         const done = t.matches ? t.matches.filter(m => m.completed || m.voided).length : 0;
@@ -1512,6 +1800,7 @@ import {
       if (clubActiveSection && clubActiveListEl) {
         if (clubActiveTournaments.length > 0) {
           clubActiveSection.classList.remove("hidden");
+          if (clubNoActivitiesHint) clubNoActivitiesHint.classList.add("hidden");
           clubActiveListEl.innerHTML = clubActiveTournaments.map(tData => {
             const isReg = tData.status === "registering";
             const pCount = tData.players ? tData.players.length : 0;
@@ -1542,7 +1831,9 @@ import {
             `;
           }).join("");
         } else {
-          clubActiveSection.classList.add("hidden");
+          clubActiveSection.classList.remove("hidden");
+          clubActiveListEl.innerHTML = "";
+          if (clubNoActivitiesHint) clubNoActivitiesHint.classList.remove("hidden");
         }
       }
 
@@ -1558,6 +1849,12 @@ import {
       populateHistoryMonthSelect(completedClubTournaments);
       renderHistoryClubAggregate(completedClubTournaments);
       renderHistoryTournamentCards(completedClubTournaments, tournamentsListEl);
+
+      if (STATE.activeClubTab === "profile" && typeof renderClubProfileTab === "function") {
+        renderClubProfileTab(clubName);
+      } else if (STATE.activeClubTab === "info" && typeof renderClubInfoTab === "function") {
+        renderClubInfoTab(clubName);
+      }
 
       lucide.createIcons();
     }

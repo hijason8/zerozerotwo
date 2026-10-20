@@ -321,11 +321,11 @@ function applyDynamicLanguageUI(isZh) {
     }
   }
 
-  // 加入/退出常用社團按鈕
-  const btnRemoveMyClubEl = document.getElementById("t-btn-remove-my-club");
-  if (btnRemoveMyClubEl) {
+  // 加入/退出社團按鈕
+  const btnToggleMyClubEl = document.getElementById("t-btn-toggle-my-club") || document.getElementById("t-btn-remove-my-club");
+  if (btnToggleMyClubEl) {
     const isMyClub = !!(STATE.lineUserId && Array.isArray(STATE.myClubs) && STATE.currentClub && STATE.myClubs.includes(STATE.currentClub));
-    btnRemoveMyClubEl.innerText = isMyClub ? (isZh ? "退出社團" : "Leave Club") : (isZh ? "+ 加入社團" : "+ Join Club");
+    btnToggleMyClubEl.innerText = isMyClub ? (isZh ? "已加入" : "Joined") : (isZh ? "加入" : "Join");
   }
 
   // 完賽歷史展開/收合狀態文案

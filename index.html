@@ -207,33 +207,16 @@
         </div>
       </div>
 
-      <!-- 右側動作按鈕組 (1.加入/退出社團 + 2.分享社團 + 3.身分綁定 + 4.建立新賽事) -->
-      <div id="club-space-header-actions" class="flex items-center gap-1 sm:gap-2 shrink-0">
-        <!-- 1. 加入社團的+號 / 退出社團按鈕 (第一個) -->
-        <button type="button" id="btn-remove-my-club" onclick="removeMyClub()"
-          class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-rose-500/50 text-xs font-semibold sub-text hover:text-rose-500 transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
+      <!-- 右側動作按鈕組 (1.加入/已加入社團 + 2.建立新賽事) -->
+      <div id="club-space-header-actions" class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <!-- 1. 加入 / 已加入 社團按鈕 -->
+        <button type="button" id="btn-toggle-my-club" onclick="toggleCurrentClubStatus()"
+          class="hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
           title="加入或退出社團">
-          <i data-lucide="plus" class="w-3.5 h-3.5 text-teal-500"></i>
-          <span id="t-btn-remove-my-club" class="hidden xs:inline">+ 加入社團</span>
+          <span id="t-btn-toggle-my-club">加入</span>
         </button>
 
-        <!-- 2. 分享符號按鈕 (第二個) -->
-        <button type="button" id="btn-share-club" onclick="copyClubLink()"
-          class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
-          title="分享此社團專屬連結">
-          <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-          <span id="t-btn-share-club" class="hidden xs:inline">分享社團</span>
-        </button>
-
-        <!-- 3. 未綁定身分按鈕 (第三個) -->
-        <button type="button" id="btn-club-identity" onclick="handleClubIdentityBadgeClick()"
-          class="hidden px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
-          title="社團球員身分狀態">
-          <i data-lucide="user" class="w-3.5 h-3.5" id="club-identity-icon"></i>
-          <span id="t-club-identity-text">未綁定身分</span>
-        </button>
-
-        <!-- 4. 建立新賽事按鈕 (第四個) -->
+        <!-- 2. 建立新賽事按鈕 -->
         <button type="button" id="t-create-new-btn" onclick="handleSharedCreateTournament()"
           class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs shadow-md hover:shadow-emerald-500/25 flex items-center gap-1 transition active:scale-95 shrink-0 cursor-pointer">
           <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-create-new-btn-text">建立新賽事</span>
@@ -932,65 +915,169 @@
       </div>
 
       <!-- 3. Club Content -->
-      <div id="club-content-container" class="space-y-4 sm:space-y-6">
-        <!-- Club Active Tournaments (進行中的社團賽事) -->
-        <div id="club-active-section" class="hidden space-y-3">
-          <h3
-            class="text-sm sm:text-base font-bold text-amber-600 dark:text-amber-400 font-display flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <span>進行中的社團賽事</span>
-          </h3>
-          <div id="club-active-tournaments-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div id="club-content-container" class="space-y-4 sm:space-y-6 pb-20 sm:pb-6">
+        <!-- 桌面版分頁標籤 (sm:flex，手機版則使用固定在底部的導覽列) -->
+        <div class="hidden sm:flex items-center gap-2 border-b border-stone-200 dark:border-slate-800 pb-2">
+          <button type="button" id="desktop-tab-btn-activities" onclick="switchClubTab('activities')"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+            <i data-lucide="play-circle" class="w-4 h-4"></i> 活動
+          </button>
+          <button type="button" id="desktop-tab-btn-records" onclick="switchClubTab('records')"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
+            <i data-lucide="trophy" class="w-4 h-4"></i> 戰績
+          </button>
+          <button type="button" id="desktop-tab-btn-profile" onclick="switchClubTab('profile')"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
+            <i data-lucide="user" class="w-4 h-4"></i> 個人資訊
+          </button>
+          <button type="button" id="desktop-tab-btn-info" onclick="switchClubTab('info')"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
+            <i data-lucide="info" class="w-4 h-4"></i> 社團說明
+          </button>
+        </div>
+
+        <!-- TAB 1: 活動 (#content-tab-activities，預設顯示) -->
+        <div id="content-tab-activities" class="space-y-4">
+          <div id="club-active-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h3
+                class="text-sm sm:text-base font-bold text-amber-600 dark:text-amber-400 font-display flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <span>進行中與報名中的球局</span>
+              </h3>
+            </div>
+            <div id="club-active-tournaments-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <!-- Rendered dynamically -->
+            </div>
+            <!-- 當無任何活動時的空狀態提示 -->
+            <div id="club-no-activities-hint" class="hidden glass-card rounded-2xl p-8 text-center space-y-2 border">
+              <i data-lucide="calendar-x" class="w-8 h-8 text-stone-400 mx-auto"></i>
+              <p class="text-xs sub-text">目前尚無進行中或報名中的球局，點擊右上角「建立新賽事」即可開團！</p>
+            </div>
           </div>
         </div>
 
-        <!-- Club Aggregate Leaderboard (Top: 社團參賽紀錄 / 總積分榜) -->
-        <div id="history-club-aggregate-section" class="space-y-3">
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <h3 class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-              <i data-lucide="crown" class="w-4 h-4 text-amber-500"></i>
-              <span id="t-history-aggregate-heading">社團參賽紀錄</span> (<span id="history-aggregate-club-name"></span>)
+        <!-- TAB 2: 戰績 (#content-tab-records，預設隱藏) -->
+        <div id="content-tab-records" class="hidden space-y-4 sm:space-y-6">
+          <!-- Club Aggregate Leaderboard (Top: 社團參賽紀錄 / 總積分榜) -->
+          <div id="history-club-aggregate-section" class="space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <h3 class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <i data-lucide="crown" class="w-4 h-4 text-amber-500"></i>
+                <span id="t-history-aggregate-heading">社團參賽紀錄</span> (<span id="history-aggregate-club-name"></span>)
+              </h3>
+              <!-- Month Filter -->
+              <div class="flex items-center gap-1.5 text-xs">
+                <span id="t-history-month-label" class="sub-text">月份：</span>
+                <select id="history-month-select" onchange="setHistoryMonthFilter(this.value)"
+                  class="input-bg border rounded-lg px-2 py-1 text-xs focus:border-emerald-500 focus:outline-none">
+                  <option value="all">全部月份</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Aggregate Table Card -->
+            <div class="glass-card rounded-2xl overflow-hidden border">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
+                    <tr>
+                      <th id="th-agg-player" class="py-2.5 px-3">選手名稱</th>
+                      <th id="th-agg-games" class="py-2.5 px-2 text-center">出賽局數</th>
+                      <th id="th-agg-winrate" class="py-2.5 px-2 text-center">總勝率</th>
+                      <th id="th-agg-wl" class="py-2.5 px-2 text-center">勝/敗場</th>
+                      <th id="th-agg-diff" class="py-2.5 px-2 text-center">總淨勝分</th>
+                      <th id="th-agg-pfpa" class="py-2.5 px-2 text-center">總得/失分</th>
+                    </tr>
+                  </thead>
+                  <tbody id="history-aggregate-tbody" class="divide-y font-medium text-xs">
+                    <!-- Rendered dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Club Match Archives (Bottom: 歷次賽事紀錄) -->
+          <div class="space-y-3">
+            <h3 id="history-matches-section-title"
+              class="text-sm sm:text-base font-bold flex items-center gap-1.5 sub-text">
+              <i data-lucide="calendar" class="w-4 h-4"></i> 歷次賽事紀錄
             </h3>
-            <!-- Month Filter -->
-            <div class="flex items-center gap-1.5 text-xs">
-              <span id="t-history-month-label" class="sub-text">月份：</span>
-              <select id="history-month-select" onchange="setHistoryMonthFilter(this.value)"
-                class="input-bg border rounded-lg px-2 py-1 text-xs focus:border-emerald-500 focus:outline-none">
-                <option value="all">全部月份</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Aggregate Table Card -->
-          <div class="glass-card rounded-2xl overflow-hidden border">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
-                  <tr>
-                    <th id="th-agg-player" class="py-2.5 px-3">選手名稱</th>
-                    <th id="th-agg-games" class="py-2.5 px-2 text-center">出賽局數</th>
-                    <th id="th-agg-winrate" class="py-2.5 px-2 text-center">總勝率</th>
-                    <th id="th-agg-wl" class="py-2.5 px-2 text-center">勝/敗場</th>
-                    <th id="th-agg-diff" class="py-2.5 px-2 text-center">總淨勝分</th>
-                    <th id="th-agg-pfpa" class="py-2.5 px-2 text-center">總得/失分</th>
-                  </tr>
-                </thead>
-                <tbody id="history-aggregate-tbody" class="divide-y font-medium text-xs">
-                  <!-- Rendered dynamically -->
-                </tbody>
-              </table>
+            <div id="history-tournaments-list" class="space-y-4">
+              <!-- Rendered dynamically -->
             </div>
           </div>
         </div>
 
-        <!-- Club Match Archives (Bottom: 歷次賽事紀錄) -->
-        <div class="space-y-3">
-          <h3 id="history-matches-section-title"
-            class="text-sm sm:text-base font-bold flex items-center gap-1.5 sub-text">
-            <i data-lucide="calendar" class="w-4 h-4"></i> 歷次賽事紀錄
-          </h3>
-          <div id="history-tournaments-list" class="space-y-4">
-            <!-- Rendered dynamically -->
+        <!-- TAB 3: 個人資訊 (#content-tab-profile，預設隱藏) -->
+        <div id="content-tab-profile" class="hidden space-y-4">
+          <!-- 滿寬身分綁定卡片 -->
+          <div class="glass-card rounded-2xl p-5 border space-y-4 shadow-sm text-left">
+            <div class="flex items-center justify-between border-b pb-3 border-stone-200 dark:border-slate-800">
+              <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                  <i data-lucide="user-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm sm:text-base font-bold font-display text-stone-900 dark:text-white">社團球員身分綁定</h4>
+                  <p class="text-xs sub-text">管理您在此社團的參賽暱稱與專屬戰績</p>
+                </div>
+              </div>
+              <div id="club-profile-badge-status" class="shrink-0">
+                <!-- 動態注入已綁定/未綁定狀態標籤 -->
+              </div>
+            </div>
+
+            <!-- 身分資訊與說明 -->
+            <div class="space-y-3">
+              <p class="text-xs sub-text leading-relaxed bg-stone-500/5 p-3 rounded-xl border border-stone-200/60 dark:border-slate-800">
+                💡 <strong>提示：</strong>綁定社團專屬身分後，即可在此累積並查看個人歷史勝率與數據，報名出賽亦能一鍵完成。
+              </p>
+
+              <!-- 當前綁定角色顯示區 -->
+              <div id="club-profile-detail-wrap" class="p-3.5 rounded-xl card-inner border space-y-2">
+                <!-- 動態注入綁定角色名稱、出賽統計，或者未綁定提示 -->
+              </div>
+
+              <!-- 動作按鈕：綁定身分 / 重新認領 -->
+              <div class="pt-1 flex gap-2">
+                <button type="button" id="btn-club-profile-action" onclick="handleClubIdentityBadgeClick()"
+                  class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
+                  <i data-lucide="link" class="w-4 h-4"></i>
+                  <span id="btn-club-profile-action-text">綁定身分</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: 社團說明 (#content-tab-info，預設隱藏) -->
+        <div id="content-tab-info" class="hidden space-y-4">
+          <!-- 社團簡介卡片 -->
+          <div class="glass-card rounded-2xl p-5 border space-y-3 shadow-sm text-left">
+            <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm border-b pb-2.5 border-stone-200 dark:border-slate-800">
+              <i data-lucide="info" class="w-4 h-4"></i>
+              <span>關於社團</span>
+            </div>
+            <div>
+              <p id="club-info-description-text" class="text-xs sm:text-sm sub-text whitespace-pre-wrap leading-relaxed">
+                目前暫無社團簡介。
+              </p>
+            </div>
+          </div>
+
+          <!-- 分享社團專屬連結大按鈕 -->
+          <div class="glass-card rounded-2xl p-5 border space-y-3 shadow-sm text-left">
+            <div class="space-y-1">
+              <h4 class="text-sm font-bold text-stone-900 dark:text-white">邀請球友加入</h4>
+              <p class="text-xs sub-text">複製社團專屬網址，傳送至 LINE 好友或群組即可快速進入社團大廳！</p>
+            </div>
+            <button type="button" id="btn-share-club-full" onclick="copyClubLink()"
+              class="w-full py-3 px-4 rounded-xl card-inner border hover:border-emerald-500/50 hover:bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-sm active:scale-95 cursor-pointer">
+              <i data-lucide="share-2" class="w-4 h-4"></i>
+              <span>🔗 分享社團專屬連結</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1900,6 +1987,13 @@
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
         </div>
 
+        <div>
+          <label class="block text-xs font-semibold mb-1">社團簡介 / 說明 (選填)</label>
+          <textarea id="modal-create-club-desc-input" rows="3" maxlength="150"
+            placeholder="例如：每週三五固定開團，歡迎 3.0 以上球友"
+            class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none"></textarea>
+        </div>
+
         <!-- 社團隱私設定 (公開 vs 私密) -->
         <div>
           <label class="block text-xs font-semibold mb-1.5" id="t-label-modal-club-privacy">社團隱私設定</label>
@@ -1997,7 +2091,39 @@
     </div>
   </div>
 
+  <!-- ==================== CLUB BOTTOM NAVIGATION (社團專屬 4 分頁底部導覽列) ==================== -->
+  <nav id="club-bottom-nav"
+    class="fixed bottom-0 left-0 w-full glass-nav border-t border-stone-200 dark:border-slate-800 z-40 pb-safe sm:hidden hidden transition-all">
+    <div class="grid grid-cols-4 h-14 max-w-md mx-auto items-center text-center px-1">
+      <!-- Tab 1: 活動 -->
+      <button type="button" id="tab-btn-activities" onclick="switchClubTab('activities')"
+        class="flex flex-col items-center justify-center gap-0.5 py-1 text-emerald-500 font-bold transition">
+        <i data-lucide="play-circle" class="w-5 h-5"></i>
+        <span class="text-[10px] leading-tight">活動</span>
+      </button>
 
+      <!-- Tab 2: 戰績 -->
+      <button type="button" id="tab-btn-records" onclick="switchClubTab('records')"
+        class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
+        <i data-lucide="trophy" class="w-5 h-5"></i>
+        <span class="text-[10px] leading-tight">戰績</span>
+      </button>
+
+      <!-- Tab 3: 個人資訊 -->
+      <button type="button" id="tab-btn-profile" onclick="switchClubTab('profile')"
+        class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
+        <i data-lucide="user" class="w-5 h-5"></i>
+        <span class="text-[10px] leading-tight">個人資訊</span>
+      </button>
+
+      <!-- Tab 4: 社團說明 -->
+      <button type="button" id="tab-btn-info" onclick="switchClubTab('info')"
+        class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
+        <i data-lucide="info" class="w-5 h-5"></i>
+        <span class="text-[10px] leading-tight">社團說明</span>
+      </button>
+    </div>
+  </nav>
 
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
@@ -2039,14 +2165,14 @@
       safeSetLocal,
       safeGetLocalJSON,
       sha256
-    } from "./utils.js?v=20261020-10";
-    import "./club.js?v=20261020-10";
-    import "./tournament-create.js?v=20261020-10";
-    import "./live.js?v=20261020-10";
-    import "./activities.js?v=20261020-10";
-    import "./hub.js?v=20261020-10";
-    import "./line.js?v=20261020-10";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-10";
+    } from "./utils.js?v=20261020-11";
+    import "./club.js?v=20261020-11";
+    import "./tournament-create.js?v=20261020-11";
+    import "./live.js?v=20261020-11";
+    import "./activities.js?v=20261020-11";
+    import "./hub.js?v=20261020-11";
+    import "./line.js?v=20261020-11";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-11";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2467,6 +2593,16 @@
           sharedHeader.classList.remove("hidden");
         } else {
           sharedHeader.classList.add("hidden");
+        }
+      }
+
+      // 控制社團專屬 4 分頁底部導覽列 (僅在社團大廳且已選定社團時顯示)
+      const clubBottomNav = document.getElementById("club-bottom-nav");
+      if (clubBottomNav) {
+        if (pageName === "history" && STATE.currentClub) {
+          clubBottomNav.classList.remove("hidden");
+        } else {
+          clubBottomNav.classList.add("hidden");
         }
       }
 
