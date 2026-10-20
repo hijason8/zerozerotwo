@@ -1545,7 +1545,7 @@ function renderMatchesList(matches, hasAdmin = false) {
     completionCardHTML = `
       <div class="glass-card rounded-2xl p-4 sm:p-5 border-2 border-amber-500/60 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
         <div class="flex items-center gap-3 w-full sm:w-auto">
-          <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-md animate-bounce">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500">
               <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
               <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
@@ -1555,7 +1555,7 @@ function renderMatchesList(matches, hasAdmin = false) {
             </svg>
           </div>
           <div>
-            <h4 class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? "🎉 所有場次比分已登錄完成！" : "🎉 All matches have been scored!"}</h4>
+            <h4 class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? "所有場次比分已登錄完成！" : "All matches have been scored!"}</h4>
             <p class="text-xs sub-text">${isZh ? "請核對分數無誤後，點選下方按鈕結束賽事並凍結結算。" : "Please verify scores, then click the button below to end tournament and finalize results."}</p>
           </div>
         </div>
