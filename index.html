@@ -1982,7 +1982,7 @@
 
       <form onsubmit="handleModalCreateClubSubmit(event)" class="space-y-3.5">
         <div>
-          <label id="t-label-modal-club-name" class="block text-xs font-semibold mb-1">社團 / 球隊名稱 <span
+          <label id="t-label-modal-club-name" class="block text-xs font-semibold mb-1">社團 <span
               class="text-rose-500">*</span></label>
           <input type="text" id="modal-create-club-name" required maxlength="12" placeholder="請輸入社團名稱 (上限12字)"
             autocomplete="off"
@@ -1990,9 +1990,9 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold mb-1">社團簡介 / 說明 (選填)</label>
-          <textarea id="modal-create-club-desc-input" rows="3" maxlength="150"
-            placeholder="例如：每週三五固定開團，歡迎 3.0 以上球友"
+          <label id="t-label-modal-club-desc" class="block text-xs font-semibold mb-1">社團簡介 (選填)</label>
+          <textarea id="modal-create-club-desc-input" rows="3" maxlength="200"
+            placeholder="上限200字"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none"></textarea>
         </div>
 
@@ -2002,16 +2002,16 @@
           <input type="hidden" id="modal-club-is-private" value="false" />
           <div class="grid grid-cols-2 gap-2">
             <button type="button" id="modal-club-btn-public" onclick="setModalClubPrivacy(false)"
-              class="p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 shadow-sm">
-              <div class="flex items-center gap-1.5 font-bold">
+              class="p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 shadow-sm text-center">
+              <div class="flex items-center justify-center gap-1.5 font-bold">
                 <i data-lucide="globe" class="w-3.5 h-3.5"></i>
                 <span id="t-modal-club-public-title">公開社團</span>
               </div>
               <span id="t-modal-club-public-desc" class="text-[10px] sub-text font-normal text-center">全站探索可見</span>
             </button>
             <button type="button" id="modal-club-btn-private" onclick="setModalClubPrivacy(true)"
-              class="p-2.5 rounded-xl border border-stone-200 dark:border-slate-800 card-inner sub-text font-semibold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 hover:border-stone-400">
-              <div class="flex items-center gap-1.5 font-bold">
+              class="p-2.5 rounded-xl border border-stone-200 dark:border-slate-800 card-inner sub-text font-semibold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 hover:border-stone-400 text-center">
+              <div class="flex items-center justify-center gap-1.5 font-bold">
                 <i data-lucide="lock" class="w-3.5 h-3.5"></i>
                 <span id="t-modal-club-private-title">私密社團</span>
               </div>
@@ -2028,14 +2028,14 @@
             若設定密碼，未來修改此社團的簡介說明、公開隱私與設定時須輸入此密碼驗證，若留白則開放自由編輯；賽事計分則採現場互信制免輸密碼。</p>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-2">
+        <div class="grid grid-cols-2 gap-2 pt-2">
           <button type="button" onclick="closeCreateClubModal()" id="t-btn-cancel-create-club"
-            class="px-3.5 py-2 rounded-xl card-inner border text-xs font-semibold hover:border-stone-400 transition cursor-pointer">
+            class="py-2.5 px-3 rounded-xl card-inner border font-bold text-xs hover:border-stone-400 transition text-center flex items-center justify-center cursor-pointer">
             取消
           </button>
           <button type="submit" id="t-btn-submit-create-club"
-            class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            class="py-2.5 px-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
+            <i data-lucide="plus" class="w-3.5 h-3.5" id="modal-create-club-submit-icon"></i>
             <span id="t-btn-submit-create-club-text">確認建立</span>
           </button>
         </div>
@@ -2146,7 +2146,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261020-15";
+    import { I18N } from "./i18n.js?v=20261020-16";
     window.I18N = I18N;
 
     function t(key) {
@@ -2167,14 +2167,14 @@
       safeSetLocal,
       safeGetLocalJSON,
       sha256
-    } from "./utils.js?v=20261020-15";
-    import "./club.js?v=20261020-15";
-    import "./tournament-create.js?v=20261020-15";
-    import "./live.js?v=20261020-15";
-    import "./activities.js?v=20261020-15";
-    import "./hub.js?v=20261020-15";
-    import "./line.js?v=20261020-15";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-15";
+    } from "./utils.js?v=20261020-16";
+    import "./club.js?v=20261020-16";
+    import "./tournament-create.js?v=20261020-16";
+    import "./live.js?v=20261020-16";
+    import "./activities.js?v=20261020-16";
+    import "./hub.js?v=20261020-16";
+    import "./line.js?v=20261020-16";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-16";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

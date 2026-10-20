@@ -316,8 +316,10 @@ export const I18N = {
     // Create Club Modal & Messages
     createClubModalTitle: "建立新社團",
     createClubModalDesc: "建立專屬社團大廳與歷次戰績存檔",
-    labelModalClubName: "社團 / 球隊名稱",
+    labelModalClubName: "社團",
     placeholderModalClubName: "請輸入社團名稱 (上限12字)",
+    labelModalClubDesc: "社團簡介 (選填)",
+    placeholderModalClubDesc: "上限200字",
     labelModalClubPrivacy: "社團隱私設定",
     modalClubPublicTitle: "公開社團",
     modalClubPublicDesc: "全站探索可見",
@@ -668,8 +670,10 @@ export const I18N = {
     // Create Club Modal & Messages
     createClubModalTitle: "Create New Club",
     createClubModalDesc: "Create dedicated club lobby and archives",
-    labelModalClubName: "Club / Team Name",
+    labelModalClubName: "Club",
     placeholderModalClubName: "Enter club name (max 12 chars)",
+    labelModalClubDesc: "Club Description (Optional)",
+    placeholderModalClubDesc: "Max 200 characters",
     labelModalClubPrivacy: "Club Privacy",
     modalClubPublicTitle: "Public Club",
     modalClubPublicDesc: "Visible in explore list",

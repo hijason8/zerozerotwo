@@ -633,8 +633,13 @@ import {
         pwdInput.value = "";
         pwdInput.placeholder = isZh ? "設定密碼（選填，保護社團資訊修改權限）" : "Set password (optional, protects club info)";
       }
-      if (descInput) descInput.value = "";
+      if (descInput) {
+        descInput.value = "";
+        descInput.placeholder = isZh ? "上限200字" : "Max 200 characters";
+      }
       if (submitTextEl) submitTextEl.innerText = isZh ? "確認建立" : "Create";
+      const submitIconEl = document.getElementById("modal-create-club-submit-icon");
+      if (submitIconEl) submitIconEl.setAttribute("data-lucide", "plus");
 
       setModalClubPrivacy(false);
       modal.classList.remove("hidden");
@@ -687,6 +692,7 @@ import {
       }
       if (descInput) {
         descInput.value = (meta && meta.description) ? meta.description : "";
+        descInput.placeholder = isZh ? "上限200字" : "Max 200 characters";
       }
       if (pwdInput) {
         pwdInput.value = "";
@@ -695,6 +701,8 @@ import {
       if (submitTextEl) {
         submitTextEl.innerText = isZh ? "儲存修改" : "Save Changes";
       }
+      const editSubmitIconEl = document.getElementById("modal-create-club-submit-icon");
+      if (editSubmitIconEl) editSubmitIconEl.setAttribute("data-lucide", "check");
 
       const isPriv = !!(meta && meta.isPrivate);
       setModalClubPrivacy(isPriv);

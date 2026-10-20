@@ -46,6 +46,7 @@ export const I18N_TEXT_KEYS = {
   "t-label-max-players-text": "labelMaxPlayers",
   "t-modal-create-club-title": "createClubModalTitle",
   "t-modal-create-club-desc": "createClubModalDesc",
+  "t-label-modal-club-desc": "labelModalClubDesc",
   "t-label-modal-club-privacy": "labelModalClubPrivacy",
   "t-modal-club-public-title": "modalClubPublicTitle",
   "t-modal-club-public-desc": "modalClubPublicDesc",
@@ -273,6 +274,7 @@ export const I18N_PLACEHOLDERS = {
     ""
   ],
   "modal-create-club-name": "placeholderModalClubName",
+  "modal-create-club-desc-input": "placeholderModalClubDesc",
   "modal-create-club-pwd": "placeholderModalClubPwd",
   "modal-explore-clubs-search": "modalExploreClubsPlaceholder",
   "lobby-player-input": "lobbyInputPlaceholder",
@@ -302,6 +304,7 @@ export const I18N_TITLES = {
 export const I18N_HTML = {
   "t-history-title": () => `<i data-lucide="history" class="w-5 h-5 text-emerald-500"></i> ${t("historyTitle")}`,
   "t-create-title": () => `<i data-lucide="plus-circle" class="w-5 h-5 text-orange-500"></i> ${t("createTitle")}`,
+  "t-label-modal-club-name": () => `${t("labelModalClubName")} <span class="text-rose-500">*</span>`,
   "t-modal-club-name-label": () => `${t("labelModalClubName")} <span class="text-rose-500">*</span>`,
   "t-time-calc-title": (isZh) => `<i data-lucide="clock" class="w-3.5 h-3.5"></i> <span>${isZh ? "時間與配局試算：" : "Estimated Matchups & Schedule:"}</span>`,
   "t-schedule-title": () => `<i data-lucide="swords" class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500"></i> ${t("scheduleTitle")}`,
