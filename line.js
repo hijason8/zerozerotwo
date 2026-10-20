@@ -383,12 +383,28 @@ export function closeLineLoginPromptModal() {
 }
 
 export function handleLineLoginClick() {
+  if (window.liff && typeof liff.isLoggedIn === "function" && !liff.isLoggedIn()) {
+    try {
+      liff.login({ redirectUri: window.location.href });
+      return;
+    } catch (e) {
+      console.warn("[LIFF] liff.login() error, fallback to LIFF URL:", e);
+    }
+  }
   const search = window.location.search || "";
   window.location.href = `https://liff.line.me/${LIFF_ID}${search}`;
 }
 
 export function triggerLineLoginAction() {
   closeLineLoginPromptModal();
+  if (window.liff && typeof liff.isLoggedIn === "function" && !liff.isLoggedIn()) {
+    try {
+      liff.login({ redirectUri: window.location.href });
+      return;
+    } catch (e) {
+      console.warn("[LIFF] triggerLineLoginAction error, fallback to LIFF URL:", e);
+    }
+  }
   const search = window.location.search || "";
   window.location.href = `https://liff.line.me/${LIFF_ID}${search}`;
 }
@@ -588,6 +604,7 @@ if (typeof window !== "undefined") {
   window.openLineProfileModal = openLineProfileModal;
   window.closeLineProfileModal = closeLineProfileModal;
   window.openLineLoginPromptModal = openLineLoginPromptModal;
+  window.showLineLoginModal = openLineLoginPromptModal;
   window.closeLineLoginPromptModal = closeLineLoginPromptModal;
   window.handleLineLoginClick = handleLineLoginClick;
   window.triggerLineLoginAction = triggerLineLoginAction;
