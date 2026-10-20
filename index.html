@@ -2077,49 +2077,19 @@
     window.generateRoundRobinSchedule = generateRoundRobinSchedule;
 
     // ============================================================
-    // SECURITY & UTILITIES: HTML Escape, Safe Storage & SHA-256
-    // ============================================================
-    function escapeHTML(str) {
-      if (typeof str !== 'string') return str == null ? '' : String(str);
-      return str.replace(/[&<>"']/g, function (match) {
-        const escapeMap = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;'
-        };
-        return escapeMap[match];
-      });
-    }
+    import {
+      escapeHTML,
+      safeSetLocal,
+      safeGetLocalJSON,
+      sha256
+    } from "./utils.js";
+
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
     const escapeHtml = escapeHTML;
-
-    function safeSetLocal(key, value) {
-      try {
-        localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
-      } catch (e) {
-        console.warn(`LocalStorage write failed for key "${key}":`, e);
-      }
-    }
     window.safeSetLocal = safeSetLocal;
-
-    function safeGetLocalJSON(key, fallback = {}) {
-      try {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : fallback;
-      } catch (e) {
-        console.error(`Error parsing LocalStorage key "${key}":`, e);
-        return fallback;
-      }
-    }
     window.safeGetLocalJSON = safeGetLocalJSON;
-
-    async function sha256(str) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str || ''));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    window.sha256 = sha256;
 
     // SECURITY: Admin session protected by closure, prevents console `STATE.isAdmin = true` bypass
     let _adminAuthenticated = false;
