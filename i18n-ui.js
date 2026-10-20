@@ -125,8 +125,8 @@ export const I18N_CUSTOM_TEXTS = {
     "EN"
   ],
   "t-btn-line-oa": [
-    "APP",
-    "APP"
+    "LINE 官方 APP",
+    "LINE Official App"
   ],
   "t-activities-reg-text": [
     "比賽中與已報名",

@@ -102,19 +102,8 @@
         </h1>
       </div>
 
-      <!-- Action Buttons Bar (LINE OA + LINE User + Settings) -->
+      <!-- Action Buttons Bar (LINE User + Settings) -->
       <div class="flex items-center gap-1.5 sm:gap-2 relative shrink-0">
-        <!-- ZEROZEROTWO LINE App 按鈕 -->
-        <button id="btn-line-oa" type="button" onclick="openLineOAModal()"
-          class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white shadow-sm active:scale-95 text-xs font-black tracking-wide cursor-pointer transition shrink-0"
-          title="ZZTWO-LINE App">
-          <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
-            <path
-              d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z" />
-          </svg>
-          <span id="t-btn-line-oa" class="text-xs font-black tracking-wide">APP</span>
-        </button>
-
         <!-- LINE User Profile / Status Indicator -->
         <div id="nav-line-profile-container" class="flex items-center shrink-0">
           <button type="button" onclick="handleLineLoginClick()"
@@ -139,14 +128,29 @@
           <!-- Dropdown Menu -->
           <div id="settings-dropdown-menu"
             class="hidden absolute right-0 mt-2 w-64 sm:w-72 rounded-2xl glass-card border border-stone-200 dark:border-slate-800 shadow-2xl p-1.5 space-y-1 z-50 text-xs">
-            <!-- User Guide Option (Black text, no GUIDE badge) -->
+            <!-- 1. ZEROZEROTWO LINE 官方 APP (從頂部右側移入) -->
+            <button id="btn-line-oa" type="button" onclick="openLineOAModal(); closeSettingsDropdown();"
+              class="w-full px-3 py-2.5 rounded-xl hover:bg-[#06C755]/10 text-stone-900 dark:text-white transition flex items-center justify-between text-left font-semibold cursor-pointer">
+              <span class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-lg bg-[#06C755] flex items-center justify-center text-white shrink-0 shadow-xs">
+                  <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                    <path
+                      d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z" />
+                  </svg>
+                </span>
+                <span id="t-btn-line-oa" class="text-xs font-bold text-stone-900 dark:text-white">LINE 官方 APP</span>
+              </span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#06C755]/10 text-[#06C755] border border-[#06C755]/30 font-bold">開啟</span>
+            </button>
+
+            <!-- 2. User Guide Option -->
             <button type="button" onclick="openUserGuideModal(); closeSettingsDropdown();"
               class="w-full px-3 py-2.5 rounded-xl hover:bg-stone-500/10 text-stone-900 dark:text-white transition flex items-center gap-2.5 text-left font-semibold cursor-pointer">
               <i data-lucide="book-open" class="w-4 h-4 text-stone-700 dark:text-slate-300 shrink-0"></i>
               <span id="t-dropdown-guide" class="text-xs font-bold text-stone-900 dark:text-white">系統使用手冊</span>
             </button>
 
-            <!-- Language Toggle -->
+            <!-- 3. Language Toggle -->
             <button type="button" onclick="toggleLanguage(); closeSettingsDropdown();"
               class="w-full px-3 py-2.5 rounded-xl hover:bg-stone-500/10 transition flex items-center justify-between text-left font-semibold">
               <span class="flex items-center gap-2.5">
@@ -158,7 +162,7 @@
 
             <div class="border-t border-stone-200 dark:border-slate-800 my-1"></div>
 
-            <!-- Admin Master Panel -->
+            <!-- 4. Admin Master Panel -->
             <button type="button" onclick="navigateToAdmin(); closeSettingsDropdown();"
               class="w-full px-3 py-2.5 rounded-xl hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition flex items-center justify-between text-left font-semibold">
               <span class="flex items-center gap-2.5">
@@ -170,7 +174,7 @@
 
             <div class="border-t border-stone-200 dark:border-slate-800 my-1"></div>
 
-            <!-- Contact Email -->
+            <!-- 5. Contact Email -->
             <a href="mailto:zztwo.app@gmail.com" onclick="closeSettingsDropdown();"
               class="w-full px-3 py-2.5 rounded-xl hover:bg-stone-500/10 transition flex items-center justify-between text-left font-semibold">
               <span class="flex items-center gap-2.5 shrink-0">
@@ -2165,14 +2169,14 @@
       safeSetLocal,
       safeGetLocalJSON,
       sha256
-    } from "./utils.js?v=20261020-11";
-    import "./club.js?v=20261020-11";
-    import "./tournament-create.js?v=20261020-11";
-    import "./live.js?v=20261020-11";
-    import "./activities.js?v=20261020-11";
-    import "./hub.js?v=20261020-11";
-    import "./line.js?v=20261020-11";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-11";
+    } from "./utils.js?v=20261020-12";
+    import "./club.js?v=20261020-12";
+    import "./tournament-create.js?v=20261020-12";
+    import "./live.js?v=20261020-12";
+    import "./activities.js?v=20261020-12";
+    import "./hub.js?v=20261020-12";
+    import "./line.js?v=20261020-12";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-12";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
