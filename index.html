@@ -239,12 +239,13 @@
     <!-- ==================== SHARED LOBBY HEADER (大廳 / 社團共用頂部工具列，吸頂常駐設計) ==================== -->
     <div id="lobby-shared-header"
       class="sticky top-14 sm:top-16 z-30 glass-nav border-b -mx-1.5 sm:-mx-6 px-2.5 sm:px-6 py-2 sm:py-2.5 mb-3 sm:mb-6 flex items-center justify-between gap-1 sm:gap-2 text-left transition-colors shadow-2xs">
-      <!-- 賽事大廳 / 社團 下拉切換選單 (緊湊自適應膠囊設計，下拉符號緊貼文字，徹底杜絕貼近右側按鈕問題) -->
+      <!-- 賽事大廳 / 社團 下拉切換選單 (緊湊自適應膠囊設計，下拉符號緊貼文字，全區包含箭頭點擊皆可展開) -->
       <div class="relative inline-flex items-center min-w-0 max-w-[calc(100vw-130px)] sm:max-w-md shrink">
         <div
-          class="relative flex items-center w-auto max-w-full rounded-2xl bg-stone-100/90 hover:bg-stone-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-800/95 border border-stone-200/90 dark:border-slate-700/80 pl-2.5 sm:pl-3.5 pr-8 sm:pr-9 py-1 sm:py-1.5 transition shadow-xs group cursor-pointer">
+          class="relative flex items-center w-auto max-w-full group cursor-pointer"
+          onclick="const sel = document.getElementById('hub-club-selector'); if (sel && event.target !== sel) { try { sel.showPicker(); } catch(e) { sel.focus(); sel.click(); } }">
           <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
-            class="appearance-none font-display font-black text-base sm:text-xl bg-transparent border-0 p-0 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition truncate w-full">
+            class="appearance-none font-display font-black text-base sm:text-xl rounded-2xl bg-stone-100/90 hover:bg-stone-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-800/95 border border-stone-200/90 dark:border-slate-700/80 pl-2.5 sm:pl-3.5 pr-8 sm:pr-9 py-1 sm:py-1.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition shadow-xs truncate w-full">
             <option value="" selected>賽事大廳</option>
           </select>
           <div
@@ -2214,14 +2215,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261020-36";
-    import "./club.js?v=20261020-36";
-    import "./tournament-create.js?v=20261020-36";
-    import "./live.js?v=20261020-36";
-    import "./activities.js?v=20261020-36";
-    import "./hub.js?v=20261020-36";
-    import "./line.js?v=20261020-36";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-36";
+    } from "./utils.js?v=20261020-37";
+    import "./club.js?v=20261020-37";
+    import "./tournament-create.js?v=20261020-37";
+    import "./live.js?v=20261020-37";
+    import "./activities.js?v=20261020-37";
+    import "./hub.js?v=20261020-37";
+    import "./line.js?v=20261020-37";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-37";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
