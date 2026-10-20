@@ -1367,12 +1367,9 @@ function renderMatchesList(matches, hasAdmin = false) {
     if (isPractice) {
       const isZh = STATE.lang === 'zh-TW';
       container.innerHTML = `
-            <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2.5 border">
-              <div class="w-12 h-12 rounded-2xl card-inner flex items-center justify-center mx-auto text-teal-500 border shadow-sm">
-                <i data-lucide="activity" class="w-6 h-6"></i>
-              </div>
-              <p class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? '自由暢打中' : 'Free Play Session'}</p>
-              <p class="sub-text text-xs">${hasAdmin ? (isZh ? '自由對打不限賽程，如需記分可點擊「➕ 新增場次」' : 'Click "+ Add Match" to record scores.') : (isZh ? '自由對打不設固定賽程' : 'Free play in progress.')}</p>
+            <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2 border">
+              <p class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? '自由模式進行中' : 'Free Play in Progress'}</p>
+              <p class="sub-text text-xs">${isZh ? '點擊上方開啟操作，可彈性加賽與結束今日練球' : 'Enable controls above to add matches or finish practice.'}</p>
             </div>
           `;
       lucide.createIcons();
