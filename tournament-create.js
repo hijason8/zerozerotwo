@@ -34,9 +34,16 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   addCreatedTournamentId,
-  openClubSpace,
-  isTransientPlayer
+  openClubSpace
 } from "./globals.js";
+
+const isTransientPlayer = (name) => {
+  if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
+    return window.isTransientPlayer(name);
+  }
+  if (!name || typeof name !== "string") return false;
+  return /^(臨打|臨時|補位|選手|隊伍|Guest|Player|Team)(\s*[-_#]?[0-9A-Za-z]+)?$/i.test(name.trim());
+};
 
     // ----------------------------------------------------
     // PAGE C: CREATE TOURNAMENT & TIME ESTIMATION
