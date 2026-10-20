@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256, isTransientPlayer } from "./utils.js";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -25,7 +25,8 @@ import {
   deleteTournament,
   openLineLoginPromptModal,
   addUserClubToFirebase,
-  populateCreateClubSelect
+  populateCreateClubSelect,
+  isTransientPlayer
 } from "./globals.js";
 
     export function getClubMembersList(clubName) {
