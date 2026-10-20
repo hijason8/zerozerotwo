@@ -60,6 +60,23 @@ export const I18N_TEXT_KEYS = {
   "t-modal-explore-clubs-title": "modalExploreClubsTitle",
   "t-modal-explore-clubs-desc": "modalExploreClubsDesc",
   "t-modal-explore-create-link": "createClubModalTitle",
+  "t-tab-activities": "clubTabActivities",
+  "t-desktop-tab-activities": "clubTabActivities",
+  "t-tab-records": "clubTabRecords",
+  "t-desktop-tab-records": "clubTabRecords",
+  "t-tab-profile": "clubTabProfile",
+  "t-desktop-tab-profile": "clubTabProfile",
+  "t-tab-info": "clubTabInfo",
+  "t-desktop-tab-info": "clubTabInfo",
+  "t-club-active-heading": "clubActiveHeading",
+  "t-club-no-activities-msg": "clubNoActivitiesHint",
+  "t-history-matches-heading": "historyMatchesHeading",
+  "t-club-profile-heading": "clubProfileHeading",
+  "t-club-profile-subheading": "clubProfileSubheading",
+  "t-club-profile-tip-text": "clubProfileTip",
+  "t-club-invite-heading": "clubInviteHeading",
+  "t-club-invite-desc": "clubInviteDesc",
+  "t-btn-share-club-full-text": "btnShareClubFullText",
   "t-mode-fair-desc": "modeFairDesc",
   "t-mode-free-desc": "modeFreeDesc",
   "t-lobby-title": "lobbyTitle",
@@ -130,8 +147,8 @@ export const I18N_CUSTOM_TEXTS = {
     "LINE- APP"
   ],
   "t-club-info-heading": [
-    "關於社團",
-    "About Club"
+    "社團",
+    "Club"
   ],
   "t-btn-edit-club-info": [
     "編輯社團",
@@ -462,6 +479,21 @@ function applyDynamicLanguageUI(isZh) {
   const cancelStartTextEl = document.getElementById("btn-cancel-start-text");
   if (cancelStartTextEl) {
     cancelStartTextEl.innerText = t("btnWaitCancel") || (isZh ? "再等等 / 取消" : "Wait / Cancel");
+  }
+
+  // 戰績月份下拉選單第 0 項
+  const monthSelect = document.getElementById("history-month-select");
+  if (monthSelect && monthSelect.options && monthSelect.options.length > 0) {
+    monthSelect.options[0].text = isZh ? "全部月份" : "All Months";
+  }
+
+  // 社團大廳當前分頁動態文字重刷
+  if (STATE.currentClub) {
+    if (STATE.activeClubTab === "profile" && typeof window.renderClubProfileTab === "function") {
+      window.renderClubProfileTab(STATE.currentClub);
+    } else if (STATE.activeClubTab === "info" && typeof window.renderClubInfoTab === "function") {
+      window.renderClubInfoTab(STATE.currentClub);
+    }
   }
 }
 

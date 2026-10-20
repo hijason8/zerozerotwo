@@ -921,19 +921,19 @@
         <div class="hidden sm:flex items-center gap-2 border-b border-stone-200 dark:border-slate-800 pb-2">
           <button type="button" id="desktop-tab-btn-activities" onclick="switchClubTab('activities')"
             class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-            <i data-lucide="play-circle" class="w-4 h-4"></i> 活動
+            <i data-lucide="play-circle" class="w-4 h-4"></i> <span id="t-desktop-tab-activities">活動</span>
           </button>
           <button type="button" id="desktop-tab-btn-records" onclick="switchClubTab('records')"
             class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
-            <i data-lucide="trophy" class="w-4 h-4"></i> 戰績
+            <i data-lucide="trophy" class="w-4 h-4"></i> <span id="t-desktop-tab-records">戰績</span>
           </button>
           <button type="button" id="desktop-tab-btn-profile" onclick="switchClubTab('profile')"
             class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
-            <i data-lucide="user" class="w-4 h-4"></i> 個人資訊
+            <i data-lucide="user" class="w-4 h-4"></i> <span id="t-desktop-tab-profile">個人</span>
           </button>
           <button type="button" id="desktop-tab-btn-info" onclick="switchClubTab('info')"
             class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
-            <i data-lucide="info" class="w-4 h-4"></i> 社團說明
+            <i data-lucide="info" class="w-4 h-4"></i> <span id="t-desktop-tab-info">社團</span>
           </button>
         </div>
 
@@ -944,7 +944,7 @@
               <h3
                 class="text-sm sm:text-base font-bold text-amber-600 dark:text-amber-400 font-display flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span>進行中與報名中的球局</span>
+                <span id="t-club-active-heading">進行中與報名中的球局</span>
               </h3>
             </div>
             <div id="club-active-tournaments-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -953,7 +953,7 @@
             <!-- 當無任何活動時的空狀態提示 -->
             <div id="club-no-activities-hint" class="hidden glass-card rounded-2xl p-8 text-center space-y-2 border">
               <i data-lucide="calendar-x" class="w-8 h-8 text-stone-400 mx-auto"></i>
-              <p class="text-xs sub-text">目前尚無進行中或報名中的球局，點擊右上角「建立新賽事」即可開團！</p>
+              <p id="t-club-no-activities-msg" class="text-xs sub-text">目前尚無進行中或報名中的球局，點擊右上角「建立新賽事」即可開團！</p>
             </div>
           </div>
         </div>
@@ -1003,7 +1003,7 @@
           <div class="space-y-3">
             <h3 id="history-matches-section-title"
               class="text-sm sm:text-base font-bold flex items-center gap-1.5 sub-text">
-              <i data-lucide="calendar" class="w-4 h-4"></i> 歷次賽事紀錄
+              <i data-lucide="calendar" class="w-4 h-4"></i> <span id="t-history-matches-heading">歷次賽事紀錄</span>
             </h3>
             <div id="history-tournaments-list" class="space-y-4">
               <!-- Rendered dynamically -->
@@ -1011,7 +1011,7 @@
           </div>
         </div>
 
-        <!-- TAB 3: 個人資訊 (#content-tab-profile，預設隱藏) -->
+        <!-- TAB 3: 個人 (#content-tab-profile，預設隱藏) -->
         <div id="content-tab-profile" class="hidden space-y-4">
           <!-- 滿寬身分綁定卡片 -->
           <div class="glass-card rounded-2xl p-5 border space-y-4 shadow-sm text-left">
@@ -1021,8 +1021,8 @@
                   <i data-lucide="user-check" class="w-5 h-5"></i>
                 </div>
                 <div>
-                  <h4 class="text-sm sm:text-base font-bold font-display text-stone-900 dark:text-white">社團球員身分綁定</h4>
-                  <p class="text-xs sub-text">管理您在此社團的參賽暱稱與專屬戰績</p>
+                  <h4 id="t-club-profile-heading" class="text-sm sm:text-base font-bold font-display text-stone-900 dark:text-white">社團球員身分綁定</h4>
+                  <p id="t-club-profile-subheading" class="text-xs sub-text">管理您在此社團的參賽暱稱與專屬戰績</p>
                 </div>
               </div>
               <div id="club-profile-badge-status" class="shrink-0">
@@ -1032,8 +1032,8 @@
 
             <!-- 身分資訊與說明 -->
             <div class="space-y-3">
-              <p class="text-xs sub-text leading-relaxed bg-stone-500/5 p-3 rounded-xl border border-stone-200/60 dark:border-slate-800">
-                💡 <strong>提示：</strong>綁定社團專屬身分後，即可在此累積並查看個人歷史勝率與數據，報名出賽亦能一鍵完成。
+              <p id="t-club-profile-tip-box" class="text-xs sub-text leading-relaxed bg-stone-500/5 p-3 rounded-xl border border-stone-200/60 dark:border-slate-800">
+                💡 <span id="t-club-profile-tip-text">綁定社團專屬身分後，即可在此累積並查看個人歷史勝率與數據，報名出賽亦能一鍵完成。</span>
               </p>
 
               <!-- 當前綁定角色顯示區 -->
@@ -1053,14 +1053,14 @@
           </div>
         </div>
 
-        <!-- TAB 4: 社團說明 (#content-tab-info，預設隱藏) -->
+        <!-- TAB 4: 社團 (#content-tab-info，預設隱藏) -->
         <div id="content-tab-info" class="hidden space-y-4">
           <!-- 社團簡介卡片 -->
           <div class="glass-card rounded-2xl p-5 border space-y-3 shadow-sm text-left">
             <div class="flex items-center justify-between border-b pb-2.5 border-stone-200 dark:border-slate-800">
               <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
                 <i data-lucide="info" class="w-4 h-4"></i>
-                <span id="t-club-info-heading">關於社團</span>
+                <span id="t-club-info-heading">社團</span>
               </div>
               <!-- 編輯社團資訊按鈕 -->
               <button type="button" id="btn-edit-club-info" onclick="handleEditClubInfoClick()"
@@ -1079,13 +1079,13 @@
           <!-- 分享社團專屬連結大按鈕 -->
           <div class="glass-card rounded-2xl p-5 border space-y-3 shadow-sm text-left">
             <div class="space-y-1">
-              <h4 class="text-sm font-bold text-stone-900 dark:text-white">邀請球友加入</h4>
-              <p class="text-xs sub-text">複製社團專屬網址，傳送至 LINE 好友或群組即可快速進入社團大廳！</p>
+              <h4 id="t-club-invite-heading" class="text-sm font-bold text-stone-900 dark:text-white">邀請球友加入</h4>
+              <p id="t-club-invite-desc" class="text-xs sub-text">複製社團專屬網址，傳送至 LINE 好友或群組即可快速進入社團大廳！</p>
             </div>
             <button type="button" id="btn-share-club-full" onclick="copyClubLink()"
               class="w-full py-3 px-4 rounded-xl card-inner border hover:border-emerald-500/50 hover:bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-sm active:scale-95 cursor-pointer">
               <i data-lucide="share-2" class="w-4 h-4"></i>
-              <span>🔗 分享社團專屬連結</span>
+              <span id="t-btn-share-club-full-text">分享社團專屬連結</span>
             </button>
           </div>
         </div>
@@ -2101,28 +2101,28 @@
       <button type="button" id="tab-btn-activities" onclick="switchClubTab('activities')"
         class="flex flex-col items-center justify-center gap-0.5 py-1 text-emerald-500 font-bold transition">
         <i data-lucide="play-circle" class="w-5 h-5"></i>
-        <span class="text-[10px] leading-tight">活動</span>
+        <span class="text-[10px] leading-tight" id="t-tab-activities">活動</span>
       </button>
 
       <!-- Tab 2: 戰績 -->
       <button type="button" id="tab-btn-records" onclick="switchClubTab('records')"
         class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
         <i data-lucide="trophy" class="w-5 h-5"></i>
-        <span class="text-[10px] leading-tight">戰績</span>
+        <span class="text-[10px] leading-tight" id="t-tab-records">戰績</span>
       </button>
 
-      <!-- Tab 3: 個人資訊 -->
+      <!-- Tab 3: 個人 -->
       <button type="button" id="tab-btn-profile" onclick="switchClubTab('profile')"
         class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
         <i data-lucide="user" class="w-5 h-5"></i>
-        <span class="text-[10px] leading-tight">個人資訊</span>
+        <span class="text-[10px] leading-tight" id="t-tab-profile">個人</span>
       </button>
 
-      <!-- Tab 4: 社團說明 -->
+      <!-- Tab 4: 社團 -->
       <button type="button" id="tab-btn-info" onclick="switchClubTab('info')"
         class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
         <i data-lucide="info" class="w-5 h-5"></i>
-        <span class="text-[10px] leading-tight">社團說明</span>
+        <span class="text-[10px] leading-tight" id="t-tab-info">社團</span>
       </button>
     </div>
   </nav>
@@ -2146,7 +2146,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261020-16";
+    import { I18N } from "./i18n.js?v=20261020-17";
     window.I18N = I18N;
 
     function t(key) {
@@ -2167,14 +2167,14 @@
       safeSetLocal,
       safeGetLocalJSON,
       sha256
-    } from "./utils.js?v=20261020-16";
-    import "./club.js?v=20261020-16";
-    import "./tournament-create.js?v=20261020-16";
-    import "./live.js?v=20261020-16";
-    import "./activities.js?v=20261020-16";
-    import "./hub.js?v=20261020-16";
-    import "./line.js?v=20261020-16";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-16";
+    } from "./utils.js?v=20261020-17";
+    import "./club.js?v=20261020-17";
+    import "./tournament-create.js?v=20261020-17";
+    import "./live.js?v=20261020-17";
+    import "./activities.js?v=20261020-17";
+    import "./hub.js?v=20261020-17";
+    import "./line.js?v=20261020-17";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-17";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

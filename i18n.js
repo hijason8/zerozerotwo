@@ -339,6 +339,23 @@ export const I18N = {
     modalExploreClubsPlaceholder: "搜尋社團名稱...",
     modalExploreClubsEmpty: "目前尚無其他可探索社團",
 
+    // Club Space 4-Tabs & Content
+    clubTabActivities: "活動",
+    clubTabRecords: "戰績",
+    clubTabProfile: "個人",
+    clubTabInfo: "社團",
+    clubActiveHeading: "進行中與報名中的球局",
+    clubNoActivitiesHint: "目前尚無進行中或報名中的球局，點擊右上角「建立新賽事」即可開團！",
+    historyMatchesHeading: "歷次賽事紀錄",
+    clubProfileHeading: "社團球員身分綁定",
+    clubProfileSubheading: "管理您在此社團的參賽暱稱與專屬戰績",
+    clubProfileTip: "綁定社團專屬身分後，即可在此累積並查看個人歷史勝率與數據，報名出賽亦能一鍵完成。",
+    clubInviteHeading: "邀請球友加入",
+    clubInviteDesc: "複製社團專屬網址，傳送至 LINE 好友或群組即可快速進入社團大廳！",
+    btnShareClubFullText: "分享社團專屬連結",
+    btnEditClubInfo: "編輯社團",
+    aboutClub: "社團",
+
     // PWA
     dropdownInstall: "安裝 App / 加入主畫面",
     pwaBannerTitle: "將 ZeroZeroTwo 加入手機主畫面",
@@ -692,6 +709,23 @@ export const I18N = {
     modalExploreClubsDesc: "Tap a club to visit its lobby",
     modalExploreClubsPlaceholder: "Search clubs...",
     modalExploreClubsEmpty: "No clubs available to explore",
+
+    // Club Space 4-Tabs & Content
+    clubTabActivities: "Events",
+    clubTabRecords: "Stats",
+    clubTabProfile: "Profile",
+    clubTabInfo: "Club",
+    clubActiveHeading: "Active & Open Tournaments",
+    clubNoActivitiesHint: "No tournaments active or open right now. Tap \"Create Tournament\" to get started!",
+    historyMatchesHeading: "Tournament History",
+    clubProfileHeading: "Player Identity Binding",
+    clubProfileSubheading: "Manage your club nickname and personal match records",
+    clubProfileTip: "Bind your club nickname to track personal stats and join matches with 1 tap.",
+    clubInviteHeading: "Invite Friends to Club",
+    clubInviteDesc: "Copy club direct URL and share to LINE friends or groups to visit the lobby!",
+    btnShareClubFullText: "Share Club Link",
+    btnEditClubInfo: "Edit Club",
+    aboutClub: "Club",
 
     // PWA
     dropdownInstall: "Install App / Add to Home",
