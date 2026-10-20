@@ -214,15 +214,18 @@ import {
       let html = "";
 
       if (isLoggedIn) {
-        // 會員視角：前兩項為「比賽中/已報名」與「等待報名」，並渲染「我的社團」分組
+        // 會員視角：前兩項為「比賽中/已報名」與「等待報名」，並以「我的活動」分組呼應「我的社團」
+        const activitiesGroupLabel = isZh ? "我的活動" : "My Activities";
         const regOptionLabel = isZh ? "比賽中/已報名" : "In Progress / Registered";
         const waitingOptionLabel = isZh ? "等待報名" : "Waiting for Sign Up";
 
         const isRegSelected = (!STATE.currentClub && (STATE.currentPage === 'activities' || STATE.currentPage === 'hub'));
         const isWaitingSelected = (!STATE.currentClub && STATE.currentPage === 'waiting');
 
+        html += `<optgroup label="${activitiesGroupLabel}">`;
         html += `<option value="activities" ${isRegSelected ? 'selected' : ''}>${regOptionLabel}</option>`;
         html += `<option value="waiting" ${isWaitingSelected ? 'selected' : ''}>${waitingOptionLabel}</option>`;
+        html += `</optgroup>`;
 
         const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
           .filter(c => c && c.trim())
