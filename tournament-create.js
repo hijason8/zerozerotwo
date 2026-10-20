@@ -65,8 +65,16 @@ const isTransientPlayer = (name) => {
       const maxPlayersWrap = document.getElementById("wrap-create-max-players");
 
       if (entryType === "registration") {
-        if (btnReg) btnReg.className = activeCls;
-        if (btnInstant) btnInstant.className = inactiveCls;
+        if (btnReg) {
+          btnReg.className = activeCls;
+          const icon = btnReg.querySelector("i");
+          if (icon) icon.className = "w-4 h-4 text-emerald-500";
+        }
+        if (btnInstant) {
+          btnInstant.className = inactiveCls;
+          const icon = btnInstant.querySelector("i");
+          if (icon) icon.className = "w-4 h-4 text-stone-400";
+        }
         if (regHint) regHint.classList.remove("hidden");
         if (maxPlayersWrap) maxPlayersWrap.classList.remove("hidden");
         if (instantSections) instantSections.classList.add("hidden");
@@ -74,8 +82,16 @@ const isTransientPlayer = (name) => {
           submitBtn.innerHTML = `<i data-lucide="clipboard-check" class="w-4 h-4"></i> <span id="t-btn-submit-create-text">${isZh ? "確認" : "Confirm"}</span>`;
         }
       } else {
-        if (btnReg) btnReg.className = inactiveCls;
-        if (btnInstant) btnInstant.className = activeCls;
+        if (btnReg) {
+          btnReg.className = inactiveCls;
+          const icon = btnReg.querySelector("i");
+          if (icon) icon.className = "w-4 h-4 text-stone-400";
+        }
+        if (btnInstant) {
+          btnInstant.className = activeCls;
+          const icon = btnInstant.querySelector("i");
+          if (icon) icon.className = "w-4 h-4 text-emerald-500 fill-current";
+        }
         if (regHint) regHint.classList.add("hidden");
         if (maxPlayersWrap) maxPlayersWrap.classList.add("hidden");
         if (instantSections) instantSections.classList.remove("hidden");
@@ -1054,7 +1070,7 @@ const isTransientPlayer = (name) => {
         }
       }
       if (typeof onClubSelectChange === "function") onClubSelectChange();
-      setCreateEntryType("registration");
+      setCreateEntryType("instant");
       lucide.createIcons();
     }
     window.setupCreateFormContext = setupCreateFormContext;
@@ -1112,7 +1128,7 @@ const isTransientPlayer = (name) => {
       renderSelectedPlayerChips();
       renderClubMemberChips();
       updatePlayerCountBadge();
-      setCreateEntryType("registration");
+      setCreateEntryType("instant");
       setupCreateFormContext(STATE.createContextClub);
     }
     window.resetCreateForm = resetCreateForm;

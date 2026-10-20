@@ -425,31 +425,31 @@
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none leading-relaxed transition"></textarea>
         </div>
 
-        <!-- 3. Entry Type Selector (建立接龍 VS 直接開打) -->
+        <!-- 3. Entry Type Selector (直接開打 VS 建立接龍) -->
         <div id="wrap-create-entry-type">
           <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-entry-type">3. 開局方式</label>
           <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
             <button type="button" id="btn-entry-instant" onclick="setCreateEntryType('instant')"
-              class="mode-btn-inactive py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
+              class="mode-btn-active py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
               <div class="flex items-center gap-2">
-                <i data-lucide="play" class="w-4 h-4 text-stone-400"></i>
+                <i data-lucide="play" class="w-4 h-4 text-emerald-500 fill-current"></i>
                 <span class="text-xs sm:text-sm font-display font-black" id="t-entry-instant-title">直接開打</span>
               </div>
             </button>
             <button type="button" id="btn-entry-registration" onclick="setCreateEntryType('registration')"
-              class="mode-btn-active py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
+              class="mode-btn-inactive py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
               <div class="flex items-center gap-2">
-                <i data-lucide="clipboard-list" class="w-4 h-4 text-emerald-500"></i>
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-stone-400"></i>
                 <span class="text-xs sm:text-sm font-display font-black" id="t-entry-reg-title">建立接龍</span>
               </div>
             </button>
           </div>
-          <input type="hidden" id="create-entry-mode" value="registration" />
+          <input type="hidden" id="create-entry-mode" value="instant" />
         </div>
 
-        <!-- Registration Hint Box (Shown when entryMode === 'registration') -->
+        <!-- Registration Hint Box (Hidden when entryMode === 'instant') -->
         <div id="wrap-registration-hint"
-          class="p-3.5 sm:p-4 rounded-2xl card-inner border border-emerald-500/30 text-xs space-y-1.5 bg-emerald-500/5">
+          class="hidden p-3.5 sm:p-4 rounded-2xl card-inner border border-emerald-500/30 text-xs space-y-1.5 bg-emerald-500/5">
           <div class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
             <i data-lucide="info" class="w-4 h-4"></i>
             <span id="t-reg-hint-title">建立接龍說明</span>
@@ -459,8 +459,8 @@
           </p>
         </div>
 
-        <!-- 人數上限 (選填) -->
-        <div id="wrap-create-max-players" class="space-y-1.5">
+        <!-- 人數上限 (選填，直接開打時隱藏) -->
+        <div id="wrap-create-max-players" class="hidden space-y-1.5">
           <label id="t-label-max-players" class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5">
             <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500"></i>
             <span id="t-label-max-players-text">人數上限（選填）</span>
@@ -472,8 +472,8 @@
           </div>
         </div>
 
-        <!-- Instant Play Sections Wrapper (Hidden when entryMode === 'registration') -->
-        <div id="wrap-instant-play-sections" class="hidden space-y-4 sm:space-y-5">
+        <!-- Instant Play Sections Wrapper (Visible when entryMode === 'instant') -->
+        <div id="wrap-instant-play-sections" class="space-y-4 sm:space-y-5">
           <!-- 4. Tournament Mode Selector -->
           <div id="wrap-create-mode">
             <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-mode">4. 賽事模式選擇</label>
@@ -651,8 +651,8 @@
         <div class="pt-3">
           <button type="submit" id="btn-submit-create"
             class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-black py-4 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 tracking-wide cursor-pointer">
-            <i data-lucide="clipboard-check" class="w-4 h-4"></i>
-            <span id="t-btn-submit-create-text">確認</span>
+            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+            <span id="t-btn-submit-create-text">確認並立即開打</span>
           </button>
         </div>
         <button type="submit" id="t-submit-hidden-trigger" class="hidden"></button>
@@ -2215,14 +2215,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261020-38";
-    import "./club.js?v=20261020-38";
-    import "./tournament-create.js?v=20261020-38";
-    import "./live.js?v=20261020-38";
-    import "./activities.js?v=20261020-38";
-    import "./hub.js?v=20261020-38";
-    import "./line.js?v=20261020-38";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-38";
+    } from "./utils.js?v=20261020-39";
+    import "./club.js?v=20261020-39";
+    import "./tournament-create.js?v=20261020-39";
+    import "./live.js?v=20261020-39";
+    import "./activities.js?v=20261020-39";
+    import "./hub.js?v=20261020-39";
+    import "./line.js?v=20261020-39";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-39";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
