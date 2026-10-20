@@ -1821,7 +1821,7 @@ import {
             <p class="text-xs sub-text">${isZh ? "您尚未在此社團綁定身分。點擊下方按鈕認領或設定球員姓名，未來戰績即可永久累積！" : "You have not bound your player identity yet. Click below to claim or set name."}</p>
           </div>
         `;
-        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "🔗 綁定社團身分" : "Claim Player Identity";
+        if (actionBtnTextEl) actionBtnTextEl.innerText = isZh ? "綁定社團身分" : "Claim Player Identity";
         if (actionBtn) {
           actionBtn.onclick = () => handleClubIdentityBadgeClick();
         }
