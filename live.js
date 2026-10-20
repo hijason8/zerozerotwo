@@ -313,11 +313,12 @@ function renderLiveUI(data) {
     progressTextEl.innerText = `${doneMatches}/${totalMatches} (${matchPct}%)`;
   }
 
-  // 自由模式 / 練球 專屬「結束練球」按鈕 (無賽車旗子，無額外贅字)
+  // 自由模式 / 練球 專屬「結束練球」按鈕 (僅在 0 場次純暢打時顯示，一旦新增場次則由「結束賽事」取代)
+  const hasMatches = !!(data.matches && data.matches.length > 0);
   const isFreeOrPractice = !!(data.tournamentMode === "free" || data.isPracticeMode);
   const finishPracticeBtn = document.getElementById("btn-finish-practice");
   if (finishPracticeBtn) {
-    if (hasAdmin && !isFinished && isFreeOrPractice) {
+    if (hasAdmin && !isFinished && isFreeOrPractice && !hasMatches) {
       finishPracticeBtn.classList.remove("hidden");
       finishPracticeBtn.classList.add("flex");
     } else {
@@ -326,10 +327,9 @@ function renderLiveUI(data) {
     }
   }
 
-  // Complete & Return to Hub Button (visible if hasAdmin and NOT finished)
+  // Complete & Return to Hub Button (一般賽事、或自由模式一旦新增場次後顯示)
   const completeBtn = document.getElementById("btn-complete-and-return");
   if (completeBtn) {
-    const hasMatches = (data.matches && data.matches.length > 0);
     if (hasAdmin && !isFinished && (!isFreeOrPractice || hasMatches)) {
       completeBtn.classList.remove("hidden");
       completeBtn.classList.add("flex");
