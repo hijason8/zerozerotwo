@@ -1219,8 +1219,6 @@ import {
           }
           STATE.activeTournamentAdmin = tournamentId;
 
-          showToast(STATE.lang === "zh-TW" ? `📋 報名球局「${name}」建立成功！可分享連結給球友簽到` : `📋 Sign-up lobby "${name}" created!`, "success");
-
           resetCreateForm();
           loadLiveTournament(tournamentId, true, true);
           return;
@@ -1297,13 +1295,10 @@ import {
         if (STATE.db) {
           try {
             await set(ref(STATE.db, `tournaments/${tournamentId}`), tournamentObj);
-            showToast(`🏆 ${STATE.lang === "zh-TW" ? "賽事「" + name + "」已成功建立並發布！" + engineTag : "Tournament published!" + engineTag}`, "success");
           } catch (err) {
             console.error("Firebase write error:", err);
             showToast(STATE.lang === "zh-TW" ? "雲端發布失敗，已轉存至本地備份" + engineTag : "Saved to local backup" + engineTag, "warning");
           }
-        } else {
-          showToast(STATE.lang === "zh-TW" ? `🏆 賽事「${name}」已成功建立！${engineTag}` : `Published in Local Mode ${engineTag}`, "success");
         }
 
         // Creator automatically gets admin session for this tournament
