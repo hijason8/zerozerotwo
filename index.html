@@ -916,7 +916,7 @@
       </div>
 
       <!-- 3. Club Content -->
-      <div id="club-content-container" class="space-y-4 sm:space-y-6 pb-20 sm:pb-6">
+      <div id="club-content-container" class="space-y-4 sm:space-y-6 pb-28 sm:pb-6">
         <!-- 桌面版分頁標籤 (sm:flex，手機版則使用固定在底部的導覽列) -->
         <div class="hidden sm:flex items-center gap-2 border-b border-stone-200 dark:border-slate-800 pb-2">
           <button type="button" id="desktop-tab-btn-activities" onclick="switchClubTab('activities')"
@@ -2095,40 +2095,40 @@
 
   <!-- ==================== CLUB BOTTOM NAVIGATION (社團專屬 4 分頁底部導覽列) ==================== -->
   <nav id="club-bottom-nav"
-    class="fixed bottom-0 left-0 w-full glass-nav border-t border-stone-200 dark:border-slate-800 z-40 pb-safe sm:hidden hidden transition-all">
-    <div class="grid grid-cols-4 h-14 max-w-md mx-auto items-center text-center px-1">
+    class="fixed bottom-0 left-0 w-full glass-nav border-t border-stone-200 dark:border-slate-800 z-40 pb-safe sm:hidden hidden transition-all shadow-lg">
+    <div class="grid grid-cols-4 h-[72px] max-w-md mx-auto items-center text-center px-1">
       <!-- Tab 1: 活動 -->
       <button type="button" id="tab-btn-activities" onclick="switchClubTab('activities')"
-        class="flex flex-col items-center justify-center gap-0.5 py-1 text-emerald-500 font-bold transition">
-        <i data-lucide="play-circle" class="w-5 h-5"></i>
-        <span class="text-[10px] leading-tight" id="t-tab-activities">活動</span>
+        class="flex flex-col items-center justify-center gap-1.5 h-full w-full py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition active:scale-95 cursor-pointer">
+        <i data-lucide="play-circle" class="w-[26px] h-[26px] stroke-[2.2]"></i>
+        <span class="text-xs font-bold leading-none" id="t-tab-activities">活動</span>
       </button>
 
       <!-- Tab 2: 戰績 -->
       <button type="button" id="tab-btn-records" onclick="switchClubTab('records')"
-        class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
-        <i data-lucide="trophy" class="w-5 h-5"></i>
-        <span class="text-[10px] leading-tight" id="t-tab-records">戰績</span>
+        class="flex flex-col items-center justify-center gap-1.5 h-full w-full py-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 dark:text-slate-400 dark:hover:text-slate-200 transition active:scale-95 cursor-pointer">
+        <i data-lucide="trophy" class="w-[26px] h-[26px] stroke-[2]"></i>
+        <span class="text-xs font-semibold leading-none" id="t-tab-records">戰績</span>
       </button>
 
       <!-- Tab 3: 個人 -->
       <button type="button" id="tab-btn-profile" onclick="switchClubTab('profile')"
-        class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
-        <i data-lucide="user" class="w-5 h-5"></i>
-        <span class="text-[10px] leading-tight" id="t-tab-profile">個人</span>
+        class="flex flex-col items-center justify-center gap-1.5 h-full w-full py-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 dark:text-slate-400 dark:hover:text-slate-200 transition active:scale-95 cursor-pointer">
+        <i data-lucide="user" class="w-[26px] h-[26px] stroke-[2]"></i>
+        <span class="text-xs font-semibold leading-none" id="t-tab-profile">個人</span>
       </button>
 
       <!-- Tab 4: 社團 -->
       <button type="button" id="tab-btn-info" onclick="switchClubTab('info')"
-        class="flex flex-col items-center justify-center gap-0.5 py-1 sub-text font-medium transition hover:text-emerald-500">
-        <i data-lucide="info" class="w-5 h-5"></i>
-        <span class="text-[10px] leading-tight" id="t-tab-info">社團</span>
+        class="flex flex-col items-center justify-center gap-1.5 h-full w-full py-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 dark:text-slate-400 dark:hover:text-slate-200 transition active:scale-95 cursor-pointer">
+        <i data-lucide="info" class="w-[26px] h-[26px] stroke-[2]"></i>
+        <span class="text-xs font-semibold leading-none" id="t-tab-info">社團</span>
       </button>
     </div>
   </nav>
 
   <!-- Toast Notification Container -->
-  <div id="toast-container" class="fixed bottom-16 sm:bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-2 pointer-events-none"></div>
+  <div id="toast-container" class="fixed bottom-24 sm:bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-2 pointer-events-none"></div>
 
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script type="module">
@@ -2168,7 +2168,7 @@
       safeGetLocalJSON,
       sha256
     } from "./utils.js?v=20261020-18";
-    import "./club.js?v=20261020-18";
+    import "./club.js?v=20261020-19";
     import "./tournament-create.js?v=20261020-18";
     import "./live.js?v=20261020-18";
     import "./activities.js?v=20261020-18";
