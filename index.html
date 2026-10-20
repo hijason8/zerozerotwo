@@ -2168,7 +2168,7 @@
       safeGetLocalJSON,
       sha256
     } from "./utils.js?v=20261020-18";
-    import "./club.js?v=20261020-19";
+    import "./club.js?v=20261020-20";
     import "./tournament-create.js?v=20261020-18";
     import "./live.js?v=20261020-18";
     import "./activities.js?v=20261020-18";
@@ -2213,6 +2213,8 @@
     let _adminAuthenticated = false;
     const getIsAdmin = () => _adminAuthenticated;
     const setIsAdmin = (val) => { _adminAuthenticated = !!val; };
+    window.getIsAdmin = getIsAdmin;
+    window.setIsAdmin = setIsAdmin;
 
     // ============================================================
     // LANGUAGE INITIALIZATION (智慧偵測語言版)
@@ -2477,7 +2479,10 @@
 
         try {
           const pinSnap = await get(ref(STATE.db, "app_config/master_pin_hash"));
-          if (pinSnap.exists()) STATE.masterPinHash = pinSnap.val();
+          if (pinSnap.exists()) {
+            STATE.masterPinHash = pinSnap.val();
+            safeSetLocal("pb_app_config", { master_pin_hash: STATE.masterPinHash });
+          }
         } catch (e) { console.warn("Could not load master pin hash", e); }
 
         // 載入社團中繼資料（供隱私過濾與密碼保護標記，不包含也不讀取任何密碼 Hash）
@@ -2661,7 +2666,8 @@
       } else if (pageName === "history") {
         renderHistoryPage();
       } else if (pageName === "admin") {
-        renderAdminPage();
+        if (typeof renderAdminPage === "function") renderAdminPage();
+        else if (typeof window.renderAdminPage === "function") window.renderAdminPage();
       }
 
       if (pageName !== "live" && STATE.dbUnsubscribe) {
