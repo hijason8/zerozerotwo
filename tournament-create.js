@@ -972,10 +972,6 @@ const isTransientPlayer = (name) => {
       setSelectedPlayers([...existing, ...generated]);
 
       if (countInput) countInput.value = "";
-      showToast(
-        isZh ? `已增加 ${count} 位${isTeamMode ? "臨打隊伍" : "臨打選手"}！` : `Added ${count} ${prefix}(s)!`,
-        "success"
-      );
     }
     window.quickGeneratePlayers = quickGeneratePlayers;
 

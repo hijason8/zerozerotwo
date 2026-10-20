@@ -87,7 +87,6 @@ function loadFromLocalCache(tId) {
     STATE.tournamentData = local[tId];
     renderLiveUI(STATE.tournamentData);
   } else {
-    showToast(`Tournament ID ${tId} not found`, "error");
     navigateTo("hub");
   }
 }
@@ -1120,7 +1119,6 @@ async function startTournamentFromLobby(startMode = 'schedule', confirmed = fals
       await set(ref(STATE.db, `tournaments/${tData.id}`), tData);
     }
 
-    showToast(isZh ? "自由練球開始！隨意暢打，打完點擊「結束練球」即可存檔。" : "Practice Started! Have fun!", "success");
     renderLiveUI(tData);
     return;
   }
@@ -1206,7 +1204,6 @@ async function startTournamentFromLobby(startMode = 'schedule', confirmed = fals
       await set(ref(STATE.db, `tournaments/${tData.id}`), tData);
     }
 
-    showToast(STATE.lang === "zh-TW" ? "🎉 賽程已生成，正式開賽！" : "🎉 Tournament Started!", "success");
     renderLiveUI(tData);
 
   } catch (err) {
@@ -1335,13 +1332,6 @@ async function completeTournamentAndReturn() {
     }
   }
   saveToLocalTournaments(tData);
-
-  showToast(
-    uncompletedCount > 0
-      ? (STATE.lang === "zh-TW" ? `賽事已提前結束，未賽 ${uncompletedCount} 場已自動取消！` : `Tournament completed early (${uncompletedCount} matches voided)!`)
-      : (STATE.lang === "zh-TW" ? "賽事已完賽並封存！" : "Tournament completed and archived"),
-    "success"
-  );
   navigateTo(STATE.lineUserId ? "activities" : "hub");
 }
 window.completeTournamentAndReturn = completeTournamentAndReturn;
@@ -1784,7 +1774,6 @@ function assignAddMatchPlayer(name) {
       return;
     }
   }
-  showToast(STATE.lang === "zh-TW" ? "欄位已滿！請點擊選手取消或清空重選" : "All slots full! Click a player to unassign", "info");
 }
 window.assignAddMatchPlayer = assignAddMatchPlayer;
 

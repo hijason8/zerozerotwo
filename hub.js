@@ -481,10 +481,6 @@ export async function deleteTournament(id, skipConfirm = false) {
 
   STATE.allTournamentsCache = (STATE.allTournamentsCache || []).filter(t => t.id !== id);
 
-  if (typeof window.showToast === "function") {
-    window.showToast(STATE.lang === "zh-TW" ? `賽事「${tournamentName}」已成功刪除` : `Tournament "${tournamentName}" deleted`, "success");
-  }
-
   const isLivePageVisible = !document.getElementById("page-live")?.classList.contains("hidden");
   if (isLivePageVisible || STATE.currentPage === "live" || STATE.currentTournamentId === id) {
     STATE.currentTournamentId = null;

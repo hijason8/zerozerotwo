@@ -737,10 +737,7 @@ const isTransientPlayer = (name) => {
 
     async function handleEditClubInfoClick() {
       const clubName = STATE.currentClub;
-      if (!clubName) {
-        showToast(STATE.lang === "zh-TW" ? "尚未選擇社團！" : "No club selected!", "warning");
-        return;
-      }
+      if (!clubName) return;
       // 檢查密碼授權 (特權操作：強制要求驗證密碼)
       if (typeof verifyClubAccess === "function") {
         const ok = await verifyClubAccess(clubName, true);
@@ -848,7 +845,6 @@ const isTransientPlayer = (name) => {
         localStorage.setItem("pb_clubs_metadata", JSON.stringify(localMeta));
 
         closeCreateClubModal();
-        showToast(isZh ? `已成功更新「${clubName}」社團資訊！` : `Updated "${clubName}" info successfully!`, "success");
 
         // 3. 重新渲染說明頁與社團大廳
         if (typeof renderClubInfoTab === "function") {
@@ -884,7 +880,6 @@ const isTransientPlayer = (name) => {
 
       if (matched) {
         closeCreateClubModal();
-        showToast(t("clubAlreadyExists").replace("{club}", matched), "info");
         await openClubSpace(matched);
         return;
       }
@@ -896,7 +891,6 @@ const isTransientPlayer = (name) => {
       // 2. 儲存密碼 (選填)
       if (pwd) {
         await setClubPasswordDB(rawName, pwd);
-        showToast(t("clubPasswordSet"), "success");
       }
 
       // 3. 儲存社團隱私與說明中繼資料 (clubs_metadata - 包含 hasPassword 與 description)
@@ -1403,7 +1397,6 @@ const isTransientPlayer = (name) => {
         if (typeof updateClubIdentityBadge === "function") {
           updateClubIdentityBadge(clubName);
         }
-        showToast(`身分綁定成功！歡迎【${cleanName}】！`, "success");
 
         // 5. 繼續原本的頁面渲染流程
         if (STATE.currentPage === "live" && STATE.tournamentData) {
@@ -1420,7 +1413,6 @@ const isTransientPlayer = (name) => {
         if (typeof updateClubIdentityBadge === "function") {
           updateClubIdentityBadge(clubName);
         }
-        showToast(`身分綁定完成！歡迎【${cleanName}】！`, "success");
         if (STATE.currentPage === "live" && STATE.tournamentData) {
           renderLiveUI(STATE.tournamentData);
         }
@@ -1564,7 +1556,6 @@ const isTransientPlayer = (name) => {
 
       const currentBound = (localStorage.getItem(`pb_bound_name_${clubName}`) || STATE.clubPlayerName || "").trim();
       if (!currentBound) {
-        showToast("目前尚未綁定任何球員身分", "info");
         closeClubIdentityClaimModal();
         return;
       }
@@ -1578,7 +1569,6 @@ const isTransientPlayer = (name) => {
 
       await unbindClubIdentity(clubName, currentBound, STATE.lineUserId);
       closeClubIdentityClaimModal();
-      showToast(isZh ? `已解除「${currentBound}」的身分綁定！` : `Unbound "${currentBound}" successfully!`, "success");
 
       // 重新渲染當前頁面
       if (STATE.currentPage === "live" && STATE.tournamentData) {
@@ -3203,7 +3193,6 @@ const isTransientPlayer = (name) => {
         populateCreateClubSelect();
       }
 
-      showToast(STATE.lang === "zh-TW" ? `社團「${oldName}」已成功更名為「${cleanNew}」！` : `Club renamed to "${cleanNew}"!`, "success");
       renderAdminPage();
       displayHubTournamentsList(STATE.allTournamentsCache);
       renderHubTournaments();
@@ -3245,7 +3234,6 @@ const isTransientPlayer = (name) => {
 
       saveClubMembersList(club, members);
       input.value = "";
-      showToast(STATE.lang === "zh-TW" ? `已新增成員至「${club}」` : `Members added to "${club}"`, "success");
       renderAdminPage();
     }
     window.adminAddMember = adminAddMember;
@@ -3254,7 +3242,6 @@ const isTransientPlayer = (name) => {
       let members = getClubMembersList(club);
       members = members.filter(m => m !== memberName);
       saveClubMembersList(club, members);
-      showToast(STATE.lang === "zh-TW" ? `已移除成員「${memberName}」` : `Removed member "${memberName}"`, "info");
       renderAdminPage();
     }
     window.adminRemoveMember = adminRemoveMember;
@@ -3269,7 +3256,6 @@ const isTransientPlayer = (name) => {
       }
       await setClubPasswordDB(club, pwd);
       input.value = "";
-      showToast(t("clubPasswordUpdated"), "success");
       renderAdminPage();
     }
     window.adminSetClubPassword = adminSetClubPassword;
@@ -3277,7 +3263,6 @@ const isTransientPlayer = (name) => {
     async function adminRemoveClubPassword(club) {
       await setClubPasswordDB(club, null);
       STATE.authenticatedClubs.delete(club);
-      showToast(t("clubPasswordRemoved"), "success");
       renderAdminPage();
     }
     window.adminRemoveClubPassword = adminRemoveClubPassword;
@@ -3377,10 +3362,6 @@ const isTransientPlayer = (name) => {
         populateCreateClubSelect();
       }
 
-      showToast(
-        STATE.lang === 'zh-TW' ? `社團「${clubName}」已徹底刪除` : `Club "${clubName}" deleted permanently`,
-        'success'
-      );
       renderAdminPage();
     }
     window.adminDeleteClub = adminDeleteClub;

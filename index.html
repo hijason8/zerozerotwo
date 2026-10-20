@@ -2214,14 +2214,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261020-35";
-    import "./club.js?v=20261020-35";
-    import "./tournament-create.js?v=20261020-35";
-    import "./live.js?v=20261020-35";
-    import "./activities.js?v=20261020-35";
-    import "./hub.js?v=20261020-35";
-    import "./line.js?v=20261020-35";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-35";
+    } from "./utils.js?v=20261020-36";
+    import "./club.js?v=20261020-36";
+    import "./tournament-create.js?v=20261020-36";
+    import "./live.js?v=20261020-36";
+    import "./activities.js?v=20261020-36";
+    import "./hub.js?v=20261020-36";
+    import "./line.js?v=20261020-36";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-36";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2378,7 +2378,6 @@
       setPartnerType(currentPartnerType);
       calculateTimeEstimate();
       updatePlayerCountBadge();
-      showToast(STATE.lang === "zh-TW" ? "已切換至 繁體中文" : "Switched to English", "info");
     }
     window.toggleLanguage = toggleLanguage;
 
@@ -2800,7 +2799,6 @@
       setIsAdmin(false);
       if (typeof populateNavClubSelect === "function") populateNavClubSelect();
       navigateTo('hub');
-      showToast(STATE.lang === "zh-TW" ? "已退出管理員模式" : "Admin mode exited", "warning");
     }
     window.exitAdminMode = exitAdminMode;
 
@@ -2823,7 +2821,6 @@
           console.error("Rename tournament error:", e);
         }
       }
-      showToast(STATE.lang === "zh-TW" ? `賽事已改名為「${clean}」` : `Renamed to "${clean}"`, "success");
       renderAdminPage();
     }
     window.adminRenameTournament = adminRenameTournament;
@@ -2852,7 +2849,6 @@
         }
       }
 
-      showToast(t("adminForceCompleteDone"), "success");
       renderAdminPage();
     }
     window.adminForceComplete = adminForceComplete;

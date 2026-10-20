@@ -439,7 +439,6 @@ export function handleLineLogoutOrSwitch() {
     }
 
     navigateTo("hub");
-    showToast(STATE.lang === "zh-TW" ? "已登出 LINE" : "Logged out from LINE", "info");
   } else {
     triggerLineLoginAction();
   }
