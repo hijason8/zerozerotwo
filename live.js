@@ -2275,23 +2275,23 @@ function renderLeaderboardTable(leaderboard) {
 
     return `
           <tr class="${isMvp ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent font-bold border-l-4 border-amber-500' : 'hover:bg-stone-500/5'} transition">
-            <td class="py-2.5 px-1.5 text-center">${rankBadge}</td>
-            <td class="py-2.5 px-2">
-              <span class="font-semibold text-xs sm:text-sm ${isMvp ? 'text-amber-600 dark:text-amber-300' : ''}">${row.name}</span>
+            <td class="py-2.5 px-1.5 text-center whitespace-nowrap">${rankBadge}</td>
+            <td class="py-2.5 px-2 whitespace-nowrap">
+              <span class="font-semibold text-xs sm:text-sm ${isMvp ? 'text-amber-600 dark:text-amber-300' : ''}">${escapeHTML(row.name)}</span>
             </td>
-            <td class="py-2.5 px-1 text-center font-mono text-xs">
-              <span class="text-emerald-600 dark:text-emerald-400 font-bold">${row.wins}${winUnit}</span> / <span class="text-rose-600 dark:text-rose-400">${row.losses}${lossUnit}</span>
+            <td class="py-2.5 px-1.5 text-center font-mono text-xs whitespace-nowrap">
+              <span class="text-emerald-600 dark:text-emerald-400 font-bold">${row.wins}${winUnit}</span><span class="sub-text text-[11px] mx-0.5 opacity-50">/</span><span class="text-rose-600 dark:text-rose-400 font-bold">${row.losses}${lossUnit}</span>
             </td>
-            <td class="py-2.5 px-1 text-center">
+            <td class="py-2.5 px-1.5 text-center whitespace-nowrap">
               ${row.diff > 0
-        ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">+${row.diff}</span>`
+        ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-xs bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">+${row.diff}</span>`
         : row.diff < 0
-          ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">${row.diff}</span>`
-          : `<span class="px-1.5 py-0.5 rounded font-mono text-[11px] sub-text">0</span>`
+          ? `<span class="px-1.5 py-0.5 rounded font-mono font-bold text-xs bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">${row.diff}</span>`
+          : `<span class="px-1.5 py-0.5 rounded font-mono text-xs sub-text">0</span>`
       }
             </td>
-            <td class="py-2.5 px-2 text-center font-mono text-xs sub-text">
-              ${row.pf}/${row.pa}
+            <td class="py-2.5 px-2 text-center font-mono text-xs sub-text whitespace-nowrap">
+              ${row.pf}<span class="opacity-50">/</span>${row.pa}
             </td>
           </tr>
         `;

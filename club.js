@@ -1791,8 +1791,10 @@ const isTransientPlayer = (name) => {
                 <div class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">${playerStats.winRate}%</div>
               </div>
               <div class="p-2.5 rounded-xl card-inner border">
-                <div class="text-[10px] sub-text">${isZh ? "勝 / 敗場" : "W / L"}</div>
-                <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white mt-0.5">${playerStats.wins} / ${playerStats.losses}</div>
+                <div class="text-[10px] sub-text whitespace-nowrap">${isZh ? "勝 / 敗場" : "W / L"}</div>
+                <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white mt-0.5 whitespace-nowrap">
+                  <span class="text-emerald-600 dark:text-emerald-400">${playerStats.wins}</span><span class="sub-text text-xs mx-0.5 opacity-50">/</span><span class="text-rose-600 dark:text-rose-400">${playerStats.losses}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2164,23 +2166,23 @@ const isTransientPlayer = (name) => {
 
         return `
           <tr class="hover:bg-stone-500/5 transition">
-            <td class="py-2.5 px-3">
-              <span class="font-semibold text-xs text-stone-900 dark:text-slate-100">${row.name}</span>
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              <span class="font-semibold text-xs text-stone-900 dark:text-slate-100">${escapeHTML(row.name)}</span>
             </td>
-            <td class="py-2.5 px-2 text-center font-mono">
-              <span class="px-2.5 py-0.5 rounded-md text-xs font-bold font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${row.played}</span>
+            <td class="py-2.5 px-2 text-center font-mono whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-md text-xs font-bold font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${row.played}</span>
             </td>
-            <td class="py-2.5 px-2 text-center font-mono font-bold text-xs ${row.winRate >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'sub-text'}">
+            <td class="py-2.5 px-2 text-center font-mono font-bold text-xs whitespace-nowrap ${row.winRate >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'sub-text'}">
               ${row.winRate}%
             </td>
-            <td class="py-2.5 px-2 text-center font-mono text-[11px]">
-              <span class="text-emerald-600 dark:text-emerald-400">${row.wins}${winUnit}</span> / <span class="text-rose-600 dark:text-rose-400">${row.losses}${lossUnit}</span>
+            <td class="py-2.5 px-2 text-center font-mono text-xs whitespace-nowrap">
+              <span class="text-emerald-600 dark:text-emerald-400 font-bold">${row.wins}${winUnit}</span><span class="sub-text text-[11px] mx-0.5 opacity-50">/</span><span class="text-rose-600 dark:text-rose-400 font-bold">${row.losses}${lossUnit}</span>
             </td>
-            <td class="py-2.5 px-2 text-center font-mono text-[11px] font-bold ${row.diff > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.diff < 0 ? 'text-rose-600 dark:text-rose-400' : 'sub-text'}">
+            <td class="py-2.5 px-2 text-center font-mono text-xs font-bold whitespace-nowrap ${row.diff > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.diff < 0 ? 'text-rose-600 dark:text-rose-400' : 'sub-text'}">
               ${row.diff > 0 ? '+' + row.diff : row.diff}
             </td>
-            <td class="py-2.5 px-2 text-center font-mono text-[11px] sub-text">
-              ${row.pf} / ${row.pa}
+            <td class="py-2.5 px-2 text-center font-mono text-xs sub-text whitespace-nowrap">
+              ${row.pf}<span class="opacity-50">/</span>${row.pa}
             </td>
           </tr>
         `;
@@ -2237,15 +2239,15 @@ const isTransientPlayer = (name) => {
             const isMvp = idx === 0 && row.played > 0;
             return `
               <tr class="${isMvp ? 'bg-amber-500/10 font-bold border-l-2 border-amber-400' : 'hover:bg-stone-500/5'} transition">
-                <td class="py-2 px-1 text-center">${rankBadge}</td>
-                <td class="py-2 px-2"><span class="font-semibold text-xs ${isMvp ? 'text-amber-600 dark:text-amber-300' : ''}">${row.name}</span></td>
-                <td class="py-2 px-1 text-center font-mono text-[11px]">
-                  <span class="text-emerald-600 dark:text-emerald-400">${row.wins}${winUnit}</span>/<span class="text-rose-600 dark:text-rose-400">${row.losses}${lossUnit}</span>
+                <td class="py-2 px-1.5 text-center whitespace-nowrap">${rankBadge}</td>
+                <td class="py-2 px-2 whitespace-nowrap"><span class="font-semibold text-xs ${isMvp ? 'text-amber-600 dark:text-amber-300' : ''}">${escapeHTML(row.name)}</span></td>
+                <td class="py-2 px-1.5 text-center font-mono text-xs whitespace-nowrap">
+                  <span class="text-emerald-600 dark:text-emerald-400 font-bold">${row.wins}${winUnit}</span><span class="sub-text text-[11px] mx-0.5 opacity-50">/</span><span class="text-rose-600 dark:text-rose-400 font-bold">${row.losses}${lossUnit}</span>
                 </td>
-                <td class="py-2 px-1 text-center font-mono text-[11px] font-bold ${row.diff > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.diff < 0 ? 'text-rose-600 dark:text-rose-400' : 'sub-text'}">
+                <td class="py-2 px-1.5 text-center font-mono text-xs font-bold whitespace-nowrap ${row.diff > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.diff < 0 ? 'text-rose-600 dark:text-rose-400' : 'sub-text'}">
                   ${row.diff > 0 ? '+' + row.diff : row.diff}
                 </td>
-                <td class="py-2 px-2 text-center font-mono text-[11px] sub-text">${row.pf}/${row.pa}</td>
+                <td class="py-2 px-2 text-center font-mono text-xs sub-text whitespace-nowrap">${row.pf}<span class="opacity-50">/</span>${row.pa}</td>
               </tr>
             `;
           }).join("");
@@ -2314,14 +2316,14 @@ const isTransientPlayer = (name) => {
                   </span>
                 </div>
                 <div class="overflow-x-auto">
-                  <table class="w-full text-left text-xs">
-                    <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
+                  <table class="w-full text-left text-xs min-w-[340px]">
+                    <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px] whitespace-nowrap">
                       <tr>
-                        <th class="py-2 px-2 text-center w-10">${t("thRank")}</th>
-                        <th class="py-2 px-2">${t("thPlayer")}</th>
-                        <th class="py-2 px-1.5 text-center">${t("thWl")}</th>
-                        <th class="py-2 px-1.5 text-center">${t("thDiff")}</th>
-                        <th class="py-2 px-2 text-center">${t("thPfPa")}</th>
+                        <th class="py-2 px-2 text-center w-10 whitespace-nowrap">${t("thRank")}</th>
+                        <th class="py-2 px-2 whitespace-nowrap">${t("thPlayer")}</th>
+                        <th class="py-2 px-1.5 text-center whitespace-nowrap">${t("thWl")}</th>
+                        <th class="py-2 px-1.5 text-center whitespace-nowrap">${t("thDiff")}</th>
+                        <th class="py-2 px-2 text-center whitespace-nowrap">${t("thPfPa")}</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y font-medium text-xs">${lbRows}</tbody>

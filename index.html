@@ -916,14 +916,14 @@
           <!-- Leaderboard Table Card -->
           <div class="glass-card rounded-2xl overflow-hidden border">
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
+              <table class="w-full text-left text-xs min-w-[340px]">
+                <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px] whitespace-nowrap">
                   <tr>
-                    <th id="th-rank" class="py-2.5 px-2 text-center w-10">名次</th>
-                    <th id="th-player" class="py-2.5 px-2">選手名稱</th>
-                    <th id="th-wl" class="py-2.5 px-1.5 text-center">勝/敗</th>
-                    <th id="th-diff" class="py-2.5 px-1.5 text-center">淨勝分</th>
-                    <th id="th-pf-pa" class="py-2.5 px-2 text-center">得分/失分</th>
+                    <th id="th-rank" class="py-2.5 px-2 text-center w-10 whitespace-nowrap">名次</th>
+                    <th id="th-player" class="py-2.5 px-2 whitespace-nowrap">選手名稱</th>
+                    <th id="th-wl" class="py-2.5 px-1.5 text-center whitespace-nowrap">勝/敗</th>
+                    <th id="th-diff" class="py-2.5 px-1.5 text-center whitespace-nowrap">淨勝分</th>
+                    <th id="th-pf-pa" class="py-2.5 px-2 text-center whitespace-nowrap">得分/失分</th>
                   </tr>
                 </thead>
                 <tbody id="leaderboard-tbody" class="divide-y font-medium text-xs">
@@ -1027,15 +1027,15 @@
             <!-- Aggregate Table Card -->
             <div class="glass-card rounded-2xl overflow-hidden border">
               <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                  <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px]">
+                <table class="w-full text-left text-xs min-w-[460px]">
+                  <thead class="card-inner sub-text uppercase font-semibold border-b text-[11px] whitespace-nowrap">
                     <tr>
-                      <th id="th-agg-player" class="py-2.5 px-3">選手名稱</th>
-                      <th id="th-agg-games" class="py-2.5 px-2 text-center">出賽局數</th>
-                      <th id="th-agg-winrate" class="py-2.5 px-2 text-center">總勝率</th>
-                      <th id="th-agg-wl" class="py-2.5 px-2 text-center">勝/敗場</th>
-                      <th id="th-agg-diff" class="py-2.5 px-2 text-center">總淨勝分</th>
-                      <th id="th-agg-pfpa" class="py-2.5 px-2 text-center">總得/失分</th>
+                      <th id="th-agg-player" class="py-2.5 px-3 whitespace-nowrap">選手名稱</th>
+                      <th id="th-agg-games" class="py-2.5 px-2 text-center whitespace-nowrap">出賽局數</th>
+                      <th id="th-agg-winrate" class="py-2.5 px-2 text-center whitespace-nowrap">總勝率</th>
+                      <th id="th-agg-wl" class="py-2.5 px-2 text-center whitespace-nowrap">勝/敗場</th>
+                      <th id="th-agg-diff" class="py-2.5 px-2 text-center whitespace-nowrap">總淨勝分</th>
+                      <th id="th-agg-pfpa" class="py-2.5 px-2 text-center whitespace-nowrap">總得/失分</th>
                     </tr>
                   </thead>
                   <tbody id="history-aggregate-tbody" class="divide-y font-medium text-xs">
@@ -2212,14 +2212,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261020-42";
-    import "./club.js?v=20261020-42";
-    import "./tournament-create.js?v=20261020-42";
-    import "./live.js?v=20261020-42";
-    import "./activities.js?v=20261020-42";
-    import "./hub.js?v=20261020-42";
-    import "./line.js?v=20261020-42";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-42";
+    } from "./utils.js?v=20261020-43";
+    import "./club.js?v=20261020-43";
+    import "./tournament-create.js?v=20261020-43";
+    import "./live.js?v=20261020-43";
+    import "./activities.js?v=20261020-43";
+    import "./hub.js?v=20261020-43";
+    import "./line.js?v=20261020-43";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-43";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
