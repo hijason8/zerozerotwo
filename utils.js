@@ -63,8 +63,16 @@ export function formatTournamentDate(val, lang = "zh-TW") {
   return d.toLocaleDateString(currentLang === "zh-TW" ? "zh-TW" : "en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
+export function isTransientPlayer(name) {
+  if (!name || typeof name !== "string") return false;
+  const clean = name.trim();
+  // 匹配前綴：臨打、臨時、補位、選手、隊伍、Guest、Player、Team + 編號/代號
+  return /^(臨打|臨時|補位|選手|隊伍|Guest|Player|Team)(\s*[-_#]?[0-9A-Za-z]+)?$/i.test(clean);
+}
+
 if (typeof window !== "undefined") {
   window.parseTournamentDate = parseTournamentDate;
   window.formatTournamentDate = formatTournamentDate;
+  window.isTransientPlayer = isTransientPlayer;
 }
 

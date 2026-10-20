@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256, isTransientPlayer } from "./utils.js";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -41,13 +41,13 @@ import {
         const tClub = (t.clubName || '').trim();
         if (tClub === key && Array.isArray(t.players)) {
           t.players.forEach(p => {
-            if (p && !members.includes(p.trim())) {
+            if (p && !members.includes(p.trim()) && !isTransientPlayer(p.trim())) {
               members.push(p.trim());
             }
           });
         }
       });
-      return members;
+      return members.filter(m => !isTransientPlayer(m));
     }
     window.getClubMembersList = getClubMembersList;
 
@@ -57,7 +57,7 @@ import {
         new Set(
           (members || [])
             .map(m => (typeof m === "string" ? m.trim().slice(0, 10) : ""))
-            .filter(Boolean)
+            .filter(m => m && !isTransientPlayer(m))
         )
       );
       const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
@@ -1201,8 +1201,8 @@ import {
       // 2. 排除機制：抓出所有「已被其他 LINE ID 綁定走」的名字
       const claimedNames = new Set(Object.values(mappings).map(n => (n || '').trim()));
 
-      // 剩餘可認領的名字
-      const availableNames = clubMembers.filter(m => m && m.trim() && !claimedNames.has(m.trim()));
+      // 剩餘可認領的名字 (排除已被綁定者與臨打/暫代角色)
+      const availableNames = clubMembers.filter(m => m && m.trim() && !claimedNames.has(m.trim()) && !isTransientPlayer(m.trim()));
 
       if (countEl) {
         countEl.innerText = `${availableNames.length} 人待認領`;
@@ -2130,7 +2130,7 @@ import {
           };
 
           (m.blue || []).forEach(p => {
-            if (!p) return;
+            if (!p || isTransientPlayer(p)) return; // 排除臨打/暫代角色，不累計歷史總戰績
             initPlayer(p);
             stats[p].played += 1;
             if (blueWon) stats[p].wins += 1;
@@ -2140,7 +2140,7 @@ import {
           });
 
           (m.red || []).forEach(p => {
-            if (!p) return;
+            if (!p || isTransientPlayer(p)) return; // 排除臨打/暫代角色，不累計歷史總戰績
             initPlayer(p);
             stats[p].played += 1;
             if (redWon) stats[p].wins += 1;

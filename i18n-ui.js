@@ -405,8 +405,8 @@ function applyDynamicLanguageUI(isZh) {
   const autoGenLabel = document.getElementById("t-auto-gen-label");
   if (autoGenLabel) {
     autoGenLabel.innerText = isZh
-      ? (partnerType === "fixed" ? "自動生成隊伍代號：" : "自動生成選手代號：")
-      : (partnerType === "fixed" ? "Auto-generate team codes:" : "Auto-generate player codes:");
+      ? (partnerType === "fixed" ? "自動生成隊伍代號：" : "自動生成臨打代號：")
+      : (partnerType === "fixed" ? "Auto-generate team codes:" : "Auto-generate guest codes:");
   }
 
   if (typeof window.renderSelectedPlayerChips === "function") window.renderSelectedPlayerChips();

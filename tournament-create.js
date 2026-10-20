@@ -34,7 +34,8 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   addCreatedTournamentId,
-  openClubSpace
+  openClubSpace,
+  isTransientPlayer
 } from "./globals.js";
 
     // ----------------------------------------------------
@@ -256,7 +257,7 @@ import {
       if (inputAdd) inputAdd.placeholder = isZh ? "姓名，支援空格批量輸入" : "Enter names (supports space/line batch input)...";
       if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "已登錄選手：" : (isRotating ? "已登錄選手：" : "已登錄隊伍：")) : (isSingles ? "Registered Singles:" : (isRotating ? "Registered Players:" : "Registered Teams:"));
       if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "社團常用隊伍：" : "社團常用選手：") : (type === "fixed" ? "Club Teams:" : "Club Players:");
-      if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "自動生成隊伍代號：" : "自動生成選手代號：") : (type === "fixed" ? "Auto-generate team codes:" : "Auto-generate player codes:");
+      if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "自動生成隊伍代號：" : "自動生成臨打代號：") : (type === "fixed" ? "Auto-generate team codes:" : "Auto-generate guest codes:");
 
       updatePartnerToggleTexts();
       updatePlayerCountBadge();
@@ -642,19 +643,19 @@ import {
       const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
       let members = local[key] ? [...local[key]] : [];
 
-      // 僅載入此特定社團過去賽事中的成員
+      // 僅載入此特定社團過去賽事中的成員 (排除臨打/暫代角色)
       (STATE.allTournamentsCache || []).forEach(t => {
         const tClub = (t.clubName || '').trim();
         if (tClub === key && Array.isArray(t.players)) {
           t.players.forEach(p => {
-            if (p && !members.includes(p.trim())) {
+            if (p && !members.includes(p.trim()) && !isTransientPlayer(p.trim())) {
               members.push(p.trim());
             }
           });
         }
       });
 
-      return members;
+      return members.filter(m => !isTransientPlayer(m));
     }
 
     function saveClubMembersList(clubName, members) {
@@ -663,7 +664,7 @@ import {
         new Set(
           (members || [])
             .map(m => (typeof m === "string" ? m.trim().slice(0, 10) : ""))
-            .filter(Boolean)
+            .filter(m => m && !isTransientPlayer(m))
         )
       );
       const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
@@ -913,7 +914,7 @@ import {
       const isTeamMode = (partnerType === "fixed");
       const prefix = isTeamMode
         ? (STATE.lang === "zh-TW" ? "隊伍" : "Team")
-        : (STATE.lang === "zh-TW" ? "選手" : "Player");
+        : (STATE.lang === "zh-TW" ? "臨打" : "Guest");
 
       const generated = [];
       for (let i = 1; i <= count; i++) {

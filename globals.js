@@ -62,6 +62,13 @@ export const deleteTournament = (...args) => {
   }
 };
 
+export const isTransientPlayer = (name) => {
+  if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
+    return window.isTransientPlayer(name);
+  }
+  return false;
+};
+
 export const renderLiveUI = (...args) => {
   if (typeof window !== "undefined" && typeof window.renderLiveUI === "function") {
     return window.renderLiveUI(...args);
