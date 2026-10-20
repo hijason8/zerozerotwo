@@ -1365,35 +1365,14 @@ function renderMatchesList(matches, hasAdmin = false) {
   if (matches.length === 0) {
     const isPractice = STATE.tournamentData && (STATE.tournamentData.isPracticeMode || STATE.tournamentData.tournamentMode === "free");
     if (isPractice) {
-      const players = (STATE.tournamentData.players || []);
       const isZh = STATE.lang === 'zh-TW';
       container.innerHTML = `
-            <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-4 border shadow-sm">
-              <div class="w-14 h-14 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto border border-teal-500/20 shadow-sm animate-pulse">
-                <i data-lucide="activity" class="w-7 h-7"></i>
+            <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2.5 border">
+              <div class="w-12 h-12 rounded-2xl card-inner flex items-center justify-center mx-auto text-teal-500 border shadow-sm">
+                <i data-lucide="activity" class="w-6 h-6"></i>
               </div>
-              <div class="space-y-1">
-                <h4 class="font-bold text-base sm:text-lg text-stone-900 dark:text-white">${isZh ? '自由練球暢打進行中' : 'Practice Session in Progress'}</h4>
-                <p class="sub-text text-xs">${isZh ? '今日不排定死板賽程，球友可自由熱身、拉球與暢快對打！' : 'Free play session without fixed schedule.'}</p>
-              </div>
-
-              <!-- 出席球友名冊 Chips -->
-              <div class="pt-3 border-t border-stone-200/60 dark:border-slate-800/60 space-y-2">
-                <div class="flex items-center justify-between text-xs font-bold sub-text">
-                  <span>👥 ${isZh ? '今日出席名冊' : 'Attendees'} (${players.length} ${isZh ? '人' : 'players'})</span>
-                </div>
-                <div class="flex flex-wrap gap-1.5 justify-center">
-                  ${players.map(p => `
-                    <span class="px-2.5 py-1 rounded-xl card-inner border text-xs font-semibold flex items-center gap-1 shadow-xs">
-                      <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> ${escapeHTML(p)}
-                    </span>
-                  `).join('')}
-                </div>
-              </div>
-
-              <div class="p-3 rounded-xl bg-teal-500/5 border border-teal-500/20 text-teal-700 dark:text-teal-300 text-xs text-left sm:text-center leading-relaxed">
-                💡 ${isZh ? '練球結束時，請主辦人點擊上方「結束練球」即可完賽！若想記分亦可點擊「➕ 新增場次」。' : 'When finished, click Finish Practice. You can also click Add Match to record scores.'}
-              </div>
+              <p class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? '自由暢打中' : 'Free Play Session'}</p>
+              <p class="sub-text text-xs">${hasAdmin ? (isZh ? '自由對打不限賽程，如需記分可點擊「➕ 新增場次」' : 'Click "+ Add Match" to record scores.') : (isZh ? '自由對打不設固定賽程' : 'Free play in progress.')}</p>
             </div>
           `;
       lucide.createIcons();
