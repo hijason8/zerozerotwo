@@ -38,3 +38,33 @@ export async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str || ''));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+export function parseTournamentDate(val) {
+  if (!val) return null;
+  let d = new Date(val);
+  if (!isNaN(d.getTime())) return d;
+  if (typeof val === "string") {
+    const cleanStr = val.replace(/上午|下午/g, "").replace(/\//g, "-").trim();
+    d = new Date(cleanStr);
+    if (!isNaN(d.getTime())) return d;
+    const match = val.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+    if (match) {
+      d = new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+      if (!isNaN(d.getTime())) return d;
+    }
+  }
+  return null;
+}
+
+export function formatTournamentDate(val, lang = "zh-TW") {
+  const d = parseTournamentDate(val);
+  if (!d) return "";
+  const currentLang = (typeof window !== "undefined" && window.STATE && window.STATE.lang) || lang;
+  return d.toLocaleDateString(currentLang === "zh-TW" ? "zh-TW" : "en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+if (typeof window !== "undefined") {
+  window.parseTournamentDate = parseTournamentDate;
+  window.formatTournamentDate = formatTournamentDate;
+}
+

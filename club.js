@@ -11,6 +11,68 @@ import {
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
+import {
+  STATE,
+  FUNCTIONS_BASE_URL,
+  t,
+  showToast,
+  navigateTo,
+  renderLiveUI,
+  renderHistoryPage,
+  renderHubTournaments,
+  displayHubTournamentsList,
+  enterTournament,
+  deleteTournament,
+  openLineLoginPromptModal,
+  addUserClubToFirebase,
+  populateCreateClubSelect
+} from "./globals.js";
+
+    export function getClubMembersList(clubName) {
+      if (!clubName || !clubName.trim()) {
+        return [];
+      }
+      const key = clubName.trim();
+      const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
+      let members = local[key] ? [...local[key]] : [];
+
+      const cache = (window.STATE && window.STATE.allTournamentsCache) || [];
+      cache.forEach(t => {
+        const tClub = (t.clubName || '').trim();
+        if (tClub === key && Array.isArray(t.players)) {
+          t.players.forEach(p => {
+            if (p && !members.includes(p.trim())) {
+              members.push(p.trim());
+            }
+          });
+        }
+      });
+      return members;
+    }
+    window.getClubMembersList = getClubMembersList;
+
+    export function saveClubMembersList(clubName, members) {
+      const key = clubName || "__general__";
+      const sanitized = Array.from(
+        new Set(
+          (members || [])
+            .map(m => (typeof m === "string" ? m.trim().slice(0, 10) : ""))
+            .filter(Boolean)
+        )
+      );
+      const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
+      local[key] = sanitized;
+      localStorage.setItem("pb_club_members", JSON.stringify(local));
+
+      if (window.STATE && window.STATE.db && clubName) {
+        try {
+          set(ref(window.STATE.db, `club_members/${encodeClubKey(clubName)}`), sanitized);
+        } catch (e) {
+          console.error("Firebase save club members error:", e);
+        }
+      }
+    }
+    window.saveClubMembersList = saveClubMembersList;
 
     function decodeClubKey(safeKey) {
       if (!safeKey) return "";
@@ -790,7 +852,7 @@ import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
         badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-amber-500/80";
         badgeBtn.title = isZh ? "您尚未加入此社團，加入社團後即可綁定球員姓名" : "Not joined. Join club to bind identity";
         if (textEl) textEl.innerText = isZh ? "未綁定身分" : "Claim ID";
-        if (iconEl) iconEl.className = "w-3.5 h-3.5 text-amber-500";
+        if (iconEl) iconEl.setAttribute("class", "w-3.5 h-3.5 text-amber-500");
         lucide.createIcons();
         return;
       }
@@ -821,13 +883,13 @@ import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
         badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-emerald-500/70";
         badgeBtn.title = isZh ? `已綁定球員姓名：${boundName} (點擊可更換)` : `Bound to: ${boundName} (Click to change)`;
         if (textEl) textEl.innerHTML = `<span class="hidden xs:inline">${isZh ? "球員：" : "Player: "}</span>${escapeHTML(boundName)}`;
-        if (iconEl) iconEl.className = "w-3.5 h-3.5 text-emerald-500";
+        if (iconEl) iconEl.setAttribute("class", "w-3.5 h-3.5 text-emerald-500");
       } else {
         // 未綁定狀態：顯示黃色/琥珀色提醒標籤
         badgeBtn.className = "px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl card-inner border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer hover:border-amber-500/80";
         badgeBtn.title = isZh ? "您在此社團尚未綁定球員姓名，點擊認領或自訂" : "No player identity bound. Click to claim";
         if (textEl) textEl.innerText = isZh ? "未綁定身分" : "Claim ID";
-        if (iconEl) iconEl.className = "w-3.5 h-3.5 text-amber-500";
+        if (iconEl) iconEl.setAttribute("class", "w-3.5 h-3.5 text-amber-500");
       }
       lucide.createIcons();
     }
@@ -1516,12 +1578,14 @@ import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
       }
       return null;
     }
+    window.parseTournamentDate = parseTournamentDate;
 
     function formatTournamentDate(val) {
       const d = parseTournamentDate(val);
       if (!d) return "";
       return d.toLocaleDateString(STATE.lang === "zh-TW" ? "zh-TW" : "en-US", { year: "numeric", month: "short", day: "numeric" });
     }
+    window.formatTournamentDate = formatTournamentDate;
 
     function populateHistoryMonthSelect(tournaments) {
       const select = document.getElementById("history-month-select");
@@ -2726,3 +2790,15 @@ import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
       renderAdminPage();
     }
     window.adminDeleteClub = adminDeleteClub;
+
+    // 掛載歷史頁面渲染與社團存取核心函式至全域 window
+    window.renderHistoryCategorized = renderHistoryCategorized;
+    window.renderHistoryClubAggregate = renderHistoryClubAggregate;
+    window.renderHistoryTournamentCards = renderHistoryTournamentCards;
+    window.populateHistoryMonthSelect = populateHistoryMonthSelect;
+    window.verifyClubAccess = verifyClubAccess;
+    window.encodeClubKey = encodeClubKey;
+    window.safeEscape = safeEscape;
+    window.renderAdminPage = renderAdminPage;
+    window.getClubPassword = getClubPassword;
+    window.setClubPasswordDB = setClubPasswordDB;
