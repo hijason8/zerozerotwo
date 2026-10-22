@@ -69,13 +69,11 @@
       else if (type === "error") bgClass = "bg-rose-50 dark:bg-rose-950/90 border-rose-500/50 text-rose-800 dark:text-rose-300";
       else if (type === "warning") bgClass = "bg-amber-50 dark:bg-amber-950/90 border-amber-500/50 text-amber-800 dark:text-amber-300";
       else if (type === "celebrate") bgClass = "bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/5 border-amber-500/60 text-stone-900 dark:text-amber-200 shadow-2xl backdrop-blur-md";
-      const isHtml = typeof msg === "string" && (msg.includes("<div") || msg.includes("<span") || msg.includes("<button") || msg.includes("<svg"));
       toast.className = `px-3.5 py-2.5 rounded-xl border text-xs font-semibold shadow-xl transition transform translate-y-2 ${bgClass} flex items-center gap-2 pointer-events-auto max-w-sm sm:max-w-md`;
-      if (isHtml) {
-        toast.innerHTML = msg;
-      } else {
-        toast.innerHTML = `<span>${msg}</span>`;
-      }
+      // 一律以純文字顯示，避免名字中夾帶的程式碼被執行
+      const span = document.createElement("span");
+      span.textContent = String(msg == null ? "" : msg);
+      toast.appendChild(span);
       container.appendChild(toast);
       const displayDuration = (typeof duration === "number" && duration > 0) ? duration : 3000;
       setTimeout(() => {
@@ -2190,7 +2188,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261020-18";
+    import { I18N } from "./i18n.js?v=20261022-1";
     window.I18N = I18N;
 
     function t(key) {
@@ -2212,14 +2210,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261020-43";
-    import "./club.js?v=20261020-43";
-    import "./tournament-create.js?v=20261020-43";
-    import "./live.js?v=20261020-43";
-    import "./activities.js?v=20261020-43";
-    import "./hub.js?v=20261020-43";
-    import "./line.js?v=20261020-43";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261020-43";
+    } from "./utils.js?v=20261022-1";
+    import "./club.js?v=20261022-1";
+    import "./tournament-create.js?v=20261022-1";
+    import "./live.js?v=20261022-1";
+    import "./activities.js?v=20261022-1";
+    import "./hub.js?v=20261022-1";
+    import "./line.js?v=20261022-1";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261022-1";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2513,10 +2511,10 @@
               const decodedClub = decodeURIComponent(safeKey);
               synced[decodedClub] = cloudMembers[safeKey];
             });
-            localStorage.setItem("pb_club_members", JSON.stringify(synced));
+            safeSetLocal("pb_club_members", JSON.stringify(synced));
           } else {
             // 雲端完全沒有成員資料，清空本地
-            localStorage.setItem("pb_club_members", JSON.stringify({}));
+            safeSetLocal("pb_club_members", JSON.stringify({}));
           }
           if (typeof renderClubMemberChips === 'function') renderClubMemberChips();
           if (typeof populateNavClubSelect === 'function') populateNavClubSelect();
@@ -2530,7 +2528,7 @@
           const metaSnap = await get(ref(STATE.db, "clubs_metadata"));
           if (metaSnap.exists()) {
             STATE.clubsMetadataMap = metaSnap.val() || {};
-            localStorage.setItem("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
+            safeSetLocal("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
             if (typeof populateNavClubSelect === "function") populateNavClubSelect();
           }
         } catch (e) { console.warn("Could not load clubs metadata", e); }
@@ -2865,19 +2863,14 @@
       else if (type === "warning") bgClass = "bg-amber-50 dark:bg-amber-950/90 border-amber-500/50 text-amber-800 dark:text-amber-300";
       else if (type === "celebrate") bgClass = "bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/5 border-amber-500/60 text-stone-900 dark:text-amber-200 shadow-2xl backdrop-blur-md";
 
-      const isHtml = typeof msg === "string" && (msg.includes("<div") || msg.includes("<span") || msg.includes("<button") || msg.includes("<svg"));
       toast.className = `px-3.5 py-2.5 rounded-xl border text-xs font-semibold shadow-xl transition transform translate-y-2 ${bgClass} flex items-center gap-2 pointer-events-auto max-w-sm sm:max-w-md`;
 
-      if (isHtml) {
-        toast.innerHTML = msg;
-      } else {
-        toast.innerHTML = `<span>${msg}</span>`;
-      }
+      // 一律以純文字顯示，避免名字中夾帶的程式碼被執行
+      const span = document.createElement("span");
+      span.textContent = String(msg == null ? "" : msg);
+      toast.appendChild(span);
 
       container.appendChild(toast);
-      if (window.lucide && typeof window.lucide.createIcons === "function") {
-        window.lucide.createIcons();
-      }
 
       const displayDuration = (typeof duration === "number" && duration > 0) ? duration : 3000;
       setTimeout(() => {

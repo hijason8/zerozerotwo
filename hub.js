@@ -9,7 +9,7 @@ import {
   get,
   remove
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261022-1";
 
 import {
   STATE,
@@ -21,7 +21,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js";
+} from "./globals.js?v=20261022-1";
 
 export function getMyTournamentIds() {
   try {
@@ -134,7 +134,7 @@ export function saveToLocalTournaments(tObj) {
   try {
     const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
     local[tObj.id] = tObj;
-    localStorage.setItem("pb_tournaments", JSON.stringify(local));
+    safeSetLocal("pb_tournaments", JSON.stringify(local));
   } catch (e) {
     console.warn("LocalStorage save error:", e);
   }
@@ -230,7 +230,7 @@ export function displayHubTournamentsList(list) {
       <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3.5 border flex flex-col justify-between shadow-sm relative overflow-hidden group">
         <div class="space-y-2.5">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${escapeHTML(tData.id)}</span>
             ${clubBadge}
             ${privacyBadge}
             ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
@@ -293,13 +293,13 @@ export function displayHubTournamentsList(list) {
         </div>
 
         <div class="flex items-center gap-2 pt-2">
-          <button onclick="enterTournament('${tData.id}')"
+          <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
             class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isRegistering ? '' : 'fill-current'}"></i>
             <span>${isRegistering ? t("enterRegistration") : t("enterTournament")}</span>
           </button>
           ${STATE.isAdmin ? `
-            <button onclick="deleteTournament('${tData.id}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
+            <button onclick="deleteTournament('${escapeJsAttr(tData.id)}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           ` : ''}
@@ -400,9 +400,9 @@ export function renderHubTournaments() {
       if (snapshot.exists()) {
         const data = snapshot.val();
         list = Object.values(data);
-        localStorage.setItem("pb_tournaments", JSON.stringify(data));
+        safeSetLocal("pb_tournaments", JSON.stringify(data));
       } else {
-        localStorage.setItem("pb_tournaments", JSON.stringify({}));
+        safeSetLocal("pb_tournaments", JSON.stringify({}));
       }
       displayHubTournamentsList(list);
     }, (error) => {
@@ -477,7 +477,7 @@ export async function deleteTournament(id, skipConfirm = false) {
   }
   const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
   delete local[id];
-  localStorage.setItem("pb_tournaments", JSON.stringify(local));
+  safeSetLocal("pb_tournaments", JSON.stringify(local));
 
   STATE.allTournamentsCache = (STATE.allTournamentsCache || []).filter(t => t.id !== id);
 
@@ -518,13 +518,13 @@ export function renderHistoryPage() {
       if (snapshot && snapshot.exists()) {
         const data = snapshot.val();
         list = Object.values(data);
-        localStorage.setItem("pb_tournaments", JSON.stringify(data));
+        safeSetLocal("pb_tournaments", JSON.stringify(data));
       } else {
-        localStorage.setItem("pb_tournaments", JSON.stringify({}));
+        safeSetLocal("pb_tournaments", JSON.stringify({}));
       }
       if (metaSnap && metaSnap.exists()) {
         STATE.clubsMetadataMap = metaSnap.val() || {};
-        localStorage.setItem("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
+        safeSetLocal("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
       }
       STATE.allTournamentsCache = list;
       if (typeof window.renderHistoryCategorized === "function") {

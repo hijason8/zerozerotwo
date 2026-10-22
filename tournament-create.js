@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261022-1";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -18,7 +18,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js";
+} from "./scheduler.js?v=20261022-1";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -35,7 +35,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js";
+} from "./globals.js?v=20261022-1";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -692,7 +692,7 @@ const isTransientPlayer = (name) => {
       );
       const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
       local[key] = sanitized;
-      localStorage.setItem("pb_club_members", JSON.stringify(local));
+      safeSetLocal("pb_club_members", JSON.stringify(local));
 
       if (STATE.db && clubName) {
         try {
@@ -833,7 +833,7 @@ const isTransientPlayer = (name) => {
           }">
             <button type="button" onclick="togglePlayerSelection('${escapedName}')" class="px-2.5 py-1 flex items-center gap-1.5">
               <i data-lucide="${isSelected ? 'check-circle-2' : 'circle'}" class="w-3 h-3 ${isSelected ? 'text-emerald-500' : 'opacity-40'}"></i>
-              <span>${name}</span>
+              <span>${escapeHTML(name)}</span>
             </button>
             <button type="button" onclick="removeClubMember('${escapedName}')" class="pr-1.5 pl-0.5 py-1 text-[10px] opacity-30 group-hover:opacity-100 hover:text-rose-500 transition" title="Delete from club">
               ✕
@@ -1012,7 +1012,7 @@ const isTransientPlayer = (name) => {
       if (validMyClubs.length > 0) {
         optionsHtml += `<optgroup label="${isZh ? "我的社團" : "My Clubs"}">`;
         validMyClubs.forEach(c => {
-          optionsHtml += `<option value="${c.replace(/"/g, '&quot;')}">${c}</option>`;
+          optionsHtml += `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`;
         });
         optionsHtml += `</optgroup>`;
       }
@@ -1040,12 +1040,12 @@ const isTransientPlayer = (name) => {
             <div class="p-3 rounded-xl card-inner border flex items-center justify-between">
               <div class="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
                 <i data-lucide="shield" class="w-4 h-4"></i>
-                <span>${clubName}</span>
+                <span>${escapeHTML(clubName)}</span>
               </div>
               <span class="text-[11px] sub-text">歸檔至該社團大廳</span>
             </div>
             <select id="create-club-select" class="hidden">
-              <option value="${clubName}" selected>${clubName}</option>
+              <option value="${escapeHTML(clubName)}" selected>${escapeHTML(clubName)}</option>
             </select>
           `;
         }
