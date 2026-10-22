@@ -49,10 +49,10 @@
   </script>
 
   <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@1.53.0/dist/umd/lucide.min.js"></script>
+  <script defer src="https://unpkg.com/lucide@1.53.0/dist/umd/lucide.min.js"></script>
 
   <!-- LINE LIFF SDK -->
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script defer charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <!-- 全域核心輔助工具早期載入 (保證任何子模組 import 期間呼叫零錯誤) -->
   <script>
@@ -2523,15 +2523,14 @@
         // Master PIN 只由後端驗證，前端不再讀取其雜湊值
         try { localStorage.removeItem("pb_app_config"); } catch (e) {}
 
-        // 載入社團中繼資料（供隱私過濾與密碼保護標記，不包含也不讀取任何密碼 Hash）
-        try {
-          const metaSnap = await get(ref(STATE.db, "clubs_metadata"));
+        // 載入社團中繼資料（供隱私過濾與密碼保護標記）：背景載入，不擋住畫面
+        get(ref(STATE.db, "clubs_metadata")).then((metaSnap) => {
           if (metaSnap.exists()) {
             STATE.clubsMetadataMap = metaSnap.val() || {};
             safeSetLocal("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
             if (typeof populateNavClubSelect === "function") populateNavClubSelect();
           }
-        } catch (e) { console.warn("Could not load clubs metadata", e); }
+        }).catch((e) => console.warn("Could not load clubs metadata", e));
       } catch (err) {
         console.error("Firebase init error:", err);
         updateDbStatusBadge(false);
@@ -2886,6 +2885,17 @@
     // ----------------------------------------------------
     // APP BOOTSTRAP INITIALIZATION
     // ----------------------------------------------------
+    // 讀取上次 LINE 登入的快取身分（真正的登入狀態稍後由 initLiffAndUser 確認並修正）
+    function primeCachedLineSession() {
+      try {
+        const uid = localStorage.getItem("pb_last_line_uid");
+        if (!uid) return;
+        STATE.lineUserId = uid;
+        const cachedClubs = JSON.parse(localStorage.getItem(`pb_my_clubs_${uid}`) || "[]");
+        STATE.myClubs = Array.isArray(cachedClubs) ? cachedClubs : [];
+      } catch (e) { }
+    }
+
     async function initApp() {
       applyThemeUI();
       applyLanguageUI();
@@ -2897,12 +2907,20 @@
       // 1. 優先立即初始化 Firebase，保證 STATE.db 隨時在線（毫秒級就緒）
       await initFirebase(DEFAULT_FIREBASE_CONFIG);
 
-      // 2. 啟動 LIFF 與身分驗證，此時 STATE.db 在線，100% 成功從雲端同步 myClubs 與 club_mappings 綁定身分
+      // 2. 先顯示：用上次登入的快取身分與資料，立即畫出頁面（不等 LINE 登入）
+      primeCachedLineSession();
+      initRouting();
+      lucide.createIcons();
+
+      // 3. 背景確認 LINE 登入與同步會員資料
       await initLiffAndUser();
 
-      // 3. LIFF 驗證完畢後執行路由，此時 STATE.lineUserId 與身分狀態 100% 準確無誤
-      initRouting();
-
+      // 4. 登入確認後補上正確狀態：計分頁只重繪（不重設操作模式），其他頁重新路由
+      if (STATE.currentPage === "live") {
+        if (STATE.tournamentData && typeof renderLiveUI === "function") renderLiveUI(STATE.tournamentData);
+      } else {
+        initRouting();
+      }
       lucide.createIcons();
     }
 
