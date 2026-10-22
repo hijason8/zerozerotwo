@@ -7,7 +7,11 @@ import {
   ref,
   onValue,
   get,
-  remove
+  remove,
+  query,
+  orderByChild,
+  startAt,
+  equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261022-1";
 
@@ -22,6 +26,15 @@ import {
   populateNavClubSelect,
   populateCreateClubSelect
 } from "./globals.js?v=20261022-1";
+
+
+// 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
+// 已完賽的畫面上只顯示 3 天內。避免每次都下載全部歷史資料。
+const RECENT_TOURNAMENT_DAYS = 30;
+export function recentTournamentsQuery(db) {
+  const since = new Date(Date.now() - RECENT_TOURNAMENT_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  return query(ref(db, "tournaments"), orderByChild("createdAt"), startAt(since));
+}
 
 export function getMyTournamentIds() {
   try {
@@ -393,7 +406,7 @@ export function renderHubTournaments() {
   }
 
   if (STATE.db) {
-    const tournamentsRef = ref(STATE.db, "tournaments");
+    const tournamentsRef = recentTournamentsQuery(STATE.db);
     STATE.hubUnsubscribe = onValue(tournamentsRef, (snapshot) => {
       clearTimeout(loadingTimeout);
       let list = [];
@@ -509,7 +522,10 @@ export function renderHistoryPage() {
   if (window.lucide) lucide.createIcons();
 
   if (STATE.db) {
-    const tournamentsRef = ref(STATE.db, "tournaments");
+    // 社團頁只下載這個社團的賽事
+    const tournamentsRef = STATE.currentClub
+      ? query(ref(STATE.db, "tournaments"), orderByChild("clubName"), equalTo(STATE.currentClub))
+      : recentTournamentsQuery(STATE.db);
     Promise.all([
       get(tournamentsRef),
       get(ref(STATE.db, "clubs_metadata")).catch(() => null)

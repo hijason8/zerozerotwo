@@ -18,7 +18,7 @@ import base64
 import urllib.request
 import urllib.error
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 from urllib.parse import quote
 
@@ -522,6 +522,20 @@ def _is_user_registered_in_tournament(t: dict, user_id: str, user_my_clubs: set,
     return False, ""
 
 
+RECENT_TOURNAMENT_DAYS = 30
+
+
+def _recent_tournaments() -> dict:
+    """只讀取最近 30 天建立的賽事（依 createdAt 索引），避免每次都下載全部歷史資料"""
+    since = (datetime.now(timezone.utc) - timedelta(days=RECENT_TOURNAMENT_DAYS)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    try:
+        data = db.reference("/tournaments").order_by_child("createdAt").start_at(since).get() or {}
+    except Exception as err:
+        logging.warning(f"[Tournaments] 近期查詢失敗，改讀全部: {err}")
+        data = db.reference("/tournaments").get() or {}
+    return dict(data) if isinstance(data, dict) else {}
+
+
 def _handle_my_activities(user_id: str) -> str:
     """
     處理【比賽中/已報名】：
@@ -532,9 +546,7 @@ def _handle_my_activities(user_id: str) -> str:
 
     user_my_clubs, club_mappings = _get_user_info(user_id)
 
-    tournaments_dict = db.reference("/tournaments").get() or {}
-    if not isinstance(tournaments_dict, dict):
-        tournaments_dict = {}
+    tournaments_dict = _recent_tournaments()
 
     all_tournaments = []
     for tid, t in tournaments_dict.items():
@@ -613,9 +625,7 @@ def _handle_open_registrations(user_id: str = "") -> str:
     """
     user_my_clubs, club_mappings = _get_user_info(user_id) if user_id else (set(), {})
 
-    tournaments_dict = db.reference("/tournaments").get() or {}
-    if not isinstance(tournaments_dict, dict):
-        tournaments_dict = {}
+    tournaments_dict = _recent_tournaments()
 
     all_t = []
     for tid, t in tournaments_dict.items():

@@ -4,7 +4,10 @@
     ".write": false,
     "tournaments": {
       ".read": true,
-      ".indexOn": ["createdAt"],
+      ".indexOn": [
+        "createdAt",
+        "clubName"
+      ],
       "$tournament_id": {
         ".write": "!data.exists() || data.child('status').val() !== 'completed'",
         ".validate": "newData.hasChildren(['id', 'name'])",

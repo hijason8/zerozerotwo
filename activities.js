@@ -5,7 +5,10 @@
 
 import {
   ref,
-  onValue
+  onValue,
+  query,
+  orderByChild,
+  startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261022-1";
 
@@ -140,7 +143,9 @@ export function renderActivitiesPage() {
   const attachFirebaseListener = () => {
     if (!STATE.db) return false;
     if (STATE.activitiesUnsubscribe) return true;
-    const tournamentsRef = ref(STATE.db, "tournaments");
+    // 只下載最近 30 天建立的賽事（已完賽的畫面上只顯示 3 天內）
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const tournamentsRef = query(ref(STATE.db, "tournaments"), orderByChild("createdAt"), startAt(since));
     STATE.activitiesUnsubscribe = onValue(tournamentsRef, (snapshot) => {
       clearTimeout(loadingTimeout);
       let list = [];
