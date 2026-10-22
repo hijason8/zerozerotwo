@@ -2838,6 +2838,16 @@ const isTransientPlayer = (name) => {
       const container = document.getElementById("admin-content");
       if (!container) return;
 
+      // 管理員頁面需要全部賽事（其他頁面只下載近期或單一社團），進入時才完整讀取一次
+      if (STATE.db) {
+        try {
+          const snap = await get(ref(STATE.db, "tournaments"));
+          STATE.allTournamentsCache = Object.values(snap.val() || {});
+        } catch (e) {
+          console.warn("[Admin] load all tournaments error:", e);
+        }
+      }
+
       const allT = STATE.allTournamentsCache || [];
 
       // 獲取全站所有社團（管理員專屬全集：賽事 + 成員庫 + 密碼庫 + 隱私中繼資料）
