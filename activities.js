@@ -7,14 +7,14 @@ import {
   ref,
   onValue
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261022-1";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js";
+} from "./globals.js?v=20261022-1";
 
 let activitiesSearchKeyword = "";
 
@@ -147,9 +147,9 @@ export function renderActivitiesPage() {
       if (snapshot.exists()) {
         const data = snapshot.val();
         list = Object.values(data);
-        localStorage.setItem("pb_tournaments", JSON.stringify(data));
+        safeSetLocal("pb_tournaments", JSON.stringify(data));
       } else {
-        localStorage.setItem("pb_tournaments", JSON.stringify({}));
+        safeSetLocal("pb_tournaments", JSON.stringify({}));
       }
       displayActivitiesList(list);
     }, (error) => {
@@ -329,7 +329,7 @@ export function displayActivitiesList(list) {
     let actionBtn = "";
     if (mode === "active_registered") {
       actionBtn = `
-        <button onclick="enterTournament('${tData.id}')"
+        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
           class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white">
           <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5"></i>
           <span>${isRegistering ? (isZh ? '進入活動接龍' : 'View Signup') : (isZh ? '進入即時比分' : 'View Live')}</span>
@@ -337,7 +337,7 @@ export function displayActivitiesList(list) {
       `;
     } else if (mode === "available_signup") {
       actionBtn = `
-        <button onclick="enterTournament('${tData.id}')"
+        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
           class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white">
           <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
           <span>${isZh ? '前往報名接龍' : 'Sign Up'}</span>
@@ -345,7 +345,7 @@ export function displayActivitiesList(list) {
       `;
     } else {
       actionBtn = `
-        <button onclick="enterTournament('${tData.id}')"
+        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
           class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white">
           <i data-lucide="award" class="w-3.5 h-3.5 text-amber-500"></i>
           <span>${isZh ? '查看賽事戰果' : 'View Results'}</span>
@@ -357,7 +357,7 @@ export function displayActivitiesList(list) {
       <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3 border flex flex-col justify-between shadow-sm relative overflow-hidden group ${mode === 'active_registered' ? 'border-emerald-500/30 bg-emerald-500/[0.02]' : ''}">
         <div class="space-y-2.5">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${escapeHTML(tData.id)}</span>
             ${clubBadge}
           </div>
 

@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261022-1";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js";
+} from "./globals.js?v=20261022-1";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -70,7 +70,7 @@ const isTransientPlayer = (name) => {
       );
       const local = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
       local[key] = sanitized;
-      localStorage.setItem("pb_club_members", JSON.stringify(local));
+      safeSetLocal("pb_club_members", JSON.stringify(local));
 
       if (window.STATE && window.STATE.db && clubName) {
         try {
@@ -242,8 +242,8 @@ const isTransientPlayer = (name) => {
 
         // 若當前正處於某社團，但使用者尚未將其加入「我的社團」
         if (STATE.currentClub && !userMyClubs.includes(STATE.currentClub)) {
-          const safeCurrent = STATE.currentClub.replace(/"/g, '&quot;');
-          html += `<option value="${safeCurrent}" selected>${STATE.currentClub} (${isZh ? "瀏覽中" : "Visiting"})</option>`;
+          const safeCurrent = escapeHTML(STATE.currentClub);
+          html += `<option value="${safeCurrent}" selected>${safeCurrent} (${isZh ? "瀏覽中" : "Visiting"})</option>`;
         }
 
         // 區塊一：我的社團 (無圖案純文字標籤)
@@ -251,7 +251,7 @@ const isTransientPlayer = (name) => {
           const groupLabel = isZh ? "我的社團" : "My Clubs";
           html += `<optgroup label="${groupLabel}">`;
           myClubsList.forEach(c => {
-            html += `<option value="${c.replace(/"/g, '&quot;')}" ${(STATE.currentClub === c && STATE.currentPage !== 'activities') ? 'selected' : ''}>${c}</option>`;
+            html += `<option value="${escapeHTML(c)}" ${(STATE.currentClub === c && STATE.currentPage !== 'activities') ? 'selected' : ''}>${escapeHTML(c)}</option>`;
           });
           html += `</optgroup>`;
         }
@@ -260,8 +260,8 @@ const isTransientPlayer = (name) => {
         html += `<option value="" ${(!STATE.currentClub && (STATE.currentPage === 'hub' || STATE.currentPage === 'activities')) ? 'selected' : ''}>${defaultLabel}</option>`;
 
         if (STATE.currentClub) {
-          const safeCurrent = STATE.currentClub.replace(/"/g, '&quot;');
-          html += `<option value="${safeCurrent}" selected>${STATE.currentClub} (${isZh ? "訪客瀏覽" : "Visiting"})</option>`;
+          const safeCurrent = escapeHTML(STATE.currentClub);
+          html += `<option value="${safeCurrent}" selected>${escapeHTML(STATE.currentClub)} (${isZh ? "訪客瀏覽" : "Visiting"})</option>`;
         }
       }
 
@@ -572,7 +572,7 @@ const isTransientPlayer = (name) => {
       }
 
       if (clubs.length === 0) {
-        const queryDisplay = keyword.trim();
+        const queryDisplay = escapeHTML(keyword.trim());
         listContainer.innerHTML = `
           <div class="py-8 text-center space-y-1.5">
             <i data-lucide="search-x" class="w-7 h-7 mx-auto text-stone-400 dark:text-stone-500 opacity-60"></i>
@@ -601,7 +601,7 @@ const isTransientPlayer = (name) => {
               </div>
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="text-xs sm:text-sm font-bold truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition">${c}</span>
+                  <span class="text-xs sm:text-sm font-bold truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition">${escapeHTML(c)}</span>
                   ${isMyClub ? `<span class="text-[10px] px-1.5 py-0.2 rounded font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 shrink-0">${isZh ? '我的社團' : 'Joined'}</span>` : ''}
                   ${isPriv ? `<span class="text-[10px] px-1 py-0.2 rounded font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">${isZh ? '私密' : 'Private'}</span>` : ''}
                 </div>
@@ -842,7 +842,7 @@ const isTransientPlayer = (name) => {
 
         localMeta[safeKey] = metaObj;
         localMeta[clubName] = metaObj;
-        localStorage.setItem("pb_clubs_metadata", JSON.stringify(localMeta));
+        safeSetLocal("pb_clubs_metadata", JSON.stringify(localMeta));
 
         closeCreateClubModal();
 
@@ -916,7 +916,7 @@ const isTransientPlayer = (name) => {
       const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
       localMeta[safeKey] = metaObj;
       localMeta[rawName] = metaObj;
-      localStorage.setItem("pb_clubs_metadata", JSON.stringify(localMeta));
+      safeSetLocal("pb_clubs_metadata", JSON.stringify(localMeta));
 
       // 4. 加入目前會話已授權清單與儲存偏好
       STATE.authenticatedClubs.add(rawName);
@@ -952,7 +952,7 @@ const isTransientPlayer = (name) => {
       if (nameEl) nameEl.innerText = clubName;
       if (pwdEl) {
         if (pwd) {
-          pwdEl.innerHTML = `<span class="text-amber-500 font-bold select-all">${pwd}</span> <span class="text-[10px] sub-text font-normal">🔒 需密碼</span>`;
+          pwdEl.innerHTML = `<span class="text-amber-500 font-bold select-all">${escapeHTML(pwd)}</span> <span class="text-[10px] sub-text font-normal">🔒 需密碼</span>`;
         } else {
           pwdEl.innerHTML = `<span class="text-emerald-500 font-medium">無密碼 (公開)</span>`;
         }
@@ -1972,9 +1972,9 @@ const isTransientPlayer = (name) => {
               <div class="glass-card rounded-2xl p-4 border space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${escapeHTML(tData.id)}</span>
                   </div>
-                  <h4 class="text-sm font-bold font-display line-clamp-1">${tData.name}</h4>
+                  <h4 class="text-sm font-bold font-display line-clamp-1">${escapeHTML(tData.name)}</h4>
                   <div class="flex items-center justify-between text-xs sub-text flex-wrap gap-1">
                     <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}</span>
                     <span>👥 ${pCount} ${isReg ? (STATE.lang === 'zh-TW' ? '人已報名' : 'signed up') : (STATE.lang === 'zh-TW' ? '人參賽' : 'players')}</span>
@@ -1991,7 +1991,7 @@ const isTransientPlayer = (name) => {
                     `;
               })()}
                 </div>
-                <button onclick="enterTournament('${tData.id}')" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm active:scale-95">
+                <button onclick="enterTournament('${escapeJsAttr(tData.id)}')" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm active:scale-95">
                   <i data-lucide="${isReg ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isReg ? '' : 'fill-current'}"></i> ${isReg ? t("enterRegistration") : (STATE.lang === 'zh-TW' ? '進入計分' : 'Enter')}
                 </button>
               </div>
@@ -2010,7 +2010,7 @@ const isTransientPlayer = (name) => {
       if (aggregateSection) aggregateSection.classList.remove("hidden");
       if (aggregateClubNameEl) aggregateClubNameEl.innerText = clubName;
       if (sectionTitleEl) {
-        sectionTitleEl.innerHTML = `<i data-lucide="calendar" class="w-4 h-4"></i> ${clubName} 歷次賽事紀錄`;
+        sectionTitleEl.innerHTML = `<i data-lucide="calendar" class="w-4 h-4"></i> ${escapeHTML(clubName)} 歷次賽事紀錄`;
       }
 
       populateHistoryMonthSelect(completedClubTournaments);
@@ -2225,7 +2225,7 @@ const isTransientPlayer = (name) => {
 
         const clubBadge = tData.clubName && tData.clubName.trim() ? `
           <span class="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
-            <i data-lucide="shield" class="w-2.5 h-2.5"></i> ${tData.clubName.trim()}
+            <i data-lucide="shield" class="w-2.5 h-2.5"></i> ${escapeHTML(tData.clubName.trim())}
           </span>
         ` : '';
 
@@ -2261,8 +2261,8 @@ const isTransientPlayer = (name) => {
             const redWon = isDone && rScore > bScore;
             const isVoid = !!m.voided;
 
-            const blueNames = (m.blue || []).join(" / ");
-            const redNames = (m.red || []).join(" / ");
+            const blueNames = escapeHTML((m.blue || []).join(" / "));
+            const redNames = escapeHTML((m.red || []).join(" / "));
             const restNames = (m.resting && m.resting.length > 0) ? m.resting.join("、") : "-";
 
             let scoreBadge = `<span class="sub-text text-[11px] font-mono">-</span>`;
@@ -2366,7 +2366,7 @@ const isTransientPlayer = (name) => {
             <!-- Header -->
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${tData.id}</span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${escapeHTML(tData.id)}</span>
                 ${clubBadge}
                 ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
                 <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-sm">
@@ -2377,23 +2377,23 @@ const isTransientPlayer = (name) => {
             </div>
 
             <!-- Title -->
-            <h3 class="text-base sm:text-lg font-bold font-display group-hover:text-emerald-500 transition-colors">${tData.name}</h3>
+            <h3 class="text-base sm:text-lg font-bold font-display group-hover:text-emerald-500 transition-colors">${escapeHTML(tData.name)}</h3>
 
             <!-- Podium Badges -->
             <div class="flex items-center gap-2 text-xs flex-wrap pt-0.5">
               ${champion && champion.played > 0
             ? `<span class="inline-flex items-center gap-1.5 font-bold px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-sm">
-                    <span class="text-sm">🥇</span> <span>${champion.name}</span> <span class="sub-text text-[11px] font-normal font-mono">(${champion.wins}${STATE.lang === "zh-TW" ? "勝" : "W"})</span>
+                    <span class="text-sm">🥇</span> <span>${escapeHTML(champion.name)}</span> <span class="sub-text text-[11px] font-normal font-mono">(${champion.wins}${STATE.lang === "zh-TW" ? "勝" : "W"})</span>
                   </span>`
             : ''}
               ${runnerUp && runnerUp.played > 0
             ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl card-inner border text-stone-700 dark:text-slate-300 text-xs shadow-sm">
-                    <span>🥈</span> <span>${runnerUp.name}</span>
+                    <span>🥈</span> <span>${escapeHTML(runnerUp.name)}</span>
                   </span>`
             : ''}
               ${third && third.played > 0
             ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl card-inner border text-stone-700 dark:text-slate-300 text-xs shadow-sm">
-                    <span>🥉</span> <span>${third.name}</span>
+                    <span>🥉</span> <span>${escapeHTML(third.name)}</span>
                   </span>`
             : ''}
             </div>
@@ -2408,18 +2408,18 @@ const isTransientPlayer = (name) => {
 
             <!-- Expand / Collapse & Actions -->
             <div class="flex items-center gap-2 pt-1">
-              <button onclick="toggleHistoryTournament('${tData.id}')" class="flex-1 card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/40 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
+              <button onclick="toggleHistoryTournament('${escapeJsAttr(tData.id)}')" class="flex-1 card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/40 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
                 <i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
                 <span>${isExpanded ? t("collapseDetails") : t("expandDetails")}</span>
               </button>
-              <button onclick="copyTournamentReport('${tData.id}')" class="px-3 py-2.5 card-inner border sub-text hover:text-blue-500 hover:border-blue-500/40 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("copyReportBtn")}">
+              <button onclick="copyTournamentReport('${escapeJsAttr(tData.id)}')" class="px-3 py-2.5 card-inner border sub-text hover:text-blue-500 hover:border-blue-500/40 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("copyReportBtn")}">
                 <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-500"></i>
               </button>
-              <button onclick="enterTournament('${tData.id}')" class="px-3 py-2.5 card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/40 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("enterTournament")}">
+              <button onclick="enterTournament('${escapeJsAttr(tData.id)}')" class="px-3 py-2.5 card-inner border sub-text hover:text-emerald-500 hover:border-emerald-500/40 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("enterTournament")}">
                 <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-500"></i>
               </button>
               ${STATE.isAdmin
-            ? `<button onclick="deleteTournament('${tData.id}')" class="px-3 py-2.5 card-inner border hover:bg-rose-500/20 sub-text hover:text-rose-500 border-rose-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("deleteTournamentBtn")}">
+            ? `<button onclick="deleteTournament('${escapeJsAttr(tData.id)}')" class="px-3 py-2.5 card-inner border hover:bg-rose-500/20 sub-text hover:text-rose-500 border-rose-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="${t("deleteTournamentBtn")}">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500"></i>
                   </button>`
             : ''
@@ -2593,11 +2593,9 @@ const isTransientPlayer = (name) => {
       return encodeURIComponent(clubName.trim()).replace(/\./g, '%2E');
     }
 
-    // 通用安全跳脫：防止 inline onclick 因單/雙引號或反斜線導致 SyntaxError
+    // 通用安全跳脫：用於 inline onclick='fn("...")' 內的字串（先跳脫 JS，再跳脫 HTML 屬性）
     function safeEscape(str) {
-      return (str || '')
-        .replace(/\\/g, '\\\\')
-        .replace(/'/g, "\\'");
+      return escapeJsAttr(str);
     }
 
     async function getClubPassword(clubName) {
@@ -2663,7 +2661,7 @@ const isTransientPlayer = (name) => {
       STATE.clubsMetadataMap[safeKey].hasPassword = hasPassword;
       if (!STATE.clubsMetadataMap[key]) STATE.clubsMetadataMap[key] = {};
       STATE.clubsMetadataMap[key].hasPassword = hasPassword;
-      localStorage.setItem("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
+      safeSetLocal("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
 
       if (hasPassword) {
         STATE.authenticatedClubs.add(key);
@@ -2923,14 +2921,14 @@ const isTransientPlayer = (name) => {
             const isPrivate = typeof isClubPrivate === "function" && isClubPrivate(club);
             const members = getClubMembersList(club);
             const escapedClub = safeEscape(club);
-            const safeClubId = encodeURIComponent(club).replace(/%/g, "_");
+            const safeClubId = encodeURIComponent(club).replace(/[^A-Za-z0-9]/g, "_");
             return `
               <div class="p-3 rounded-xl card-inner border space-y-2.5 ${isGeneral ? 'border-emerald-500/30 bg-emerald-500/5' : ''}">
                 <!-- Row 1: Club Header, Badges & Actions -->
                 <div class="flex items-center justify-between gap-2 flex-wrap">
                   <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                     <i data-lucide="${isGeneral ? 'globe' : 'shield'}" class="w-4 h-4 ${isGeneral ? 'text-emerald-500' : 'text-amber-500'} shrink-0"></i>
-                    <span class="text-xs sm:text-sm font-bold">${displayName}</span>
+                    <span class="text-xs sm:text-sm font-bold">${escapeHTML(displayName)}</span>
                     ${!isGeneral ? `
                       <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${isPrivate ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'}">
                         ${isPrivate ? (STATE.lang === 'zh-TW' ? '🔒 私密' : '🔒 Private') : (STATE.lang === 'zh-TW' ? '🌐 公開' : '🌐 Public')}
@@ -2988,7 +2986,7 @@ const isTransientPlayer = (name) => {
                   const escapedM = safeEscape(m);
                   return `
                           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                            <span>${m}</span>
+                            <span>${escapeHTML(m)}</span>
                             <button type="button" onclick="adminRemoveMember('${escapedClub}', '${escapedM}')" class="ml-0.5 opacity-60 hover:opacity-100 hover:text-rose-500 transition text-[11px]">✕</button>
                           </div>
                         `;
@@ -3019,21 +3017,21 @@ const isTransientPlayer = (name) => {
           const total = tData.matches ? tData.matches.length : 0;
           const done = tData.matches ? tData.matches.filter(m => m.completed).length : 0;
           const isFinished = total > 0 && done === total;
-          const clubBadge = tData.clubName ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${tData.clubName}</span>` : '';
+          const clubBadge = tData.clubName ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${escapeHTML(tData.clubName)}</span>` : '';
           return `
               <div class="flex items-center justify-between gap-2 py-2 border-b border-stone-200 dark:border-slate-800/50 last:border-0">
                 <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-                  <span class="text-[10px] font-mono font-bold card-inner px-1.5 py-0.5 rounded border text-emerald-600 dark:text-emerald-400">${tData.id}</span>
+                  <span class="text-[10px] font-mono font-bold card-inner px-1.5 py-0.5 rounded border text-emerald-600 dark:text-emerald-400">${escapeHTML(tData.id)}</span>
                   ${clubBadge}
-                  <span class="text-xs font-semibold truncate">${tData.name}</span>
+                  <span class="text-xs font-semibold truncate">${escapeHTML(tData.name)}</span>
                   <span class="text-[10px] px-1.5 py-0.5 rounded font-medium ${isFinished ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'} border">${isFinished ? '🏆' : '🔥'} ${done}/${total}</span>
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
-                  <button onclick="adminRenameTournament('${tData.id}', '${(tData.name || '').replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg card-inner hover:bg-emerald-500/20 sub-text hover:text-emerald-500 border transition" title="${STATE.lang === 'zh-TW' ? '修改賽事名稱' : 'Rename Tournament'}">
+                  <button onclick="adminRenameTournament('${escapeJsAttr(tData.id)}', '${escapeJsAttr(tData.name || '')}')" class="p-1.5 rounded-lg card-inner hover:bg-emerald-500/20 sub-text hover:text-emerald-500 border transition" title="${STATE.lang === 'zh-TW' ? '修改賽事名稱' : 'Rename Tournament'}">
                     <i data-lucide="edit-3" class="w-3 h-3"></i>
                   </button>
-                  ${!isFinished ? `<button onclick="adminForceComplete('${tData.id}')" class="px-2 py-1 border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-bold rounded-lg text-[11px] transition">${t("adminForceComplete")}</button>` : ''}
-                  <button onclick="deleteTournament('${tData.id}')" class="p-1.5 rounded-lg card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition">
+                  ${!isFinished ? `<button onclick="adminForceComplete('${escapeJsAttr(tData.id)}')" class="px-2 py-1 border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-bold rounded-lg text-[11px] transition">${t("adminForceComplete")}</button>` : ''}
+                  <button onclick="deleteTournament('${escapeJsAttr(tData.id)}')" class="p-1.5 rounded-lg card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition">
                     <i data-lucide="trash-2" class="w-3 h-3"></i>
                   </button>
                 </div>
@@ -3077,7 +3075,7 @@ const isTransientPlayer = (name) => {
       Object.values(localT).forEach(t => {
         if (t.clubName === oldName) t.clubName = cleanNew;
       });
-      localStorage.setItem("pb_tournaments", JSON.stringify(localT));
+      safeSetLocal("pb_tournaments", JSON.stringify(localT));
 
       // 2. Migrate club password status（經由後端把密碼搬到新名稱，避免改名後密碼失效）
       const hadPwd = hasClubPassword(oldName);
@@ -3100,7 +3098,7 @@ const isTransientPlayer = (name) => {
         const localMembers = JSON.parse(localStorage.getItem("pb_club_members") || "{}");
         localMembers[cleanNew] = oldMembers;
         delete localMembers[oldName];
-        localStorage.setItem("pb_club_members", JSON.stringify(localMembers));
+        safeSetLocal("pb_club_members", JSON.stringify(localMembers));
 
         if (STATE.db) {
           try {
@@ -3121,7 +3119,7 @@ const isTransientPlayer = (name) => {
         localMeta[newSafeKey] = existingMeta;
         delete localMeta[oldSafeKey];
         delete localMeta[oldName];
-        localStorage.setItem("pb_clubs_metadata", JSON.stringify(localMeta));
+        safeSetLocal("pb_clubs_metadata", JSON.stringify(localMeta));
 
         if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
         STATE.clubsMetadataMap[newSafeKey] = existingMeta;

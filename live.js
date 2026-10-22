@@ -12,12 +12,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import {
   escapeHTML,
+  escapeJsAttr,
   safeSetLocal,
   safeGetLocalJSON,
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js";
+} from "./utils.js?v=20261022-1";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -25,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js";
+} from "./scheduler.js?v=20261022-1";
 
 import {
   STATE,
@@ -38,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js";
+} from "./globals.js?v=20261022-1";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -70,7 +71,7 @@ async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
       } else {
         const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
         delete local[tId];
-        localStorage.setItem("pb_tournaments", JSON.stringify(local));
+        safeSetLocal("pb_tournaments", JSON.stringify(local));
         showToast(STATE.lang === "zh-TW" ? "❌ 此賽事已不存在或已被刪除" : "Tournament not found or deleted", "error");
         navigateTo("hub");
       }
@@ -442,7 +443,7 @@ function renderLiveUI(data) {
                 <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl card-inner border font-bold text-xs bg-stone-500/10 text-stone-800 dark:text-slate-200 shadow-sm">
                   <span class="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-black">#${idx + 1}</span>
                   <span>${escapeHTML(p)}</span>
-                  <button type="button" onclick="unregisterPlayerFromTournament('${escapeHTML(p)}')" title="${isZh ? '移除 / 取消報名' : 'Remove'}"
+                  <button type="button" onclick="unregisterPlayerFromTournament('${escapeJsAttr(p)}')" title="${isZh ? '移除 / 取消報名' : 'Remove'}"
                     class="hover:text-rose-500 text-stone-400 dark:text-slate-500 transition ml-1 p-0.5 rounded active:scale-90">
                     <i data-lucide="x" class="w-3.5 h-3.5"></i>
                   </button>
@@ -470,7 +471,7 @@ function renderLiveUI(data) {
                   `;
             } else {
               return `
-                    <button type="button" onclick="registerPlayerToTournament('${escapeHTML(m)}')"
+                    <button type="button" onclick="registerPlayerToTournament('${escapeJsAttr(m)}')"
                       class="px-2.5 py-1 rounded-lg text-xs font-semibold card-inner border hover:border-teal-500 text-stone-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition flex items-center gap-1 active:scale-95 shadow-sm">
                       <i data-lucide="plus" class="w-3 h-3"></i> ${escapeHTML(m)}
                     </button>
@@ -518,7 +519,7 @@ function renderLiveUI(data) {
                       <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0"></i>
                       <span class="truncate">${isZh ? `已以「${escapeHTML(boundName)}」報名簽到` : `Joined as "${escapeHTML(boundName)}"`}</span>
                     </div>
-                    <button type="button" onclick="unregisterPlayerFromTournament('${escapeHTML(boundName)}')"
+                    <button type="button" onclick="unregisterPlayerFromTournament('${escapeJsAttr(boundName)}')"
                       class="text-[10px] sm:text-xs px-2.5 py-1 rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold transition shrink-0 cursor-pointer">
                       ${isZh ? "取消報名" : "Withdraw"}
                     </button>
@@ -534,7 +535,7 @@ function renderLiveUI(data) {
         } else if (boundName) {
           // 3. 已在社團內綁定球員身分：顯示「使用社團綁定身分報名」按鈕
           liffBannerEl.innerHTML = `
-                <button type="button" onclick="registerPlayerToTournament('${escapeHTML(boundName)}')"
+                <button type="button" onclick="registerPlayerToTournament('${escapeJsAttr(boundName)}')"
                   class="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-md active:scale-95 cursor-pointer">
                   <i data-lucide="user-check" class="w-4 h-4 shrink-0"></i>
                   <span class="truncate">${isZh ? `使用社團綁定身分報名（${escapeHTML(boundName)}）` : `Join with club identity (${escapeHTML(boundName)})`}</span>
@@ -543,7 +544,7 @@ function renderLiveUI(data) {
         } else {
           // 2. 登入 LINE 但未綁定社團球員身分：顯示社團大廳風格的質感琥珀按鈕「⚠️ 尚未綁定球員身分，請先完成認領」，點擊立即開啟認領彈窗
           liffBannerEl.innerHTML = `
-                <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeHTML(clubName)}')"
+                <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeJsAttr(clubName)}')"
                   class="w-full py-2.5 px-3.5 rounded-xl card-inner border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold transition flex items-center justify-between gap-2 shadow-sm active:scale-95 cursor-pointer">
                   <div class="flex items-center gap-1.5 min-w-0">
                     <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Identity Not Bound. Tap to Claim"}</span>
@@ -1056,8 +1057,8 @@ function promptConfirmStartTournament(startMode = "schedule") {
               <span class="sub-text">${isZh ? "排賽方案" : "Schedule"}</span>
               <span class="font-bold text-emerald-600 dark:text-emerald-400">${totalGames > 0 ? (isZh ? `預計共 ${totalGames} 局` : `${totalGames} Games`) : (isZh ? "智慧循環排賽" : "Fair Cycle")}</span>
             </div>
-            <div class="pt-1 text-[11px] sub-text truncate" title="${players.join(', ')}">
-              <span>👥 ${previewList}</span>
+            <div class="pt-1 text-[11px] sub-text truncate" title="${escapeHTML(players.join(', '))}">
+              <span>👥 ${escapeHTML(previewList)}</span>
             </div>
           `;
     }
@@ -1396,28 +1397,28 @@ function renderMatchesList(matches, hasAdmin = false) {
               <!-- Blue Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-blue-500/15 to-blue-500/5 border border-blue-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${m.blue[0] || ''}</div>
-                  ${m.blue[1] ? `<div class="truncate">${m.blue[1]}</div>` : ''}
+                  <div class="truncate">${escapeHTML(m.blue[0] || '')}</div>
+                  ${m.blue[1] ? `<div class="truncate">${escapeHTML(m.blue[1])}</div>` : ''}
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
-                  <button type="button" onclick="stepMatchScore(${m.id}, 'blue', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? m.blueScore : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-blue-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-blue-400 scoreboard-num shadow-inner" />
-                  <button type="button" onclick="stepMatchScore(${m.id}, 'blue', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${Number(m.id)}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? escapeHTML(m.blueScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-blue-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-blue-400 scoreboard-num shadow-inner" />
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
                 </div>
               </div>
 
               <!-- Red Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-rose-500/15 to-rose-500/5 border border-rose-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${m.red[0] || ''}</div>
-                  ${m.red[1] ? `<div class="truncate">${m.red[1]}</div>` : ''}
+                  <div class="truncate">${escapeHTML(m.red[0] || '')}</div>
+                  ${m.red[1] ? `<div class="truncate">${escapeHTML(m.red[1])}</div>` : ''}
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
-                  <button type="button" onclick="stepMatchScore(${m.id}, 'red', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${m.id}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? m.redScore : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-rose-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-rose-400 scoreboard-num shadow-inner" />
-                  <button type="button" onclick="stepMatchScore(${m.id}, 'red', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${Number(m.id)}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? escapeHTML(m.redScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-rose-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-rose-400 scoreboard-num shadow-inner" />
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
                 </div>
               </div>
             </div>
@@ -1436,17 +1437,17 @@ function renderMatchesList(matches, hasAdmin = false) {
                 <div class="space-y-1">
                   <div class="flex items-center justify-between gap-1">
                     <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                      ${m.blue[0] || ''}
+                      ${escapeHTML(m.blue[0] || '')}
                     </div>
                     ${blueWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-blue-500 text-white shrink-0 shadow-sm animate-pulse">WIN</span>` : ''}
                   </div>
                   ${m.blue[1] ? `
                   <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                    ${m.blue[1]}
+                    ${escapeHTML(m.blue[1])}
                   </div>` : ''}
                 </div>
                 <div class="pt-1 text-center font-mono text-3xl sm:text-4xl font-black scoreboard-num ${blueWon ? 'text-blue-600 dark:text-blue-400 drop-shadow-sm scale-105' : isScored ? 'sub-text opacity-70' : 'sub-text opacity-30'} transition-transform">
-                  ${hasBlueScore ? m.blueScore : '0'}
+                  ${hasBlueScore ? escapeHTML(m.blueScore) : '0'}
                 </div>
               </div>
 
@@ -1455,17 +1456,17 @@ function renderMatchesList(matches, hasAdmin = false) {
                 <div class="space-y-1">
                   <div class="flex items-center justify-between gap-1">
                     <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                      ${m.red[0] || ''}
+                      ${escapeHTML(m.red[0] || '')}
                     </div>
                     ${redWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-rose-500 text-white shrink-0 shadow-sm animate-pulse">WIN</span>` : ''}
                   </div>
                   ${m.red[1] ? `
                   <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                    ${m.red[1]}
+                    ${escapeHTML(m.red[1])}
                   </div>` : ''}
                 </div>
                 <div class="pt-1 text-center font-mono text-3xl sm:text-4xl font-black scoreboard-num ${redWon ? 'text-rose-600 dark:text-rose-400 drop-shadow-sm scale-105' : isScored ? 'sub-text opacity-70' : 'sub-text opacity-30'} transition-transform">
-                  ${hasRedScore ? m.redScore : '0'}
+                  ${hasRedScore ? escapeHTML(m.redScore) : '0'}
                 </div>
               </div>
             </div>
@@ -1479,7 +1480,7 @@ function renderMatchesList(matches, hasAdmin = false) {
         footerHTML = `
               <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
                 <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20">${t("voidedNotice")}</span>
-                <button onclick="toggleVoidMatch(${m.id})" class="px-2.5 py-1 font-bold rounded-lg text-xs transition bg-stone-500/10 hover:bg-stone-500/20 sub-text border">
+                <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-2.5 py-1 font-bold rounded-lg text-xs transition bg-stone-500/10 hover:bg-stone-500/20 sub-text border">
                   ${t("restoreMatchBtn")}
                 </button>
               </div>
@@ -1491,10 +1492,10 @@ function renderMatchesList(matches, hasAdmin = false) {
                   <span>${t("restingLabel")}<strong class="text-stone-800 dark:text-slate-200 font-semibold">${m.resting && m.resting.length ? m.resting.join(', ') : t('noResting')}</strong></span>
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
-                  <button onclick="toggleVoidMatch(${m.id})" class="px-2 py-1 font-semibold rounded-lg text-[11px] transition text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Match">
+                  <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-2 py-1 font-semibold rounded-lg text-[11px] transition text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Match">
                     ${t("voidMatchBtn")}
                   </button>
-                  <button onclick="saveMatchScore(${m.id})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${isDone ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
+                  <button onclick="saveMatchScore(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${isDone ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
                     <i data-lucide="${isDone ? 'edit-2' : 'check'}" class="w-3.5 h-3.5"></i> ${isDone ? t("editScoreBtn") : t("saveScoreBtn")}
                   </button>
                 </div>
@@ -1524,8 +1525,8 @@ function renderMatchesList(matches, hasAdmin = false) {
             <!-- Game Header -->
             <div class="flex items-center justify-between">
               <span class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5">
-                <span class="w-6 h-6 rounded-lg card-inner text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-mono border font-black">${m.id}</span>
-                ${STATE.lang === 'zh-TW' ? `第 ${m.id} 局` : `Game ${m.id}`}
+                <span class="w-6 h-6 rounded-lg card-inner text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-mono border font-black">${Number(m.id)}</span>
+                ${STATE.lang === 'zh-TW' ? `第 ${Number(m.id)} 局` : `Game ${Number(m.id)}`}
               </span>
               ${isVoided ? `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400">${t("voidedBadge")}</span>` : ''}
             </div>
@@ -1729,14 +1730,14 @@ function renderAddMatchRosterChips() {
       const badgeCls = isBlue
         ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40"
         : "bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/40";
-      return `<button type="button" onclick="unassignAddMatchPlayer('${escapeHTML(p)}')"
+      return `<button type="button" onclick="unassignAddMatchPlayer('${escapeJsAttr(p)}')"
             class="px-2 py-1 rounded-lg text-xs font-bold border transition flex items-center gap-1 shadow-sm active:scale-95 ${badgeCls}">
             <span>${escapeHTML(p)}</span>
             <span class="text-[10px] px-1 py-0.5 rounded font-mono bg-stone-900/10 dark:bg-stone-100/10">${seatInfo.label} · ${count}${isZh ? '場' : 'g'}</span>
             <i data-lucide="x" class="w-3 h-3 opacity-60 hover:opacity-100"></i>
           </button>`;
     } else {
-      return `<button type="button" onclick="assignAddMatchPlayer('${escapeHTML(p)}')"
+      return `<button type="button" onclick="assignAddMatchPlayer('${escapeJsAttr(p)}')"
             class="px-2 py-1 rounded-lg text-xs font-medium card-inner border hover:border-amber-500/60 sub-text hover:text-stone-900 dark:hover:text-stone-100 transition flex items-center gap-1 active:scale-95">
             <span>${escapeHTML(p)}</span>
             <span class="text-[10px] font-mono opacity-60">${count}${isZh ? '場' : 'g'}</span>

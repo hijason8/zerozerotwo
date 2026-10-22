@@ -16,11 +16,25 @@ export function escapeHTML(str) {
   });
 }
 
+// 用於 inline onclick="fn('...')" 內的字串：先跳脫 JS 字串，再跳脫 HTML 屬性
+export function escapeJsAttr(str) {
+  const js = String(str == null ? '' : str)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+  return escapeHTML(js);
+}
+
 export function safeSetLocal(key, value) {
   try {
     localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
   } catch (e) {
+    // 空間不足時移除舊快取，避免留下過期資料；畫面照常以雲端資料顯示
     console.warn(`LocalStorage write failed for key "${key}":`, e);
+    try { localStorage.removeItem(key); } catch (_) {}
   }
 }
 
