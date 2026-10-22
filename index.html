@@ -2305,7 +2305,6 @@
       expandedHistoryTournaments: {},
       allTournamentsCache: [],
       authenticatedClubs: new Set(),
-      masterPinHash: null,
       hubTab: "my", // "my" | "public"
       hubClubFilter: "",
       currentClub: null, // 當前選取的社團名稱
@@ -2523,13 +2522,8 @@
           if (typeof populateNavClubSelect === 'function') populateNavClubSelect();
         });
 
-        try {
-          const pinSnap = await get(ref(STATE.db, "app_config/master_pin_hash"));
-          if (pinSnap.exists()) {
-            STATE.masterPinHash = pinSnap.val();
-            safeSetLocal("pb_app_config", { master_pin_hash: STATE.masterPinHash });
-          }
-        } catch (e) { console.warn("Could not load master pin hash", e); }
+        // Master PIN 只由後端驗證，前端不再讀取其雜湊值
+        try { localStorage.removeItem("pb_app_config"); } catch (e) {}
 
         // 載入社團中繼資料（供隱私過濾與密碼保護標記，不包含也不讀取任何密碼 Hash）
         try {

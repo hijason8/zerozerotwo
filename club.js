@@ -814,7 +814,7 @@ const isTransientPlayer = (name) => {
           ? existingMeta.hasPassword
           : (typeof hasClubPassword === "function" ? hasClubPassword(clubName) : false);
         if (pwd) {
-          await setClubPasswordDB(clubName, pwd);
+          if (!(await setClubPasswordDB(clubName, pwd))) return;
           hasPassword = true;
           STATE.authenticatedClubs.add(clubName);
         }
@@ -890,7 +890,7 @@ const isTransientPlayer = (name) => {
 
       // 2. 儲存密碼 (選填)
       if (pwd) {
-        await setClubPasswordDB(rawName, pwd);
+        if (!(await setClubPasswordDB(rawName, pwd))) return;
       }
 
       // 3. 儲存社團隱私與說明中繼資料 (clubs_metadata - 包含 hasPassword 與 description)
@@ -2605,25 +2605,55 @@ const isTransientPlayer = (name) => {
       return typeof hasClubPassword === "function" ? hasClubPassword(clubName) : false;
     }
 
+    // 本次瀏覽期間已驗證過的憑證（只存在記憶體，關閉頁面即消失）
+    // 用於呼叫後端修改密碼時證明身分；資料庫規則禁止前端直接寫入 club_passwords
+    const _verifiedClubCreds = new Map();
+    let _adminPinCred = "";
+
+    function getClubCredential(clubName) {
+      if (STATE.isAdmin && _adminPinCred) return _adminPinCred;
+      return _verifiedClubCreds.get(clubName) || "";
+    }
+
+    async function callManageClubPassword(payload) {
+      try {
+        const res = await fetch(`${FUNCTIONS_BASE_URL}/manageClubPassword`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) return true;
+        showToast(data.error || (STATE.lang === "zh-TW" ? "密碼更新失敗" : "Password update failed"), "error");
+      } catch (e) {
+        console.error("manageClubPassword error:", e);
+        showToast(STATE.lang === "zh-TW" ? "密碼更新失敗，請檢查網路" : "Password update failed, check your network", "error");
+      }
+      return false;
+    }
+
     async function setClubPasswordDB(clubName, password) {
-      if (!clubName || !clubName.trim()) return;
+      if (!clubName || !clubName.trim()) return false;
       const key = clubName.trim();
       const safeKey = encodeClubKey(key);
-      const hashToStore = password ? await sha256(password) : null;
-      const hasPassword = !!hashToStore;
+      const hasPassword = !!password;
 
-      // 1. 儲存至 Firebase (club_passwords 僅供後端驗證，clubs_metadata 標記 hasPassword)
+      // 1. 經由後端寫入密碼（需要目前密碼或 Master PIN），再同步 clubs_metadata 的 hasPassword 標記
+      const ok = await callManageClubPassword({
+        action: password ? "set" : "remove",
+        clubName: key,
+        newPassword: password || "",
+        credential: getClubCredential(key)
+      });
+      if (!ok) return false;
+      if (password) _verifiedClubCreds.set(key, password);
+      else _verifiedClubCreds.delete(key);
+
       if (STATE.db) {
         try {
-          if (hashToStore) {
-            await set(ref(STATE.db, `club_passwords/${safeKey}`), hashToStore);
-          } else {
-            await remove(ref(STATE.db, `club_passwords/${safeKey}`));
-          }
-          // 同步更新 clubs_metadata 的 hasPassword 標記 (供前端即時判定鎖頭狀態，不洩漏 Hash)
           await update(ref(STATE.db, `clubs_metadata/${safeKey}`), { hasPassword });
         } catch (e) {
-          console.error("setClubPassword error:", e);
+          console.error("setClubPassword metadata error:", e);
         }
       }
 
@@ -2635,22 +2665,12 @@ const isTransientPlayer = (name) => {
       STATE.clubsMetadataMap[key].hasPassword = hasPassword;
       localStorage.setItem("pb_clubs_metadata", JSON.stringify(STATE.clubsMetadataMap));
 
-      // 3. 同步本地密碼庫 (localStorage pb_club_passwords)
-      const localPwds = safeGetLocalJSON("pb_club_passwords", {});
-      if (hashToStore) {
-        localPwds[key] = hashToStore;
-        localPwds[safeKey] = hashToStore;
-      } else {
-        delete localPwds[key];
-        delete localPwds[safeKey];
-      }
-      safeSetLocal("pb_club_passwords", localPwds);
-
       if (hasPassword) {
         STATE.authenticatedClubs.add(key);
       } else {
         STATE.authenticatedClubs.delete(key);
       }
+      return true;
     }
 
     async function checkClubHasPassword(clubName) {
@@ -2733,10 +2753,15 @@ const isTransientPlayer = (name) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ clubName: cleanClub, password: cleanInput })
         });
+        if (res.status === 429) {
+          showToast(STATE.lang === "zh-TW" ? "嘗試次數過多，請 15 分鐘後再試" : "Too many attempts, try again in 15 minutes", "error");
+          return false;
+        }
         if (res.ok) {
           const data = await res.json();
           if (data.valid === true) {
             STATE.authenticatedClubs.add(cleanClub);
+            _verifiedClubCreds.set(cleanClub, cleanInput);
             return true;
           }
         }
@@ -2744,26 +2769,7 @@ const isTransientPlayer = (name) => {
         console.warn("[Auth] Backend verification failed:", err);
       }
 
-      // 2. 本地 SHA-256 安全容錯 (防止網路不穩或 Cloud Function 異常)
-      try {
-        const inputHash = await sha256(cleanInput);
-        const localPwds = safeGetLocalJSON("pb_club_passwords", {});
-        const expectedHash = localPwds[cleanClub] || localPwds[safeKey];
-        if (expectedHash && inputHash === expectedHash) {
-          STATE.authenticatedClubs.add(cleanClub);
-          return true;
-        }
-
-        // 管理員 Master PIN 容錯解鎖
-        const masterHash = STATE.masterPinHash || safeGetLocalJSON("pb_app_config", {}).master_pin_hash;
-        if (masterHash && inputHash === masterHash) {
-          STATE.authenticatedClubs.add(cleanClub);
-          return true;
-        }
-      } catch (e) {
-        console.warn("[Auth] Local hash comparison error:", e);
-      }
-
+      // 密碼只由後端驗證（不在瀏覽器比對，避免被繞過）
       showToast(t("clubPasswordWrong"), "error");
       return false;
     }
@@ -2799,44 +2805,19 @@ const isTransientPlayer = (name) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pin: cleanPin })
         });
+        if (res.status === 429) {
+          showToast(STATE.lang === "zh-TW" ? "嘗試次數過多，請 15 分鐘後再試" : "Too many attempts, try again in 15 minutes", "error");
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
           if (data && data.valid) {
             isAuthed = true;
+            _adminPinCred = cleanPin;
           }
         }
       } catch (err) {
         console.warn("[Auth] Backend admin pin verification error:", err);
-      }
-
-      // 2. 本地 SHA-256 安全比對 (當後端未配置、返回 403 或超時時的強韌防線)
-      if (!isAuthed) {
-        let masterHash = STATE.masterPinHash;
-        if (!masterHash) {
-          try {
-            const localCfg = safeGetLocalJSON("pb_app_config", {});
-            masterHash = localCfg.master_pin_hash;
-          } catch (e) {}
-        }
-        if (!masterHash && STATE.db) {
-          try {
-            const snap = await get(ref(STATE.db, "app_config/master_pin_hash"));
-            if (snap.exists()) {
-              masterHash = snap.val();
-              STATE.masterPinHash = masterHash;
-              safeSetLocal("pb_app_config", { master_pin_hash: masterHash });
-            }
-          } catch (e) {
-            console.warn("[Auth] RTDB fetch master_pin_hash error:", e);
-          }
-        }
-
-        const inputHash = await sha256(cleanPin);
-        // 比對 Firebase 雲端或本地快取的 master_pin_hash，以及系統預設安全 Hash
-        const DEFAULT_MASTER_HASH = "435a6515c8093ba22660e057aba982a0479e13e0903012dfa2572b83cf090bf1";
-        if ((masterHash && inputHash === masterHash) || (inputHash === DEFAULT_MASTER_HASH)) {
-          isAuthed = true;
-        }
       }
 
       if (isAuthed) {
@@ -3098,9 +3079,15 @@ const isTransientPlayer = (name) => {
       });
       localStorage.setItem("pb_tournaments", JSON.stringify(localT));
 
-      // 2. Migrate club password status
+      // 2. Migrate club password status（經由後端把密碼搬到新名稱，避免改名後密碼失效）
       const hadPwd = hasClubPassword(oldName);
       if (hadPwd) {
+        await callManageClubPassword({
+          action: "rename",
+          clubName: oldName,
+          newClubName: cleanNew,
+          credential: getClubCredential(oldName)
+        });
         const newSafeKey = encodeClubKey(cleanNew);
         if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
         if (!STATE.clubsMetadataMap[newSafeKey]) STATE.clubsMetadataMap[newSafeKey] = {};
@@ -3245,14 +3232,14 @@ const isTransientPlayer = (name) => {
         showToast(STATE.lang === "zh-TW" ? "請輸入密碼" : "Please enter a password", "warning");
         return;
       }
-      await setClubPasswordDB(club, pwd);
+      if (!(await setClubPasswordDB(club, pwd))) return;
       input.value = "";
       renderAdminPage();
     }
     window.adminSetClubPassword = adminSetClubPassword;
 
     async function adminRemoveClubPassword(club) {
-      await setClubPasswordDB(club, null);
+      if (!(await setClubPasswordDB(club, null))) return;
       STATE.authenticatedClubs.delete(club);
       renderAdminPage();
     }
@@ -3334,7 +3321,9 @@ const isTransientPlayer = (name) => {
             await update(ref(STATE.db), updates);
           }
           await remove(ref(STATE.db, `club_members/${safeKey}`));
-          await remove(ref(STATE.db, `club_passwords/${safeKey}`));
+          if (hasClubPassword(clubName)) {
+            await callManageClubPassword({ action: "remove", clubName, credential: getClubCredential(clubName) });
+          }
           await remove(ref(STATE.db, `clubs_metadata/${safeKey}`));
 
           if (STATE.lineUserId) {

@@ -6,8 +6,11 @@
       ".read": true,
       ".indexOn": ["createdAt"],
       "$tournament_id": {
-        ".write": true,
-        ".validate": "newData.hasChildren(['id', 'name'])"
+        ".write": "!data.exists() || data.child('status').val() !== 'completed'",
+        ".validate": "newData.hasChildren(['id', 'name'])",
+        "clubName": {
+          ".write": true
+        }
       }
     },
     "club_members": {
@@ -18,10 +21,7 @@
     },
     "club_passwords": {
       ".read": false,
-      "$club_key": {
-        ".write": true,
-        ".validate": "newData.val() === null || (newData.isString() && newData.val().length === 64)"
-      }
+      ".write": false
     },
     "club_mappings": {
       ".read": true,
@@ -36,14 +36,14 @@
       }
     },
     "users": {
-      ".read": true,
       "$user_id": {
+        ".read": true,
         ".write": true
       }
     },
     "app_config": {
       "master_pin_hash": {
-        ".read": true,
+        ".read": false,
         ".write": false
       },
       "line_bot": {
