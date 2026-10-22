@@ -306,7 +306,8 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
 # ============================================================
 # 4. HTTP REST API: 安全驗證管理員 Master PIN
 # ============================================================
-@https_fn.on_request(cors=CORS_CONFIG)
+# invoker="public"：允許網頁直接呼叫（之前此端點未公開，回傳 403）
+@https_fn.on_request(cors=CORS_CONFIG, invoker="public")
 def verifyAdminPin(req: https_fn.Request) -> https_fn.Response:
     if req.method != "POST":
         return https_fn.Response(json.dumps({"error": "Method Not Allowed"}), status=405, mimetype="application/json")
