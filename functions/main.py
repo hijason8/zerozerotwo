@@ -7,9 +7,11 @@ Firebase Cloud Functions for ZeroZeroTwo (Python 2nd Gen)
 4. verifyAdminPin (HTTP REST API): 管理員 Master PIN 驗證
 5. lineWebhook (HTTP REST API): LINE Bot Webhook 訊息回覆 (免跳轉輕量方案)
 6. manageClubPassword (HTTP REST API): 社團密碼設定 / 移除 / 改名搬移（資料庫規則禁止前端直接寫密碼）
+7. adminTournamentAction (HTTP REST API): 管理員刪除 / 改名賽事（已完賽賽事被資料庫鎖住，需驗證 Master PIN）
 """
 
 import os
+import re
 import json
 import logging
 import hashlib
@@ -394,6 +396,51 @@ def manageClubPassword(req: https_fn.Request) -> https_fn.Response:
         return _resp({"ok": True, "hasPassword": bool(stored_hash)})
     except Exception as err:
         logging.exception(f"[manageClubPassword] 發生例外: {err}")
+        return _resp({"ok": False, "error": "Internal Server Error"}, 500)
+
+
+# ============================================================
+# 7. HTTP REST API: 管理員賽事操作（刪除 / 改名）
+#    已完賽賽事被資料庫規則鎖住，管理員需驗證 Master PIN 後由後端執行。
+# ============================================================
+@https_fn.on_request(cors=CORS_CONFIG, invoker="public")
+def adminTournamentAction(req: https_fn.Request) -> https_fn.Response:
+    def _resp(payload: dict, status: int = 200) -> https_fn.Response:
+        return https_fn.Response(json.dumps(payload), status=status, mimetype="application/json")
+
+    if req.method != "POST":
+        return _resp({"error": "Method Not Allowed"}, 405)
+
+    body = req.get_json(silent=True) or {}
+    action = (body.get("action") or "").strip()
+    tournament_id = (body.get("tournamentId") or "").strip()
+    pin = (body.get("pin") or "").strip()
+    new_name = (body.get("newName") or "").strip()
+
+    if action not in ("delete", "rename") or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", tournament_id):
+        return _resp({"ok": False, "error": "參數錯誤"}, 400)
+    if action == "rename" and (not new_name or len(new_name) > 100):
+        return _resp({"ok": False, "error": "名稱不可空白或超過 100 字"}, 400)
+
+    if _is_rate_limited(req, "admin"):
+        return _too_many_attempts()
+
+    try:
+        master_hash = _get_master_hash()
+        if not pin or not master_hash or sha256(pin) != master_hash:
+            _record_failure(req, "admin")
+            return _resp({"ok": False, "error": "管理員 PIN 驗證失敗，請重新登入管理員"}, 403)
+
+        t_ref = db.reference(f"/tournaments/{tournament_id}")
+        if action == "delete":
+            t_ref.delete()
+        else:
+            if t_ref.child("id").get() is None:
+                return _resp({"ok": False, "error": "找不到此賽事"}, 404)
+            t_ref.child("name").set(new_name)
+        return _resp({"ok": True})
+    except Exception as err:
+        logging.exception(f"[adminTournamentAction] 發生例外: {err}")
         return _resp({"ok": False, "error": "Internal Server Error"}, 500)
 
 

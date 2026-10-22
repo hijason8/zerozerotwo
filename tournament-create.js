@@ -10,7 +10,24 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261022-1";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261022-2";
+
+// 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
+async function generateUniqueTournamentId() {
+  const db = window.STATE && window.STATE.db;
+  for (let i = 0; i < 10; i++) {
+    const id = "T-" + Math.floor(100000 + Math.random() * 900000);
+    if (!db) return id;
+    try {
+      const snap = await get(ref(db, `tournaments/${id}`));
+      if (!snap.exists()) return id;
+    } catch (e) {
+      return id;
+    }
+  }
+  // 連續 10 次都重複（極不可能）時改用 7 位數
+  return "T-" + String(Date.now()).slice(-7);
+}
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -18,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261022-1";
+} from "./scheduler.js?v=20261022-2";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -35,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261022-1";
+} from "./globals.js?v=20261022-2";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -1242,7 +1259,7 @@ const isTransientPlayer = (name) => {
           }
         }
 
-        const tournamentId = "T-" + Math.floor(100000 + Math.random() * 900000);
+        const tournamentId = await generateUniqueTournamentId();
         let matches = [];
 
         // ----------------------------------------------------

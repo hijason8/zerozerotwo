@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261022-1";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261022-2";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261022-1";
+} from "./globals.js?v=20261022-2";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -2629,6 +2629,29 @@ const isTransientPlayer = (name) => {
       }
       return false;
     }
+
+    // 管理員對已完賽賽事的刪除／改名：經由後端驗證 Master PIN 後執行
+    async function adminTournamentAction(payload) {
+      if (!STATE.isAdmin || !_adminPinCred) {
+        showToast(STATE.lang === "zh-TW" ? "請先登入管理員" : "Please log in as admin first", "error");
+        return false;
+      }
+      try {
+        const res = await fetch(`${FUNCTIONS_BASE_URL}/adminTournamentAction`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, pin: _adminPinCred })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) return true;
+        showToast(data.error || (STATE.lang === "zh-TW" ? "操作失敗" : "Action failed"), "error");
+      } catch (e) {
+        console.error("adminTournamentAction error:", e);
+        showToast(STATE.lang === "zh-TW" ? "操作失敗，請檢查網路" : "Action failed, check your network", "error");
+      }
+      return false;
+    }
+    window.adminTournamentAction = adminTournamentAction;
 
     async function setClubPasswordDB(clubName, password) {
       if (!clubName || !clubName.trim()) return false;
