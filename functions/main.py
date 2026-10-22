@@ -6,6 +6,7 @@ Firebase Cloud Functions for ZeroZeroTwo (Python 2nd Gen)
 3. verifyClubPassword (HTTP REST API): 社團密碼驗證
 4. verifyAdminPin (HTTP REST API): 管理員 Master PIN 驗證
 5. lineWebhook (HTTP REST API): LINE Bot Webhook 訊息回覆 (免跳轉輕量方案)
+6. manageClubPassword (HTTP REST API): 社團密碼設定 / 移除 / 改名搬移（資料庫規則禁止前端直接寫密碼）
 """
 
 import os
@@ -41,6 +42,74 @@ LIFF_BASE_URL = "https://liff.line.me/2012043789-KvKpHLCt"
 def sha256(text: str) -> str:
     """計算字串之 SHA-256 雜湊 (hex)"""
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+# ============================================================
+# 共用：密碼嘗試次數限制（同一 IP 15 分鐘內最多錯 10 次）
+# ============================================================
+RATE_LIMIT_MAX_FAILS = 10
+RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
+
+
+def _client_key(req: https_fn.Request) -> str:
+    forwarded = req.headers.get("X-Forwarded-For", "") or ""
+    ip = forwarded.split(",")[0].strip() or (req.remote_addr or "unknown")
+    return sha256(ip)[:24]
+
+
+def _now_ms() -> int:
+    return int(datetime.now(timezone.utc).timestamp() * 1000)
+
+
+def _is_rate_limited(req: https_fn.Request, bucket: str) -> bool:
+    try:
+        rec = db.reference(f"/rate_limits/{bucket}/{_client_key(req)}").get() or {}
+        if _now_ms() - int(rec.get("start", 0)) > RATE_LIMIT_WINDOW_MS:
+            return False
+        return int(rec.get("fails", 0)) >= RATE_LIMIT_MAX_FAILS
+    except Exception as err:
+        logging.warning(f"[RateLimit] 讀取失敗，暫不限制: {err}")
+        return False
+
+
+def _record_failure(req: https_fn.Request, bucket: str) -> None:
+    ref = db.reference(f"/rate_limits/{bucket}/{_client_key(req)}")
+    now = _now_ms()
+
+    def _txn(rec):
+        rec = rec or {}
+        if now - int(rec.get("start", 0)) > RATE_LIMIT_WINDOW_MS:
+            return {"start": now, "fails": 1}
+        return {"start": rec.get("start", now), "fails": int(rec.get("fails", 0)) + 1}
+
+    try:
+        ref.transaction(_txn)
+    except Exception as err:
+        logging.warning(f"[RateLimit] 記錄失敗: {err}")
+
+
+def _too_many_attempts() -> https_fn.Response:
+    return https_fn.Response(
+        json.dumps({"valid": False, "error": "嘗試次數過多，請 15 分鐘後再試", "rateLimited": True}),
+        status=429, mimetype="application/json")
+
+
+def _club_key(club_name: str) -> str:
+    return quote(club_name.strip(), safe="").replace(".", "%2E")
+
+
+def _get_master_hash():
+    master_hash = db.reference("/app_config/master_pin_hash").get()
+    if not master_hash:
+        master_hash = db.reference("/admin_config/master_pin_hash").get()
+    return master_hash
+
+
+def _get_club_hash(safe_key: str):
+    stored = db.reference(f"/club_passwords/{safe_key}").get()
+    if not stored:
+        stored = db.reference(f"/clubs/{safe_key}/password_hash").get()
+    return stored
 
 
 # ============================================================
@@ -199,11 +268,12 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
     if not club_name:
         return https_fn.Response(json.dumps({"valid": False, "error": "缺少社團名稱"}), status=400, mimetype="application/json")
 
+    if not check_only and _is_rate_limited(req, "club"):
+        return _too_many_attempts()
+
     try:
-        safe_key = quote(club_name, safe="").replace(".", "%2E")
-        stored_hash = db.reference(f"/club_passwords/{safe_key}").get()
-        if not stored_hash:
-            stored_hash = db.reference(f"/clubs/{safe_key}/password_hash").get()
+        safe_key = _club_key(club_name)
+        stored_hash = _get_club_hash(safe_key)
 
         has_password = bool(stored_hash)
 
@@ -222,14 +292,11 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
             return https_fn.Response(json.dumps({"valid": True, "hasPassword": True}), status=200, mimetype="application/json")
 
         # 容錯比對 Master PIN
-        master_ref = db.reference("/app_config/master_pin_hash")
-        master_hash = master_ref.get()
-        if not master_hash:
-            master_hash = db.reference("/admin_config/master_pin_hash").get()
-
+        master_hash = _get_master_hash()
         if master_hash and input_hash == master_hash:
             return https_fn.Response(json.dumps({"valid": True, "byMasterPin": True, "hasPassword": True}), status=200, mimetype="application/json")
 
+        _record_failure(req, "club")
         return https_fn.Response(json.dumps({"valid": False, "hasPassword": True}), status=200, mimetype="application/json")
     except Exception as err:
         logging.exception(f"[verifyClubPassword] 驗證密碼發生例外: {err}")
@@ -239,7 +306,8 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
 # ============================================================
 # 4. HTTP REST API: 安全驗證管理員 Master PIN
 # ============================================================
-@https_fn.on_request(cors=CORS_CONFIG)
+# invoker="public"：允許網頁直接呼叫（之前此端點未公開，回傳 403）
+@https_fn.on_request(cors=CORS_CONFIG, invoker="public")
 def verifyAdminPin(req: https_fn.Request) -> https_fn.Response:
     if req.method != "POST":
         return https_fn.Response(json.dumps({"error": "Method Not Allowed"}), status=405, mimetype="application/json")
@@ -249,18 +317,84 @@ def verifyAdminPin(req: https_fn.Request) -> https_fn.Response:
     if not pin:
         return https_fn.Response(json.dumps({"valid": False, "error": "未輸入 PIN"}), status=400, mimetype="application/json")
 
-    try:
-        master_ref = db.reference("/app_config/master_pin_hash")
-        master_hash = master_ref.get()
-        if not master_hash:
-            master_hash = db.reference("/admin_config/master_pin_hash").get()
+    if _is_rate_limited(req, "admin"):
+        return _too_many_attempts()
 
+    try:
+        master_hash = _get_master_hash()
         input_hash = sha256(pin)
         is_valid = bool(master_hash and input_hash == master_hash)
+        if not is_valid:
+            _record_failure(req, "admin")
         return https_fn.Response(json.dumps({"valid": is_valid}), status=200, mimetype="application/json")
     except Exception as err:
         logging.exception(f"[verifyAdminPin] 驗證 PIN 發生例外: {err}")
         return https_fn.Response(json.dumps({"error": str(err)}), status=500, mimetype="application/json")
+
+
+# ============================================================
+# 6. HTTP REST API: 社團密碼管理（設定 / 移除 / 改名搬移）
+#    資料庫規則禁止前端直接寫入 /club_passwords，一律經由此端點。
+#    社團已有密碼時，必須提供目前密碼或 Master PIN（credential）。
+# ============================================================
+@https_fn.on_request(cors=CORS_CONFIG)
+def manageClubPassword(req: https_fn.Request) -> https_fn.Response:
+    def _resp(payload: dict, status: int = 200) -> https_fn.Response:
+        return https_fn.Response(json.dumps(payload), status=status, mimetype="application/json")
+
+    if req.method != "POST":
+        return _resp({"error": "Method Not Allowed"}, 405)
+
+    body = req.get_json(silent=True) or {}
+    action = (body.get("action") or "").strip()
+    club_name = (body.get("clubName") or "").strip()
+    credential = (body.get("credential") or "").strip()
+    new_password = (body.get("newPassword") or "").strip()
+    new_club_name = (body.get("newClubName") or "").strip()
+
+    if action not in ("set", "remove", "rename") or not club_name:
+        return _resp({"ok": False, "error": "參數錯誤"}, 400)
+    if action == "set" and not new_password:
+        return _resp({"ok": False, "error": "請輸入新密碼"}, 400)
+    if action == "rename" and not new_club_name:
+        return _resp({"ok": False, "error": "缺少新社團名稱"}, 400)
+
+    if _is_rate_limited(req, "club"):
+        return _too_many_attempts()
+
+    try:
+        safe_key = _club_key(club_name)
+        stored_hash = _get_club_hash(safe_key)
+
+        # 已有密碼：必須驗證目前密碼或 Master PIN；尚無密碼：允許首次設定
+        if stored_hash:
+            cred_hash = sha256(credential) if credential else ""
+            master_hash = _get_master_hash()
+            authorized = bool(cred_hash) and (cred_hash == stored_hash or (master_hash and cred_hash == master_hash))
+            if not authorized:
+                _record_failure(req, "club")
+                return _resp({"ok": False, "error": "密碼錯誤"}, 403)
+
+        pwd_ref = db.reference(f"/club_passwords/{safe_key}")
+        if action == "set":
+            pwd_ref.set(sha256(new_password))
+            return _resp({"ok": True, "hasPassword": True})
+
+        if action == "remove":
+            pwd_ref.delete()
+            return _resp({"ok": True, "hasPassword": False})
+
+        # rename：把密碼搬到新社團名稱底下
+        if stored_hash:
+            new_key = _club_key(new_club_name)
+            if db.reference(f"/club_passwords/{new_key}").get():
+                return _resp({"ok": False, "error": "新名稱已有密碼"}, 409)
+            db.reference(f"/club_passwords/{new_key}").set(stored_hash)
+            pwd_ref.delete()
+        return _resp({"ok": True, "hasPassword": bool(stored_hash)})
+    except Exception as err:
+        logging.exception(f"[manageClubPassword] 發生例外: {err}")
+        return _resp({"ok": False, "error": "Internal Server Error"}, 500)
 
 
 # ============================================================
@@ -284,10 +418,7 @@ def _get_line_config() -> Dict[str, str]:
 
 def _verify_line_signature(secret: str, body_bytes: bytes, signature: str) -> bool:
     """驗證 LINE Messaging API Webhook 簽名"""
-    if not secret:
-        # 開發/初次驗證模式：若尚未配置 Secret，放行以利 Console 測試 Verify
-        return True
-    if not signature:
+    if not secret or not signature:
         return False
     mac = hmac.new(secret.encode("utf-8"), body_bytes, hashlib.sha256).digest()
     expected = base64.b64encode(mac).decode("utf-8")
@@ -577,8 +708,12 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
     signature = req.headers.get("x-line-signature") or req.headers.get("X-Line-Signature") or ""
     body_bytes = req.get_data()
 
-    if secret and not _verify_line_signature(secret, body_bytes, signature):
-        print("[LINE Webhook] 簽名驗證失敗！")
+    if not secret:
+        logging.error("[LINE Webhook] 未設定 LINE_CHANNEL_SECRET，拒絕所有請求")
+        return https_fn.Response("Server not configured", status=500)
+
+    if not _verify_line_signature(secret, body_bytes, signature):
+        logging.warning("[LINE Webhook] 簽名驗證失敗")
         return https_fn.Response("Invalid signature", status=403)
 
     try:
