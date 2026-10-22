@@ -10,6 +10,7 @@ Firebase Cloud Functions for ZeroZeroTwo (Python 2nd Gen)
 
 import os
 import json
+import logging
 import hashlib
 import hmac
 import base64
@@ -72,33 +73,40 @@ def auto_schedule_tournament(event: db_fn.Event[db_fn.Change[Any]]) -> None:
     is_team_mode = tournament_data.get("isTeamMode", False) or partner_type == "fixed"
     is_singles = partner_type == "singles"
 
-    matches = []
-    if is_singles:
-        matches = generate_singles_schedule(
-            players_list=players,
-            duration_hours=duration_hours,
-            schedule_mode=schedule_mode,
-            custom_total_games=custom_total_games
-        )
-    elif is_team_mode:
-        matches = generate_team_schedule(teams_list=players)
-    else:
-        matches = generate_doubles_schedule(
-            players_list=players,
-            duration_hours=duration_hours,
-            schedule_mode=schedule_mode,
-            custom_total_games=custom_total_games
-        )
-
-    # 寫回 RTDB，觸發前端即時監聽器
     ref = db.reference(f"/tournaments/{tournament_id}")
-    ref.update({
-        "matches": matches,
-        "status": "active",
-        "scheduledBy": "python-cloud-function",
-        "matchesCount": len(matches)
-    })
-    print(f"[RTDB Trigger] 賽事 {tournament_id} 排賽完成，共生成 {len(matches)} 場")
+    try:
+        matches = []
+        if is_singles:
+            matches = generate_singles_schedule(
+                players_list=players,
+                duration_hours=duration_hours,
+                schedule_mode=schedule_mode,
+                custom_total_games=custom_total_games
+            )
+        elif is_team_mode:
+            matches = generate_team_schedule(teams_list=players)
+        else:
+            matches = generate_doubles_schedule(
+                players_list=players,
+                duration_hours=duration_hours,
+                schedule_mode=schedule_mode,
+                custom_total_games=custom_total_games
+            )
+
+        # 寫回 RTDB，觸發前端即時監聽器
+        ref.update({
+            "matches": matches,
+            "status": "active",
+            "scheduledBy": "python-cloud-function",
+            "matchesCount": len(matches)
+        })
+        logging.info(f"[RTDB Trigger] 賽事 {tournament_id} 排賽完成，共生成 {len(matches)} 場")
+    except Exception as err:
+        logging.exception(f"[RTDB Trigger] 賽事 {tournament_id} 自動排賽計算失敗: {err}")
+        ref.update({
+            "status": "schedule_error",
+            "errorMessage": "排賽計算失敗，請檢查名單或重新開局"
+        })
 
 
 # ============================================================
@@ -167,6 +175,7 @@ def generateSchedule(req: https_fn.Request) -> https_fn.Response:
             mimetype="application/json"
         )
     except Exception as err:
+        logging.exception(f"[generateSchedule] 排賽計算發生例外: {err}")
         return https_fn.Response(
             json.dumps({"error": str(err)}),
             status=500,
@@ -223,6 +232,7 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
 
         return https_fn.Response(json.dumps({"valid": False, "hasPassword": True}), status=200, mimetype="application/json")
     except Exception as err:
+        logging.exception(f"[verifyClubPassword] 驗證密碼發生例外: {err}")
         return https_fn.Response(json.dumps({"error": str(err)}), status=500, mimetype="application/json")
 
 
@@ -249,6 +259,7 @@ def verifyAdminPin(req: https_fn.Request) -> https_fn.Response:
         is_valid = bool(master_hash and input_hash == master_hash)
         return https_fn.Response(json.dumps({"valid": is_valid}), status=200, mimetype="application/json")
     except Exception as err:
+        logging.exception(f"[verifyAdminPin] 驗證 PIN 發生例外: {err}")
         return https_fn.Response(json.dumps({"error": str(err)}), status=500, mimetype="application/json")
 
 
@@ -302,10 +313,14 @@ def _reply_line_message(reply_token: str, text: str, token: str) -> bool:
         method="POST"
     )
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=5) as resp:
             return resp.status == 200
+    except urllib.error.HTTPError as e:
+        err_msg = e.read().decode("utf-8", errors="ignore")
+        logging.error(f"[LINE Webhook] Reply API HTTP error ({e.code}): {err_msg}")
+        return False
     except Exception as e:
-        print(f"[LINE Webhook] Reply API error: {e}")
+        logging.exception(f"[LINE Webhook] Reply API error: {e}")
         return False
 
 
@@ -621,8 +636,8 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
 
         return https_fn.Response("OK", status=200)
     except Exception as e:
-        print(f"[LINE Webhook] 處理過程發生例外: {e}")
-        return https_fn.Response(json.dumps({"error": str(err)} if "err" in locals() else {"error": str(e)}), status=500, mimetype="application/json")
+        logging.exception(f"[LINE Webhook] 處理過程發生例外: {e}")
+        return https_fn.Response(json.dumps({"error": "Internal Server Error"}), status=500, mimetype="application/json")
 
 
 
