@@ -479,13 +479,25 @@ export async function deleteTournament(id, skipConfirm = false) {
 
   if (STATE.db) {
     try {
+      if (isFinished && STATE.isAdmin) {
+        // 已完賽賽事被資料庫鎖住，管理員改由後端（驗證 Master PIN）刪除
+        const ok = typeof window.adminTournamentAction === "function"
+          ? await window.adminTournamentAction({ action: "delete", tournamentId: id })
+          : false;
+        if (!ok) return;
+      } else {
+        await remove(ref(STATE.db, `tournaments/${id}`));
+      }
       if (STATE.currentTournamentId === id && STATE.dbUnsubscribe) {
         STATE.dbUnsubscribe();
         STATE.dbUnsubscribe = null;
       }
-      await remove(ref(STATE.db, `tournaments/${id}`));
     } catch (e) {
       console.error("Firebase delete error:", e);
+      if (typeof window.showToast === "function") {
+        window.showToast(STATE.lang === "zh-TW" ? "刪除失敗" : "Delete failed", "error");
+      }
+      return;
     }
   }
   const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");

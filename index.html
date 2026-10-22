@@ -2800,16 +2800,23 @@
       const allT = STATE.allTournamentsCache || [];
       const tData = allT.find(t => t.id === tId);
       if (!tData) return;
-      tData.name = clean;
-
-      saveToLocalTournaments(tData);
       if (STATE.db) {
         try {
-          await set(ref(STATE.db, `tournaments/${tId}/name`), clean);
+          if (tData.status === "completed") {
+            // 已完賽賽事被資料庫鎖住，改由後端（驗證 Master PIN）改名
+            const ok = await window.adminTournamentAction({ action: "rename", tournamentId: tId, newName: clean });
+            if (!ok) return;
+          } else {
+            await set(ref(STATE.db, `tournaments/${tId}/name`), clean);
+          }
         } catch (e) {
           console.error("Rename tournament error:", e);
+          showToast(STATE.lang === "zh-TW" ? "改名失敗" : "Rename failed", "error");
+          return;
         }
       }
+      tData.name = clean;
+      saveToLocalTournaments(tData);
       renderAdminPage();
     }
     window.adminRenameTournament = adminRenameTournament;
