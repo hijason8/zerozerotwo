@@ -46,7 +46,8 @@ export async function syncUserProfileToFirebase(profile) {
       updates.myClubs = {};
     }
 
-    await update(userRef, updates);
+    // 寫入在背景完成，不必等待
+    update(userRef, updates).catch((e) => console.warn("[Firebase] syncUserProfile write failed:", e));
 
     return {
       ...existing,
@@ -115,10 +116,13 @@ export async function addUserClubToFirebase(clubName) {
 // ============================================================
 export async function initLiffAndUser() {
   const STATE = window.STATE || {};
-  STATE.myClubs = [];
+  if (!Array.isArray(STATE.myClubs)) STATE.myClubs = [];
 
   if (!window.liff) {
     console.info("[LIFF] SDK not found, running in guest mode.");
+    STATE.lineUserId = null;
+    STATE.lineProfile = null;
+    STATE.myClubs = [];
     updateNavLineProfileUI();
     if (typeof window.populateNavClubSelect === "function") window.populateNavClubSelect();
     return;
@@ -145,6 +149,7 @@ export async function initLiffAndUser() {
       const profile = await liff.getProfile();
       STATE.lineUserId = profile.userId;
       STATE.lineProfile = profile;
+      try { localStorage.setItem("pb_last_line_uid", profile.userId); } catch (e) { }
 
       if (profile.displayName) {
         localStorage.setItem("pb_my_player_name", profile.displayName);
@@ -185,14 +190,15 @@ export async function initLiffAndUser() {
       }
 
       if (STATE.currentClub && Array.isArray(STATE.myClubs) && STATE.myClubs.includes(STATE.currentClub)) {
-        await addUserClubToFirebase(STATE.currentClub);
+        addUserClubToFirebase(STATE.currentClub).catch(() => { });
       }
 
       console.info(`[LIFF] Logged in successfully: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
 
       STATE.userBindings = STATE.userBindings || {};
       if (STATE.db && Array.isArray(STATE.myClubs) && STATE.myClubs.length > 0) {
-        for (const clubName of STATE.myClubs) {
+        // 各社團的身分綁定同時查詢，不再一個一個排隊
+        await Promise.all(STATE.myClubs.map(async (clubName) => {
           const safeClub = typeof window.encodeClubKey === "function" ? window.encodeClubKey(clubName) : encodeURIComponent(clubName.trim()).replace(/\./g, "%2E");
           try {
             const snap = await get(ref(STATE.db, `club_mappings/${safeClub}/${STATE.lineUserId}`));
@@ -205,7 +211,7 @@ export async function initLiffAndUser() {
               }
             }
           } catch (e) { }
-        }
+        }));
       }
 
       try {
@@ -232,11 +238,7 @@ export async function initLiffAndUser() {
           const cleanUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
           window.history.replaceState({}, document.title, cleanUrl);
         }
-        if (pageParam === "waiting") {
-          navigateTo("waiting", false);
-        } else {
-          navigateTo("activities", false);
-        }
+        // 實際切換頁面由 initApp 在登入確認後統一處理（避免重複載入）
       }
 
       if (typeof window.populateNavClubSelect === "function") {
@@ -281,6 +283,7 @@ export async function initLiffAndUser() {
       STATE.lineUserId = null;
       STATE.lineProfile = null;
       STATE.myClubs = [];
+      try { localStorage.removeItem("pb_last_line_uid"); } catch (e) { }
       console.info("[LIFF] Not logged in, running in guest mode.");
       if (typeof window.populateNavClubSelect === "function") {
         window.populateNavClubSelect();
@@ -288,6 +291,7 @@ export async function initLiffAndUser() {
     }
   } catch (err) {
     console.warn("[LIFF] Initialization error (safe fallback enabled):", err);
+    try { localStorage.removeItem("pb_last_line_uid"); } catch (e) { }
     STATE.lineUserId = null;
     STATE.lineProfile = null;
     STATE.myClubs = [];
