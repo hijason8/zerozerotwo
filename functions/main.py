@@ -1,7 +1,6 @@
 """
 Firebase Cloud Functions for ZeroZeroTwo (Python 2nd Gen)
 包含：
-1. auto_schedule_tournament (RTDB Trigger): 監聽 /tournaments/{tournament_id} 自動排賽回寫
 2. generateSchedule (HTTP REST API): 前端即時排賽運算端點
 3. verifyClubPassword (HTTP REST API): 社團密碼驗證
 4. verifyAdminPin (HTTP REST API): 管理員 Master PIN 驗證
@@ -24,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 from urllib.parse import quote
 
-from firebase_functions import db_fn, https_fn, options
+from firebase_functions import https_fn, options
 from firebase_admin import initialize_app, db
 
 from scheduler import (
@@ -112,72 +111,6 @@ def _get_club_hash(safe_key: str):
     if not stored:
         stored = db.reference(f"/clubs/{safe_key}/password_hash").get()
     return stored
-
-
-# ============================================================
-# 1. RTDB TRIGGER: 監聽未排賽事，自動喚醒計算並寫回
-# ============================================================
-@db_fn.on_value_written(reference="/tournaments/{tournament_id}")
-def auto_schedule_tournament(event: db_fn.Event[db_fn.Change[Any]]) -> None:
-    """
-    Realtime Database 觸發器：
-    當賽事寫入且標記為 'pending_schedule' 時喚醒，
-    以 Python 核心演算法計算賽程後寫回 matches，並將狀態更新為 'active'。
-    """
-    tournament_data = event.data.after
-    if not tournament_data or not isinstance(tournament_data, dict):
-        return
-
-    # 防重入保護：僅在 status 為 'pending_schedule' 時執行
-    if tournament_data.get("status") != "pending_schedule":
-        return
-
-    tournament_id = event.params["tournament_id"]
-    players = tournament_data.get("players", [])
-    if not isinstance(players, list) or len(players) < 2:
-        return
-
-    duration_hours = float(tournament_data.get("durationHours", 2.0))
-    schedule_mode = tournament_data.get("tournamentMode", "fair")
-    custom_total_games = int(tournament_data.get("customTotalGames", 0))
-    partner_type = tournament_data.get("partnerType", "rotating")
-    is_team_mode = tournament_data.get("isTeamMode", False) or partner_type == "fixed"
-    is_singles = partner_type == "singles"
-
-    ref = db.reference(f"/tournaments/{tournament_id}")
-    try:
-        matches = []
-        if is_singles:
-            matches = generate_singles_schedule(
-                players_list=players,
-                duration_hours=duration_hours,
-                schedule_mode=schedule_mode,
-                custom_total_games=custom_total_games
-            )
-        elif is_team_mode:
-            matches = generate_team_schedule(teams_list=players)
-        else:
-            matches = generate_doubles_schedule(
-                players_list=players,
-                duration_hours=duration_hours,
-                schedule_mode=schedule_mode,
-                custom_total_games=custom_total_games
-            )
-
-        # 寫回 RTDB，觸發前端即時監聽器
-        ref.update({
-            "matches": matches,
-            "status": "active",
-            "scheduledBy": "python-cloud-function",
-            "matchesCount": len(matches)
-        })
-        logging.info(f"[RTDB Trigger] 賽事 {tournament_id} 排賽完成，共生成 {len(matches)} 場")
-    except Exception as err:
-        logging.exception(f"[RTDB Trigger] 賽事 {tournament_id} 自動排賽計算失敗: {err}")
-        ref.update({
-            "status": "schedule_error",
-            "errorMessage": "排賽計算失敗，請檢查名單或重新開局"
-        })
 
 
 # ============================================================
