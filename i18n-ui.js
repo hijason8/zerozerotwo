@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261023-3";
+import { STATE, t } from "./globals.js?v=20261023-4";
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -107,7 +107,7 @@ export const I18N_TEXT_KEYS = {
   "t-modal-format-singles": "modalFormatSingles",
   "t-modal-auto-pick": "modalAutoPick",
   "t-modal-random-pick": "modalRandomPick",
-  "t-modal-clear": "modalClear",
+  "t-modal-generate": "modalGenerate",
   "t-modal-tap-roster-sub": "modalTapRosterSub",
   "t-modal-confirm-add-text": "confirmAddMatchBtn"
 };
@@ -438,18 +438,6 @@ function applyDynamicLanguageUI(isZh) {
     if (list.children[1]) list.children[1].innerText = t("tbRule2");
     if (list.children[2]) list.children[2].innerText = t("tbRule3");
     if (list.children[3]) list.children[3].innerText = t("tbRule4");
-  }
-
-  // 手動加場彈窗：依 Team / Singles 切換提示文案
-  const addMatchDescEl = document.getElementById("modal-add-match-desc");
-  if (addMatchDescEl) {
-    const isTeam = STATE.tournamentData && typeof window.getTournamentIsTeamMode === "function" ? window.getTournamentIsTeamMode(STATE.tournamentData) : false;
-    const isSingles = (STATE.addMatchFormat === "singles" || STATE.tournamentData?.partnerType === "singles");
-    addMatchDescEl.innerText = isTeam
-      ? (isZh ? "選擇 2 隊進行對抗，或點擊自動對決" : "Select 2 teams or click auto pick")
-      : (isSingles
-        ? (isZh ? "選擇 2 位選手進行單打，或點擊自動配對" : "Select 2 players or click auto pick")
-        : (isZh ? "選擇 4 位選手或點擊自動配對" : "Select 4 players or click auto pick"));
   }
 
   // 點選名冊彈窗標題

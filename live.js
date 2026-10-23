@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261023-3";
+} from "./utils.js?v=20261023-4";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261023-3";
+} from "./scheduler.js?v=20261023-4";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261023-3";
+} from "./globals.js?v=20261023-4";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1887,6 +1887,24 @@ function autoPickAddMatchPlayers() {
 }
 window.autoPickAddMatchPlayers = autoPickAddMatchPlayers;
 
+// 配對方式切換（場次少優先 / 隨機抽籤），按「產生」才填入座位
+function setAddMatchPickMode(mode) {
+  STATE.addMatchPickMode = (mode === "random") ? "random" : "fair";
+  const isRandom = (STATE.addMatchPickMode === "random");
+  const base = "py-2 px-3 rounded-xl border-2 text-xs font-bold transition flex items-center justify-center active:scale-95 shadow-sm";
+  const fairBtn = document.getElementById("modal-btn-auto-pick");
+  const randomBtn = document.getElementById("modal-btn-random-pick");
+  if (fairBtn) fairBtn.className = `${isRandom ? "mode-btn-inactive" : "mode-btn-active"} ${base}`;
+  if (randomBtn) randomBtn.className = `${isRandom ? "mode-btn-active" : "mode-btn-inactive"} ${base}`;
+}
+window.setAddMatchPickMode = setAddMatchPickMode;
+
+function generateAddMatchPlayers() {
+  if (STATE.addMatchPickMode === "random") randomPickAddMatchPlayers();
+  else autoPickAddMatchPlayers();
+}
+window.generateAddMatchPlayers = generateAddMatchPlayers;
+
 function openAddMatchModal() {
   const modal = document.getElementById("modal-add-match");
   if (!modal) return;
@@ -1930,6 +1948,7 @@ function openAddMatchModal() {
     setAddMatchFormat(defaultFormat);
   }
 
+  setAddMatchPickMode(STATE.addMatchPickMode);
   clearAddMatchPlayers();
 
   modal.classList.remove("hidden");
