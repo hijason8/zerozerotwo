@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261023-2";
+} from "./utils.js?v=20261023-3";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261023-2";
+} from "./scheduler.js?v=20261023-3";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261023-2";
+} from "./globals.js?v=20261023-3";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1654,8 +1654,6 @@ function setAddMatchFormat(format) {
   const btnSingles = document.getElementById("modal-btn-format-singles");
   const blue2 = document.getElementById("add-blue-2");
   const red2 = document.getElementById("add-red-2");
-  const blueTitle = document.getElementById("modal-blue-team-title");
-  const redTitle = document.getElementById("modal-red-team-title");
 
   const activeCls = "px-2.5 py-1 rounded-md text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm transition";
   const inactiveCls = "px-2.5 py-1 rounded-md text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200 transition";
@@ -1679,11 +1677,6 @@ function setAddMatchFormat(format) {
       red2.classList.remove("hidden");
     }
   }
-
-  const isZh = (STATE.lang === "zh-TW");
-  const isTeam = getTournamentIsTeamMode(STATE.tournamentData);
-  if (blueTitle) blueTitle.innerText = isTeam ? (isZh ? "藍隊" : "Blue Team") : (isSingles ? (isZh ? "藍方" : "Blue Side") : (isZh ? "藍隊" : "Blue Team"));
-  if (redTitle) redTitle.innerText = isTeam ? (isZh ? "紅隊" : "Red Team") : (isSingles ? (isZh ? "紅方" : "Red Side") : (isZh ? "紅隊" : "Red Team"));
 
   renderAddMatchRosterChips();
 }
@@ -1937,7 +1930,7 @@ function openAddMatchModal() {
     setAddMatchFormat(defaultFormat);
   }
 
-  autoPickAddMatchPlayers();
+  clearAddMatchPlayers();
 
   modal.classList.remove("hidden");
   lucide.createIcons();

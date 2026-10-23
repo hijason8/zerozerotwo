@@ -1923,57 +1923,8 @@
         </div>
       </div>
 
-      <!-- Quick Action Toolbar -->
-      <div class="flex items-center justify-between gap-1.5 flex-wrap pt-0.5">
-        <div class="flex items-center gap-1">
-          <button type="button" onclick="autoPickAddMatchPlayers()" id="modal-btn-auto-pick"
-            class="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center gap-1 transition"
-            title="出賽場次最少者優先上場">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> <span id="t-modal-auto-pick">場次少優先</span>
-          </button>
-          <button type="button" onclick="randomPickAddMatchPlayers()" id="modal-btn-random-pick"
-            class="px-2 py-1 rounded-lg card-inner hover:border-amber-500/50 sub-text font-bold text-xs flex items-center gap-1 border transition"
-            title="從全體選手中隨機抽籤配對">
-            <i data-lucide="dices" class="w-3.5 h-3.5"></i> <span id="t-modal-random-pick">隨機抽籤</span>
-          </button>
-        </div>
-        <div class="flex items-center gap-1">
-          <button type="button" onclick="clearAddMatchPlayers()"
-            class="px-2 py-1 rounded-lg card-inner sub-text hover:text-rose-500 text-xs font-bold border transition flex items-center gap-1"
-            title="清空全部欄位">
-            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline text-[11px]"
-              id="t-modal-clear">清空</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Teams Grid (Slots) -->
-      <div class="grid grid-cols-2 gap-3 pt-1">
-        <!-- Blue Team Slot -->
-        <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2">
-          <div class="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-blue-500"></span> <span id="modal-blue-team-title">藍隊</span>
-          </div>
-          <select id="add-blue-1" onchange="onAddMatchSlotChange()"
-            class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
-          <select id="add-blue-2" onchange="onAddMatchSlotChange()"
-            class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
-        </div>
-
-        <!-- Red Team Slot -->
-        <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-2">
-          <div class="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-rose-500"></span> <span id="modal-red-team-title">紅隊</span>
-          </div>
-          <select id="add-red-1" onchange="onAddMatchSlotChange()"
-            class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
-          <select id="add-red-2" onchange="onAddMatchSlotChange()"
-            class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
-        </div>
-      </div>
-
-      <!-- Quick Tap Roster Chips Container -->
-      <div class="space-y-1.5 pt-1 border-t border-stone-200 dark:border-slate-800">
+      <!-- Player Pool -->
+      <div class="space-y-1.5">
         <div class="flex items-center justify-between text-[11px] font-bold sub-text">
           <span id="t-modal-tap-roster-title">選手池</span>
           <span class="text-[10px] font-normal opacity-75" id="t-modal-tap-roster-sub">點名字暫停排賽，再點一次恢復</span>
@@ -1981,6 +1932,45 @@
         <div id="modal-roster-chips"
           class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1.5 rounded-xl card-inner border">
           <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Quick Action Toolbar -->
+      <div class="flex items-center justify-between gap-1.5 flex-wrap pt-1 border-t border-stone-200 dark:border-slate-800">
+        <div class="flex items-center gap-1.5 pt-2">
+          <button type="button" onclick="autoPickAddMatchPlayers()" id="modal-btn-auto-pick"
+            class="px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+            title="出賽場次最少者優先上場">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> <span id="t-modal-auto-pick">場次少優先</span>
+          </button>
+          <button type="button" onclick="randomPickAddMatchPlayers()" id="modal-btn-random-pick"
+            class="px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+            title="從全體選手中隨機抽籤配對">
+            <i data-lucide="dices" class="w-3.5 h-3.5"></i> <span id="t-modal-random-pick">隨機抽籤</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-1.5 pt-2">
+          <button type="button" onclick="clearAddMatchPlayers()"
+            class="px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 border-stone-300 dark:border-slate-700 sub-text hover:text-rose-500"
+            title="清空全部欄位">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> <span id="t-modal-clear">清空</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Teams Grid (Slots) -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2">
+          <select id="add-blue-1" onchange="onAddMatchSlotChange()"
+            class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
+          <select id="add-blue-2" onchange="onAddMatchSlotChange()"
+            class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
+        </div>
+        <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-2">
+          <select id="add-red-1" onchange="onAddMatchSlotChange()"
+            class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
+          <select id="add-red-2" onchange="onAddMatchSlotChange()"
+            class="w-full input-bg border rounded-lg p-1.5 text-xs font-semibold focus:outline-none"></select>
         </div>
       </div>
 
@@ -2176,7 +2166,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261023-2";
+    import { I18N } from "./i18n.js?v=20261023-3";
     window.I18N = I18N;
 
     function t(key) {
@@ -2198,14 +2188,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261023-2";
-    import "./club.js?v=20261023-2";
-    import "./tournament-create.js?v=20261023-2";
-    import "./live.js?v=20261023-2";
-    import "./activities.js?v=20261023-2";
-    import "./hub.js?v=20261023-2";
-    import "./line.js?v=20261023-2";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261023-2";
+    } from "./utils.js?v=20261023-3";
+    import "./club.js?v=20261023-3";
+    import "./tournament-create.js?v=20261023-3";
+    import "./live.js?v=20261023-3";
+    import "./activities.js?v=20261023-3";
+    import "./hub.js?v=20261023-3";
+    import "./line.js?v=20261023-3";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261023-3";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

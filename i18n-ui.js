@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261023-2";
+import { STATE, t } from "./globals.js?v=20261023-3";
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -457,20 +457,6 @@ function applyDynamicLanguageUI(isZh) {
   if (modalTapTitle) {
     const isTeam = STATE.tournamentData && typeof window.getTournamentIsTeamMode === "function" ? window.getTournamentIsTeamMode(STATE.tournamentData) : false;
     modalTapTitle.innerText = isTeam ? t("modalTapRosterTitleTeam") : t("modalTapRosterTitle");
-  }
-
-  // 藍隊/紅隊 (或藍方/紅方) 標題
-  const blueTeamTitleEl = document.getElementById("modal-blue-team-title");
-  if (blueTeamTitleEl) {
-    const isTeam = STATE.tournamentData && typeof window.getTournamentIsTeamMode === "function" ? window.getTournamentIsTeamMode(STATE.tournamentData) : false;
-    const isSingles = (STATE.addMatchFormat === "singles");
-    blueTeamTitleEl.innerText = isTeam ? (isZh ? "藍隊" : "Blue Team") : (isSingles ? (isZh ? "藍方" : "Blue Side") : (isZh ? "藍隊" : "Blue Team"));
-  }
-  const redTeamTitleEl = document.getElementById("modal-red-team-title");
-  if (redTeamTitleEl) {
-    const isTeam = STATE.tournamentData && typeof window.getTournamentIsTeamMode === "function" ? window.getTournamentIsTeamMode(STATE.tournamentData) : false;
-    const isSingles = (STATE.addMatchFormat === "singles");
-    redTeamTitleEl.innerText = isTeam ? (isZh ? "紅隊" : "Red Team") : (isSingles ? (isZh ? "紅方" : "Red Side") : (isZh ? "紅隊" : "Red Team"));
   }
 
   // 取消/再等等按鈕
