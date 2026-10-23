@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261023-4";
+} from "./utils.js?v=20261023-5";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261023-4";
+} from "./scheduler.js?v=20261023-5";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261023-4";
+} from "./globals.js?v=20261023-5";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1764,7 +1764,7 @@ function renderAddMatchRosterChips() {
         ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40"
         : "bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/40";
       inner = `<span>${escapeHTML(p)}</span>
-            <span class="text-[10px] font-mono opacity-80">${seatInfo.label} · ${count}${isZh ? '場' : 'g'}</span>`;
+            <span class="text-[10px] font-mono opacity-80">${count}${isZh ? '場' : 'g'}</span>`;
     } else {
       cls = "card-inner sub-text hover:border-amber-500/60";
       inner = `<span>${escapeHTML(p)}</span>
