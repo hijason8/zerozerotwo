@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261022-2";
+import { STATE, t } from "./globals.js?v=20261023-5";
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -107,9 +107,7 @@ export const I18N_TEXT_KEYS = {
   "t-modal-format-singles": "modalFormatSingles",
   "t-modal-auto-pick": "modalAutoPick",
   "t-modal-random-pick": "modalRandomPick",
-  "t-modal-swap-sides": "modalSwapSides",
-  "t-modal-swap-partners": "modalSwapPartners",
-  "t-modal-clear": "modalClear",
+  "t-modal-generate": "modalGenerate",
   "t-modal-tap-roster-sub": "modalTapRosterSub",
   "t-modal-confirm-add-text": "confirmAddMatchBtn"
 };
@@ -442,37 +440,11 @@ function applyDynamicLanguageUI(isZh) {
     if (list.children[3]) list.children[3].innerText = t("tbRule4");
   }
 
-  // 手動加場彈窗：依 Team / Singles 切換提示文案
-  const addMatchDescEl = document.getElementById("modal-add-match-desc");
-  if (addMatchDescEl) {
-    const isTeam = STATE.tournamentData && typeof window.getTournamentIsTeamMode === "function" ? window.getTournamentIsTeamMode(STATE.tournamentData) : false;
-    const isSingles = (STATE.addMatchFormat === "singles" || STATE.tournamentData?.partnerType === "singles");
-    addMatchDescEl.innerText = isTeam
-      ? (isZh ? "選擇 2 隊進行對抗，或點擊自動對決" : "Select 2 teams or click auto pick")
-      : (isSingles
-        ? (isZh ? "選擇 2 位選手進行單打，或點擊自動配對" : "Select 2 players or click auto pick")
-        : (isZh ? "選擇 4 位選手或點擊自動配對" : "Select 4 players or click auto pick"));
-  }
-
   // 點選名冊彈窗標題
   const modalTapTitle = document.getElementById("t-modal-tap-roster-title");
   if (modalTapTitle) {
     const isTeam = STATE.tournamentData && typeof window.getTournamentIsTeamMode === "function" ? window.getTournamentIsTeamMode(STATE.tournamentData) : false;
     modalTapTitle.innerText = isTeam ? t("modalTapRosterTitleTeam") : t("modalTapRosterTitle");
-  }
-
-  // 藍隊/紅隊 (或藍方/紅方) 標題
-  const blueTeamTitleEl = document.getElementById("modal-blue-team-title");
-  if (blueTeamTitleEl) {
-    const isTeam = STATE.tournamentData && typeof window.getTournamentIsTeamMode === "function" ? window.getTournamentIsTeamMode(STATE.tournamentData) : false;
-    const isSingles = (STATE.addMatchFormat === "singles");
-    blueTeamTitleEl.innerText = isTeam ? (isZh ? "藍隊" : "Blue Team") : (isSingles ? (isZh ? "藍方" : "Blue Side") : (isZh ? "藍隊" : "Blue Team"));
-  }
-  const redTeamTitleEl = document.getElementById("modal-red-team-title");
-  if (redTeamTitleEl) {
-    const isTeam = STATE.tournamentData && typeof window.getTournamentIsTeamMode === "function" ? window.getTournamentIsTeamMode(STATE.tournamentData) : false;
-    const isSingles = (STATE.addMatchFormat === "singles");
-    redTeamTitleEl.innerText = isTeam ? (isZh ? "紅隊" : "Red Team") : (isSingles ? (isZh ? "紅方" : "Red Side") : (isZh ? "紅隊" : "Red Team"));
   }
 
   // 取消/再等等按鈕

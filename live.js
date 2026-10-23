@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261022-2";
+} from "./utils.js?v=20261023-5";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261022-2";
+} from "./scheduler.js?v=20261023-5";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261022-2";
+} from "./globals.js?v=20261023-5";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1654,9 +1654,6 @@ function setAddMatchFormat(format) {
   const btnSingles = document.getElementById("modal-btn-format-singles");
   const blue2 = document.getElementById("add-blue-2");
   const red2 = document.getElementById("add-red-2");
-  const swapPartnersBtn = document.getElementById("modal-btn-swap-partners");
-  const blueTitle = document.getElementById("modal-blue-team-title");
-  const redTitle = document.getElementById("modal-red-team-title");
 
   const activeCls = "px-2.5 py-1 rounded-md text-xs font-semibold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm transition";
   const inactiveCls = "px-2.5 py-1 rounded-md text-xs font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200 transition";
@@ -1680,19 +1677,47 @@ function setAddMatchFormat(format) {
       red2.classList.remove("hidden");
     }
   }
-  if (swapPartnersBtn) {
-    if (isSingles) swapPartnersBtn.classList.add("hidden");
-    else swapPartnersBtn.classList.remove("hidden");
-  }
-
-  const isZh = (STATE.lang === "zh-TW");
-  const isTeam = getTournamentIsTeamMode(STATE.tournamentData);
-  if (blueTitle) blueTitle.innerText = isTeam ? (isZh ? "藍隊" : "Blue Team") : (isSingles ? (isZh ? "藍方" : "Blue Side") : (isZh ? "藍隊" : "Blue Team"));
-  if (redTitle) redTitle.innerText = isTeam ? (isZh ? "紅隊" : "Red Team") : (isSingles ? (isZh ? "紅方" : "Red Side") : (isZh ? "紅隊" : "Red Team"));
 
   renderAddMatchRosterChips();
 }
 window.setAddMatchFormat = setAddMatchFormat;
+
+// 暫停排賽：保留歷史戰績，只是不被自動 / 隨機配對挑中
+function getPausedPlayers(tData) {
+  return Array.isArray(tData?.pausedPlayers) ? tData.pausedPlayers.filter(Boolean) : [];
+}
+
+function savePausedPlayers(tData, list) {
+  tData.pausedPlayers = list;
+  saveToLocalTournaments(tData);
+  if (STATE.db && tData.id) {
+    set(ref(STATE.db, `tournaments/${tData.id}/pausedPlayers`), list.length ? list : null)
+      .catch(e => console.error("Firebase sync error:", e));
+  }
+}
+
+function unpausePlayers(tData, names) {
+  const paused = getPausedPlayers(tData);
+  const next = paused.filter(p => !names.includes(p));
+  if (next.length !== paused.length) savePausedPlayers(tData, next);
+}
+
+function toggleAddMatchPause(name) {
+  const tData = STATE.tournamentData;
+  if (!tData) return;
+  const paused = getPausedPlayers(tData);
+  if (paused.includes(name)) {
+    savePausedPlayers(tData, paused.filter(p => p !== name));
+  } else {
+    savePausedPlayers(tData, [...paused, name]);
+    ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value === name) el.value = "";
+    });
+  }
+  renderAddMatchRosterChips();
+}
+window.toggleAddMatchPause = toggleAddMatchPause;
 
 function renderAddMatchRosterChips() {
   const container = document.getElementById("modal-roster-chips");
@@ -1722,72 +1747,53 @@ function renderAddMatchRosterChips() {
   if (r1) seated[r1] = { side: "red", label: isZh ? "紅1" : "R1" };
   if (r2 && STATE.addMatchFormat !== "singles") seated[r2] = { side: "red", label: isZh ? "紅2" : "R2" };
 
-  const html = players.map(p => {
+  const paused = getPausedPlayers(tData);
+  const ordered = players.filter(p => !paused.includes(p)).concat(players.filter(p => paused.includes(p)));
+
+  const html = ordered.map(p => {
     const count = gamesCount[p] || 0;
     const seatInfo = seated[p];
-    if (seatInfo) {
-      const isBlue = (seatInfo.side === "blue");
-      const badgeCls = isBlue
+    const isPaused = paused.includes(p);
+    let cls, inner;
+    if (isPaused) {
+      cls = "border-dashed border-stone-400/60 opacity-60 sub-text";
+      inner = `<i data-lucide="pause" class="w-3 h-3"></i>
+            <span style="text-decoration: line-through; text-decoration-style: double;">${escapeHTML(p)}</span>`;
+    } else if (seatInfo) {
+      cls = seatInfo.side === "blue"
         ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40"
         : "bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/40";
-      return `<button type="button" onclick="unassignAddMatchPlayer('${escapeJsAttr(p)}')"
-            class="px-2 py-1 rounded-lg text-xs font-bold border transition flex items-center gap-1 shadow-sm active:scale-95 ${badgeCls}">
-            <span>${escapeHTML(p)}</span>
-            <span class="text-[10px] px-1 py-0.5 rounded font-mono bg-stone-900/10 dark:bg-stone-100/10">${seatInfo.label} · ${count}${isZh ? '場' : 'g'}</span>
-            <i data-lucide="x" class="w-3 h-3 opacity-60 hover:opacity-100"></i>
-          </button>`;
+      inner = `<span>${escapeHTML(p)}</span>
+            <span class="text-[10px] font-mono opacity-80">${count}${isZh ? '場' : 'g'}</span>`;
     } else {
-      return `<button type="button" onclick="assignAddMatchPlayer('${escapeJsAttr(p)}')"
-            class="px-2 py-1 rounded-lg text-xs font-medium card-inner border hover:border-amber-500/60 sub-text hover:text-stone-900 dark:hover:text-stone-100 transition flex items-center gap-1 active:scale-95">
-            <span>${escapeHTML(p)}</span>
-            <span class="text-[10px] font-mono opacity-60">${count}${isZh ? '場' : 'g'}</span>
-          </button>`;
+      cls = "card-inner sub-text hover:border-amber-500/60";
+      inner = `<span>${escapeHTML(p)}</span>
+            <span class="text-[10px] font-mono opacity-60">${count}${isZh ? '場' : 'g'}</span>`;
     }
+    return `<button type="button" onclick="toggleAddMatchPause('${escapeJsAttr(p)}')"
+            aria-pressed="${isPaused}"
+            class="px-2 py-1 rounded-lg text-xs font-medium border transition flex items-center gap-1 active:scale-95 ${cls}">
+            ${inner}
+          </button>`;
   }).join("");
 
   container.innerHTML = html;
-  lucide.createIcons();
+  lucide.createIcons({ root: container });
 }
 window.renderAddMatchRosterChips = renderAddMatchRosterChips;
 
-function assignAddMatchPlayer(name) {
-  const b1 = document.getElementById("add-blue-1");
-  const b2 = document.getElementById("add-blue-2");
-  const r1 = document.getElementById("add-red-1");
-  const r2 = document.getElementById("add-red-2");
 
-  if (
-    (b1 && b1.value === name) ||
-    (b2 && b2.value === name && STATE.addMatchFormat !== "singles") ||
-    (r1 && r1.value === name) ||
-    (r2 && r2.value === name && STATE.addMatchFormat !== "singles")
-  ) {
-    return;
+// 下拉選單手動選人：選到暫停中的人就自動恢復
+function onAddMatchSlotChange() {
+  const tData = STATE.tournamentData;
+  if (tData) {
+    const chosen = ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"]
+      .map(id => document.getElementById(id)?.value).filter(Boolean);
+    unpausePlayers(tData, chosen);
   }
-
-  const isSingles = (STATE.addMatchFormat === "singles");
-  const slots = isSingles ? [b1, r1] : [b1, r1, b2, r2];
-
-  for (const slot of slots) {
-    if (slot && !slot.value) {
-      slot.value = name;
-      renderAddMatchRosterChips();
-      return;
-    }
-  }
-}
-window.assignAddMatchPlayer = assignAddMatchPlayer;
-
-function unassignAddMatchPlayer(name) {
-  ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.value === name) {
-      el.value = "";
-    }
-  });
   renderAddMatchRosterChips();
 }
-window.unassignAddMatchPlayer = unassignAddMatchPlayer;
+window.onAddMatchSlotChange = onAddMatchSlotChange;
 
 function clearAddMatchPlayers() {
   ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"].forEach(id => {
@@ -1798,43 +1804,12 @@ function clearAddMatchPlayers() {
 }
 window.clearAddMatchPlayers = clearAddMatchPlayers;
 
-function swapAddMatchSides() {
-  const b1 = document.getElementById("add-blue-1");
-  const b2 = document.getElementById("add-blue-2");
-  const r1 = document.getElementById("add-red-1");
-  const r2 = document.getElementById("add-red-2");
-
-  if (b1 && r1) {
-    const tmp = b1.value;
-    b1.value = r1.value;
-    r1.value = tmp;
-  }
-  if (b2 && r2 && STATE.addMatchFormat !== "singles") {
-    const tmp = b2.value;
-    b2.value = r2.value;
-    r2.value = tmp;
-  }
-  renderAddMatchRosterChips();
-}
-window.swapAddMatchSides = swapAddMatchSides;
-
-function swapAddMatchPartners() {
-  if (STATE.addMatchFormat === "singles") return;
-  const b2 = document.getElementById("add-blue-2");
-  const r2 = document.getElementById("add-red-2");
-  if (b2 && r2) {
-    const tmp = b2.value;
-    b2.value = r2.value;
-    r2.value = tmp;
-    renderAddMatchRosterChips();
-  }
-}
-window.swapAddMatchPartners = swapAddMatchPartners;
 
 function randomPickAddMatchPlayers() {
   const tData = STATE.tournamentData;
   if (!tData) return;
-  const players = [...(tData.players || [])];
+  const paused = getPausedPlayers(tData);
+  const players = (tData.players || []).filter(p => !paused.includes(p));
   const isSingles = (STATE.addMatchFormat === "singles");
   const minRequired = isSingles ? 2 : 4;
   if (players.length < minRequired) {
@@ -1870,10 +1845,14 @@ window.randomPickAddMatchPlayers = randomPickAddMatchPlayers;
 function autoPickAddMatchPlayers() {
   const tData = STATE.tournamentData;
   if (!tData) return;
-  const players = [...(tData.players || [])];
+  const paused = getPausedPlayers(tData);
+  const players = (tData.players || []).filter(p => !paused.includes(p));
   const isSingles = (STATE.addMatchFormat === "singles");
   const minRequired = isSingles ? 2 : 4;
-  if (players.length < minRequired) return;
+  if (players.length < minRequired) {
+    renderAddMatchRosterChips();
+    return;
+  }
 
   const gamesCount = {};
   players.forEach(p => { gamesCount[p] = 0; });
@@ -1907,6 +1886,24 @@ function autoPickAddMatchPlayers() {
   renderAddMatchRosterChips();
 }
 window.autoPickAddMatchPlayers = autoPickAddMatchPlayers;
+
+// 配對方式切換（場次少優先 / 隨機抽籤），按「產生」才填入座位
+function setAddMatchPickMode(mode) {
+  STATE.addMatchPickMode = (mode === "random") ? "random" : "fair";
+  const isRandom = (STATE.addMatchPickMode === "random");
+  const base = "py-2 px-3 rounded-xl border-2 text-xs font-bold transition flex items-center justify-center active:scale-95 shadow-sm";
+  const fairBtn = document.getElementById("modal-btn-auto-pick");
+  const randomBtn = document.getElementById("modal-btn-random-pick");
+  if (fairBtn) fairBtn.className = `${isRandom ? "mode-btn-inactive" : "mode-btn-active"} ${base}`;
+  if (randomBtn) randomBtn.className = `${isRandom ? "mode-btn-active" : "mode-btn-inactive"} ${base}`;
+}
+window.setAddMatchPickMode = setAddMatchPickMode;
+
+function generateAddMatchPlayers() {
+  if (STATE.addMatchPickMode === "random") randomPickAddMatchPlayers();
+  else autoPickAddMatchPlayers();
+}
+window.generateAddMatchPlayers = generateAddMatchPlayers;
 
 function openAddMatchModal() {
   const modal = document.getElementById("modal-add-match");
@@ -1951,7 +1948,8 @@ function openAddMatchModal() {
     setAddMatchFormat(defaultFormat);
   }
 
-  autoPickAddMatchPlayers();
+  setAddMatchPickMode(STATE.addMatchPickMode);
+  clearAddMatchPlayers();
 
   modal.classList.remove("hidden");
   lucide.createIcons();
@@ -2008,6 +2006,8 @@ async function submitAddMatch() {
     blueUnits = [b1, b2];
     redUnits = [r1, r2];
   }
+
+  unpausePlayers(tData, chosen);
 
   if (!tData.matches) tData.matches = [];
 
