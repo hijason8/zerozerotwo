@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261023-1";
+import { STATE, t } from "./globals.js?v=20261023-2";
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -107,8 +107,6 @@ export const I18N_TEXT_KEYS = {
   "t-modal-format-singles": "modalFormatSingles",
   "t-modal-auto-pick": "modalAutoPick",
   "t-modal-random-pick": "modalRandomPick",
-  "t-modal-swap-sides": "modalSwapSides",
-  "t-modal-swap-partners": "modalSwapPartners",
   "t-modal-clear": "modalClear",
   "t-modal-tap-roster-sub": "modalTapRosterSub",
   "t-modal-confirm-add-text": "confirmAddMatchBtn"

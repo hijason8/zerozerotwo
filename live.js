@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261023-1";
+} from "./utils.js?v=20261023-2";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261023-1";
+} from "./scheduler.js?v=20261023-2";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261023-1";
+} from "./globals.js?v=20261023-2";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1654,7 +1654,6 @@ function setAddMatchFormat(format) {
   const btnSingles = document.getElementById("modal-btn-format-singles");
   const blue2 = document.getElementById("add-blue-2");
   const red2 = document.getElementById("add-red-2");
-  const swapPartnersBtn = document.getElementById("modal-btn-swap-partners");
   const blueTitle = document.getElementById("modal-blue-team-title");
   const redTitle = document.getElementById("modal-red-team-title");
 
@@ -1679,10 +1678,6 @@ function setAddMatchFormat(format) {
     } else {
       red2.classList.remove("hidden");
     }
-  }
-  if (swapPartnersBtn) {
-    if (isSingles) swapPartnersBtn.classList.add("hidden");
-    else swapPartnersBtn.classList.remove("hidden");
   }
 
   const isZh = (STATE.lang === "zh-TW");
@@ -1766,34 +1761,27 @@ function renderAddMatchRosterChips() {
     const count = gamesCount[p] || 0;
     const seatInfo = seated[p];
     const isPaused = paused.includes(p);
-    if (seatInfo) {
-      const isBlue = (seatInfo.side === "blue");
-      const badgeCls = isBlue
+    let cls, inner;
+    if (isPaused) {
+      cls = "border-dashed border-stone-400/60 opacity-60 sub-text";
+      inner = `<i data-lucide="pause" class="w-3 h-3"></i>
+            <span style="text-decoration: line-through; text-decoration-style: double;">${escapeHTML(p)}</span>`;
+    } else if (seatInfo) {
+      cls = seatInfo.side === "blue"
         ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40"
         : "bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/40";
-      return `<button type="button" onclick="unassignAddMatchPlayer('${escapeJsAttr(p)}')"
-            class="px-2 py-1 rounded-lg text-xs font-bold border transition flex items-center gap-1 shadow-sm active:scale-95 ${badgeCls}">
-            <span>${escapeHTML(p)}</span>
-            <span class="text-[10px] px-1 py-0.5 rounded font-mono bg-stone-900/10 dark:bg-stone-100/10">${seatInfo.label} · ${count}${isZh ? '場' : 'g'}</span>
-            <i data-lucide="x" class="w-3 h-3 opacity-60 hover:opacity-100"></i>
-          </button>`;
+      inner = `<span>${escapeHTML(p)}</span>
+            <span class="text-[10px] font-mono opacity-80">${seatInfo.label} · ${count}${isZh ? '場' : 'g'}</span>`;
     } else {
-      const wrapCls = isPaused
-        ? "border-dashed opacity-50"
-        : "hover:border-amber-500/60";
-      return `<span class="inline-flex items-center rounded-lg text-xs font-medium card-inner border sub-text transition ${wrapCls}">
-            <button type="button" onclick="assignAddMatchPlayer('${escapeJsAttr(p)}')"
-              class="pl-2 pr-1 py-1 flex items-center gap-1 hover:text-stone-900 dark:hover:text-stone-100 active:scale-95">
-              <span class="${isPaused ? 'line-through' : ''}">${escapeHTML(p)}</span>
-              <span class="text-[10px] font-mono opacity-60">${isPaused ? (isZh ? '暫停' : 'paused') : `${count}${isZh ? '場' : 'g'}`}</span>
-            </button>
-            <button type="button" onclick="toggleAddMatchPause('${escapeJsAttr(p)}')"
-              aria-label="${isPaused ? (isZh ? '恢復排賽' : 'Resume') : (isZh ? '暫停排賽' : 'Pause')}"
-              class="pl-0.5 pr-1.5 py-1 opacity-60 hover:opacity-100 hover:text-amber-500 active:scale-90">
-              <i data-lucide="${isPaused ? 'play' : 'pause'}" class="w-3 h-3"></i>
-            </button>
-          </span>`;
+      cls = "card-inner sub-text hover:border-amber-500/60";
+      inner = `<span>${escapeHTML(p)}</span>
+            <span class="text-[10px] font-mono opacity-60">${count}${isZh ? '場' : 'g'}</span>`;
     }
+    return `<button type="button" onclick="toggleAddMatchPause('${escapeJsAttr(p)}')"
+            aria-pressed="${isPaused}"
+            class="px-2 py-1 rounded-lg text-xs font-medium border transition flex items-center gap-1 active:scale-95 ${cls}">
+            ${inner}
+          </button>`;
   }).join("");
 
   container.innerHTML = html;
@@ -1801,45 +1789,18 @@ function renderAddMatchRosterChips() {
 }
 window.renderAddMatchRosterChips = renderAddMatchRosterChips;
 
-function assignAddMatchPlayer(name) {
-  const b1 = document.getElementById("add-blue-1");
-  const b2 = document.getElementById("add-blue-2");
-  const r1 = document.getElementById("add-red-1");
-  const r2 = document.getElementById("add-red-2");
 
-  if (
-    (b1 && b1.value === name) ||
-    (b2 && b2.value === name && STATE.addMatchFormat !== "singles") ||
-    (r1 && r1.value === name) ||
-    (r2 && r2.value === name && STATE.addMatchFormat !== "singles")
-  ) {
-    return;
+// 下拉選單手動選人：選到暫停中的人就自動恢復
+function onAddMatchSlotChange() {
+  const tData = STATE.tournamentData;
+  if (tData) {
+    const chosen = ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"]
+      .map(id => document.getElementById(id)?.value).filter(Boolean);
+    unpausePlayers(tData, chosen);
   }
-
-  const isSingles = (STATE.addMatchFormat === "singles");
-  const slots = isSingles ? [b1, r1] : [b1, r1, b2, r2];
-
-  for (const slot of slots) {
-    if (slot && !slot.value) {
-      slot.value = name;
-      if (STATE.tournamentData) unpausePlayers(STATE.tournamentData, [name]);
-      renderAddMatchRosterChips();
-      return;
-    }
-  }
-}
-window.assignAddMatchPlayer = assignAddMatchPlayer;
-
-function unassignAddMatchPlayer(name) {
-  ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.value === name) {
-      el.value = "";
-    }
-  });
   renderAddMatchRosterChips();
 }
-window.unassignAddMatchPlayer = unassignAddMatchPlayer;
+window.onAddMatchSlotChange = onAddMatchSlotChange;
 
 function clearAddMatchPlayers() {
   ["add-blue-1", "add-blue-2", "add-red-1", "add-red-2"].forEach(id => {
@@ -1850,38 +1811,6 @@ function clearAddMatchPlayers() {
 }
 window.clearAddMatchPlayers = clearAddMatchPlayers;
 
-function swapAddMatchSides() {
-  const b1 = document.getElementById("add-blue-1");
-  const b2 = document.getElementById("add-blue-2");
-  const r1 = document.getElementById("add-red-1");
-  const r2 = document.getElementById("add-red-2");
-
-  if (b1 && r1) {
-    const tmp = b1.value;
-    b1.value = r1.value;
-    r1.value = tmp;
-  }
-  if (b2 && r2 && STATE.addMatchFormat !== "singles") {
-    const tmp = b2.value;
-    b2.value = r2.value;
-    r2.value = tmp;
-  }
-  renderAddMatchRosterChips();
-}
-window.swapAddMatchSides = swapAddMatchSides;
-
-function swapAddMatchPartners() {
-  if (STATE.addMatchFormat === "singles") return;
-  const b2 = document.getElementById("add-blue-2");
-  const r2 = document.getElementById("add-red-2");
-  if (b2 && r2) {
-    const tmp = b2.value;
-    b2.value = r2.value;
-    r2.value = tmp;
-    renderAddMatchRosterChips();
-  }
-}
-window.swapAddMatchPartners = swapAddMatchPartners;
 
 function randomPickAddMatchPlayers() {
   const tData = STATE.tournamentData;
