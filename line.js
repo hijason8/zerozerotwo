@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261024-2";
+import { escapeHTML } from "./utils.js?v=20261024-6";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261024-2";
+} from "./globals.js?v=20261024-6";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -228,18 +228,7 @@ export async function initLiffAndUser() {
         keysToRemove.forEach(k => localStorage.removeItem(k));
       } catch (e) { }
 
-      const currentParams = new URLSearchParams(window.location.search);
-      const pageParam = currentParams.get("page");
-      const isNeutralPage = !pageParam || pageParam === "activities" || pageParam === "hub" || pageParam === "waiting";
-      if (!currentParams.get("t") && !currentParams.get("club") && isNeutralPage) {
-        if (pageParam === "hub") {
-          currentParams.delete("page");
-          const newSearch = currentParams.toString();
-          const cleanUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
-          window.history.replaceState({}, document.title, cleanUrl);
-        }
-        // 實際切換頁面由 initApp 在登入確認後統一處理（避免重複載入）
-      }
+      // ?page=hub 現在是獨立的「臨打賽事」頁，登入後保留原頁面；實際切換頁面由 initApp 統一處理
 
       if (typeof window.populateNavClubSelect === "function") {
         window.populateNavClubSelect();
