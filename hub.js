@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-7";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-8";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-7";
+} from "./globals.js?v=20261024-8";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -281,6 +281,28 @@ export function renderTournamentCard(tData, opts = {}) {
 
 if (typeof window !== "undefined") window.renderTournamentCard = renderTournamentCard;
 
+// 卡片＋「綁定『某某』出賽」標記（自己有報名時才加），社團活動與臨打活動共用
+export function renderCardWithRegistration(tData) {
+  const STATE = window.STATE || {};
+  const isZh = STATE.lang === "zh-TW";
+  const check = typeof window.checkTournamentRegistrationStatus === "function" ? window.checkTournamentRegistrationStatus : null;
+  const reg = check ? check(tData) : { isRegistered: false };
+  if (!reg.isRegistered || !reg.registeredName) return renderTournamentCard(tData);
+  const name = escapeHTML(reg.registeredName);
+  const isBound = (reg.isBound !== false);
+  const badge = isBound ? `
+    <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
+      <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `綁定『${name}』出賽` : `Bound: ${name}`}
+    </span></div>
+  ` : `
+    <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 inline-flex items-center gap-1">
+      <i data-lucide="alert-circle" class="w-3 h-3 text-amber-500"></i> ${isZh ? `未綁定『${name}』出賽` : `Unbound: ${name}`}
+    </span></div>
+  `;
+  return renderTournamentCard(tData, { extraHTML: badge });
+}
+
+
 export function displayHubTournamentsList(list) {
   const STATE = window.STATE || {};
   STATE.allTournamentsCache = list || [];
@@ -329,7 +351,7 @@ export function displayHubTournamentsList(list) {
     const countEl = document.getElementById(`hub-${key}-count`);
     if (section) section.classList.toggle("hidden", list.length === 0);
     if (countEl) countEl.innerText = `${list.length}`;
-    if (container) container.innerHTML = list.map(t => renderTournamentCard(t)).join("");
+    if (container) container.innerHTML = list.map(t => renderCardWithRegistration(t)).join("");
   };
   fillSection("live", liveList);
   fillSection("signup", signupList);
@@ -341,7 +363,7 @@ export function displayHubTournamentsList(list) {
     emptyEl.classList.toggle("hidden", !allEmpty);
     emptyEl.innerHTML = allEmpty ? `
       <div class="glass-card rounded-2xl p-6 sm:p-8 text-center border">
-        <h4 class="text-sm sm:text-base font-bold font-display">${isZh ? '目前沒有臨打賽事' : 'No drop-in games right now'}</h4>
+        <h4 class="text-sm sm:text-base font-bold font-display">${isZh ? '目前沒有臨打活動' : 'No drop-in games right now'}</h4>
       </div>
     ` : "";
   }

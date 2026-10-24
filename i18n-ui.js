@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261024-7";
+import { STATE, t } from "./globals.js?v=20261024-8";
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -151,12 +151,12 @@ export const I18N_CUSTOM_TEXTS = {
     "Edit Club"
   ],
   "t-activities-reg-text": [
-    "比賽中與已報名",
-    "In Progress & Registered"
+    "比賽中",
+    "In Progress"
   ],
   "t-activities-avail-text": [
-    "開放接龍報名",
-    "Available for Sign Up"
+    "報名中",
+    "Open for Sign Up"
   ],
   "t-activities-comp-text": [
     "近期完賽球局 (3日內)",

@@ -269,7 +269,7 @@ export const I18N = {
     confirmFinishPrompt: "確定將賽事結束歸檔並返回大廳？\n（此操作將把賽事歸檔至完賽紀錄）",
 
     // History Page & Standings
-    casualPlay: "臨打賽事",
+    casualPlay: "臨打活動",
     casualArchiveTitle: "臨打歷史賽事紀錄",
     clubArchiveTitle: "歷次賽事紀錄",
     clubStandingsTitle: "社團參賽紀錄",
