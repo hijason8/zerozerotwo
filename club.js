@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-9";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-10";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-9";
+} from "./globals.js?v=20261024-10";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -1956,39 +1956,10 @@ const isTransientPlayer = (name) => {
         if (clubActiveTournaments.length > 0) {
           clubActiveSection.classList.remove("hidden");
           if (clubNoActivitiesHint) clubNoActivitiesHint.classList.add("hidden");
-          clubActiveListEl.innerHTML = clubActiveTournaments.map(tData => {
-            const isReg = tData.status === "registering";
-            const pCount = tData.players ? tData.players.length : 0;
-            const dateStr = formatTournamentDate(tData.createdAt || tData.startedAt);
-            return `
-              <div class="glass-card rounded-2xl p-4 border space-y-2 flex flex-col justify-between shadow-sm">
-                <div class="space-y-1">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${escapeHTML(tData.id)}</span>
-                  </div>
-                  <h4 class="text-sm font-bold font-display line-clamp-1">${escapeHTML(tData.name)}</h4>
-                  <div class="flex items-center justify-between text-xs sub-text flex-wrap gap-1">
-                    <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}</span>
-                    <span>👥 ${pCount} ${isReg ? (STATE.lang === 'zh-TW' ? '人已報名' : 'signed up') : (STATE.lang === 'zh-TW' ? '人參賽' : 'players')}</span>
-                  </div>
-                  ${(() => {
-                if (!tData.notes || !tData.notes.trim()) return '';
-                const firstLine = tData.notes.trim().split('\n')[0].trim();
-                if (!firstLine) return '';
-                return `
-                      <div class="px-2 py-0.5 rounded-md card-inner border text-[10px] sub-text flex items-center gap-1 bg-stone-500/5 overflow-hidden">
-                        <i data-lucide="file-text" class="w-2.5 h-2.5 text-emerald-500 shrink-0"></i>
-                        <span class="truncate font-medium">${escapeHTML(firstLine)}</span>
-                      </div>
-                    `;
-              })()}
-                </div>
-                <button onclick="enterTournament('${escapeJsAttr(tData.id)}')" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm active:scale-95">
-                  <i data-lucide="${isReg ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isReg ? '' : 'fill-current'}"></i> ${isReg ? t("enterRegistration") : (STATE.lang === 'zh-TW' ? '進入計分' : 'Enter')}
-                </button>
-              </div>
-            `;
-          }).join("");
+          // 與社團活動、臨打活動共用同一張賽事卡片（呈現與操作一致）
+          clubActiveListEl.innerHTML = clubActiveTournaments
+            .sort((x, y) => new Date(y.createdAt) - new Date(x.createdAt))
+            .map(tData => window.renderCardWithRegistration(tData)).join("");
         } else {
           clubActiveSection.classList.remove("hidden");
           clubActiveListEl.innerHTML = "";
