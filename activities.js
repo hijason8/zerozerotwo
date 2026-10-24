@@ -10,14 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-4";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-5";
+import { renderTournamentCard } from "./hub.js?v=20261024-5";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261024-4";
+} from "./globals.js?v=20261024-5";
 
 let activitiesSearchKeyword = "";
 
@@ -294,120 +295,21 @@ export function displayActivitiesList(list) {
   const compCountEl = document.getElementById("activities-completed-count");
   if (compCountEl) compCountEl.innerText = `${registeredCompletedList.length}`;
 
-  // 卡片渲染函式
-  const renderActivityCard = (tData, mode) => {
-    const isRegistering = (tData.status === "registering");
-    const dateStr = formatFn(tData.createdAt);
-    const pCount = tData.players ? tData.players.length : 0;
-    const maxPlayers = tData.maxPlayers ? Number(tData.maxPlayers) : null;
-    const isFull = maxPlayers ? pCount >= maxPlayers : false;
-
-    const clubBadge = tData.clubName && tData.clubName.trim() ? `
-      <span class="text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
-        <i data-lucide="shield" class="w-2.5 h-2.5"></i> ${escapeHTML(tData.clubName.trim())}
-      </span>
-    ` : `
-      <span class="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 flex items-center gap-0.5">
-        <i data-lucide="zap" class="w-2.5 h-2.5"></i> ${isZh ? '公開球局' : 'Public'}
-      </span>
-    `;
-
+  // 卡片：與臨打賽事頁共用同一張卡片（呈現與操作一致），我的活動頁只多加「以誰的名字出賽」
+  const renderActivityCard = (tData) => {
+    if (!tData._registeredName) return renderTournamentCard(tData);
     const isBound = (tData._isBound !== false);
-    const regNameBadge = tData._registeredName ? (
-      isBound ? `
-        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-          <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `綁定『${escapeHTML(tData._registeredName)}』出賽` : `Bound: ${escapeHTML(tData._registeredName)}`}
-        </span>
-      ` : `
-        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
-          <i data-lucide="alert-circle" class="w-3 h-3 text-amber-500"></i> ${isZh ? `未綁定『${escapeHTML(tData._registeredName)}』出賽` : `Unbound: ${escapeHTML(tData._registeredName)}`}
-        </span>
-      `
-    ) : '';
-
-    const quotaInfo = maxPlayers ? `
-      <span class="font-mono ${isFull ? 'text-rose-500 font-bold' : ''}">👥 ${pCount}/${maxPlayers} ${isFull ? (isZh ? '(已滿額)' : '(Full)') : ''}</span>
+    const name = escapeHTML(tData._registeredName);
+    const badge = isBound ? `
+      <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
+        <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `綁定『${name}』出賽` : `Bound: ${name}`}
+      </span></div>
     ` : `
-      <span class="font-mono">👥 ${pCount} ${isZh ? '人' : 'players'}</span>
+      <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 inline-flex items-center gap-1">
+        <i data-lucide="alert-circle" class="w-3 h-3 text-amber-500"></i> ${isZh ? `未綁定『${name}』出賽` : `Unbound: ${name}`}
+      </span></div>
     `;
-
-    let actionBtn = "";
-    if (mode === "active_registered") {
-      actionBtn = `
-        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
-          class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white">
-          <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5"></i>
-          <span>${isRegistering ? (isZh ? '進入活動接龍' : 'View Signup') : (isZh ? '進入即時比分' : 'View Live')}</span>
-        </button>
-      `;
-    } else if (mode === "discover_live") {
-      actionBtn = `
-        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
-          class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white">
-          <i data-lucide="play" class="w-3.5 h-3.5 text-emerald-500"></i>
-          <span>${isZh ? '觀看即時比分' : 'Watch Live'}</span>
-        </button>
-      `;
-    } else if (mode === "available_signup") {
-      actionBtn = `
-        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
-          class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white">
-          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-          <span>${isZh ? '前往報名接龍' : 'Sign Up'}</span>
-        </button>
-      `;
-    } else {
-      actionBtn = `
-        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
-          class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white">
-          <i data-lucide="award" class="w-3.5 h-3.5 text-amber-500"></i>
-          <span>${isZh ? '查看賽事戰果' : 'View Results'}</span>
-        </button>
-      `;
-    }
-
-    return `
-      <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3 border flex flex-col justify-between shadow-sm relative overflow-hidden group ${mode === 'active_registered' ? 'border-emerald-500/30 bg-emerald-500/[0.02]' : ''}">
-        <div class="space-y-2.5">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${escapeHTML(tData.id)}</span>
-            ${clubBadge}
-          </div>
-
-          <div>
-            <h3 class="text-base sm:text-lg font-bold font-display line-clamp-1 group-hover:text-emerald-500 transition-colors">
-              ${escapeHTML(tData.name || '未命名賽事')}
-            </h3>
-          </div>
-
-          <div class="space-y-1.5 text-xs sub-text">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="flex items-center gap-1">
-                <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
-              </span>
-              ${quotaInfo}
-            </div>
-            ${regNameBadge ? `<div class="pt-1">${regNameBadge}</div>` : ''}
-          </div>
-
-          ${(() => {
-            if (!tData.notes || !tData.notes.trim()) return '';
-            const firstLine = tData.notes.trim().split('\n')[0].trim();
-            if (!firstLine) return '';
-            return `
-              <div class="px-2 py-1 rounded-lg card-inner border text-[11px] sub-text flex items-center gap-1.5 bg-stone-500/5 overflow-hidden">
-                <i data-lucide="file-text" class="w-3 h-3 text-emerald-500 shrink-0"></i>
-                <span class="truncate font-medium">${escapeHTML(firstLine)}</span>
-              </div>
-            `;
-          })()}
-        </div>
-
-        <div class="pt-2">
-          ${actionBtn}
-        </div>
-      </div>
-    `;
+    return renderTournamentCard(tData, { extraHTML: badge });
   };
 
   // 三個區塊：有資料才顯示
@@ -425,15 +327,15 @@ export function displayActivitiesList(list) {
   const discoverSection = document.getElementById("activities-discover-section");
   const showDiscover = registeredActiveList.length === 0 && availableSignUpList.length === 0;
   if (discoverSection) discoverSection.classList.toggle("hidden", !showDiscover);
-  if (showDiscover) renderDiscover(list || [], { isZh, isFinishedFn, parseFn, renderActivityCard, nowMs, THREE_DAYS_MS });
+  if (showDiscover) renderDiscover(list || [], { isZh, isFinishedFn, renderActivityCard });
 
   if (window.lucide) lucide.createIcons();
 }
 
-// 「大家在打」：公開球局（進行中、接龍中、3 日內完賽）＋ 近 30 天最活躍的公開社團
+// 自己沒有活動時：臨打球局（尚未結束的公開球局）＋ 近 30 天最活躍的公開社團
 function renderDiscover(list, ctx) {
   const STATE = window.STATE || {};
-  const { isZh, isFinishedFn, parseFn, renderActivityCard, nowMs, THREE_DAYS_MS } = ctx;
+  const { isZh, isFinishedFn, renderActivityCard } = ctx;
   const isPrivateFn = typeof window.isClubPrivate === "function" ? window.isClubPrivate : () => false;
   const isPublic = t => {
     const c = (t.clubName || "").trim();
@@ -442,23 +344,22 @@ function renderDiscover(list, ctx) {
   const byNewest = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
   const publicList = list.filter(t => t && t.id && isPublic(t)).sort(byNewest);
 
-  const live = publicList.filter(t => !isFinishedFn(t) && t.status !== "registering");
-  const signup = publicList.filter(t => !isFinishedFn(t) && t.status === "registering");
-  const recentDone = publicList.filter(t => {
-    if (!isFinishedFn(t)) return false;
-    const d = parseFn(t.createdAt);
-    return d ? (nowMs - d.getTime()) <= THREE_DAYS_MS : false;
-  });
-  const games = [
-    ...live.map(t => [t, "discover_live"]),
-    ...signup.map(t => [t, "available_signup"]),
-    ...recentDone.map(t => [t, "completed_registered"])
-  ].slice(0, 6);
+  // 臨打球局：尚未結束的公開球局（接龍中、進行中），最多 6 場
+  const games = publicList.filter(t => !isFinishedFn(t)).slice(0, 6);
 
   const gamesWrap = document.getElementById("activities-discover-games-wrap");
   const gamesEl = document.getElementById("activities-discover-games");
-  if (gamesWrap) gamesWrap.classList.toggle("hidden", games.length === 0);
-  if (gamesEl) gamesEl.innerHTML = games.map(([t, mode]) => renderActivityCard(t, mode)).join("");
+  // 沒有臨打球局時，與臨打賽事頁顯示同一段空白提示（不整段隱藏，避免頁面空白）
+  if (gamesWrap) gamesWrap.classList.remove("hidden");
+  if (gamesEl) {
+    gamesEl.innerHTML = games.length > 0 ? games.map(t => renderActivityCard(t)).join("") : `
+      <div class="col-span-full glass-card rounded-2xl p-6 sm:p-8 text-center border">
+        <h4 class="text-sm sm:text-base font-bold font-display">
+          ${isZh ? '目前無進行中的公開球局' : 'No active public matches'}
+        </h4>
+      </div>
+    `;
+  }
 
   // 活躍社團：近 30 天公開社團的賽事場數（排除自己已加入的）
   const myClubs = Array.isArray(STATE.myClubs) ? STATE.myClubs : [];

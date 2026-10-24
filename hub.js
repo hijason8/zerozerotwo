@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-4";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-5";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-4";
+} from "./globals.js?v=20261024-5";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -162,6 +162,123 @@ export function saveToLocalTournaments(tObj) {
   }
 }
 
+// 共用賽事卡片：臨打賽事頁、我的活動頁都用這一張，確保呈現與操作一致
+// opts.extraHTML：額外插在卡片資訊下方的內容（例如我的活動頁的「綁定『某某』出賽」）
+export function renderTournamentCard(tData, opts = {}) {
+  const STATE = window.STATE || {};
+  const isFinishedFn = typeof window.isTournamentFinished === "function" ? window.isTournamentFinished : (t) => t && t.status === "completed";
+  const formatFn = typeof window.formatTournamentDate === "function" ? window.formatTournamentDate : (val) => val;
+  const isRegistering = (tData.status === "registering");
+  const isFinished = isFinishedFn(tData);
+  const total = tData.matches ? tData.matches.length : 0;
+  const completedCount = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
+  const dateStr = formatFn(tData.createdAt);
+  const pCount = tData.players ? tData.players.length : 0;
+
+  const clubBadge = tData.clubName && tData.clubName.trim() ? `
+    <span class="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+      <i data-lucide="shield" class="w-2.5 h-2.5"></i> ${escapeHTML(tData.clubName.trim())}
+    </span>
+  ` : '';
+
+  const privacyBadge = tData.isPrivate === true ? `
+    <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 flex items-center gap-0.5">
+      <i data-lucide="lock" class="w-2.5 h-2.5"></i> ${t("badgePrivate")}
+    </span>
+  ` : `
+    <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-0.5">
+      <i data-lucide="zap" class="w-2.5 h-2.5"></i> ${t("badgePublic")}
+    </span>
+  `;
+
+  const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+
+  return `
+    <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3.5 border flex flex-col justify-between shadow-sm relative overflow-hidden group">
+      <div class="space-y-2.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${escapeHTML(tData.id)}</span>
+          ${clubBadge}
+          ${privacyBadge}
+          ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
+        </div>
+
+        <h3 class="text-base sm:text-lg font-bold font-display line-clamp-1 group-hover:text-emerald-500 transition-colors">${escapeHTML(tData.name || '未命名賽事')}</h3>
+
+        <div class="flex items-center gap-2 text-xs sub-text flex-wrap">
+          <span class="flex items-center gap-1">
+            <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
+          </span>
+          ${(tData.isPracticeMode || (tData.tournamentMode === "free" && total === 0))
+            ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 inline-flex items-center gap-1"><i data-lucide="activity" class="w-3 h-3"></i> ${STATE.lang === "zh-TW" ? "自由練球" : "Practice"}</span>`
+            : tData.tournamentMode === "free"
+              ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`
+              : tData.tournamentMode === "round-robin"
+                ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>`
+                : tData.tournamentMode === "group"
+                  ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "分組循環" : "Group Stage"}</span>`
+                  : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5 text-stone-400"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`
+          }
+          <span>👥 ${pCount} ${isRegistering ? (STATE.lang === 'zh-TW' ? '人已報名' : 'Signed up') : t("playersCountLabel")}</span>
+        </div>
+
+        ${opts.extraHTML || ''}
+
+        ${(() => {
+          if (!tData.notes || !tData.notes.trim()) return '';
+          const firstLine = tData.notes.trim().split('\n')[0].trim();
+          if (!firstLine) return '';
+          return `
+            <div class="px-2 py-1 rounded-lg card-inner border text-[11px] sub-text flex items-center gap-1.5 bg-stone-500/5 overflow-hidden">
+              <i data-lucide="file-text" class="w-3 h-3 text-emerald-500 shrink-0"></i>
+              <span class="truncate font-medium">${escapeHTML(firstLine)}</span>
+            </div>
+          `;
+        })()}
+
+        ${!isRegistering ? (
+          (tData.isPracticeMode || (tData.tournamentMode === "free" && total === 0)) ? `
+            <div class="flex items-center justify-between text-[11px] sub-text font-mono pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
+              <span class="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold">
+                <i data-lucide="${isFinished ? 'check-circle' : 'activity'}" class="w-3 h-3"></i>
+                ${isFinished ? (STATE.lang === 'zh-TW' ? '練球已存檔' : 'Completed') : (STATE.lang === 'zh-TW' ? '自由暢打中' : 'In Practice')}
+              </span>
+              <span class="font-bold text-stone-700 dark:text-slate-300">${pCount} ${STATE.lang === 'zh-TW' ? '人出席' : 'attendees'}</span>
+            </div>
+          ` : `
+            <div class="space-y-1 pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
+              <div class="flex items-center justify-between text-[11px] sub-text font-mono">
+                <span>${STATE.lang === 'zh-TW' ? '賽程進度' : 'Progress'}</span>
+                <span class="font-bold ${isFinished ? 'text-emerald-500' : 'text-amber-500 dark:text-amber-400'}">
+                  ${completedCount}/${total} (${pct}%)
+                </span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'progress-shimmer'}" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `
+        ) : ''}
+      </div>
+
+      <div class="flex items-center gap-2 pt-2">
+        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
+          class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+          <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isRegistering ? '' : 'fill-current'}"></i>
+          <span>${isRegistering ? t("enterRegistration") : t("enterTournament")}</span>
+        </button>
+        ${STATE.isAdmin ? `
+          <button onclick="deleteTournament('${escapeJsAttr(tData.id)}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+if (typeof window !== "undefined") window.renderTournamentCard = renderTournamentCard;
+
 export function displayHubTournamentsList(list) {
   const STATE = window.STATE || {};
   STATE.allTournamentsCache = list || [];
@@ -213,113 +330,7 @@ export function displayHubTournamentsList(list) {
     completedCountEl.innerText = `${completedList.length} ${t("hubCompletedCountSuffix")}`;
   }
 
-  const renderCard = (tData) => {
-    const isRegistering = (tData.status === "registering");
-    const isFinished = isFinishedFn(tData);
-    const total = tData.matches ? tData.matches.length : 0;
-    const completedCount = tData.matches ? tData.matches.filter(m => m.completed && !m.voided).length : 0;
-    const dateStr = formatFn(tData.createdAt);
-    const pCount = tData.players ? tData.players.length : 0;
-
-    const clubBadge = tData.clubName && tData.clubName.trim() ? `
-      <span class="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
-        <i data-lucide="shield" class="w-2.5 h-2.5"></i> ${escapeHTML(tData.clubName.trim())}
-      </span>
-    ` : '';
-
-    const privacyBadge = tData.isPrivate === true ? `
-      <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 flex items-center gap-0.5">
-        <i data-lucide="lock" class="w-2.5 h-2.5"></i> ${t("badgePrivate")}
-      </span>
-    ` : `
-      <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-0.5">
-        <i data-lucide="zap" class="w-2.5 h-2.5"></i> ${t("badgePublic")}
-      </span>
-    `;
-
-    const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
-
-    return `
-      <div class="glass-card hover-lift rounded-2xl p-4 sm:p-5 space-y-3.5 border flex flex-col justify-between shadow-sm relative overflow-hidden group">
-        <div class="space-y-2.5">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono card-inner text-emerald-600 dark:text-emerald-400 border">${escapeHTML(tData.id)}</span>
-            ${clubBadge}
-            ${privacyBadge}
-            ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
-          </div>
-
-          <h3 class="text-base sm:text-lg font-bold font-display line-clamp-1 group-hover:text-emerald-500 transition-colors">${escapeHTML(tData.name || '未命名賽事')}</h3>
-
-          <div class="flex items-center gap-2 text-xs sub-text flex-wrap">
-            <span class="flex items-center gap-1">
-              <i data-lucide="calendar" class="w-3 h-3 text-stone-400"></i> ${dateStr}
-            </span>
-            ${(tData.isPracticeMode || (tData.tournamentMode === "free" && total === 0))
-              ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 inline-flex items-center gap-1"><i data-lucide="activity" class="w-3 h-3"></i> ${STATE.lang === "zh-TW" ? "自由練球" : "Practice"}</span>`
-              : tData.tournamentMode === "free"
-                ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "自由模式" : "Free Play"}</span>`
-                : tData.tournamentMode === "round-robin"
-                  ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "全循環模式" : "Round-Robin"}</span>`
-                  : tData.tournamentMode === "group"
-                    ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1">${STATE.lang === "zh-TW" ? "分組循環" : "Group Stage"}</span>`
-                    : `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold card-inner border text-stone-600 dark:text-slate-300 inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5 text-stone-400"></i> ${t("estPrefix")} ${tData.durationHours || 2}${t("hrsUnit")}</span>`
-            }
-            <span>👥 ${pCount} ${isRegistering ? (STATE.lang === 'zh-TW' ? '人已報名' : 'Signed up') : t("playersCountLabel")}</span>
-          </div>
-
-          ${(() => {
-            if (!tData.notes || !tData.notes.trim()) return '';
-            const firstLine = tData.notes.trim().split('\n')[0].trim();
-            if (!firstLine) return '';
-            return `
-              <div class="px-2 py-1 rounded-lg card-inner border text-[11px] sub-text flex items-center gap-1.5 bg-stone-500/5 overflow-hidden">
-                <i data-lucide="file-text" class="w-3 h-3 text-emerald-500 shrink-0"></i>
-                <span class="truncate font-medium">${escapeHTML(firstLine)}</span>
-              </div>
-            `;
-          })()}
-
-          ${!isRegistering ? (
-            (tData.isPracticeMode || (tData.tournamentMode === "free" && total === 0)) ? `
-              <div class="flex items-center justify-between text-[11px] sub-text font-mono pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
-                <span class="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold">
-                  <i data-lucide="${isFinished ? 'check-circle' : 'activity'}" class="w-3 h-3"></i>
-                  ${isFinished ? (STATE.lang === 'zh-TW' ? '練球已存檔' : 'Completed') : (STATE.lang === 'zh-TW' ? '自由暢打中' : 'In Practice')}
-                </span>
-                <span class="font-bold text-stone-700 dark:text-slate-300">${pCount} ${STATE.lang === 'zh-TW' ? '人出席' : 'attendees'}</span>
-              </div>
-            ` : `
-              <div class="space-y-1 pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
-                <div class="flex items-center justify-between text-[11px] sub-text font-mono">
-                  <span>${STATE.lang === 'zh-TW' ? '賽程進度' : 'Progress'}</span>
-                  <span class="font-bold ${isFinished ? 'text-emerald-500' : 'text-amber-500 dark:text-amber-400'}">
-                    ${completedCount}/${total} (${pct}%)
-                  </span>
-                </div>
-                <div class="w-full h-1.5 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'progress-shimmer'}" style="width: ${pct}%"></div>
-                </div>
-              </div>
-            `
-          ) : ''}
-        </div>
-
-        <div class="flex items-center gap-2 pt-2">
-          <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
-            class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
-            <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isRegistering ? '' : 'fill-current'}"></i>
-            <span>${isRegistering ? t("enterRegistration") : t("enterTournament")}</span>
-          </button>
-          ${STATE.isAdmin ? `
-            <button onclick="deleteTournament('${escapeJsAttr(tData.id)}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-            </button>
-          ` : ''}
-        </div>
-      </div>
-    `;
-  };
+  const renderCard = (tData) => renderTournamentCard(tData);
 
   const activeContainer = document.getElementById("hub-active-tournaments-list");
   if (activeContainer) {

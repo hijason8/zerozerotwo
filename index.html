@@ -364,11 +364,11 @@
         </div>
       </div>
 
-      <!-- SECTION 4: 大家在打（自己沒有任何活動時顯示，避免首頁空白） -->
+      <!-- SECTION 4: 臨打球局＋活躍社團（自己沒有活動時顯示，避免首頁空白） -->
       <div id="activities-discover-section" class="space-y-4 hidden">
         <div id="activities-discover-games-wrap" class="space-y-3">
           <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2 pt-1">
-            <span id="t-activities-discover-games">大家在打</span>
+            <span id="t-activities-discover-games">臨打球局</span>
           </h3>
           <div id="activities-discover-games" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6"></div>
         </div>
@@ -377,16 +377,6 @@
             <span id="t-activities-discover-clubs">活躍社團</span>
           </h3>
           <div id="activities-discover-clubs" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
-        </div>
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <button type="button" onclick="navigateTo('create')"
-            class="py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="t-activities-discover-create">建立新賽事</span>
-          </button>
-          <button type="button" onclick="openExploreClubsModal()"
-            class="py-3 rounded-xl card-inner border hover:border-emerald-500/50 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
-            <i data-lucide="search" class="w-4 h-4"></i> <span id="t-activities-discover-explore">探索/建立新社團</span>
-          </button>
         </div>
       </div>
     </section>
@@ -2183,7 +2173,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261024-4";
+    import { I18N } from "./i18n.js?v=20261024-5";
     window.I18N = I18N;
 
     function t(key) {
@@ -2205,14 +2195,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261024-4";
-    import "./club.js?v=20261024-4";
-    import "./tournament-create.js?v=20261024-4";
-    import "./live.js?v=20261024-4";
-    import "./activities.js?v=20261024-4";
-    import "./hub.js?v=20261024-4";
-    import "./line.js?v=20261024-4";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261024-4";
+    } from "./utils.js?v=20261024-5";
+    import "./club.js?v=20261024-5";
+    import "./tournament-create.js?v=20261024-5";
+    import "./live.js?v=20261024-5";
+    import "./activities.js?v=20261024-5";
+    import "./hub.js?v=20261024-5";
+    import "./line.js?v=20261024-5";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261024-5";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
