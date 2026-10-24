@@ -10,14 +10,14 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-3";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-4";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261024-3";
+} from "./globals.js?v=20261024-4";
 
 let activitiesSearchKeyword = "";
 
@@ -340,6 +340,14 @@ export function displayActivitiesList(list) {
           <span>${isRegistering ? (isZh ? '進入活動接龍' : 'View Signup') : (isZh ? '進入即時比分' : 'View Live')}</span>
         </button>
       `;
+    } else if (mode === "discover_live") {
+      actionBtn = `
+        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
+          class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white">
+          <i data-lucide="play" class="w-3.5 h-3.5 text-emerald-500"></i>
+          <span>${isZh ? '觀看即時比分' : 'Watch Live'}</span>
+        </button>
+      `;
     } else if (mode === "available_signup") {
       actionBtn = `
         <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
@@ -402,31 +410,81 @@ export function displayActivitiesList(list) {
     `;
   };
 
-  // 三個區塊：有資料才顯示；三個都空時，只在第一區塊顯示一句提示
-  const allEmpty = registeredActiveList.length === 0 && availableSignUpList.length === 0 && registeredCompletedList.length === 0;
-  const fillSection = (sectionId, listId, list, mode, keepWhenEmpty) => {
+  // 三個區塊：有資料才顯示
+  const fillSection = (sectionId, listId, list, mode) => {
     const section = document.getElementById(sectionId);
     const container = document.getElementById(listId);
-    if (section) section.classList.toggle("hidden", list.length === 0 && !keepWhenEmpty);
-    if (!container) return;
-    container.innerHTML = list.length > 0
-      ? list.map(t => renderActivityCard(t, mode)).join("")
-      : `
-        <div class="col-span-full glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2 border">
-          <p class="text-xs sm:text-sm font-semibold sub-text">
-            ${isZh ? '目前沒有活動' : 'No activities yet'}
-          </p>
-          <p class="text-[11px] sub-text opacity-80">
-            ${isZh ? '可從選單的「探索/建立新社團」找社團加入，或建立新賽事' : 'Use "Explore / Create Club" in the menu to find a club, or create a new game'}
-          </p>
-        </div>
-      `;
+    if (section) section.classList.toggle("hidden", list.length === 0);
+    if (container) container.innerHTML = list.map(t => renderActivityCard(t, mode)).join("");
   };
-  fillSection("activities-registered-section", "activities-registered-list", registeredActiveList, "active_registered", allEmpty);
-  fillSection("activities-available-section", "activities-available-list", availableSignUpList, "available_signup", false);
-  fillSection("activities-completed-section", "activities-completed-list", registeredCompletedList, "completed_registered", false);
+  fillSection("activities-registered-section", "activities-registered-list", registeredActiveList, "active_registered");
+  fillSection("activities-available-section", "activities-available-list", availableSignUpList, "available_signup");
+  fillSection("activities-completed-section", "activities-completed-list", registeredCompletedList, "completed_registered");
+
+  // 4. 大家在打：自己沒有進行中／可報名的活動時，改顯示公開球局與活躍社團，避免首頁空白
+  const discoverSection = document.getElementById("activities-discover-section");
+  const showDiscover = registeredActiveList.length === 0 && availableSignUpList.length === 0;
+  if (discoverSection) discoverSection.classList.toggle("hidden", !showDiscover);
+  if (showDiscover) renderDiscover(list || [], { isZh, isFinishedFn, parseFn, renderActivityCard, nowMs, THREE_DAYS_MS });
 
   if (window.lucide) lucide.createIcons();
+}
+
+// 「大家在打」：公開球局（進行中、接龍中、3 日內完賽）＋ 近 30 天最活躍的公開社團
+function renderDiscover(list, ctx) {
+  const STATE = window.STATE || {};
+  const { isZh, isFinishedFn, parseFn, renderActivityCard, nowMs, THREE_DAYS_MS } = ctx;
+  const isPrivateFn = typeof window.isClubPrivate === "function" ? window.isClubPrivate : () => false;
+  const isPublic = t => {
+    const c = (t.clubName || "").trim();
+    return !c || !isPrivateFn(c);
+  };
+  const byNewest = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+  const publicList = list.filter(t => t && t.id && isPublic(t)).sort(byNewest);
+
+  const live = publicList.filter(t => !isFinishedFn(t) && t.status !== "registering");
+  const signup = publicList.filter(t => !isFinishedFn(t) && t.status === "registering");
+  const recentDone = publicList.filter(t => {
+    if (!isFinishedFn(t)) return false;
+    const d = parseFn(t.createdAt);
+    return d ? (nowMs - d.getTime()) <= THREE_DAYS_MS : false;
+  });
+  const games = [
+    ...live.map(t => [t, "discover_live"]),
+    ...signup.map(t => [t, "available_signup"]),
+    ...recentDone.map(t => [t, "completed_registered"])
+  ].slice(0, 6);
+
+  const gamesWrap = document.getElementById("activities-discover-games-wrap");
+  const gamesEl = document.getElementById("activities-discover-games");
+  if (gamesWrap) gamesWrap.classList.toggle("hidden", games.length === 0);
+  if (gamesEl) gamesEl.innerHTML = games.map(([t, mode]) => renderActivityCard(t, mode)).join("");
+
+  // 活躍社團：近 30 天公開社團的賽事場數（排除自己已加入的）
+  const myClubs = Array.isArray(STATE.myClubs) ? STATE.myClubs : [];
+  const counts = {};
+  publicList.forEach(t => {
+    const c = (t.clubName || "").trim();
+    if (c && !myClubs.includes(c)) counts[c] = (counts[c] || 0) + 1;
+  });
+  const clubs = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const clubsWrap = document.getElementById("activities-discover-clubs-wrap");
+  const clubsEl = document.getElementById("activities-discover-clubs");
+  if (clubsWrap) clubsWrap.classList.toggle("hidden", clubs.length === 0);
+  if (clubsEl) {
+    clubsEl.innerHTML = clubs.map(([c, n]) => `
+      <button type="button" onclick="selectExploredClub('${escapeJsAttr(c)}')"
+        class="p-3 rounded-xl card-inner border hover:border-emerald-500/50 transition flex items-center justify-between gap-2 text-left active:scale-95 shadow-sm">
+        <span class="flex items-center gap-2 min-w-0">
+          <span class="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+            <i data-lucide="shield" class="w-4 h-4"></i>
+          </span>
+          <span class="text-xs sm:text-sm font-bold truncate">${escapeHTML(c)}</span>
+        </span>
+        <span class="text-[11px] sub-text shrink-0">${isZh ? `近 30 天 ${n} 場` : `${n} games / 30d`}</span>
+      </button>
+    `).join("");
+  }
 }
 
 // 掛載至全域 window，確保與 HTML 內嵌 onclick 事件及其他模組 100% 相容
