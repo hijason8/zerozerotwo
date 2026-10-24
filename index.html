@@ -244,7 +244,7 @@
           onclick="const sel = document.getElementById('hub-club-selector'); if (sel && event.target !== sel) { try { sel.showPicker(); } catch(e) { sel.focus(); sel.click(); } }">
           <select id="hub-club-selector" onchange="onNavClubSelectChange(this.value)"
             class="appearance-none font-display font-black text-base sm:text-xl rounded-2xl bg-stone-100/90 hover:bg-stone-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-800/95 border border-stone-200/90 dark:border-slate-700/80 pl-2.5 sm:pl-3.5 pr-8 sm:pr-9 py-1 sm:py-1.5 text-stone-900 dark:text-white cursor-pointer focus:outline-none focus:ring-0 transition shadow-xs truncate w-full">
-            <option value="" selected>臨打賽事</option>
+            <option value="hub" selected>臨打活動</option>
           </select>
           <div
             class="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center absolute right-2 pointer-events-none shrink-0 transition-transform group-hover:translate-y-0.5">
@@ -275,7 +275,7 @@
 
 
 
-      <!-- 臨打賽事：與我的活動相同排版（比賽中 → 報名中 → 近期完賽），沒資料的區塊不顯示 -->
+      <!-- 臨打活動：與社團活動相同排版（比賽中 → 報名中 → 近期完賽），沒資料的區塊不顯示 -->
       <div id="hub-empty" class="hidden"></div>
 
       <div id="hub-live-section" class="space-y-3">
@@ -320,7 +320,7 @@
         <div class="flex items-center justify-between pt-1">
           <h3 id="t-activities-registered-heading"
             class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
-            <span id="t-activities-reg-text">比賽中/已報名</span>
+            <span id="t-activities-reg-text">比賽中</span>
             <span id="activities-registered-count"
               class="text-xs px-2 py-0.5 rounded-full bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 font-bold">0</span>
           </h3>
@@ -334,7 +334,7 @@
       <div id="activities-available-section" class="space-y-3 pt-2">
         <div class="flex items-center justify-between pt-1">
           <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
-            <span id="t-activities-avail-text">開放接龍報名</span>
+            <span id="t-activities-avail-text">報名中</span>
             <span id="activities-available-count"
               class="text-xs px-2 py-0.5 rounded-full bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 font-bold">0</span>
           </h3>
@@ -362,8 +362,12 @@
       <!-- SECTION 4: 自己沒有活動時：一句提示＋活躍社團（避免首頁空白） -->
       <div id="activities-discover-section" class="space-y-4 hidden">
         <div class="glass-card rounded-2xl p-6 sm:p-8 text-center border space-y-1.5">
-          <h4 id="t-activities-empty-title" class="text-sm sm:text-base font-bold font-display">目前沒有你的活動</h4>
-          <p id="t-activities-empty-hint" class="text-xs sub-text">可以從上方選單切到「臨打賽事」，或加入下方的社團</p>
+          <h4 id="t-activities-empty-title" class="text-sm sm:text-base font-bold font-display">目前沒有社團活動</h4>
+          <p id="t-activities-empty-hint" class="text-xs sub-text"></p>
+          <button type="button" id="activities-login-btn" onclick="handleLineLoginClick()"
+            class="hidden mt-2 px-5 py-2.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm active:scale-95 transition">
+            <i data-lucide="message-circle" class="w-4 h-4"></i> 用 LINE 登入
+          </button>
         </div>
         <div id="activities-discover-clubs-wrap" class="space-y-3">
           <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2 pt-1">
@@ -1425,7 +1429,7 @@
           </p>
           <div class="space-y-2.5 pl-1">
             <div>
-              <span class="font-bold text-stone-900 dark:text-slate-100">臨打賽事（公開廣場）：</span>
+              <span class="font-bold text-stone-900 dark:text-slate-100">臨打活動（公開廣場）：</span>
               <span>列出全站所有未加密、設定為公開的臨打球局。</span>
             </div>
             <div>
@@ -2166,7 +2170,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261024-6";
+    import { I18N } from "./i18n.js?v=20261024-8";
     window.I18N = I18N;
 
     function t(key) {
@@ -2188,14 +2192,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261024-6";
-    import "./club.js?v=20261024-6";
-    import "./tournament-create.js?v=20261024-6";
-    import "./live.js?v=20261024-6";
-    import "./activities.js?v=20261024-6";
-    import "./hub.js?v=20261024-6";
-    import "./line.js?v=20261024-6";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261024-6";
+    } from "./utils.js?v=20261024-8";
+    import "./club.js?v=20261024-8";
+    import "./tournament-create.js?v=20261024-8";
+    import "./live.js?v=20261024-8";
+    import "./activities.js?v=20261024-8";
+    import "./hub.js?v=20261024-8";
+    import "./line.js?v=20261024-8";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261024-8";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2569,11 +2573,7 @@
       } else if (page === "create") {
         navigateTo("create", false);
       } else if (page === "activities") {
-        if (STATE.lineUserId) {
-          navigateTo("activities", false);
-        } else {
-          navigateTo("hub", false);
-        }
+        navigateTo("activities", false);
       } else if (page === "waiting") {
         if (STATE.lineUserId) {
           navigateTo("waiting", false);

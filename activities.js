@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-6";
-import { renderTournamentCard } from "./hub.js?v=20261024-6";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-8";
+import { renderTournamentCard, renderCardWithRegistration } from "./hub.js?v=20261024-8";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261024-6";
+} from "./globals.js?v=20261024-8";
 
 let activitiesSearchKeyword = "";
 
@@ -102,11 +102,7 @@ export function checkTournamentRegistrationStatus(tournament) {
 
 export function renderActivitiesPage() {
   const STATE = window.STATE || {};
-  // 訪客未登入 LINE 嚴格導回賽事大廳
-  if (!STATE.lineUserId) {
-    if (typeof window.navigateTo === "function") window.navigateTo("hub");
-    return;
-  }
+  // 訪客未登入 LINE：仍可進入社團活動頁，畫面改為鼓勵登入（資料照常載入，用來列出活躍社團）
 
   // 1. 優先使用快取資料立即可見
   const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
@@ -183,151 +179,73 @@ export function displayActivitiesList(list) {
   const STATE = window.STATE || {};
   STATE.allTournamentsCache = list || [];
   const isZh = STATE.lang === "zh-TW";
+  const isLoggedIn = !!STATE.lineUserId;
 
-  // 更新區塊標題與搜尋框中英文字串
-  const regTextEl = document.getElementById("t-activities-reg-text");
-  if (regTextEl) regTextEl.innerText = isZh ? "比賽中/已報名" : "In Progress / Registered";
-
-  const waitingTitleEl = document.getElementById("t-waiting-title-text");
-  if (waitingTitleEl) waitingTitleEl.innerText = isZh ? "等待報名" : "Waiting for Sign Up";
-
-  const availTextEl = document.getElementById("t-activities-avail-text");
-  if (availTextEl) availTextEl.innerText = isZh ? "等待報名" : "Waiting for Sign Up";
-
-  const compTextEl = document.getElementById("t-activities-comp-text");
-  if (compTextEl) compTextEl.innerText = isZh ? "近期完賽球局 (3日內)" : "Recent Completed Matches (3 Days)";
-
-  // 1. 嚴格資格分流：
-  // - 若本人已報名 (checkTournamentRegistrationStatus 為 true)：一律納入
-  // - 若本人未報名：僅限「公開臨打球局 (!cName)」或「自己已加入的社團 (STATE.myClubs)」
-  const myClubsList = (Array.isArray(STATE.myClubs) ? STATE.myClubs : []).map(c => (c || "").trim());
-  const clubScopedList = (list || []).filter(t => {
-    if (!t) return false;
-    const regStatus = checkTournamentRegistrationStatus(t);
-    if (regStatus.isRegistered) return true;
-
-    const cName = (t.clubName || "").trim();
-    // 1. 沒有社團建立的接龍活動 (公開臨打)
-    if (!cName) return true;
-    // 2. 該 LINE ID 帳號下的社團
-    return myClubsList.includes(cName);
-  });
-
-  // 2. 搜尋關鍵字過濾
-  let filtered = clubScopedList.filter(t => {
-    if (!t) return false;
-    if (!activitiesSearchKeyword) return true;
-    const name = (t.name || "").toLowerCase();
-    const club = (t.clubName || "").toLowerCase();
-    const venue = (t.venue || "").toLowerCase();
-    return name.includes(activitiesSearchKeyword) || club.includes(activitiesSearchKeyword) || venue.includes(activitiesSearchKeyword);
-  });
-
-  // 依建立時間倒序
-  filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-  // 三大分流清單：
-  // 1. 上方：跟自己有關的報名與比賽中的球局
-  const registeredActiveList = [];
-  // 2. 中間：自己能報名但是未報名的活動接龍
-  const availableSignUpList = [];
-  // 3. 最下方：跟自己有關的近期完賽球局 (3日內)
-  const registeredCompletedList = [];
-
+  const isFinishedFn = typeof window.isTournamentFinished === "function" ? window.isTournamentFinished : (t) => t && t.status === "completed";
+  const parseFn = typeof window.parseTournamentDate === "function" ? window.parseTournamentDate : (val) => new Date(val);
   const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
   const nowMs = Date.now();
 
-  const parseFn = typeof window.parseTournamentDate === "function" ? window.parseTournamentDate : (val) => new Date(val);
-  const formatFn = typeof window.formatTournamentDate === "function" ? window.formatTournamentDate : (val) => val;
-  const isFinishedFn = typeof window.isTournamentFinished === "function" ? window.isTournamentFinished : (t) => t && t.status === "finished";
+  // 社團活動：只看「我的社團」的賽事（臨打活動在另一頁，兩邊徹底分開）
+  const myClubsList = (Array.isArray(STATE.myClubs) ? STATE.myClubs : []).map(c => (c || "").trim()).filter(Boolean);
+  const clubGames = isLoggedIn ? (list || []).filter(t => {
+    if (!t) return false;
+    const c = (t.clubName || "").trim();
+    if (!c || !myClubsList.includes(c)) return false;
+    if (!activitiesSearchKeyword) return true;
+    const kw = activitiesSearchKeyword;
+    return (t.name || "").toLowerCase().includes(kw) || c.toLowerCase().includes(kw) || (t.venue || "").toLowerCase().includes(kw);
+  }) : [];
+  clubGames.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  filtered.forEach(tData => {
-    const regStatus = checkTournamentRegistrationStatus(tData);
-    const isFinished = isFinishedFn(tData);
-
-    if (regStatus.isRegistered) {
-      // 跟自己有關
-      if (isFinished) {
-        // 最下方：跟自己有關的近期完賽球局 (3日內)
-        const tDate = parseFn(tData.createdAt);
-        const isWithin3Days = tDate ? (nowMs - tDate.getTime()) <= THREE_DAYS_MS : true;
-        if (isWithin3Days) {
-          registeredCompletedList.push({
-            ...tData,
-            _registeredName: regStatus.registeredName,
-            _isBound: regStatus.isBound
-          });
-        }
-      } else {
-        // 上方：跟自己有關的報名與比賽中的球局
-        registeredActiveList.push({
-          ...tData,
-          _registeredName: regStatus.registeredName,
-          _isBound: regStatus.isBound
-        });
-      }
+  // 三個區塊：比賽中、報名中、近期完賽 (3日內)，與臨打活動頁相同
+  const liveList = [];
+  const signupList = [];
+  const completedList = [];
+  clubGames.forEach(t => {
+    if (isFinishedFn(t)) {
+      const d = parseFn(t.createdAt);
+      if (d ? (nowMs - d.getTime()) <= THREE_DAYS_MS : true) completedList.push(t);
+    } else if (t.status === "registering") {
+      signupList.push(t);
     } else {
-      // 自己未報名：中間放「自己能報名但是未報名的活動接龍」
-      const cName = (tData.clubName || "").trim();
-      const canSignUp = !cName || (Array.isArray(STATE.myClubs) && STATE.myClubs.includes(cName));
-      const isRegistering = (tData.status === "registering");
-      const isClosed = tData.registrationClosed === true || tData.isRegistrationClosed === true || tData.isClosed === true;
-      if (canSignUp && isRegistering && !isClosed && !isFinished) {
-        availableSignUpList.push(tData);
-      }
+      liveList.push(t);
     }
   });
 
-  // 排序中間接龍清單
-  availableSignUpList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-  // 更新徽章數字
-  const totalActivitiesCount = registeredActiveList.length + availableSignUpList.length + registeredCompletedList.length;
-  const totalBadge = document.getElementById("activities-total-badge");
-  if (totalBadge) totalBadge.innerText = `${totalActivitiesCount} ${isZh ? '場' : 'matches'}`;
-
-  const regCountEl = document.getElementById("activities-registered-count");
-  if (regCountEl) regCountEl.innerText = `${registeredActiveList.length}`;
-
-  const availCountEl = document.getElementById("activities-available-count");
-  if (availCountEl) availCountEl.innerText = `${availableSignUpList.length}`;
-
-  const compCountEl = document.getElementById("activities-completed-count");
-  if (compCountEl) compCountEl.innerText = `${registeredCompletedList.length}`;
-
-  // 卡片：與臨打賽事頁共用同一張卡片（呈現與操作一致），我的活動頁只多加「以誰的名字出賽」
-  const renderActivityCard = (tData) => {
-    if (!tData._registeredName) return renderTournamentCard(tData);
-    const isBound = (tData._isBound !== false);
-    const name = escapeHTML(tData._registeredName);
-    const badge = isBound ? `
-      <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
-        <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `綁定『${name}』出賽` : `Bound: ${name}`}
-      </span></div>
-    ` : `
-      <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 inline-flex items-center gap-1">
-        <i data-lucide="alert-circle" class="w-3 h-3 text-amber-500"></i> ${isZh ? `未綁定『${name}』出賽` : `Unbound: ${name}`}
-      </span></div>
-    `;
-    return renderTournamentCard(tData, { extraHTML: badge });
-  };
-
-  // 三個區塊：有資料才顯示
-  const fillSection = (sectionId, listId, list, mode) => {
+  const fillSection = (sectionId, listId, countId, items) => {
     const section = document.getElementById(sectionId);
     const container = document.getElementById(listId);
-    if (section) section.classList.toggle("hidden", list.length === 0);
-    if (container) container.innerHTML = list.map(t => renderActivityCard(t, mode)).join("");
+    const countEl = document.getElementById(countId);
+    if (section) section.classList.toggle("hidden", items.length === 0);
+    if (countEl) countEl.innerText = `${items.length}`;
+    if (container) container.innerHTML = items.map(t => renderCardWithRegistration(t)).join("");
   };
-  fillSection("activities-registered-section", "activities-registered-list", registeredActiveList, "active_registered");
-  fillSection("activities-available-section", "activities-available-list", availableSignUpList, "available_signup");
-  fillSection("activities-completed-section", "activities-completed-list", registeredCompletedList, "completed_registered");
+  fillSection("activities-registered-section", "activities-registered-list", "activities-registered-count", liveList);
+  fillSection("activities-available-section", "activities-available-list", "activities-available-count", signupList);
+  fillSection("activities-completed-section", "activities-completed-list", "activities-completed-count", completedList);
 
-  // 4. 自己沒有進行中／可報名的活動時，顯示提示與活躍社團，避免首頁空白
+  // 沒有內容時（未登入／尚未加入社團／社團近期沒活動）：一句提示＋活躍社團
   const discoverSection = document.getElementById("activities-discover-section");
-  const showDiscover = registeredActiveList.length === 0 && availableSignUpList.length === 0;
+  const showDiscover = clubGames.length === 0;
   if (discoverSection) discoverSection.classList.toggle("hidden", !showDiscover);
-  if (showDiscover) renderDiscover(list || [], { isZh, isFinishedFn, renderActivityCard });
+  if (showDiscover) {
+    const titleEl = document.getElementById("t-activities-empty-title");
+    const hintEl = document.getElementById("t-activities-empty-hint");
+    const loginBtn = document.getElementById("activities-login-btn");
+    if (!isLoggedIn) {
+      if (titleEl) titleEl.innerText = isZh ? "登入 LINE，查看你的社團活動" : "Log in with LINE to see your club activities";
+      if (hintEl) hintEl.innerText = isZh ? "登入後可以加入社團、一鍵報名、保存個人戰績" : "Join clubs, sign up in one tap and keep your match history";
+    } else if (myClubsList.length === 0) {
+      if (titleEl) titleEl.innerText = isZh ? "你還沒有加入社團" : "You haven't joined a club yet";
+      if (hintEl) hintEl.innerText = isZh ? "從下方的活躍社團開始，或從選單「探索/建立新社團」" : "Start with an active club below, or use Explore / Create Club";
+    } else {
+      if (titleEl) titleEl.innerText = isZh ? "你的社團最近沒有活動" : "No recent activities in your clubs";
+      if (hintEl) hintEl.innerText = isZh ? "也可以看看下方其他活躍的社團" : "Check out other active clubs below";
+    }
+    if (loginBtn) loginBtn.classList.toggle("hidden", isLoggedIn);
+    renderDiscover(list || [], { isZh });
+  }
 
   if (window.lucide) lucide.createIcons();
 }
@@ -335,7 +253,7 @@ export function displayActivitiesList(list) {
 // 自己沒有活動時：一句提示 ＋ 近 30 天最活躍的公開社團
 function renderDiscover(list, ctx) {
   const STATE = window.STATE || {};
-  const { isZh, isFinishedFn, renderActivityCard } = ctx;
+  const { isZh } = ctx;
   const isPrivateFn = typeof window.isClubPrivate === "function" ? window.isClubPrivate : () => false;
   const isPublic = t => {
     const c = (t.clubName || "").trim();

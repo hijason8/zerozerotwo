@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261024-6";
+} from "./utils.js?v=20261024-8";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261024-6";
+} from "./scheduler.js?v=20261024-8";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261024-6";
+} from "./globals.js?v=20261024-8";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -527,7 +527,7 @@ function renderLiveUI(data) {
                   <div class="flex items-center justify-between px-1 text-[11px] sub-text">
                     <span class="flex items-center gap-1"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? "報名已列入名單" : "Signed up"}</span>
                     <button type="button" onclick="navigateTo('activities')" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer">
-                      ${isZh ? "查看我的活動" : "My Activities"} <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                      ${isZh ? "查看社團活動" : "Club Activities"} <i data-lucide="chevron-right" class="w-3 h-3"></i>
                     </button>
                   </div>
                 </div>
