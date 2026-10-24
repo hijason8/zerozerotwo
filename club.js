@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-2";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-3";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-2";
+} from "./globals.js?v=20261024-3";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -215,25 +215,16 @@ const isTransientPlayer = (name) => {
       const uniqueClubs = Array.from(set).sort((a, b) => a.localeCompare(b, "zh-Hant"));
       const isZh = STATE.lang === "zh-TW";
       const defaultLabel = isZh ? "賽事大廳" : "LOBBY";
-      const createClubOptionLabel = t("navCreateClubOption") || (isZh ? "建立新社團..." : "Create New Club...");
-      const exploreOptionLabel = t("navExploreClubsOption") || (isZh ? "探索更多社團..." : "Explore More Clubs...");
+      const exploreOptionLabel = isZh ? "探索/建立新社團" : "Explore / Create Club";
 
       const isLoggedIn = !!STATE.lineUserId;
       let html = "";
 
       if (isLoggedIn) {
-        // 會員視角：前兩項為「比賽中/已報名」與「等待報名」，並以「我的活動」分組呼應「我的社團」
-        const activitiesGroupLabel = isZh ? "我的活動" : "My Activities";
-        const regOptionLabel = isZh ? "比賽中/已報名" : "In Progress / Registered";
-        const waitingOptionLabel = isZh ? "等待報名" : "Waiting for Sign Up";
-
-        const isRegSelected = (!STATE.currentClub && (STATE.currentPage === 'activities' || STATE.currentPage === 'hub'));
-        const isWaitingSelected = (!STATE.currentClub && STATE.currentPage === 'waiting');
-
-        html += `<optgroup label="${activitiesGroupLabel}">`;
-        html += `<option value="activities" ${isRegSelected ? 'selected' : ''}>${regOptionLabel}</option>`;
-        html += `<option value="waiting" ${isWaitingSelected ? 'selected' : ''}>${waitingOptionLabel}</option>`;
-        html += `</optgroup>`;
+        // 會員視角：第一項「我的活動」（比賽中/已報名、開放接龍、近期完賽合併在同一頁）
+        const activitiesLabel = isZh ? "我的活動" : "My Activities";
+        const isActivitiesSelected = (!STATE.currentClub && (STATE.currentPage === 'activities' || STATE.currentPage === 'hub'));
+        html += `<option value="activities" ${isActivitiesSelected ? 'selected' : ''}>${activitiesLabel}</option>`;
 
         const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
           .filter(c => c && c.trim())
@@ -265,10 +256,7 @@ const isTransientPlayer = (name) => {
         }
       }
 
-      html += `
-        <option value="__explore_clubs__">${exploreOptionLabel}</option>
-        <option value="__create_new_club__">${createClubOptionLabel}</option>
-      `;
+      html += `<option value="__explore_clubs__">${exploreOptionLabel}</option>`;
 
       navSelect.innerHTML = html;
       updateNavClubSelectValue();
@@ -314,7 +302,7 @@ const isTransientPlayer = (name) => {
       if (STATE.currentPage === "activities" || STATE.currentPage === "waiting" || (STATE.currentPage === "hub" && !STATE.currentClub)) {
         if (navSelect) {
           if (STATE.lineUserId) {
-            navSelect.value = (STATE.currentPage === "waiting") ? "waiting" : "activities";
+            navSelect.value = "activities";
           } else {
             navSelect.value = "";
           }

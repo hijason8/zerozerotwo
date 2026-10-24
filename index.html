@@ -321,7 +321,7 @@
     <!-- ==================== PAGE ACTIVITIES: IN PROGRESS & REGISTERED (比賽中/已報名) ==================== -->
     <section id="page-activities" class="space-y-4 sm:space-y-6 hidden">
       <!-- SECTION 1: 報名與比賽中 (上方區塊：跟自己有關的報名與比賽中球局) -->
-      <div class="space-y-3">
+      <div id="activities-registered-section" class="space-y-3">
         <div class="flex items-center justify-between pt-1">
           <h3 id="t-activities-registered-heading"
             class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
@@ -335,8 +335,22 @@
         </div>
       </div>
 
-      <!-- SECTION 2: 近期完賽球局 (3日內) (最下方區塊：跟自己有關的近期完賽球局) -->
-      <div class="space-y-3 pt-2">
+      <!-- SECTION 2: 開放接龍報名 (原「等待報名」頁，已併入本頁) -->
+      <div id="activities-available-section" class="space-y-3 pt-2">
+        <div class="flex items-center justify-between pt-1">
+          <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
+            <span id="t-activities-avail-text">開放接龍報名</span>
+            <span id="activities-available-count"
+              class="text-xs px-2 py-0.5 rounded-full bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 font-bold">0</span>
+          </h3>
+        </div>
+        <div id="activities-available-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- SECTION 3: 近期完賽球局 (3日內) (最下方區塊：跟自己有關的近期完賽球局) -->
+      <div id="activities-completed-section" class="space-y-3 pt-2">
         <div class="flex items-center justify-between pt-1">
           <h3 id="t-activities-completed-heading"
             class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
@@ -346,23 +360,6 @@
           </h3>
         </div>
         <div id="activities-completed-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-          <!-- Rendered dynamically -->
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== PAGE WAITING: WAITING FOR SIGN UP (等待報名) ==================== -->
-    <section id="page-waiting" class="space-y-4 sm:space-y-6 hidden">
-      <div class="space-y-3">
-        <div class="flex items-center justify-between pt-1">
-          <h3 id="t-waiting-heading"
-            class="text-sm sm:text-base font-bold text-stone-900 dark:text-white font-display flex items-center gap-2">
-            <span id="t-waiting-title-text">等待報名</span>
-            <span id="activities-available-count"
-              class="text-xs px-2 py-0.5 rounded-full bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 font-bold">0</span>
-          </h3>
-        </div>
-        <div id="activities-available-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <!-- Rendered dynamically -->
         </div>
       </div>
@@ -2160,7 +2157,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261024-2";
+    import { I18N } from "./i18n.js?v=20261024-3";
     window.I18N = I18N;
 
     function t(key) {
@@ -2182,14 +2179,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261024-2";
-    import "./club.js?v=20261024-2";
-    import "./tournament-create.js?v=20261024-2";
-    import "./live.js?v=20261024-2";
-    import "./activities.js?v=20261024-2";
-    import "./hub.js?v=20261024-2";
-    import "./line.js?v=20261024-2";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261024-2";
+    } from "./utils.js?v=20261024-3";
+    import "./club.js?v=20261024-3";
+    import "./tournament-create.js?v=20261024-3";
+    import "./live.js?v=20261024-3";
+    import "./activities.js?v=20261024-3";
+    import "./hub.js?v=20261024-3";
+    import "./line.js?v=20261024-3";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261024-3";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2592,6 +2589,7 @@
     }
 
     function navigateTo(pageName, pushHistory = true) {
+      if (pageName === "waiting") pageName = "activities";
       STATE.currentPage = pageName;
       const pages = ["hub", "create", "live", "history", "admin", "activities", "waiting"];
       pages.forEach(p => {
