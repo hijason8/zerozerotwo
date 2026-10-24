@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-5";
-import { renderTournamentCard } from "./hub.js?v=20261024-5";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-6";
+import { renderTournamentCard } from "./hub.js?v=20261024-6";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261024-5";
+} from "./globals.js?v=20261024-6";
 
 let activitiesSearchKeyword = "";
 
@@ -323,7 +323,7 @@ export function displayActivitiesList(list) {
   fillSection("activities-available-section", "activities-available-list", availableSignUpList, "available_signup");
   fillSection("activities-completed-section", "activities-completed-list", registeredCompletedList, "completed_registered");
 
-  // 4. 大家在打：自己沒有進行中／可報名的活動時，改顯示公開球局與活躍社團，避免首頁空白
+  // 4. 自己沒有進行中／可報名的活動時，顯示提示與活躍社團，避免首頁空白
   const discoverSection = document.getElementById("activities-discover-section");
   const showDiscover = registeredActiveList.length === 0 && availableSignUpList.length === 0;
   if (discoverSection) discoverSection.classList.toggle("hidden", !showDiscover);
@@ -332,7 +332,7 @@ export function displayActivitiesList(list) {
   if (window.lucide) lucide.createIcons();
 }
 
-// 自己沒有活動時：臨打球局（尚未結束的公開球局）＋ 近 30 天最活躍的公開社團
+// 自己沒有活動時：一句提示 ＋ 近 30 天最活躍的公開社團
 function renderDiscover(list, ctx) {
   const STATE = window.STATE || {};
   const { isZh, isFinishedFn, renderActivityCard } = ctx;
@@ -343,23 +343,6 @@ function renderDiscover(list, ctx) {
   };
   const byNewest = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
   const publicList = list.filter(t => t && t.id && isPublic(t)).sort(byNewest);
-
-  // 臨打球局：尚未結束的公開球局（接龍中、進行中），最多 6 場
-  const games = publicList.filter(t => !isFinishedFn(t)).slice(0, 6);
-
-  const gamesWrap = document.getElementById("activities-discover-games-wrap");
-  const gamesEl = document.getElementById("activities-discover-games");
-  // 沒有臨打球局時，與臨打賽事頁顯示同一段空白提示（不整段隱藏，避免頁面空白）
-  if (gamesWrap) gamesWrap.classList.remove("hidden");
-  if (gamesEl) {
-    gamesEl.innerHTML = games.length > 0 ? games.map(t => renderActivityCard(t)).join("") : `
-      <div class="col-span-full glass-card rounded-2xl p-6 sm:p-8 text-center border">
-        <h4 class="text-sm sm:text-base font-bold font-display">
-          ${isZh ? '目前無進行中的公開球局' : 'No active public matches'}
-        </h4>
-      </div>
-    `;
-  }
 
   // 活躍社團：近 30 天公開社團的賽事場數（排除自己已加入的）
   const myClubs = Array.isArray(STATE.myClubs) ? STATE.myClubs : [];

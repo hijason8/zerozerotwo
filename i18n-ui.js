@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261024-5";
+import { STATE, t } from "./globals.js?v=20261024-6";
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -28,8 +28,6 @@ export const I18N_TEXT_KEYS = {
   "t-modal-search-btn": "modalSearchBtn",
   "t-quick-code-btn": "quickCodeBtn",
   "t-create-new-btn-text": "createNewBtn",
-  "t-hub-active-heading": "hubActiveTitle",
-  "t-hub-completed-heading": "hubCompletedTitle",
   "t-club-create-btn": "createNewBtn",
   "t-btn-share-club": "shareClubBtn",
   "t-choose-club-title": "chooseClubTitle",
@@ -349,13 +347,6 @@ function applyDynamicLanguageUI(isZh) {
   if (btnToggleMyClubEl) {
     const isMyClub = !!(STATE.lineUserId && Array.isArray(STATE.myClubs) && STATE.currentClub && STATE.myClubs.includes(STATE.currentClub));
     btnToggleMyClubEl.innerText = isMyClub ? (isZh ? "已加入" : "Joined") : (isZh ? "加入" : "Join");
-  }
-
-  // 完賽歷史展開/收合狀態文案
-  const hubCompToggle = document.getElementById("hub-completed-toggle-text");
-  if (hubCompToggle) {
-    const isHubCompOpen = !document.getElementById("hub-completed-tournaments-wrap")?.classList.contains("hidden");
-    hubCompToggle.innerText = isHubCompOpen ? t("collapseText") : t("expandText");
   }
 
   // 社團大廳標題（若無 currentClub 則回退預設）

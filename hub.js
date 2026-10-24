@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-5";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-6";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-5";
+} from "./globals.js?v=20261024-6";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -299,94 +299,52 @@ export function displayHubTournamentsList(list) {
   });
   filteredList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  const activeList = [];
-  const completedList = [];
+  const isZh = STATE.lang === "zh-TW";
   const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
   const nowMs = Date.now();
-
-  const isFinishedFn = typeof window.isTournamentFinished === "function" ? window.isTournamentFinished : (t) => t && t.status === "finished";
+  const isFinishedFn = typeof window.isTournamentFinished === "function" ? window.isTournamentFinished : (t) => t && t.status === "completed";
   const parseFn = typeof window.parseTournamentDate === "function" ? window.parseTournamentDate : (val) => new Date(val);
-  const formatFn = typeof window.formatTournamentDate === "function" ? window.formatTournamentDate : (val) => val;
 
+  // 三個區塊：比賽中、報名中、近期完賽 (3日內)
+  const liveList = [];
+  const signupList = [];
+  const completedList = [];
   filteredList.forEach(tData => {
-    const isDone = isFinishedFn(tData);
-    if (isDone) {
+    if (isFinishedFn(tData)) {
       const tDate = parseFn(tData.createdAt);
       const isWithin3Days = tDate ? (nowMs - tDate.getTime()) <= THREE_DAYS_MS : true;
-      if (isWithin3Days) {
-        completedList.push(tData);
-      }
+      if (isWithin3Days) completedList.push(tData);
+    } else if (tData.status === "registering") {
+      signupList.push(tData);
     } else {
-      activeList.push(tData);
+      liveList.push(tData);
     }
   });
 
-  const activeCountEl = document.getElementById("hub-active-count");
-  if (activeCountEl) {
-    activeCountEl.innerText = `${activeList.length} ${t("hubActiveCountSuffix")}`;
-  }
-  const completedCountEl = document.getElementById("hub-completed-count");
-  if (completedCountEl) {
-    completedCountEl.innerText = `${completedList.length} ${t("hubCompletedCountSuffix")}`;
-  }
+  const fillSection = (key, list) => {
+    const section = document.getElementById(`hub-${key}-section`);
+    const container = document.getElementById(`hub-${key}-list`);
+    const countEl = document.getElementById(`hub-${key}-count`);
+    if (section) section.classList.toggle("hidden", list.length === 0);
+    if (countEl) countEl.innerText = `${list.length}`;
+    if (container) container.innerHTML = list.map(t => renderTournamentCard(t)).join("");
+  };
+  fillSection("live", liveList);
+  fillSection("signup", signupList);
+  fillSection("completed", completedList);
 
-  const renderCard = (tData) => renderTournamentCard(tData);
-
-  const activeContainer = document.getElementById("hub-active-tournaments-list");
-  if (activeContainer) {
-    if (activeList.length === 0) {
-      activeContainer.innerHTML = `
-        <div class="col-span-full glass-card rounded-2xl p-6 sm:p-8 text-center space-y-3 border">
-          <div class="w-12 h-12 rounded-2xl card-inner border mx-auto flex items-center justify-center text-emerald-500 shadow-inner">
-            <i data-lucide="layout-grid" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <h4 class="text-sm sm:text-base font-bold font-display leading-snug sm:leading-normal">
-              ${STATE.lang === 'zh-TW'
-                ? '<span class="block sm:inline">目前無進行中的公開球局，</span><span class="block sm:inline">請使用賽事連結或進入社團大廳</span>'
-                : '<span class="block sm:inline">No active public matches.</span> <span class="block sm:inline">Use tournament link or enter Club Lobby</span>'
-              }
-            </h4>
-          </div>
-        </div>
-      `;
-    } else {
-      activeContainer.innerHTML = activeList.map(renderCard).join("");
-    }
-  }
-
-  const completedContainer = document.getElementById("hub-completed-tournaments-list");
-  if (completedContainer) {
-    if (completedList.length === 0) {
-      completedContainer.innerHTML = `
-        <div class="col-span-full glass-card rounded-2xl p-6 text-center space-y-1 border">
-          <p class="text-xs font-semibold sub-text">${t("noCompletedTournamentsHub")}</p>
-        </div>
-      `;
-    } else {
-      completedContainer.innerHTML = completedList.map(renderCard).join("");
-    }
+  const emptyEl = document.getElementById("hub-empty");
+  const allEmpty = liveList.length === 0 && signupList.length === 0 && completedList.length === 0;
+  if (emptyEl) {
+    emptyEl.classList.toggle("hidden", !allEmpty);
+    emptyEl.innerHTML = allEmpty ? `
+      <div class="glass-card rounded-2xl p-6 sm:p-8 text-center border">
+        <h4 class="text-sm sm:text-base font-bold font-display">${isZh ? '目前沒有臨打賽事' : 'No drop-in games right now'}</h4>
+      </div>
+    ` : "";
   }
 
   if (window.lucide) lucide.createIcons();
-}
-
-export function toggleHubCompletedCollapse() {
-  const wrap = document.getElementById("hub-completed-tournaments-wrap");
-  const text = document.getElementById("hub-completed-toggle-text");
-  const chevron = document.getElementById("hub-completed-chevron");
-  const STATE = window.STATE || {};
-  if (!wrap) return;
-  const isHidden = wrap.classList.contains("hidden");
-  if (isHidden) {
-    wrap.classList.remove("hidden");
-    if (text) text.innerText = STATE.lang === "zh-TW" ? "闔上" : "Collapse";
-    if (chevron) chevron.classList.add("rotate-180");
-  } else {
-    wrap.classList.add("hidden");
-    if (text) text.innerText = STATE.lang === "zh-TW" ? "展開" : "Expand";
-    if (chevron) chevron.classList.remove("rotate-180");
-  }
 }
 
 export function renderHubTournaments() {
@@ -396,16 +354,17 @@ export function renderHubTournaments() {
   if (cached.length > 0) {
     displayHubTournamentsList(cached);
   } else {
-    const activeContainer = document.getElementById("hub-active-tournaments-list");
-    if (activeContainer) {
-      activeContainer.innerHTML = `<div class="col-span-full text-center py-6 sub-text"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-1"></i>Loading...</div>`;
+    const emptyEl = document.getElementById("hub-empty");
+    if (emptyEl) {
+      emptyEl.classList.remove("hidden");
+      emptyEl.innerHTML = `<div class="text-center py-6 sub-text"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-1"></i>Loading...</div>`;
     }
     if (window.lucide) lucide.createIcons();
   }
 
   const loadingTimeout = setTimeout(() => {
-    const activeContainer = document.getElementById("hub-active-tournaments-list");
-    if (activeContainer && activeContainer.innerHTML.includes("Loading...")) {
+    const emptyEl = document.getElementById("hub-empty");
+    if (emptyEl && emptyEl.innerHTML.includes("Loading...")) {
       const fallbackData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
       displayHubTournamentsList(Object.values(fallbackData));
     }
@@ -603,7 +562,6 @@ if (typeof window !== "undefined") {
   window.handleQuickCodeSubmit = handleQuickCodeSubmit;
   window.saveToLocalTournaments = saveToLocalTournaments;
   window.displayHubTournamentsList = displayHubTournamentsList;
-  window.toggleHubCompletedCollapse = toggleHubCompletedCollapse;
   window.renderHubTournaments = renderHubTournaments;
   window.enterTournament = enterTournament;
   window.deleteTournament = deleteTournament;

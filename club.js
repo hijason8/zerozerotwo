@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-5";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-6";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-5";
+} from "./globals.js?v=20261024-6";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -223,8 +223,9 @@ const isTransientPlayer = (name) => {
       if (isLoggedIn) {
         // 會員視角：第一項「我的活動」（比賽中/已報名、開放接龍、近期完賽合併在同一頁）
         const activitiesLabel = isZh ? "我的活動" : "My Activities";
-        const isActivitiesSelected = (!STATE.currentClub && (STATE.currentPage === 'activities' || STATE.currentPage === 'hub'));
+        const isActivitiesSelected = (!STATE.currentClub && STATE.currentPage === 'activities');
         html += `<option value="activities" ${isActivitiesSelected ? 'selected' : ''}>${activitiesLabel}</option>`;
+        html += `<option value="hub" ${(!STATE.currentClub && STATE.currentPage === 'hub') ? 'selected' : ''}>${defaultLabel}</option>`;
 
         const userMyClubs = (Array.isArray(STATE.myClubs) ? STATE.myClubs : [])
           .filter(c => c && c.trim())
@@ -248,7 +249,7 @@ const isTransientPlayer = (name) => {
         }
       } else {
         // 訪客視角 (未登入 LINE)：下拉選單僅保留「賽事大廳」以及訪客瀏覽中的社團
-        html += `<option value="" ${(!STATE.currentClub && (STATE.currentPage === 'hub' || STATE.currentPage === 'activities')) ? 'selected' : ''}>${defaultLabel}</option>`;
+        html += `<option value="hub" ${(!STATE.currentClub && (STATE.currentPage === 'hub' || STATE.currentPage === 'activities')) ? 'selected' : ''}>${defaultLabel}</option>`;
 
         if (STATE.currentClub) {
           const safeCurrent = escapeHTML(STATE.currentClub);
@@ -301,11 +302,7 @@ const isTransientPlayer = (name) => {
 
       if (STATE.currentPage === "activities" || STATE.currentPage === "waiting" || (STATE.currentPage === "hub" && !STATE.currentClub)) {
         if (navSelect) {
-          if (STATE.lineUserId) {
-            navSelect.value = "activities";
-          } else {
-            navSelect.value = "";
-          }
+          navSelect.value = (STATE.lineUserId && STATE.currentPage !== "hub") ? "activities" : "hub";
         }
         if (shareBtn) shareBtn.classList.add("hidden");
         if (toggleBtn) toggleBtn.classList.add("hidden");
@@ -446,6 +443,15 @@ const isTransientPlayer = (name) => {
         STATE.createContextClub = null;
         if (STATE.currentPage !== "activities") {
           navigateTo("activities");
+        }
+        updateNavClubSelectValue();
+        return;
+      }
+      if (clubName === "hub") {
+        STATE.currentClub = null;
+        STATE.createContextClub = null;
+        if (STATE.currentPage !== "hub") {
+          navigateTo("hub");
         }
         updateNavClubSelectValue();
         return;
