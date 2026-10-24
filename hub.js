@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-8";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-9";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-8";
+} from "./globals.js?v=20261024-9";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -264,11 +264,19 @@ export function renderTournamentCard(tData, opts = {}) {
       </div>
 
       <div class="flex items-center gap-2 pt-2">
-        <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
-          class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
-          <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isRegistering ? '' : 'fill-current'}"></i>
-          <span>${isRegistering ? t("enterRegistration") : t("enterTournament")}</span>
-        </button>
+        ${isFinished ? `
+          <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
+            class="flex-1 card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+            <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-500"></i>
+            <span>${STATE.lang === 'zh-TW' ? '觀看結果' : 'View Results'}</span>
+          </button>
+        ` : `
+          <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
+            class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+            <i data-lucide="${isRegistering ? 'clipboard-check' : 'play'}" class="w-3.5 h-3.5 ${isRegistering ? '' : 'fill-current'}"></i>
+            <span>${isRegistering ? t("enterRegistration") : t("enterTournament")}</span>
+          </button>
+        `}
         ${STATE.isAdmin ? `
           <button onclick="deleteTournament('${escapeJsAttr(tData.id)}')" class="p-2.5 rounded-xl card-inner hover:bg-rose-500/20 sub-text hover:text-rose-500 border transition" title="Delete">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>

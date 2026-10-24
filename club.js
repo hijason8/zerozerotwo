@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-8";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-9";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-8";
+} from "./globals.js?v=20261024-9";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -1949,11 +1949,8 @@ const isTransientPlayer = (name) => {
       const clubActiveSection = document.getElementById("club-active-section");
       const clubActiveListEl = document.getElementById("club-active-tournaments-list");
       const clubNoActivitiesHint = document.getElementById("club-no-activities-hint");
-      const clubActiveTournaments = clubTournamentsAll.filter(t => {
-        const total = t.matches ? t.matches.length : 0;
-        const done = t.matches ? t.matches.filter(m => m.completed || m.voided).length : 0;
-        return t.status !== "completed" && (total === 0 || done < total);
-      });
+      // 進行中＝尚未按「結束賽事」的賽事（分數都登錄完但還沒結束的也算，否則會同時不在進行中、也不在歷史存檔裡）
+      const clubActiveTournaments = clubTournamentsAll.filter(t => !isTournamentFinished(t));
 
       if (clubActiveSection && clubActiveListEl) {
         if (clubActiveTournaments.length > 0) {
