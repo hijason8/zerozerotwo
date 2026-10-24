@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261023-5";
+} from "./utils.js?v=20261024-1";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261023-5";
+} from "./scheduler.js?v=20261024-1";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261023-5";
+} from "./globals.js?v=20261024-1";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1557,12 +1557,16 @@ function renderMatchesList(matches, hasAdmin = false) {
           </div>
           <div>
             <h4 class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? "所有場次比分已登錄完成！" : "All matches have been scored!"}</h4>
-            <p class="text-xs sub-text">${isZh ? "請核對分數無誤後，點選下方按鈕結束賽事並凍結結算。" : "Please verify scores, then click the button below to end tournament and finalize results."}</p>
           </div>
         </div>
-        <button type="button" onclick="completeTournamentAndReturn()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer shrink-0">
-          <i data-lucide="check-circle-2" class="w-4 h-4"></i> ${isZh ? "結束賽事並結算" : "End & Finalize"}
-        </button>
+        <div class="grid grid-cols-2 gap-2 w-full sm:w-auto shrink-0">
+          <button type="button" onclick="openAddMatchModal()" class="px-4 py-2.5 rounded-xl border-2 border-amber-500/60 bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition cursor-pointer">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> ${isZh ? "新增場次" : "Add Match"}
+          </button>
+          <button type="button" onclick="completeTournamentAndReturn()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i> ${isZh ? "結束賽事" : "End Tournament"}
+          </button>
+        </div>
       </div>
     `;
   }
