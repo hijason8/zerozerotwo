@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-10";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-12";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-10";
+} from "./globals.js?v=20261024-12";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -2874,6 +2874,34 @@ const isTransientPlayer = (name) => {
         clubPasswordMap[club] = await getClubPassword(club);
       }
 
+      // LINE 綁定：/club_mappings/{社團}/{LINE ID} = 球員名稱
+      const bindingsByClub = {};
+      const bindingUidsByClub = {};
+      const boundLineUsers = new Set();
+      if (STATE.db) {
+        try {
+          const mapSnap = await get(ref(STATE.db, "club_mappings"));
+          Object.entries(mapSnap.val() || {}).forEach(([key, users]) => {
+            const club = decodeClubKey(key);
+            if (!club || !users || typeof users !== "object") return;
+            bindingsByClub[club] = Object.values(users).map(n => String(n || "").trim()).filter(Boolean);
+            bindingUidsByClub[club] = Object.keys(users);
+          });
+        } catch (e) {
+          console.warn("[Admin] load club_mappings error:", e);
+        }
+      }
+      // 只統計目前存在的社團；已刪除社團留下的綁定另外列出，可一鍵清除
+      const orphanBindingClubs = Object.keys(bindingsByClub).filter(c => !uniqueClubs.includes(c));
+      const orphanBindingCount = orphanBindingClubs.reduce((acc, c) => acc + bindingsByClub[c].length, 0);
+      boundLineUsers.clear();
+      let totalBindings = 0;
+      Object.keys(bindingsByClub).filter(c => uniqueClubs.includes(c)).forEach(c => {
+        totalBindings += bindingsByClub[c].length;
+        (bindingUidsByClub[c] || []).forEach(uid => boundLineUsers.add(uid));
+      });
+      STATE.adminOrphanBindingClubs = orphanBindingClubs;
+
       // Sort tournaments by date
       const sortedT = [...allT].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -2884,7 +2912,7 @@ const isTransientPlayer = (name) => {
 
       container.innerHTML = `
         <!-- Dashboard Overview Badges -->
-        <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
           <div class="glass-card rounded-2xl p-3 sm:p-4 border text-center space-y-1">
             <span class="text-[11px] sub-text font-semibold flex items-center justify-center gap-1">
               <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-500"></i> ${t("adminStatsTournaments")}
@@ -2903,6 +2931,18 @@ const isTransientPlayer = (name) => {
             </span>
             <div class="text-lg sm:text-2xl font-black font-mono text-orange-600 dark:text-orange-400">${totalGames}</div>
           </div>
+          <div class="glass-card rounded-2xl p-3 sm:p-4 border text-center space-y-1">
+            <span class="text-[11px] sub-text font-semibold flex items-center justify-center gap-1">
+              <i data-lucide="link" class="w-3.5 h-3.5 text-[#06C755]"></i> ${STATE.lang === "zh-TW" ? "LINE 綁定" : "LINE Bindings"}
+            </span>
+            <div class="text-lg sm:text-2xl font-black font-mono text-[#06C755]">${totalBindings}</div>
+            <div class="text-[10px] sub-text">${STATE.lang === "zh-TW" ? `來自 ${boundLineUsers.size} 個 LINE 帳號` : `from ${boundLineUsers.size} LINE accounts`}</div>
+            ${orphanBindingCount > 0 ? `
+              <button type="button" onclick="adminCleanupOrphanBindings()" class="mt-1 text-[10px] font-bold text-rose-500 hover:underline cursor-pointer">
+                ${STATE.lang === "zh-TW" ? `清除已刪除社團的殘留綁定 ${orphanBindingCount} 筆` : `Clean up ${orphanBindingCount} leftover bindings`}
+              </button>
+            ` : ''}
+          </div>
         </div>
 
         <!-- Club Management Section (Rename / Password / Members) -->
@@ -2916,6 +2956,7 @@ const isTransientPlayer = (name) => {
             const hasPwd = !!clubPasswordMap[club];
             const isPrivate = typeof isClubPrivate === "function" && isClubPrivate(club);
             const members = getClubMembersList(club);
+            const boundNames = bindingsByClub[club] || [];
             const escapedClub = safeEscape(club);
             const safeClubId = encodeURIComponent(club).replace(/[^A-Za-z0-9]/g, "_");
             return `
@@ -2931,6 +2972,9 @@ const isTransientPlayer = (name) => {
                       </span>
                       <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${hasPwd ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-stone-500/10 sub-text border'}">
                         ${hasPwd ? t("adminHasPassword") : t("adminNoPassword")}
+                      </span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${boundNames.length > 0 ? 'bg-[#06C755]/10 text-[#06C755] border border-[#06C755]/30' : 'bg-stone-500/10 sub-text border'}">
+                        ${STATE.lang === 'zh-TW' ? `LINE 綁定 ${boundNames.length}/${members.length}` : `LINE ${boundNames.length}/${members.length}`}
                       </span>
                     ` : `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${STATE.lang === 'zh-TW' ? '臨打通用' : 'General'}</span>`}
                   </div>
@@ -2972,7 +3016,7 @@ const isTransientPlayer = (name) => {
                 <!-- Row 3: Collapsible Member Management Drawer -->
                 <div id="admin-members-wrap-${safeClubId}" class="hidden pt-2 border-t border-stone-200 dark:border-slate-800/60 space-y-2">
                   <div class="flex items-center justify-between text-[11px] font-bold sub-text">
-                    <span>👥 ${STATE.lang === "zh-TW" ? "常用成員名單（點 ✕ 移除）：" : "Saved Members (Click ✕ to remove):"}</span>
+                    <span>👥 ${STATE.lang === "zh-TW" ? "常用成員名單（🔗 已綁定 LINE；點 ✕ 移除）：" : "Saved Members (🔗 LINE bound; click ✕ to remove):"}</span>
                   </div>
                   <!-- Chips List -->
                   <div class="flex flex-wrap gap-1.5 p-2 rounded-xl bg-stone-500/5 border border-dashed border-stone-300 dark:border-slate-800 min-h-[32px] items-center">
@@ -2982,6 +3026,7 @@ const isTransientPlayer = (name) => {
                   const escapedM = safeEscape(m);
                   return `
                           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                            ${boundNames.includes(m) ? `<i data-lucide="link" class="w-3 h-3 text-[#06C755]" title="${STATE.lang === 'zh-TW' ? '已綁定 LINE' : 'LINE bound'}"></i>` : ''}
                             <span>${escapeHTML(m)}</span>
                             <button type="button" onclick="adminRemoveMember('${escapedClub}', '${escapedM}')" class="ml-0.5 opacity-60 hover:opacity-100 hover:text-rose-500 transition text-[11px]">✕</button>
                           </div>
@@ -3315,6 +3360,17 @@ const isTransientPlayer = (name) => {
             await update(ref(STATE.db), updates);
           }
           await remove(ref(STATE.db, `club_members/${safeKey}`));
+          // LINE 綁定一併清除，並從綁定者的「我的社團」移除，避免留下殘留資料
+          try {
+            const mapSnap = await get(ref(STATE.db, `club_mappings/${safeKey}`));
+            const boundUids = Object.keys(mapSnap.val() || {});
+            for (const uid of boundUids) {
+              await remove(ref(STATE.db, `users/${uid}/myClubs/${encodeURIComponent(clubName)}`));
+            }
+            await remove(ref(STATE.db, `club_mappings/${safeKey}`));
+          } catch (mapErr) {
+            console.warn("adminDeleteClub club_mappings cleanup error:", mapErr);
+          }
           if (hasClubPassword(clubName)) {
             await callManageClubPassword({ action: "remove", clubName, credential: getClubCredential(clubName) });
           }
@@ -3339,6 +3395,33 @@ const isTransientPlayer = (name) => {
       renderAdminPage();
     }
     window.adminDeleteClub = adminDeleteClub;
+
+    // 清除已刪除社團留下的 LINE 綁定（club_mappings）與綁定者「我的社團」裡的殘留項目
+    async function adminCleanupOrphanBindings() {
+      const clubs = Array.isArray(STATE.adminOrphanBindingClubs) ? STATE.adminOrphanBindingClubs : [];
+      if (!STATE.db || clubs.length === 0) return;
+      const isZh = STATE.lang === "zh-TW";
+      const msg = isZh
+        ? `確定清除以下已刪除社團的殘留綁定嗎？\n\n${clubs.join("、")}\n\n（不影響任何賽事與戰績）`
+        : `Clean up leftover bindings of deleted clubs?\n\n${clubs.join(", ")}`;
+      if (!confirm(msg)) return;
+      try {
+        for (const club of clubs) {
+          const safeKey = encodeClubKey(club);
+          const snap = await get(ref(STATE.db, `club_mappings/${safeKey}`));
+          for (const uid of Object.keys(snap.val() || {})) {
+            await remove(ref(STATE.db, `users/${uid}/myClubs/${encodeURIComponent(club)}`));
+          }
+          await remove(ref(STATE.db, `club_mappings/${safeKey}`));
+        }
+        showToast(isZh ? "✅ 已清除殘留綁定" : "✅ Leftover bindings removed", "success");
+      } catch (e) {
+        console.error("adminCleanupOrphanBindings error:", e);
+        showToast(isZh ? "❌ 清除失敗，請稍後再試" : "❌ Cleanup failed", "error");
+      }
+      renderAdminPage();
+    }
+    window.adminCleanupOrphanBindings = adminCleanupOrphanBindings;
 
     // 掛載歷史頁面渲染與社團存取核心函式至全域 window
     window.renderHistoryCategorized = renderHistoryCategorized;
