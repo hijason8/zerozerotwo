@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-10";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-11";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-10";
+} from "./globals.js?v=20261024-11";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -2874,6 +2874,24 @@ const isTransientPlayer = (name) => {
         clubPasswordMap[club] = await getClubPassword(club);
       }
 
+      // LINE 綁定：/club_mappings/{社團}/{LINE ID} = 球員名稱
+      const bindingsByClub = {};
+      const boundLineUsers = new Set();
+      if (STATE.db) {
+        try {
+          const mapSnap = await get(ref(STATE.db, "club_mappings"));
+          Object.entries(mapSnap.val() || {}).forEach(([key, users]) => {
+            const club = decodeClubKey(key);
+            if (!club || !users || typeof users !== "object") return;
+            bindingsByClub[club] = Object.values(users).map(n => String(n || "").trim()).filter(Boolean);
+            Object.keys(users).forEach(uid => boundLineUsers.add(uid));
+          });
+        } catch (e) {
+          console.warn("[Admin] load club_mappings error:", e);
+        }
+      }
+      const totalBindings = Object.values(bindingsByClub).reduce((acc, names) => acc + names.length, 0);
+
       // Sort tournaments by date
       const sortedT = [...allT].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -2884,7 +2902,7 @@ const isTransientPlayer = (name) => {
 
       container.innerHTML = `
         <!-- Dashboard Overview Badges -->
-        <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
           <div class="glass-card rounded-2xl p-3 sm:p-4 border text-center space-y-1">
             <span class="text-[11px] sub-text font-semibold flex items-center justify-center gap-1">
               <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-500"></i> ${t("adminStatsTournaments")}
@@ -2903,6 +2921,13 @@ const isTransientPlayer = (name) => {
             </span>
             <div class="text-lg sm:text-2xl font-black font-mono text-orange-600 dark:text-orange-400">${totalGames}</div>
           </div>
+          <div class="glass-card rounded-2xl p-3 sm:p-4 border text-center space-y-1">
+            <span class="text-[11px] sub-text font-semibold flex items-center justify-center gap-1">
+              <i data-lucide="link" class="w-3.5 h-3.5 text-[#06C755]"></i> ${STATE.lang === "zh-TW" ? "LINE 綁定" : "LINE Bindings"}
+            </span>
+            <div class="text-lg sm:text-2xl font-black font-mono text-[#06C755]">${totalBindings}</div>
+            <div class="text-[10px] sub-text">${STATE.lang === "zh-TW" ? `來自 ${boundLineUsers.size} 個 LINE 帳號` : `from ${boundLineUsers.size} LINE accounts`}</div>
+          </div>
         </div>
 
         <!-- Club Management Section (Rename / Password / Members) -->
@@ -2916,6 +2941,7 @@ const isTransientPlayer = (name) => {
             const hasPwd = !!clubPasswordMap[club];
             const isPrivate = typeof isClubPrivate === "function" && isClubPrivate(club);
             const members = getClubMembersList(club);
+            const boundNames = bindingsByClub[club] || [];
             const escapedClub = safeEscape(club);
             const safeClubId = encodeURIComponent(club).replace(/[^A-Za-z0-9]/g, "_");
             return `
@@ -2931,6 +2957,9 @@ const isTransientPlayer = (name) => {
                       </span>
                       <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${hasPwd ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-stone-500/10 sub-text border'}">
                         ${hasPwd ? t("adminHasPassword") : t("adminNoPassword")}
+                      </span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${boundNames.length > 0 ? 'bg-[#06C755]/10 text-[#06C755] border border-[#06C755]/30' : 'bg-stone-500/10 sub-text border'}">
+                        ${STATE.lang === 'zh-TW' ? `LINE 綁定 ${boundNames.length}/${members.length}` : `LINE ${boundNames.length}/${members.length}`}
                       </span>
                     ` : `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${STATE.lang === 'zh-TW' ? '臨打通用' : 'General'}</span>`}
                   </div>
@@ -2972,7 +3001,7 @@ const isTransientPlayer = (name) => {
                 <!-- Row 3: Collapsible Member Management Drawer -->
                 <div id="admin-members-wrap-${safeClubId}" class="hidden pt-2 border-t border-stone-200 dark:border-slate-800/60 space-y-2">
                   <div class="flex items-center justify-between text-[11px] font-bold sub-text">
-                    <span>👥 ${STATE.lang === "zh-TW" ? "常用成員名單（點 ✕ 移除）：" : "Saved Members (Click ✕ to remove):"}</span>
+                    <span>👥 ${STATE.lang === "zh-TW" ? "常用成員名單（🔗 已綁定 LINE；點 ✕ 移除）：" : "Saved Members (🔗 LINE bound; click ✕ to remove):"}</span>
                   </div>
                   <!-- Chips List -->
                   <div class="flex flex-wrap gap-1.5 p-2 rounded-xl bg-stone-500/5 border border-dashed border-stone-300 dark:border-slate-800 min-h-[32px] items-center">
@@ -2982,6 +3011,7 @@ const isTransientPlayer = (name) => {
                   const escapedM = safeEscape(m);
                   return `
                           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                            ${boundNames.includes(m) ? `<i data-lucide="link" class="w-3 h-3 text-[#06C755]" title="${STATE.lang === 'zh-TW' ? '已綁定 LINE' : 'LINE bound'}"></i>` : ''}
                             <span>${escapeHTML(m)}</span>
                             <button type="button" onclick="adminRemoveMember('${escapedClub}', '${escapedM}')" class="ml-0.5 opacity-60 hover:opacity-100 hover:text-rose-500 transition text-[11px]">✕</button>
                           </div>
