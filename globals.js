@@ -132,7 +132,7 @@ export const encodeClubKey = (name) => {
   return encodeURIComponent(String(name || "").trim());
 };
 
-export { escapeJsAttr as safeEscape } from "./utils.js?v=20261024-1";
+export { escapeJsAttr as safeEscape } from "./utils.js?v=20261024-2";
 
 export const saveToLocalTournaments = (...args) => {
   if (typeof window !== "undefined" && typeof window.saveToLocalTournaments === "function") {

@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261024-1";
+import { STATE, t } from "./globals.js?v=20261024-2";
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -339,12 +339,9 @@ function applyDynamicLanguageUI(isZh) {
     window.updateNavLineProfileUI();
   }
 
-  // 大廳社團下拉第 0 項
-  const hubClubSelector = document.getElementById("hub-club-selector");
-  if (hubClubSelector && hubClubSelector.options.length > 0) {
-    if (STATE.lineUserId) {
-      hubClubSelector.options[0].text = t("clubFilterOptionAll");
-    }
+  // 大廳社團下拉：切換語言時整份重建（選項文字由 populateNavClubSelect 依語言產生）
+  if (typeof window.populateNavClubSelect === "function") {
+    window.populateNavClubSelect();
   }
 
   // 加入/退出社團按鈕
