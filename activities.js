@@ -10,14 +10,14 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-2";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-3";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261024-2";
+} from "./globals.js?v=20261024-3";
 
 let activitiesSearchKeyword = "";
 
@@ -402,56 +402,29 @@ export function displayActivitiesList(list) {
     `;
   };
 
-  // 1. 渲染上方區塊：報名與比賽中
-  const regContainer = document.getElementById("activities-registered-list");
-  if (regContainer) {
-    if (registeredActiveList.length === 0) {
-      regContainer.innerHTML = `
+  // 三個區塊：有資料才顯示；三個都空時，只在第一區塊顯示一句提示
+  const allEmpty = registeredActiveList.length === 0 && availableSignUpList.length === 0 && registeredCompletedList.length === 0;
+  const fillSection = (sectionId, listId, list, mode, keepWhenEmpty) => {
+    const section = document.getElementById(sectionId);
+    const container = document.getElementById(listId);
+    if (section) section.classList.toggle("hidden", list.length === 0 && !keepWhenEmpty);
+    if (!container) return;
+    container.innerHTML = list.length > 0
+      ? list.map(t => renderActivityCard(t, mode)).join("")
+      : `
         <div class="col-span-full glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2 border">
           <p class="text-xs sm:text-sm font-semibold sub-text">
-            ${isZh ? '目前沒有進行中或已報名的活動' : 'No active or registered activities'}
+            ${isZh ? '目前沒有活動' : 'No activities yet'}
           </p>
           <p class="text-[11px] sub-text opacity-80">
-            ${isZh ? '可切換至「等待報名」查看開放接龍報名的活動加入！' : 'Switch to "Waiting for Sign Up" to join open games!'}
+            ${isZh ? '可從選單的「探索/建立新社團」找社團加入，或建立新賽事' : 'Use "Explore / Create Club" in the menu to find a club, or create a new game'}
           </p>
         </div>
       `;
-    } else {
-      regContainer.innerHTML = registeredActiveList.map(t => renderActivityCard(t, 'active_registered')).join("");
-    }
-  }
-
-  // 2. 渲染等待報名區塊
-  const availContainer = document.getElementById("activities-available-list");
-  if (availContainer) {
-    if (availableSignUpList.length === 0) {
-      availContainer.innerHTML = `
-        <div class="col-span-full glass-card rounded-2xl p-6 text-center space-y-1.5 border">
-          <p class="text-xs font-semibold sub-text">
-            ${isZh ? '目前沒有臨打及已參與社團的接龍活動' : 'No drop-in or joined club activities available'}
-          </p>
-        </div>
-      `;
-    } else {
-      availContainer.innerHTML = availableSignUpList.map(t => renderActivityCard(t, 'available_signup')).join("");
-    }
-  }
-
-  // 3. 渲染最下方區塊：近期完賽球局 (3日內)
-  const compContainer = document.getElementById("activities-completed-list");
-  if (compContainer) {
-    if (registeredCompletedList.length === 0) {
-      compContainer.innerHTML = `
-        <div class="col-span-full glass-card rounded-2xl p-6 text-center space-y-1.5 border">
-          <p class="text-xs font-semibold sub-text">
-            ${isZh ? '近 3 日無完賽球局' : 'No completed matches in the past 3 days'}
-          </p>
-        </div>
-      `;
-    } else {
-      compContainer.innerHTML = registeredCompletedList.map(t => renderActivityCard(t, 'completed_registered')).join("");
-    }
-  }
+  };
+  fillSection("activities-registered-section", "activities-registered-list", registeredActiveList, "active_registered", allEmpty);
+  fillSection("activities-available-section", "activities-available-list", availableSignUpList, "available_signup", false);
+  fillSection("activities-completed-section", "activities-completed-list", registeredCompletedList, "completed_registered", false);
 
   if (window.lucide) lucide.createIcons();
 }
