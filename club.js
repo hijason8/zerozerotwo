@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-3";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-4";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-3";
+} from "./globals.js?v=20261024-4";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -214,7 +214,7 @@ const isTransientPlayer = (name) => {
       }
       const uniqueClubs = Array.from(set).sort((a, b) => a.localeCompare(b, "zh-Hant"));
       const isZh = STATE.lang === "zh-TW";
-      const defaultLabel = isZh ? "賽事大廳" : "LOBBY";
+      const defaultLabel = isZh ? "臨打賽事" : "Drop-in Games";
       const exploreOptionLabel = isZh ? "探索/建立新社團" : "Explore / Create Club";
 
       const isLoggedIn = !!STATE.lineUserId;
@@ -2973,7 +2973,7 @@ const isTransientPlayer = (name) => {
                     </button>` : `
                     <button onclick="navigateTo('hub')" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30 rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer">
                       <i data-lucide="compass" class="w-3 h-3"></i>
-                      <span>${STATE.lang === "zh-TW" ? "返回賽事大廳" : "Go to Lobby"}</span>
+                      <span>${STATE.lang === "zh-TW" ? "返回臨打賽事" : "Go to Drop-in Games"}</span>
                     </button>
                     `}
                     <button onclick="adminToggleClubMembers('${safeClubId}')" class="px-2.5 py-1 card-inner border hover:border-blue-500 text-blue-600 dark:text-blue-400 font-bold rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer">
