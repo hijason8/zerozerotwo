@@ -256,6 +256,56 @@ export function getMaxTotalGames(rawTargetGames) {
 }
 
 // ----------------------------------------------------
+// 8 人完美全循環（固定排法）：14 局、每 2 局 8 人各上場一次（可兩面場同時打）
+// 每人與其他 7 人各搭檔 1 次、各當對手 2 次。每次開賽隨機打亂名字、輪次順序與藍紅方
+// ----------------------------------------------------
+const PERFECT_8_ROUNDS = [
+  [[[0, 1], [2, 3]], [[4, 5], [6, 7]]],
+  [[[0, 2], [4, 6]], [[1, 3], [5, 7]]],
+  [[[0, 3], [4, 7]], [[1, 2], [5, 6]]],
+  [[[0, 4], [1, 5]], [[2, 6], [3, 7]]],
+  [[[0, 5], [2, 7]], [[1, 4], [3, 6]]],
+  [[[0, 6], [3, 5]], [[1, 7], [2, 4]]],
+  [[[0, 7], [1, 6]], [[2, 5], [3, 4]]]
+];
+
+function shuffled(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export function generatePerfectEightSchedule(playersList) {
+  const names = shuffled(playersList);
+  const matches = [];
+  shuffled(PERFECT_8_ROUNDS).forEach(round => {
+    shuffled(round).forEach(game => {
+      const [t1, t2] = Math.random() < 0.5 ? game : [game[1], game[0]];
+      const blue = t1.map(i => names[i]);
+      const red = t2.map(i => names[i]);
+      const active = [...blue, ...red];
+      const r = matches.length + 1;
+      matches.push({
+        id: r,
+        roundName: `Game ${r}`,
+        blue,
+        red,
+        resting: names.filter(x => !active.includes(x)),
+        active,
+        blueScore: null,
+        redScore: null,
+        completed: false,
+        voided: false
+      });
+    });
+  });
+  return matches;
+}
+
+// ----------------------------------------------------
 // INDIVIDUAL ROUND ROBIN ALGORITHM (升級版：個人雙打輪播 - 智慧動態候選池與全域尋優)
 // 包含：四人同場熱度冷卻約束（防隔離內戰）與對手均衡化權重
 // ----------------------------------------------------
@@ -275,6 +325,11 @@ export function generateRoundRobinSchedule(playersList, durationHours = 2.0, est
     totalRounds = getMaxTotalGames(rawTargetGames);
   } else {
     totalRounds = getValidTotalGames(n, rawTargetGames);
+  }
+
+  // 8 人打滿 14 局：直接用完美排法（搭檔各 1 次、對手各 2 次）
+  if (n === 8 && totalRounds === 14) {
+    return generatePerfectEightSchedule(playersList);
   }
 
   function generateSingleSchedule() {

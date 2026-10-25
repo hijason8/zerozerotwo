@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261024-12";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261025-1";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261024-12";
+} from "./scheduler.js?v=20261025-1";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261024-12";
+} from "./globals.js?v=20261025-1";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -1313,9 +1313,12 @@ const isTransientPlayer = (name) => {
         // 分支 B: 立即開打模式 (Instant Play)
         // ----------------------------------------------------
         let backendSuccess = false;
+        // 8 人雙打打滿 14 局：直接在網頁用完美排法（搭檔各 1 次、對手各 2 次），不經雲端
+        const usePerfectEight = !isSingles && !isTeamMode && uniquePlayers.length === 8
+          && (customTotalGames === 14 || (!customTotalGames && effectiveMode === "round-robin"));
         if (mode === "fair") {
           // 優先呼叫後端 Cloud Function 執行核心排賽計算
-          try {
+          if (!usePerfectEight) try {
             const format = isSingles ? "singles" : (isTeamMode ? "team" : "doubles");
             const res = await fetch(`${FUNCTIONS_BASE_URL}/generateSchedule`, {
               method: "POST",
