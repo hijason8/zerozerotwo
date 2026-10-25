@@ -40,6 +40,44 @@ def get_valid_total_games(n: int, raw_target_games: int) -> int:
     return blocks * block_size
 
 
+# 8 人完美全循環（固定排法）：14 局、每 2 局 8 人各上場一次（可兩面場同時打）
+# 每人與其他 7 人各搭檔 1 次、各當對手 2 次。每次開賽隨機打亂名字、輪次順序與藍紅方
+PERFECT_8_ROUNDS = [
+    [[[0, 1], [2, 3]], [[4, 5], [6, 7]]],
+    [[[0, 2], [4, 6]], [[1, 3], [5, 7]]],
+    [[[0, 3], [4, 7]], [[1, 2], [5, 6]]],
+    [[[0, 4], [1, 5]], [[2, 6], [3, 7]]],
+    [[[0, 5], [2, 7]], [[1, 4], [3, 6]]],
+    [[[0, 6], [3, 5]], [[1, 7], [2, 4]]],
+    [[[0, 7], [1, 6]], [[2, 5], [3, 4]]],
+]
+
+
+def generate_perfect_eight_schedule(players_list: List[str]) -> List[Dict[str, Any]]:
+    names = random.sample(players_list, len(players_list))
+    matches: List[Dict[str, Any]] = []
+    for rnd in random.sample(PERFECT_8_ROUNDS, len(PERFECT_8_ROUNDS)):
+        for game in random.sample(rnd, len(rnd)):
+            t1, t2 = (game[0], game[1]) if random.random() < 0.5 else (game[1], game[0])
+            blue = [names[i] for i in t1]
+            red = [names[i] for i in t2]
+            active = blue + red
+            r = len(matches) + 1
+            matches.append({
+                "id": r,
+                "roundName": f"Game {r}",
+                "blue": blue,
+                "red": red,
+                "resting": [x for x in names if x not in active],
+                "active": active,
+                "blueScore": None,
+                "redScore": None,
+                "completed": False,
+                "voided": False
+            })
+    return matches
+
+
 def generate_doubles_schedule(
     players_list: List[str],
     duration_hours: float = 2.0,
@@ -63,6 +101,10 @@ def generate_doubles_schedule(
         total_rounds = max(3, raw_target_games)
     else:
         total_rounds = get_valid_total_games(n, raw_target_games)
+
+    # 8 人打滿 14 局：直接用完美排法（搭檔各 1 次、對手各 2 次）
+    if n == 8 and total_rounds == 14:
+        return generate_perfect_eight_schedule(players_list)
 
     def run_single_simulation() -> Dict[str, Any]:
         games_played = {p: 0 for p in players_list}

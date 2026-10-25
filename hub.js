@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261024-12";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261025-1";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261024-12";
+} from "./globals.js?v=20261025-1";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），

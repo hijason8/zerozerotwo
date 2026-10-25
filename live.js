@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261024-12";
+} from "./utils.js?v=20261025-1";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261024-12";
+} from "./scheduler.js?v=20261025-1";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261024-12";
+} from "./globals.js?v=20261025-1";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1156,8 +1156,11 @@ async function startTournamentFromLobby(startMode = 'schedule', confirmed = fals
     tData.customTotalGames = customTotalGames;
     const effectiveMode = "fair";
 
+    // 8 人雙打打滿 14 局：直接在網頁用完美排法（搭檔各 1 次、對手各 2 次），不經雲端
+    const usePerfectEight = !isSingles && !isTeamMode && players.length === 8 && customTotalGames === 14;
+
     if (effectiveMode !== "free") {
-      try {
+      if (!usePerfectEight) try {
         const format = isSingles ? "singles" : (isTeamMode ? "team" : "doubles");
         const res = await fetch(`${FUNCTIONS_BASE_URL}/generateSchedule`, {
           method: "POST",
