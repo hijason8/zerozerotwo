@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261101-5";
+} from "./utils.js?v=20261101-6";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261101-5";
+} from "./scheduler.js?v=20261101-6";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261101-5";
+} from "./globals.js?v=20261101-6";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -231,8 +231,12 @@ function renderLiveUI(data) {
     if (data.clubName && data.clubName.trim()) {
       clubBadge.innerHTML = `<i data-lucide="shield" class="w-2.5 h-2.5 text-amber-500 shrink-0"></i> <span>${escapeHTML(data.clubName.trim())}</span>`;
       clubBadge.className = "text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1";
+    } else if (data.isPrivate === true) {
+      // 僅限連結的臨打賽事：不會出現在臨打活動列表
+      clubBadge.innerHTML = `<i data-lucide="lock" class="w-2.5 h-2.5 shrink-0"></i> <span>${isZh ? '僅限連結' : 'Link only'}</span>`;
+      clubBadge.className = "text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 inline-flex items-center gap-0.5";
     } else {
-      clubBadge.innerHTML = `<i data-lucide="zap" class="w-2.5 h-2.5 text-teal-500 shrink-0"></i> <span>${isZh ? '公開球局' : 'Public'}</span>`;
+      clubBadge.innerHTML = `<i data-lucide="zap" class="w-2.5 h-2.5 text-teal-500 shrink-0"></i> <span>${isZh ? '臨打' : 'Drop-in'}</span>`;
       clubBadge.className = "text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 inline-flex items-center gap-0.5";
     }
   }
