@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261101-4";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261101-5";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261101-4";
+} from "./globals.js?v=20261101-5";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -3057,17 +3057,24 @@ const isTransientPlayer = (name) => {
             ${sortedT.map(tData => {
           const total = tData.matches ? tData.matches.length : 0;
           const done = tData.matches ? tData.matches.filter(m => m.completed).length : 0;
-          const isFinished = total > 0 && done === total;
+          // 以「是否按過結束賽事」判斷，分數打完但未結束的仍算進行中（可強制結束）
+          const isFinished = isTournamentFinished(tData);
+          const isRegistering = tData.status === "registering";
+          const dateStr = typeof formatTournamentDate === "function" ? formatTournamentDate(tData.createdAt) : "";
           const clubBadge = tData.clubName ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${escapeHTML(tData.clubName)}</span>` : '';
           return `
               <div class="flex items-center justify-between gap-2 py-2 border-b border-stone-200 dark:border-slate-800/50 last:border-0">
                 <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
                   <span class="text-[10px] font-mono font-bold card-inner px-1.5 py-0.5 rounded border text-emerald-600 dark:text-emerald-400">${escapeHTML(tData.id)}</span>
                   ${clubBadge}
-                  <span class="text-xs font-semibold truncate">${escapeHTML(tData.name)}</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded font-medium ${isFinished ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'} border">${isFinished ? '🏆' : '🔥'} ${done}/${total}</span>
+                  <button type="button" onclick="enterTournament('${escapeJsAttr(tData.id)}')" class="text-xs font-semibold truncate hover:text-emerald-500 hover:underline text-left cursor-pointer">${escapeHTML(tData.name)}</button>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded font-medium ${isFinished ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'} border">${isFinished ? '已結束' : (isRegistering ? '報名中' : '進行中')} ${done}/${total}</span>
+                  ${dateStr ? `<span class="text-[10px] sub-text">${dateStr}</span>` : ''}
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
+                  <button onclick="enterTournament('${escapeJsAttr(tData.id)}')" class="px-2 py-1 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 font-bold rounded-lg text-[11px] transition" title="${STATE.lang === 'zh-TW' ? '進入賽事查看與修改' : 'Open tournament'}">
+                    ${STATE.lang === 'zh-TW' ? (isFinished ? '查看' : '進入') : 'Open'}
+                  </button>
                   <button onclick="adminRenameTournament('${escapeJsAttr(tData.id)}', '${escapeJsAttr(tData.name || '')}')" class="p-1.5 rounded-lg card-inner hover:bg-emerald-500/20 sub-text hover:text-emerald-500 border transition" title="${STATE.lang === 'zh-TW' ? '修改賽事名稱' : 'Rename Tournament'}">
                     <i data-lucide="edit-3" class="w-3 h-3"></i>
                   </button>
