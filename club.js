@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261101-5";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261101-6";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261101-5";
+} from "./globals.js?v=20261101-6";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -3061,7 +3061,9 @@ const isTransientPlayer = (name) => {
           const isFinished = isTournamentFinished(tData);
           const isRegistering = tData.status === "registering";
           const dateStr = typeof formatTournamentDate === "function" ? formatTournamentDate(tData.createdAt) : "";
-          const clubBadge = tData.clubName ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${escapeHTML(tData.clubName)}</span>` : '';
+          const clubBadge = tData.clubName
+            ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">${escapeHTML(tData.clubName)}</span>`
+            : (tData.isPrivate === true ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-stone-500/10 sub-text border">🔒 僅限連結</span>` : '');
           return `
               <div class="flex items-center justify-between gap-2 py-2 border-b border-stone-200 dark:border-slate-800/50 last:border-0">
                 <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
