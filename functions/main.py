@@ -628,6 +628,10 @@ def _handle_open_registrations(user_id: str = "") -> str:
 
         c_name = (t.get("clubName") or "").strip()
 
+        # 僅限連結的臨打賽事不公開列出
+        if t.get("isPrivate") is True:
+            continue
+
         # 篩選來源：
         # 1. 沒有社團建立的接龍活動 (not c_name)
         # 2. 或該 LINE ID 帳號下的社團 (c_name in user_my_clubs)

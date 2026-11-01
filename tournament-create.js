@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261025-1";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261101-1";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261025-1";
+} from "./scheduler.js?v=20261101-1";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261025-1";
+} from "./globals.js?v=20261101-1";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -658,7 +658,27 @@ const isTransientPlayer = (name) => {
 
     function onClubSelectChange() {
       renderClubMemberChips();
+      // 「誰看得到」只給臨打賽事；社團賽事的公開與否由社團的私密設定決定
+      const clubVal = (document.getElementById("create-club-select")?.value || "").trim();
+      const wrapPrivacy = document.getElementById("wrap-create-privacy");
+      if (wrapPrivacy) wrapPrivacy.classList.toggle("hidden", !!clubVal);
+      if (clubVal) setCreatePrivacy(false);
     }
+
+    function setCreatePrivacy(isPrivate) {
+      const input = document.getElementById("create-privacy");
+      if (input) input.value = isPrivate ? "private" : "public";
+      const base = "py-2 px-3 rounded-xl border-2 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm";
+      const pubBtn = document.getElementById("btn-create-public");
+      const privBtn = document.getElementById("btn-create-private");
+      if (pubBtn) pubBtn.className = `${isPrivate ? "mode-btn-inactive" : "mode-btn-active"} ${base}`;
+      if (privBtn) privBtn.className = `${isPrivate ? "mode-btn-active" : "mode-btn-inactive"} ${base}`;
+      const hint = document.getElementById("create-privacy-hint");
+      if (hint) hint.innerText = isPrivate
+        ? "不會出現在「臨打活動」，只有拿到分享連結的人能進入"
+        : "會出現在「臨打活動」，大家都看得到";
+    }
+    window.setCreatePrivacy = setCreatePrivacy;
     window.onClubSelectChange = onClubSelectChange;
 
     function filterByClub(clubName) {
@@ -1146,6 +1166,7 @@ const isTransientPlayer = (name) => {
       renderClubMemberChips();
       updatePlayerCountBadge();
       setCreateEntryType("instant");
+      setCreatePrivacy(false);
       setupCreateFormContext(STATE.createContextClub);
     }
     window.resetCreateForm = resetCreateForm;
@@ -1214,7 +1235,8 @@ const isTransientPlayer = (name) => {
           effectiveMode = "round-robin";
         }
 
-        const isPrivate = false;
+        // 只有臨打賽事可以設為「僅限連結」
+        const isPrivate = !clubName && document.getElementById("create-privacy")?.value === "private";
 
         const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
         const isTeamMode = (partnerType === "fixed");

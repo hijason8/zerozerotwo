@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261025-1";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261101-1";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261025-1";
+} from "./globals.js?v=20261101-1";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -185,7 +185,7 @@ export function renderTournamentCard(tData, opts = {}) {
   const isClubGame = !!(tData.clubName && tData.clubName.trim());
   const privacyBadge = tData.isPrivate === true ? `
     <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 flex items-center gap-0.5">
-      <i data-lucide="lock" class="w-2.5 h-2.5"></i> ${t("badgePrivate")}
+      <i data-lucide="lock" class="w-2.5 h-2.5"></i> ${isClubGame ? t("badgePrivate") : (STATE.lang === "zh-TW" ? "僅限連結" : "Link only")}
     </span>
   ` : (isClubGame ? '' : `
     <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-0.5">
@@ -325,10 +325,18 @@ export function displayHubTournamentsList(list) {
     window.populateCreateClubSelect();
   }
 
+  // 這台裝置建立過的賽事（建立者自己找得回「僅限連結」的賽事）
+  let createdHere = [];
+  try { createdHere = JSON.parse(localStorage.getItem("pb_created_tournaments") || "[]"); } catch (e) { }
+
   let filteredList = (list || []).filter(t => {
     const isClub = !!(t.clubName && t.clubName.trim());
     if (isClub) return false;
-    return t.isPrivate !== true;
+    if (t.isPrivate !== true) return true;
+    // 僅限連結的賽事：只有建立者與已報名的人在自己的臨打活動看得到
+    if (createdHere.includes(t.id)) return true;
+    const check = window.checkTournamentRegistrationStatus;
+    return typeof check === "function" && check(t).isRegistered;
   });
   filteredList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
