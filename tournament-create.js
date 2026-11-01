@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261101-1";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261101-2";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261101-1";
+} from "./scheduler.js?v=20261101-2";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261101-1";
+} from "./globals.js?v=20261101-2";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -668,7 +668,7 @@ const isTransientPlayer = (name) => {
     function setCreatePrivacy(isPrivate) {
       const input = document.getElementById("create-privacy");
       if (input) input.value = isPrivate ? "private" : "public";
-      const base = "py-2 px-3 rounded-xl border-2 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm";
+      const base = "py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start gap-2 hover-lift active:scale-95 shadow-sm";
       const pubBtn = document.getElementById("btn-create-public");
       const privBtn = document.getElementById("btn-create-private");
       if (pubBtn) pubBtn.className = `${isPrivate ? "mode-btn-inactive" : "mode-btn-active"} ${base}`;
