@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261101-2";
-import { renderTournamentCard, renderCardWithRegistration } from "./hub.js?v=20261101-2";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261101-4";
+import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261101-4";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261101-2";
+} from "./globals.js?v=20261101-4";
 
 let activitiesSearchKeyword = "";
 
@@ -204,7 +204,7 @@ export function displayActivitiesList(list) {
   const completedList = [];
   clubGames.forEach(t => {
     if (isFinishedFn(t)) {
-      const d = parseFn(t.createdAt);
+      const d = getFinishedTime(t);
       if (d ? (nowMs - d.getTime()) <= THREE_DAYS_MS : true) completedList.push(t);
     } else if (t.status === "registering") {
       signupList.push(t);
@@ -223,6 +223,7 @@ export function displayActivitiesList(list) {
   };
   fillSection("activities-registered-section", "activities-registered-list", "activities-registered-count", liveList);
   fillSection("activities-available-section", "activities-available-list", "activities-available-count", signupList);
+  completedList.sort((x, y) => (getFinishedTime(y)?.getTime() || 0) - (getFinishedTime(x)?.getTime() || 0));
   fillSection("activities-completed-section", "activities-completed-list", "activities-completed-count", completedList);
 
   // 沒有內容時（未登入／尚未加入社團／社團近期沒活動）：一句提示＋活躍社團

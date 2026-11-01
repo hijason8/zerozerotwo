@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261101-2";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261101-4";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261101-2";
+} from "./globals.js?v=20261101-4";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -312,6 +312,14 @@ export function renderCardWithRegistration(tData) {
 if (typeof window !== "undefined") window.renderCardWithRegistration = renderCardWithRegistration;
 
 
+// 近期完賽以「結束時間」計算（接龍常常提早幾天建立，用建立時間會讓今天剛打完的賽事看不到）
+export function getFinishedTime(t) {
+  const raw = t && (t.completedAt || t.startedAt || t.createdAt);
+  if (!raw) return null;
+  const d = typeof raw === "number" ? new Date(raw) : (typeof window.parseTournamentDate === "function" ? window.parseTournamentDate(raw) : new Date(raw));
+  return d && !isNaN(d.getTime()) ? d : null;
+}
+
 export function displayHubTournamentsList(list) {
   const STATE = window.STATE || {};
   STATE.allTournamentsCache = list || [];
@@ -352,7 +360,7 @@ export function displayHubTournamentsList(list) {
   const completedList = [];
   filteredList.forEach(tData => {
     if (isFinishedFn(tData)) {
-      const tDate = parseFn(tData.createdAt);
+      const tDate = getFinishedTime(tData);
       const isWithin3Days = tDate ? (nowMs - tDate.getTime()) <= THREE_DAYS_MS : true;
       if (isWithin3Days) completedList.push(tData);
     } else if (tData.status === "registering") {
@@ -372,6 +380,7 @@ export function displayHubTournamentsList(list) {
   };
   fillSection("live", liveList);
   fillSection("signup", signupList);
+  completedList.sort((a, b) => (getFinishedTime(b)?.getTime() || 0) - (getFinishedTime(a)?.getTime() || 0));
   fillSection("completed", completedList);
 
   const emptyEl = document.getElementById("hub-empty");
