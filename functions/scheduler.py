@@ -78,6 +78,76 @@ def generate_perfect_eight_schedule(players_list: List[str]) -> List[Dict[str, A
     return matches
 
 
+# 6 人完美排法（固定排法）：15 局一輪，數字 0~5 代表 6 位球員
+# 每人打 10 休 5、每 3 局大家各休 1 次、不會連休、最多連打 3 局
+# 每兩人：同隊剛好 2 次（不連續）、一起休息剛好 1 次（不會被綁在一起）、對打剛好 4 次
+# 超過 15 局時，接一輪重新打亂名字的排法，並檢查銜接處
+PERFECT_6_GAMES = [
+    [[2, 5], [3, 4]], [[0, 3], [1, 5]], [[0, 1], [2, 4]],
+    [[0, 4], [3, 5]], [[1, 4], [2, 3]], [[0, 1], [2, 5]],
+    [[0, 4], [1, 3]], [[0, 2], [3, 5]], [[1, 2], [4, 5]],
+    [[0, 2], [3, 4]], [[0, 5], [1, 4]], [[1, 5], [2, 3]],
+    [[0, 5], [2, 4]], [[0, 3], [1, 2]], [[1, 3], [4, 5]],
+]
+
+
+def _is_six_join_ok(prev_games: List[Dict[str, Any]], next_games: List[Dict[str, Any]], names: List[str]) -> bool:
+    """檢查兩輪銜接處：不能連休 2 局、不能連打超過 3 局、不能連續兩局同隊"""
+    seq = prev_games[-4:] + next_games[:4]
+    for p in names:
+        plays = rests = 0
+        for g in seq:
+            if p in g["active"]:
+                plays += 1
+                rests = 0
+            else:
+                rests += 1
+                plays = 0
+            if plays > 3 or rests > 1:
+                return False
+    last_pairs = {frozenset(prev_games[-1]["blue"]), frozenset(prev_games[-1]["red"])}
+    first = next_games[0]
+    return frozenset(first["blue"]) not in last_pairs and frozenset(first["red"]) not in last_pairs
+
+
+def generate_perfect_six_schedule(players_list: List[str], total_rounds: int) -> List[Dict[str, Any]]:
+    def build_cycle(names: List[str]) -> List[Dict[str, Any]]:
+        cycle = []
+        for game in PERFECT_6_GAMES:
+            t1, t2 = (game[0], game[1]) if random.random() < 0.5 else (game[1], game[0])
+            blue = [names[i] for i in t1]
+            red = [names[i] for i in t2]
+            cycle.append({"blue": blue, "red": red, "active": blue + red})
+        return cycle
+
+    games: List[Dict[str, Any]] = []
+    while len(games) < total_rounds:
+        cycle = build_cycle(random.sample(players_list, len(players_list)))
+        if games:
+            tries = 0
+            while tries < 500 and not _is_six_join_ok(games, cycle, players_list):
+                cycle = build_cycle(random.sample(players_list, len(players_list)))
+                tries += 1
+        games.extend(cycle)
+
+    matches: List[Dict[str, Any]] = []
+    for idx, g in enumerate(games[:total_rounds]):
+        r = idx + 1
+        matches.append({
+            "id": r,
+            "roundName": f"Game {r}",
+            "blue": g["blue"],
+            "red": g["red"],
+            "resting": [x for x in players_list if x not in g["active"]],
+            "active": g["active"],
+            "blueScore": None,
+            "redScore": None,
+            "completed": False,
+            "voided": False
+        })
+    return matches
+
+
 def generate_doubles_schedule(
     players_list: List[str],
     duration_hours: float = 2.0,
@@ -105,6 +175,10 @@ def generate_doubles_schedule(
     # 8 人打滿 14 局：直接用完美排法（搭檔各 1 次、對手各 2 次）
     if n == 8 and total_rounds == 14:
         return generate_perfect_eight_schedule(players_list)
+
+    # 6 人：用完美排法，避免休息組合固定成三對、兩人被綁在一起
+    if n == 6:
+        return generate_perfect_six_schedule(players_list, total_rounds)
 
     def run_single_simulation() -> Dict[str, Any]:
         games_played = {p: 0 for p in players_list}
@@ -269,6 +343,140 @@ def generate_doubles_schedule(
     return best_matches
 
 
+# 單打分組輪轉排法（3 人以上）
+# 舊版逐場挑選會被「不連打」規則鎖死：偶數人數只打固定對手、7 人以上奇數全循環不完整。
+# 新版先把所有對戰分成數組，每組內每人場數相同，所有組合起來剛好每兩人對戰 1 次：
+#   - 偶數 n：輪轉法，每組 n/2 場、每人 1 場，共 n-1 組
+#   - 奇數 n：間隔法，第 d 組是「第 i 人 對 第 i+d 人」，每組 n 場、每人 2 場，共 (n-1)/2 組
+# 排序時：每組內逐場挑選（不連打 3 場、優先讓休息最久的人上場、同一組不連續對戰），
+# 並從剩下的組裡挑跟前面銜接最好的一組接上。
+# 取捨：組與組交界處，部分球員可能比舊版多休 1 場（舊版是靠固定對手才休得平均）。
+def _singles_blocks(names: List[str]) -> List[List[List[str]]]:
+    n = len(names)
+    blocks = []
+    if n % 2 == 0:
+        arr = list(names)
+        for _ in range(n - 1):
+            blocks.append([[arr[i], arr[n - 1 - i]] for i in range(n // 2)])
+            arr.insert(1, arr.pop())  # 第一位固定，其餘轉一格
+    else:
+        for d in range(1, (n - 1) // 2 + 1):
+            blocks.append([[names[i], names[(i + d) % n]] for i in range(n)])
+    return blocks
+
+
+def generate_balanced_singles_schedule(players_list: List[str], total_rounds: int) -> List[Dict[str, Any]]:
+    if total_rounds <= 0:
+        return []
+    n = len(players_list)
+    rest_target = max(1, math.ceil((n - 2) / 2))  # 理想的最長休息局數
+
+    def pair_key(g):
+        return tuple(sorted(g))
+
+    def new_state():
+        return {"gp": {p: 0 for p in players_list}, "cp": {p: 0 for p in players_list},
+                "cr": {p: 0 for p in players_list}, "last": None}
+
+    def clone_state(st):
+        return {"gp": dict(st["gp"]), "cp": dict(st["cp"]), "cr": dict(st["cr"]), "last": st["last"]}
+
+    def step_cost(st, g):
+        c = 0
+        after = [st["gp"][p] + (1 if p in g else 0) for p in players_list]
+        for p in players_list:
+            if p in g:
+                v = st["cp"][p] + 1
+                if v >= 3:
+                    c += 10000
+                elif v == 2:
+                    c += 100
+            else:
+                v = st["cr"][p] + 1
+                if v > rest_target:
+                    c += (v - rest_target) * 300
+        c -= (st["cr"][g[0]] + st["cr"][g[1]]) * 40  # 休息越久越優先
+        if max(after) - min(after) > 1:
+            c += 50000
+        if pair_key(g) == st["last"]:
+            c += 100000
+        return c
+
+    def apply_game(st, g):
+        for p in players_list:
+            if p in g:
+                st["gp"][p] += 1
+                st["cp"][p] += 1
+                st["cr"][p] = 0
+            else:
+                st["cr"][p] += 1
+                st["cp"][p] = 0
+        st["last"] = pair_key(g)
+
+    def order_block(st, games):
+        remaining = random.sample(games, len(games))
+        out, cost = [], 0
+        while remaining:
+            costs = [step_cost(st, g) for g in remaining]
+            idx = costs.index(min(costs))
+            cost += costs[idx]
+            g = remaining.pop(idx)
+            apply_game(st, g)
+            out.append(g)
+        return out, cost
+
+    def build_once():
+        st = new_state()
+        seq: List[List[str]] = []
+        cost = 0
+        blocks: List[List[List[str]]] = []
+        while len(seq) < total_rounds:
+            if not blocks:
+                blocks = _singles_blocks(random.sample(players_list, len(players_list)))  # 新的一輪
+            # 從剩下的組裡挑銜接最好的一組
+            pick = None
+            for idx, games in enumerate(blocks):
+                out, c = order_block(clone_state(st), games)
+                if pick is None or c < pick[2]:
+                    pick = (idx, out, c)
+            blocks.pop(pick[0])
+            for g in pick[1]:
+                if len(seq) >= total_rounds:
+                    break
+                cost += step_cost(st, g)
+                apply_game(st, g)
+                seq.append(g)
+        return seq, cost
+
+    best_seq, best_cost = None, float("inf")
+    for _ in range(40):
+        seq, cost = build_once()
+        if cost < best_cost:
+            best_seq, best_cost = seq, cost
+
+    # 藍紅方平均分配
+    side = {p: 0 for p in players_list}
+    matches: List[Dict[str, Any]] = []
+    for idx, g in enumerate(best_seq):
+        a, b = (g[0], g[1]) if random.random() < 0.5 else (g[1], g[0])
+        if side[a] > side[b]:
+            a, b = b, a
+        side[a] += 1
+        side[b] -= 1
+        matches.append({
+            "id": idx + 1,
+            "roundName": f"Game {idx + 1}",
+            "blue": [a],
+            "red": [b],
+            "resting": [x for x in players_list if x != a and x != b],
+            "blueScore": None,
+            "redScore": None,
+            "completed": False,
+            "voided": False
+        })
+    return matches
+
+
 def generate_singles_schedule(
     players_list: List[str],
     duration_hours: float = 2.0,
@@ -309,83 +517,8 @@ def generate_singles_schedule(
             "voided": False
         } for r in range(1, total_rounds + 1)]
 
-    # 3人以上單打模擬
-    all_pairs = list(combinations(players_list, 2))
-    best_matches = []
-    best_spread = float("inf")
-
-    for _ in range(15):
-        games_played = {p: 0 for p in players_list}
-        consecutive_plays = {p: 0 for p in players_list}
-        consecutive_rests = {p: 0 for p in players_list}
-        opponent_count = defaultdict(lambda: defaultdict(int))
-        sim_matches = []
-
-        for r in range(1, total_rounds + 1):
-            shuffled_pairs = sorted(all_pairs, key=lambda _: random.random())
-            min_played = min(games_played.values())
-            best_pair = None
-            min_cost = float("inf")
-
-            for p1, p2 in shuffled_pairs:
-                cost = (games_played[p1] + games_played[p2]) * 1000
-                if games_played[p1] > min_played:
-                    cost += (games_played[p1] - min_played) * 5000
-                if games_played[p2] > min_played:
-                    cost += (games_played[p2] - min_played) * 5000
-
-                streak_limit = 1 if n >= 4 else 2
-                if consecutive_plays[p1] >= streak_limit:
-                    cost += 4000
-                if consecutive_plays[p2] >= streak_limit:
-                    cost += 4000
-
-                would_rest = [p for p in players_list if p not in (p1, p2)]
-                for rp in would_rest:
-                    if consecutive_rests[rp] >= 2:
-                        cost += consecutive_rests[rp] * 3000
-
-                cost += opponent_count[p1][p2] * 600
-                if cost < min_cost:
-                    min_cost = cost
-                    best_pair = (p1, p2)
-
-            bp, rp = best_pair
-            resting = [p for p in players_list if p not in (bp, rp)]
-            games_played[bp] += 1
-            games_played[rp] += 1
-            consecutive_plays[bp] += 1
-            consecutive_plays[rp] += 1
-            consecutive_rests[bp] = 0
-            consecutive_rests[rp] = 0
-            for p in resting:
-                consecutive_rests[p] += 1
-                consecutive_plays[p] = 0
-
-            opponent_count[bp][rp] += 1
-            opponent_count[rp][bp] += 1
-
-            sim_matches.append({
-                "id": r,
-                "roundName": f"Game {r}",
-                "blue": [bp],
-                "red": [rp],
-                "resting": resting,
-                "blueScore": None,
-                "redScore": None,
-                "completed": False,
-                "voided": False
-            })
-
-        vals = list(games_played.values())
-        spread = max(vals) - min(vals)
-        if spread < best_spread:
-            best_spread = spread
-            best_matches = sim_matches
-            if spread == 0:
-                break
-
-    return best_matches
+    # 3 人以上用分組輪轉排法（每組每人場數相同、整輪剛好每兩人對戰一次）
+    return generate_balanced_singles_schedule(players_list, total_rounds)
 
 
 def generate_team_schedule(teams_list: List[str]) -> List[Dict[str, Any]]:
