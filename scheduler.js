@@ -306,6 +306,70 @@ export function generatePerfectEightSchedule(playersList) {
 }
 
 // ----------------------------------------------------
+// 6 人完美排法（固定排法）：15 局一輪，數字 0~5 代表 6 位球員
+// 每人打 10 休 5、每 3 局大家各休 1 次、不會連休、最多連打 3 局
+// 每兩人：同隊剛好 2 次（不連續）、一起休息剛好 1 次（不會被綁在一起）、對打剛好 4 次
+// 超過 15 局時，接一輪重新打亂名字的排法，並檢查銜接處
+// ----------------------------------------------------
+const PERFECT_6_GAMES = [
+  [[2, 5], [3, 4]], [[0, 3], [1, 5]], [[0, 1], [2, 4]],
+  [[0, 4], [3, 5]], [[1, 4], [2, 3]], [[0, 1], [2, 5]],
+  [[0, 4], [1, 3]], [[0, 2], [3, 5]], [[1, 2], [4, 5]],
+  [[0, 2], [3, 4]], [[0, 5], [1, 4]], [[1, 5], [2, 3]],
+  [[0, 5], [2, 4]], [[0, 3], [1, 2]], [[1, 3], [4, 5]]
+];
+
+// 檢查兩輪銜接處：不能連休 2 局、不能連打超過 3 局、不能連續兩局同隊
+function isSixJoinOk(prevGames, nextGames, names) {
+  const seq = prevGames.slice(-4).concat(nextGames.slice(0, 4));
+  for (const p of names) {
+    let plays = 0, rests = 0;
+    for (const g of seq) {
+      if (g.active.includes(p)) { plays++; rests = 0; } else { rests++; plays = 0; }
+      if (plays > 3 || rests > 1) return false;
+    }
+  }
+  const last = prevGames[prevGames.length - 1];
+  const first = nextGames[0];
+  const key = t => [...t].sort().join("|");
+  const lastPairs = [key(last.blue), key(last.red)];
+  return !lastPairs.includes(key(first.blue)) && !lastPairs.includes(key(first.red));
+}
+
+export function generatePerfectSixSchedule(playersList, totalRounds) {
+  const buildCycle = (names) => PERFECT_6_GAMES.map(game => {
+    const [t1, t2] = Math.random() < 0.5 ? game : [game[1], game[0]];
+    const blue = t1.map(i => names[i]);
+    const red = t2.map(i => names[i]);
+    return { blue, red, active: [...blue, ...red] };
+  });
+
+  let games = [];
+  while (games.length < totalRounds) {
+    let cycle = buildCycle(shuffled(playersList));
+    if (games.length > 0) {
+      for (let tries = 0; tries < 500 && !isSixJoinOk(games, cycle, playersList); tries++) {
+        cycle = buildCycle(shuffled(playersList));
+      }
+    }
+    games = games.concat(cycle);
+  }
+
+  return games.slice(0, totalRounds).map((g, idx) => ({
+    id: idx + 1,
+    roundName: `Game ${idx + 1}`,
+    blue: g.blue,
+    red: g.red,
+    resting: playersList.filter(x => !g.active.includes(x)),
+    active: g.active,
+    blueScore: null,
+    redScore: null,
+    completed: false,
+    voided: false
+  }));
+}
+
+// ----------------------------------------------------
 // INDIVIDUAL ROUND ROBIN ALGORITHM (升級版：個人雙打輪播 - 智慧動態候選池與全域尋優)
 // 包含：四人同場熱度冷卻約束（防隔離內戰）與對手均衡化權重
 // ----------------------------------------------------
@@ -330,6 +394,11 @@ export function generateRoundRobinSchedule(playersList, durationHours = 2.0, est
   // 8 人打滿 14 局：直接用完美排法（搭檔各 1 次、對手各 2 次）
   if (n === 8 && totalRounds === 14) {
     return generatePerfectEightSchedule(playersList);
+  }
+
+  // 6 人：用完美排法，避免休息組合固定成三對、兩人被綁在一起
+  if (n === 6) {
+    return generatePerfectSixSchedule(playersList, totalRounds);
   }
 
   function generateSingleSchedule() {
