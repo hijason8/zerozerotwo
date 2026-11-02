@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261101-6";
+import { STATE, t } from "./globals.js?v=20261102-1";
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -119,8 +119,12 @@ export const I18N_CUSTOM_TEXTS = {
     "Operation Panel"
   ],
   "t-live-back-nav": [
-    "返回活動總表",
-    "Back to Activities"
+    "返回",
+    "Back"
+  ],
+  "t-create-back-nav": [
+    "返回",
+    "Back"
   ],
   "t-dropdown-theme": [
     "外觀主題",
