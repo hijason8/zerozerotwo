@@ -69,134 +69,151 @@ export function generateSinglesSchedule(playersList, durationHours = 2.0, estMin
     return matches;
   }
 
-  // 情況 2：3 人以上單打輪播排程（多重重啟全域尋優）
-  function runSinglesSim() {
-    const gamesPlayed = {};
-    const opponentCount = {};
-    const consecutivePlays = {};
-    const consecutiveRests = {};
-    const blueCount = {};
-    const redCount = {};
+  // 情況 2：3 人以上用分組輪轉排法（每組每人場數相同、整輪剛好每兩人對戰一次）
+  return generateBalancedSinglesSchedule(playersList, totalRounds);
+}
 
+// ----------------------------------------------------
+// 單打分組輪轉排法（3 人以上）
+// 舊版逐場挑選會被「不連打」規則鎖死：偶數人數只打固定對手、7 人以上奇數全循環不完整。
+// 新版先把所有對戰分成數組，每組內每人場數相同，所有組合起來剛好每兩人對戰 1 次：
+//   - 偶數 n：輪轉法，每組 n/2 場、每人 1 場，共 n-1 組
+//   - 奇數 n：間隔法，第 d 組是「第 i 人 對 第 i+d 人」，每組 n 場、每人 2 場，共 (n-1)/2 組
+// 排序時：每組內逐場挑選（不連打 3 場、優先讓休息最久的人上場、同一組不連續對戰），
+// 並從剩下的組裡挑跟前面銜接最好的一組接上。
+// 取捨：組與組交界處，部分球員可能比舊版多休 1 場（舊版是靠固定對手才休得平均）。
+// ----------------------------------------------------
+function singlesBlocks(names) {
+  const n = names.length;
+  const blocks = [];
+  if (n % 2 === 0) {
+    const arr = [...names];
+    for (let r = 0; r < n - 1; r++) {
+      const games = [];
+      for (let i = 0; i < n / 2; i++) games.push([arr[i], arr[n - 1 - i]]);
+      blocks.push(games);
+      arr.splice(1, 0, arr.pop()); // 第一位固定，其餘轉一格
+    }
+  } else {
+    for (let d = 1; d <= (n - 1) / 2; d++) {
+      const games = [];
+      for (let i = 0; i < n; i++) games.push([names[i], names[(i + d) % n]]);
+      blocks.push(games);
+    }
+  }
+  return blocks;
+}
+
+function generateBalancedSinglesSchedule(playersList, totalRounds) {
+  if (totalRounds <= 0) return [];
+  const n = playersList.length;
+  const restTarget = Math.max(1, Math.ceil((n - 2) / 2)); // 理想的最長休息局數
+  const pairKey = g => [...g].sort().join("|");
+
+  const newState = () => {
+    const st = { gp: {}, cp: {}, cr: {}, last: null };
+    playersList.forEach(p => { st.gp[p] = 0; st.cp[p] = 0; st.cr[p] = 0; });
+    return st;
+  };
+  const cloneState = st => ({ gp: { ...st.gp }, cp: { ...st.cp }, cr: { ...st.cr }, last: st.last });
+
+  // 加入一場的成本（越低越好）
+  const stepCost = (st, g) => {
+    let c = 0;
+    let mx = -Infinity, mn = Infinity;
     playersList.forEach(p => {
-      gamesPlayed[p] = 0;
-      consecutivePlays[p] = 0;
-      consecutiveRests[p] = 0;
-      blueCount[p] = 0;
-      redCount[p] = 0;
-      opponentCount[p] = {};
-      playersList.forEach(q => { opponentCount[p][q] = 0; });
+      const playing = g.includes(p);
+      const after = st.gp[p] + (playing ? 1 : 0);
+      if (after > mx) mx = after;
+      if (after < mn) mn = after;
+      if (playing) {
+        const v = st.cp[p] + 1;
+        if (v >= 3) c += 10000; else if (v === 2) c += 100;
+      } else {
+        const v = st.cr[p] + 1;
+        if (v > restTarget) c += (v - restTarget) * 300;
+      }
     });
+    c -= (st.cr[g[0]] + st.cr[g[1]]) * 40; // 休息越久越優先
+    if (mx - mn > 1) c += 50000;
+    if (pairKey(g) === st.last) c += 100000;
+    return c;
+  };
+  const applyGame = (st, g) => {
+    playersList.forEach(p => {
+      if (g.includes(p)) { st.gp[p]++; st.cp[p]++; st.cr[p] = 0; } else { st.cr[p]++; st.cp[p] = 0; }
+    });
+    st.last = pairKey(g);
+  };
+  // 一組內逐場挑選順序（會改變 st）
+  const orderBlock = (st, games) => {
+    const remaining = shuffled(games);
+    const out = [];
+    let cost = 0;
+    while (remaining.length > 0) {
+      let bestIdx = 0, bestCost = Infinity;
+      remaining.forEach((g, idx) => {
+        const c = stepCost(st, g);
+        if (c < bestCost) { bestCost = c; bestIdx = idx; }
+      });
+      const g = remaining.splice(bestIdx, 1)[0];
+      cost += bestCost;
+      applyGame(st, g);
+      out.push(g);
+    }
+    return { out, cost };
+  };
 
-    const allPairs = [];
-    for (let i = 0; i < n; i++) {
-      for (let j = i + 1; j < n; j++) {
-        allPairs.push([playersList[i], playersList[j]]);
+  function buildOnce() {
+    const st = newState();
+    const seq = [];
+    let cost = 0;
+    let blocks = [];
+    while (seq.length < totalRounds) {
+      if (blocks.length === 0) blocks = singlesBlocks(shuffled(playersList)); // 新的一輪
+      // 從剩下的組裡挑銜接最好的一組
+      let pick = null;
+      blocks.forEach((games, idx) => {
+        const trial = orderBlock(cloneState(st), games);
+        if (!pick || trial.cost < pick.cost) pick = { idx, out: trial.out, cost: trial.cost };
+      });
+      blocks.splice(pick.idx, 1);
+      for (const g of pick.out) {
+        if (seq.length >= totalRounds) break;
+        cost += stepCost(st, g);
+        applyGame(st, g);
+        seq.push(g);
       }
     }
-
-    const simMatches = [];
-
-    for (let r = 1; r <= totalRounds; r++) {
-      let bestPair = null;
-      let minCost = Infinity;
-
-      const shuffledPairs = [...allPairs].sort(() => Math.random() - 0.5);
-      const minPlayedAcrossAll = Math.min(...Object.values(gamesPlayed));
-
-      for (const [p1, p2] of shuffledPairs) {
-        let cost = 0;
-
-        // 1. 出賽總場次越少越優先
-        cost += (gamesPlayed[p1] + gamesPlayed[p2]) * 1000;
-
-        // 2. 與全體最少出賽場次的落差懲罰（保證所有人局數差距 <= 1）
-        if (gamesPlayed[p1] > minPlayedAcrossAll) cost += (gamesPlayed[p1] - minPlayedAcrossAll) * 5000;
-        if (gamesPlayed[p2] > minPlayedAcrossAll) cost += (gamesPlayed[p2] - minPlayedAcrossAll) * 5000;
-
-        // 3. 連打抑制
-        if (n >= 4) {
-          if (consecutivePlays[p1] >= 1) cost += 4000;
-          if (consecutivePlays[p2] >= 1) cost += 4000;
-        } else if (n === 3) {
-          if (consecutivePlays[p1] >= 2) cost += 10000;
-          if (consecutivePlays[p2] >= 2) cost += 10000;
-        }
-
-        // 4. 板凳防冷懲罰
-        const wouldRest = playersList.filter(p => p !== p1 && p !== p2);
-        wouldRest.forEach(rp => {
-          if (consecutiveRests[rp] >= 2) cost += (consecutiveRests[rp] * 3000);
-        });
-
-        // 5. 對手對決次數懲罰（平均交手）
-        const oppTimes = opponentCount[p1][p2] || 0;
-        cost += oppTimes * 600;
-
-        if (cost < minCost) {
-          minCost = cost;
-          bestPair = [p1, p2];
-        }
-      }
-
-      const [bp, rp] = bestPair;
-      let bluePlayer = bp;
-      let redPlayer = rp;
-      if (blueCount[bp] > blueCount[rp] || redCount[rp] > redCount[bp]) {
-        bluePlayer = rp;
-        redPlayer = bp;
-      }
-
-      const resting = playersList.filter(p => p !== bluePlayer && p !== redPlayer);
-
-      gamesPlayed[bluePlayer]++;
-      gamesPlayed[redPlayer]++;
-      consecutivePlays[bluePlayer]++;
-      consecutivePlays[redPlayer]++;
-      consecutiveRests[bluePlayer] = 0;
-      consecutiveRests[redPlayer] = 0;
-      blueCount[bluePlayer]++;
-      redCount[redPlayer]++;
-
-      resting.forEach(p => {
-        consecutiveRests[p]++;
-        consecutivePlays[p] = 0;
-      });
-
-      opponentCount[bluePlayer][redPlayer]++;
-      opponentCount[redPlayer][bluePlayer]++;
-
-      simMatches.push({
-        id: r,
-        roundName: `Game ${r}`,
-        blue: [bluePlayer],
-        red: [redPlayer],
-        resting: resting,
-        blueScore: null,
-        redScore: null,
-        completed: false,
-        voided: false
-      });
-    }
-
-    return { matches: simMatches, gamesPlayed };
+    return { seq, cost };
   }
 
-  let bestMatches = null;
-  let bestSpread = Infinity;
-
-  for (let iter = 0; iter < 15; iter++) {
-    const sim = runSinglesSim();
-    const vals = Object.values(sim.gamesPlayed);
-    const spread = Math.max(...vals) - Math.min(...vals);
-    if (spread < bestSpread) {
-      bestSpread = spread;
-      bestMatches = sim.matches;
-      if (spread === 0) break;
-    }
+  let best = null;
+  for (let iter = 0; iter < 40; iter++) {
+    const res = buildOnce();
+    if (!best || res.cost < best.cost) best = res;
   }
 
-  return bestMatches;
+  // 藍紅方平均分配
+  const side = {};
+  playersList.forEach(p => { side[p] = 0; });
+  return best.seq.map((g, idx) => {
+    let [a, b] = Math.random() < 0.5 ? g : [g[1], g[0]];
+    if (side[a] > side[b]) [a, b] = [b, a];
+    side[a]++;
+    side[b]--;
+    return {
+      id: idx + 1,
+      roundName: `Game ${idx + 1}`,
+      blue: [a],
+      red: [b],
+      resting: playersList.filter(x => x !== a && x !== b),
+      blueScore: null,
+      redScore: null,
+      completed: false,
+      voided: false
+    };
+  });
 }
 
 // Helper: 隊伍對抗全循環對戰表 (1 隊 vs 1 隊)
