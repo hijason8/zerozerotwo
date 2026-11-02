@@ -16,6 +16,10 @@ from collections import defaultdict
 from itertools import combinations
 
 
+# 單一場地「個人輪替雙打 / 個人單打」人數上限：超過就無法在合理時間內讓每人場數完全平均
+MAX_SINGLE_COURT_PLAYERS = 12
+
+
 def get_full_round_robin_games(n: int, is_team_mode: bool = False, is_singles: bool = False) -> int:
     """計算真實全循環所需總局數"""
     if n < 2:
@@ -78,6 +82,76 @@ def generate_perfect_eight_schedule(players_list: List[str]) -> List[Dict[str, A
     return matches
 
 
+# 6 人完美排法（固定排法）：15 局一輪，數字 0~5 代表 6 位球員
+# 每人打 10 休 5、每 3 局大家各休 1 次、不會連休、最多連打 3 局
+# 每兩人：同隊剛好 2 次（不連續）、一起休息剛好 1 次（不會被綁在一起）、對打剛好 4 次
+# 超過 15 局時，接一輪重新打亂名字的排法，並檢查銜接處
+PERFECT_6_GAMES = [
+    [[2, 5], [3, 4]], [[0, 3], [1, 5]], [[0, 1], [2, 4]],
+    [[0, 4], [3, 5]], [[1, 4], [2, 3]], [[0, 1], [2, 5]],
+    [[0, 4], [1, 3]], [[0, 2], [3, 5]], [[1, 2], [4, 5]],
+    [[0, 2], [3, 4]], [[0, 5], [1, 4]], [[1, 5], [2, 3]],
+    [[0, 5], [2, 4]], [[0, 3], [1, 2]], [[1, 3], [4, 5]],
+]
+
+
+def _is_six_join_ok(prev_games: List[Dict[str, Any]], next_games: List[Dict[str, Any]], names: List[str]) -> bool:
+    """檢查兩輪銜接處：不能連休 2 局、不能連打超過 3 局、不能連續兩局同隊"""
+    seq = prev_games[-4:] + next_games[:4]
+    for p in names:
+        plays = rests = 0
+        for g in seq:
+            if p in g["active"]:
+                plays += 1
+                rests = 0
+            else:
+                rests += 1
+                plays = 0
+            if plays > 3 or rests > 1:
+                return False
+    last_pairs = {frozenset(prev_games[-1]["blue"]), frozenset(prev_games[-1]["red"])}
+    first = next_games[0]
+    return frozenset(first["blue"]) not in last_pairs and frozenset(first["red"]) not in last_pairs
+
+
+def generate_perfect_six_schedule(players_list: List[str], total_rounds: int) -> List[Dict[str, Any]]:
+    def build_cycle(names: List[str]) -> List[Dict[str, Any]]:
+        cycle = []
+        for game in PERFECT_6_GAMES:
+            t1, t2 = (game[0], game[1]) if random.random() < 0.5 else (game[1], game[0])
+            blue = [names[i] for i in t1]
+            red = [names[i] for i in t2]
+            cycle.append({"blue": blue, "red": red, "active": blue + red})
+        return cycle
+
+    games: List[Dict[str, Any]] = []
+    while len(games) < total_rounds:
+        cycle = build_cycle(random.sample(players_list, len(players_list)))
+        if games:
+            tries = 0
+            while tries < 500 and not _is_six_join_ok(games, cycle, players_list):
+                cycle = build_cycle(random.sample(players_list, len(players_list)))
+                tries += 1
+        games.extend(cycle)
+
+    matches: List[Dict[str, Any]] = []
+    for idx, g in enumerate(games[:total_rounds]):
+        r = idx + 1
+        matches.append({
+            "id": r,
+            "roundName": f"Game {r}",
+            "blue": g["blue"],
+            "red": g["red"],
+            "resting": [x for x in players_list if x not in g["active"]],
+            "active": g["active"],
+            "blueScore": None,
+            "redScore": None,
+            "completed": False,
+            "voided": False
+        })
+    return matches
+
+
 def generate_doubles_schedule(
     players_list: List[str],
     duration_hours: float = 2.0,
@@ -87,7 +161,7 @@ def generate_doubles_schedule(
 ) -> List[Dict[str, Any]]:
     """個人雙打輪播排程 (Pure Function)"""
     n = len(players_list)
-    if n < 4:
+    if n < 4 or n > MAX_SINGLE_COURT_PLAYERS:
         return []
 
     total_minutes = round(duration_hours * 60)
@@ -105,6 +179,10 @@ def generate_doubles_schedule(
     # 8 人打滿 14 局：直接用完美排法（搭檔各 1 次、對手各 2 次）
     if n == 8 and total_rounds == 14:
         return generate_perfect_eight_schedule(players_list)
+
+    # 6 人：用完美排法，避免休息組合固定成三對、兩人被綁在一起
+    if n == 6:
+        return generate_perfect_six_schedule(players_list, total_rounds)
 
     def run_single_simulation() -> Dict[str, Any]:
         games_played = {p: 0 for p in players_list}
@@ -278,7 +356,7 @@ def generate_singles_schedule(
 ) -> List[Dict[str, Any]]:
     """個人單打 (1v1) 智慧輪播排程演算法"""
     n = len(players_list)
-    if n < 2:
+    if n < 2 or n > MAX_SINGLE_COURT_PLAYERS:
         return []
 
     total_minutes = round(duration_hours * 60)

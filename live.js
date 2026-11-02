@@ -18,15 +18,16 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261102-1";
+} from "./utils.js?v=20261102-2";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
   generateTeamRoundRobinSchedule,
   getValidTotalGames,
   getMaxTotalGames,
-  generateRoundRobinSchedule
-} from "./scheduler.js?v=20261102-1";
+  generateRoundRobinSchedule,
+  MAX_SINGLE_COURT_PLAYERS
+} from "./scheduler.js?v=20261102-2";
 
 import {
   STATE,
@@ -39,7 +40,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261102-1";
+} from "./globals.js?v=20261102-2";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1092,7 +1093,24 @@ async function executeStartTournamentConfirmed() {
 }
 window.executeStartTournamentConfirmed = executeStartTournamentConfirmed;
 
+// 單一場地輪替/單打超過人數上限時不能排賽（回傳 true 表示已擋下）
+function blockIfOverCourtLimit(tData) {
+  const players = (tData.players || []).map(p => p.trim()).filter(Boolean);
+  const isSingles = (tData.partnerType === "singles");
+  const isTeamMode = !!(tData.isTeamMode || tData.partnerType === "fixed");
+  if (isTeamMode || players.length <= MAX_SINGLE_COURT_PLAYERS) return false;
+  showToast(
+    STATE.lang === "zh-TW"
+      ? `⚠️ 單一場地${isSingles ? "單打" : "輪替"}最多 ${MAX_SINGLE_COURT_PLAYERS} 人，目前 ${players.length} 人。請移除部分報名，或分成多個賽事。`
+      : `Max ${MAX_SINGLE_COURT_PLAYERS} players per court (now ${players.length}). Remove some sign-ups or split into separate tournaments.`,
+    "error",
+    6000
+  );
+  return true;
+}
+
 async function startTournamentFromLobby(startMode = 'schedule', confirmed = false) {
+  if (startMode !== 'practice' && STATE.tournamentData && blockIfOverCourtLimit(STATE.tournamentData)) return;
   if (!confirmed) {
     promptConfirmStartTournament(startMode);
     return;
@@ -1138,6 +1156,8 @@ async function startTournamentFromLobby(startMode = 'schedule', confirmed = fals
     );
     return;
   }
+
+  if (blockIfOverCourtLimit(tData)) return;
 
   tData.tournamentMode = "fair";
   tData.isPracticeMode = false;

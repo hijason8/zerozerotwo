@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261102-1";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261102-2";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -34,8 +34,9 @@ import {
   generateTeamRoundRobinSchedule,
   getValidTotalGames,
   getMaxTotalGames,
-  generateRoundRobinSchedule
-} from "./scheduler.js?v=20261102-1";
+  generateRoundRobinSchedule,
+  MAX_SINGLE_COURT_PLAYERS
+} from "./scheduler.js?v=20261102-2";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +53,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261102-1";
+} from "./globals.js?v=20261102-2";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -780,7 +781,7 @@ const isTransientPlayer = (name) => {
     }
 
     const MAX_ROSTER_LIMIT = 60; // 參賽登錄上限：60 組/人
-    const MAX_ROTATING_PLAYERS = 16; // 單一球場個人輪替上限：16 人
+    const MAX_ROTATING_PLAYERS = MAX_SINGLE_COURT_PLAYERS; // 單一球場個人輪替/單打上限：12 人
 
     function setSelectedPlayers(list) {
       const textarea = document.getElementById("create-players");
@@ -794,7 +795,7 @@ const isTransientPlayer = (name) => {
         unique = unique.slice(0, MAX_ROTATING_PLAYERS);
         showToast(
           STATE.lang === "zh-TW"
-            ? `⚠️ 單場${isSingles ? "單打" : "輪替"}模式建議上限為 ${MAX_ROTATING_PLAYERS} 人！若人數更多建議分開建立賽事。`
+            ? `⚠️ 單一場地${isSingles ? "單打" : "輪替"}最多 ${MAX_ROTATING_PLAYERS} 人！人數更多請分成多個賽事。`
             : `⚠️ Max ${MAX_ROTATING_PLAYERS} players for single-court rotating/singles! Consider splitting into separate tournaments.`,
           "warning"
         );
@@ -1260,6 +1261,16 @@ const isTransientPlayer = (name) => {
               STATE.lang === "zh-TW"
                 ? (isSingles ? "個人單打參賽選手至少需 2 人！" : "輪轉模式參賽單位至少需 4 個 (人/隊伍)！")
                 : `At least ${minUnits} units required for rotation mode!`,
+              "error"
+            );
+            return;
+          }
+
+          if (mode === "fair" && !isTeamMode && uniquePlayers.length > MAX_SINGLE_COURT_PLAYERS) {
+            showToast(
+              STATE.lang === "zh-TW"
+                ? `⚠️ 單一場地${isSingles ? "單打" : "輪替"}最多 ${MAX_SINGLE_COURT_PLAYERS} 人，目前 ${uniquePlayers.length} 人。請分成多個賽事。`
+                : `Max ${MAX_SINGLE_COURT_PLAYERS} players per court (now ${uniquePlayers.length}). Please split into separate tournaments.`,
               "error"
             );
             return;

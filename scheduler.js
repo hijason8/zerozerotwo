@@ -3,6 +3,9 @@
  * 包含：個人雙打輪轉排程 (加強型防隔離演算法)、單打輪轉排程、隊伍對抗循環賽程及總局數計算
  */
 
+// 單一場地「個人輪替雙打 / 個人單打」人數上限：超過就無法在合理時間內讓每人場數完全平均
+export const MAX_SINGLE_COURT_PLAYERS = 12;
+
 // Helper: 真實全循環 - 計算讓所有單位皆搭檔/對對手打過至少一輪所需的總局數
 export function getFullRoundRobinGames(n, isTeamMode = false, isSingles = false) {
   if (n < 2) return 0;
@@ -26,7 +29,7 @@ export function getFullRoundRobinGames(n, isTeamMode = false, isSingles = false)
 // Helper: 個人單打 (1v1) 智慧輪播排程演算法
 export function generateSinglesSchedule(playersList, durationHours = 2.0, estMinsPerGame = 15, scheduleMode = "fair", customTotalGames = 0) {
   const n = playersList.length;
-  if (n < 2) return [];
+  if (n < 2 || n > MAX_SINGLE_COURT_PLAYERS) return [];
 
   const totalMinutes = Math.round(durationHours * 60);
   const rawTargetGames = Math.max(1, Math.floor(totalMinutes / estMinsPerGame));
@@ -375,7 +378,7 @@ export function generatePerfectSixSchedule(playersList, totalRounds) {
 // ----------------------------------------------------
 export function generateRoundRobinSchedule(playersList, durationHours = 2.0, estMinsPerGame = 15, scheduleMode = "fair", customTotalGames = 0) {
   const n = playersList.length;
-  if (n < 4) return [];
+  if (n < 4 || n > MAX_SINGLE_COURT_PLAYERS) return [];
 
   const totalMinutes = Math.round(durationHours * 60);
   const rawTargetGames = Math.floor(totalMinutes / estMinsPerGame);
@@ -611,4 +614,5 @@ if (typeof window !== "undefined") {
   window.getValidTotalGames = getValidTotalGames;
   window.getMaxTotalGames = getMaxTotalGames;
   window.generateRoundRobinSchedule = generateRoundRobinSchedule;
+  window.MAX_SINGLE_COURT_PLAYERS = MAX_SINGLE_COURT_PLAYERS;
 }

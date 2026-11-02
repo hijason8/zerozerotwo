@@ -27,6 +27,7 @@ from firebase_functions import https_fn, options
 from firebase_admin import initialize_app, db
 
 from scheduler import (
+    MAX_SINGLE_COURT_PLAYERS,
     generate_doubles_schedule,
     generate_singles_schedule,
     generate_team_schedule
@@ -142,6 +143,13 @@ def generateSchedule(req: https_fn.Request) -> https_fn.Response:
         if len(unique_players) < min_units:
             return https_fn.Response(
                 json.dumps({"error": f"參賽名單至少需 {min_units} 人/隊"}),
+                status=400,
+                mimetype="application/json"
+            )
+
+        if fmt in ("singles", "doubles") and len(unique_players) > MAX_SINGLE_COURT_PLAYERS:
+            return https_fn.Response(
+                json.dumps({"error": f"單一場地個人輪替/單打最多 {MAX_SINGLE_COURT_PLAYERS} 人，請分成多個賽事"}, ensure_ascii=False),
                 status=400,
                 mimetype="application/json"
             )
