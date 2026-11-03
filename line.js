@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261103-7";
+import { escapeHTML } from "./utils.js?v=20261103-8";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261103-7";
+} from "./globals.js?v=20261103-8";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -796,6 +796,7 @@ if (typeof window !== "undefined") {
   window.fetchUserClubsFromFirebase = fetchUserClubsFromFirebase;
   window.addUserClubToFirebase = addUserClubToFirebase;
   window.initLiffAndUser = initLiffAndUser;
+  window.lineDebug = lineDebug;
   window.waitForLineReady = waitForLineReady;
   window.initLiff = initLiffAndUser;
   window.updateNavLineProfileUI = updateNavLineProfileUI;
