@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ZeroZeroTwo LINE 登入診斷</title>
+<style>
+  body { font-family: -apple-system, "PingFang TC", "Noto Sans TC", sans-serif; margin: 0; padding: 16px; background: #f4f6f5; color: #15211c; font-size: 14px; line-height: 1.55; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  p.hint { margin: 0 0 12px; color: #5d6b65; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; }
+  td { padding: 7px 10px; border-bottom: 1px solid #e3e9e6; vertical-align: top; word-break: break-all; }
+  td:first-child { width: 38%; color: #5d6b65; white-space: nowrap; }
+  .ok { color: #0f7a55; font-weight: 700; }
+  .bad { color: #b4441c; font-weight: 700; }
+  .btns { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  button { font: inherit; padding: 8px 14px; border-radius: 10px; border: 1px solid #0f7a55; background: #0f7a55; color: #fff; font-weight: 700; }
+  button.secondary { background: #fff; color: #0f7a55; }
+</style>
+</head>
+<body>
+<h1>LINE 登入診斷</h1>
+<p class="hint">請等 10 秒後截圖整個畫面。這頁只讀取狀態，不會改動任何資料。</p>
+<table id="t"></table>
+<div class="btns">
+  <button type="button" id="btn-login">測試登入</button>
+  <button type="button" class="secondary" id="btn-reload">重新整理</button>
+</div>
+<script>
+  const LIFF_ID = "2012043789-KvKpHLCt";
+  const t0 = Date.now();
+  const rows = {};
+  function set(key, val, cls) {
+    let tr = rows[key];
+    if (!tr) {
+      tr = document.createElement("tr");
+      tr.innerHTML = "<td></td><td></td>";
+      tr.firstChild.textContent = key;
+      document.getElementById("t").appendChild(tr);
+      rows[key] = tr;
+    }
+    tr.lastChild.textContent = String(val);
+    tr.lastChild.className = cls || "";
+  }
+  const sec = () => ((Date.now() - t0) / 1000).toFixed(1) + " 秒";
+  set("時間", new Date().toLocaleString("zh-TW"));
+  set("網址", location.href);
+  set("瀏覽器資訊", navigator.userAgent);
+  set("含 Line/ 字樣", /Line\//i.test(navigator.userAgent) ? "是" : "否");
+  let lsCount = "無法讀取";
+  try { lsCount = Object.keys(localStorage).filter(k => k.indexOf("LIFF_STORE") === 0).length + " 筆"; } catch (e) { lsCount = "被封鎖：" + e.message; }
+  set("LINE 登入暫存資料", lsCount);
+  set("LINE 工具載入", "載入中…");
+
+  const s = document.createElement("script");
+  s.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+  s.onload = start;
+  s.onerror = () => set("LINE 工具載入", "失敗（" + sec() + "）", "bad");
+  document.head.appendChild(s);
+  setTimeout(() => { if (!window.liff) set("LINE 工具載入", "10 秒仍未載入", "bad"); }, 10000);
+
+  function start() {
+    set("LINE 工具載入", "成功（" + sec() + "），版本 " + (liff.getVersion ? liff.getVersion() : "?"), "ok");
+    set("初始化", "進行中…");
+    const timer = setTimeout(() => set("初始化", "15 秒仍未完成（卡住）", "bad"), 15000);
+    liff.init({ liffId: LIFF_ID }).then(() => {
+      clearTimeout(timer);
+      set("初始化", "成功（" + sec() + "）", "ok");
+      report();
+    }).catch(err => {
+      clearTimeout(timer);
+      set("初始化", "失敗（" + sec() + "）：" + (err && (err.code || "") + " " + (err.message || err)), "bad");
+      report();
+    });
+  }
+
+  function safe(fn) { try { return fn(); } catch (e) { return "錯誤：" + e.message; } }
+  function report() {
+    set("在 LINE 網頁視窗內 (isInClient)", safe(() => liff.isInClient()));
+    const logged = safe(() => liff.isLoggedIn());
+    set("已登入 (isLoggedIn)", logged, logged === true ? "ok" : "bad");
+    set("作業系統", safe(() => liff.getOS()));
+    set("LINE 版本", safe(() => liff.getLineVersion()));
+    set("開啟方式", safe(() => { const c = liff.getContext(); return c ? c.type + (c.viewType ? " / " + c.viewType : "") : "無"; }));
+    if (logged === true) {
+      liff.getProfile().then(p => set("LINE 暱稱", p.displayName, "ok")).catch(e => set("LINE 暱稱", "取得失敗：" + e.message, "bad"));
+    }
+  }
+
+  document.getElementById("btn-login").onclick = () => {
+    if (!window.liff) { set("測試登入", "LINE 工具尚未載入", "bad"); return; }
+    try {
+      liff.login({ redirectUri: location.href });
+      set("測試登入", "已呼叫，等待跳轉…");
+    } catch (e) {
+      set("測試登入", "錯誤：" + e.message, "bad");
+    }
+  };
+  document.getElementById("btn-reload").onclick = () => location.reload();
+</script>
+</body>
+</html>
