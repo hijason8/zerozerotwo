@@ -53,6 +53,13 @@
         ".read": false,
         ".write": false
       }
+    },
+    "club_codes": {
+      ".read": true,
+      "$code": {
+        ".write": "!data.exists() || (newData.exists() && root.child('clubs_metadata').child(newData.val()).child('code').val() === $code)",
+        ".validate": "newData.isString() && newData.val().length <= 300 && $code.matches(/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}$/)"
+      }
     }
   }
 }
