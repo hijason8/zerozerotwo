@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261104-3";
+} from "./utils.js?v=20261104-4";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261104-3";
+} from "./scheduler.js?v=20261104-4";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261104-3";
+} from "./globals.js?v=20261104-4";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1866,10 +1866,9 @@ function autoPickAddMatchPlayers() {
   }
 
   // 場次少優先（陸續到場也公平）：
-  // 1) 總場數少的先上（含已排未打），晚到的人慢慢補回
+  // 1) 總場數少的先上（含已排未打），中途加入的人會優先上場補回場數
   // 2) 同場數時，連打越久的越先休息；再來是休息最久的先上
-  // 3) 人夠多時，剛連打 2 場的人這場先休息（避免晚到者連打 4、5 場）
-  // 4) 雙打分隊：避開各自上一場的搭檔，並選同隊次數最少的組合
+  // 3) 雙打分隊：避開各自上一場的搭檔，並選同隊次數最少的組合
   const matches = (tData.matches || []).filter(m => m && !m.voided);
   const sideOf = m => (m.blue || []).concat(m.red || []);
   const gamesCount = {}, restCount = {}, streakCount = {};
@@ -1893,12 +1892,7 @@ function autoPickAddMatchPlayers() {
     (restCount[b] - restCount[a]) ||
     (tieBreak.get(a) - tieBreak.get(b)));
 
-  let pool = players;
-  if (players.length >= need + 2) {
-    const rested = players.filter(p => streakCount[p] < 2);
-    if (rested.length >= need) pool = rested;
-  }
-  const picked = pool.slice(0, need);
+  const picked = players.slice(0, need);
   players.length = 0;
   players.push(...picked);
 
