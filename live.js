@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261104-2";
+} from "./utils.js?v=20261104-3";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261104-2";
+} from "./scheduler.js?v=20261104-3";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261104-2";
+} from "./globals.js?v=20261104-3";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1865,18 +1865,65 @@ function autoPickAddMatchPlayers() {
     return;
   }
 
-  const gamesCount = {};
-  players.forEach(p => { gamesCount[p] = 0; });
-  (tData.matches || []).filter(m => !m.voided).forEach(m => {
-    (m.blue || []).concat(m.red || []).forEach(p => {
-      if (gamesCount[p] !== undefined) gamesCount[p]++;
-    });
+  // 場次少優先（陸續到場也公平）：
+  // 1) 總場數少的先上（含已排未打），晚到的人慢慢補回
+  // 2) 同場數時，連打越久的越先休息；再來是休息最久的先上
+  // 3) 人夠多時，剛連打 2 場的人這場先休息（避免晚到者連打 4、5 場）
+  // 4) 雙打分隊：避開各自上一場的搭檔，並選同隊次數最少的組合
+  const matches = (tData.matches || []).filter(m => m && !m.voided);
+  const sideOf = m => (m.blue || []).concat(m.red || []);
+  const gamesCount = {}, restCount = {}, streakCount = {};
+  players.forEach(p => { gamesCount[p] = 0; restCount[p] = matches.length; streakCount[p] = 0; });
+  matches.forEach(m => sideOf(m).forEach(p => { if (gamesCount[p] !== undefined) gamesCount[p]++; }));
+  players.forEach(p => {
+    for (let i = matches.length - 1; i >= 0; i--) {
+      if (sideOf(matches[i]).includes(p)) { restCount[p] = matches.length - 1 - i; break; }
+    }
+    for (let i = matches.length - 1; i >= 0; i--) {
+      if (!sideOf(matches[i]).includes(p)) break;
+      streakCount[p]++;
+    }
   });
 
-  players.sort((a, b) => {
-    if (gamesCount[a] !== gamesCount[b]) return gamesCount[a] - gamesCount[b];
-    return Math.random() - 0.5;
-  });
+  const need = isSingles ? 2 : 4;
+  const tieBreak = new Map(players.map(p => [p, Math.random()]));
+  players.sort((a, b) =>
+    (gamesCount[a] - gamesCount[b]) ||
+    (streakCount[a] - streakCount[b]) ||
+    (restCount[b] - restCount[a]) ||
+    (tieBreak.get(a) - tieBreak.get(b)));
+
+  let pool = players;
+  if (players.length >= need + 2) {
+    const rested = players.filter(p => streakCount[p] < 2);
+    if (rested.length >= need) pool = rested;
+  }
+  const picked = pool.slice(0, need);
+  players.length = 0;
+  players.push(...picked);
+
+  if (!isSingles) {
+    const pairKey = (x, y) => [x, y].sort().join("\u0000");
+    const pairCount = {}, lastPartner = {};
+    matches.forEach(m => [m.blue || [], m.red || []].forEach(team => {
+      if (team.length === 2) {
+        const k = pairKey(team[0], team[1]);
+        pairCount[k] = (pairCount[k] || 0) + 1;
+        lastPartner[team[0]] = team[1];
+        lastPartner[team[1]] = team[0];
+      }
+    }));
+    const [a, b, c, d] = picked;
+    const options = [[[a, b], [c, d]], [[a, c], [b, d]], [[a, d], [b, c]]];
+    const cost = opt => opt.reduce((s, [x, y]) =>
+      s + (pairCount[pairKey(x, y)] || 0) * 10 +
+      (lastPartner[x] === y ? 100 : 0), 0);
+    const scored = options.map(o => ({ o, c: cost(o), r: Math.random() }))
+      .sort((p, q) => (p.c - q.c) || (p.r - q.r));
+    const best = scored[0].o;
+    players.length = 0;
+    players.push(best[0][0], best[0][1], best[1][0], best[1][1]);
+  }
 
   const setVal = (id, val) => {
     const el = document.getElementById(id);
