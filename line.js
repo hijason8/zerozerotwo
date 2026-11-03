@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261103-2";
+import { escapeHTML } from "./utils.js?v=20261103-3";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261103-2";
+} from "./globals.js?v=20261103-3";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -79,7 +79,8 @@ export async function fetchUserClubsFromFirebase(userId) {
 export async function addUserClubToFirebase(clubName) {
   const STATE = window.STATE || {};
   if (!clubName || !clubName.trim()) return;
-  if (!STATE.lineUserId) return;
+  await waitForLineReady();
+  if (!STATE.lineReady || !STATE.lineUserId) return;
   const safeClub = clubName.trim();
 
   if (!STATE.myClubs) STATE.myClubs = [];
@@ -114,6 +115,25 @@ export async function addUserClubToFirebase(clubName) {
 // ============================================================
 // LINE LIFF INTEGRATION & USER STATUS (STRICT DUAL TRACK)
 // ============================================================
+// 網站一開啟會先沿用「上次登入的 LINE 帳號」讓畫面快速出現，但這只是暫時身分。
+// 加入社團、綁定身分等會寫入帳號資料的動作，要等 LINE 登入確認完成（lineReady）才執行。
+let resolveLineReady;
+const lineReadyPromise = new Promise(resolve => { resolveLineReady = resolve; });
+
+function markLineReady() {
+  const STATE = window.STATE || {};
+  STATE.lineReady = true;
+  resolveLineReady();
+}
+
+// 等待 LINE 登入確認完成；逾時仍未完成回傳 false
+export async function waitForLineReady(timeoutMs = 8000) {
+  const STATE = window.STATE || {};
+  if (STATE.lineReady) return true;
+  await Promise.race([lineReadyPromise, new Promise(resolve => setTimeout(resolve, timeoutMs))]);
+  return !!STATE.lineReady;
+}
+
 export async function initLiffAndUser() {
   const STATE = window.STATE || {};
   if (!Array.isArray(STATE.myClubs)) STATE.myClubs = [];
@@ -123,8 +143,10 @@ export async function initLiffAndUser() {
     STATE.lineUserId = null;
     STATE.lineProfile = null;
     STATE.myClubs = [];
+    try { localStorage.removeItem("pb_last_line_uid"); } catch (e) { }
     updateNavLineProfileUI();
     if (typeof window.populateNavClubSelect === "function") window.populateNavClubSelect();
+    markLineReady();
     return;
   }
 
@@ -289,6 +311,7 @@ export async function initLiffAndUser() {
     if (typeof window.populateNavClubSelect === "function") {
       window.populateNavClubSelect();
     }
+    markLineReady();
     checkOaFriendship();
   }
 }
@@ -419,6 +442,7 @@ export function handleLineLogoutOrSwitch() {
     STATE.currentClub = null;
     STATE.clubPlayerName = null;
 
+    localStorage.removeItem("pb_last_line_uid");
     localStorage.removeItem("pb_my_clubs");
     localStorage.removeItem("pb_last_club");
     localStorage.removeItem("pb_my_player_name");
@@ -647,6 +671,7 @@ if (typeof window !== "undefined") {
   window.fetchUserClubsFromFirebase = fetchUserClubsFromFirebase;
   window.addUserClubToFirebase = addUserClubToFirebase;
   window.initLiffAndUser = initLiffAndUser;
+  window.waitForLineReady = waitForLineReady;
   window.initLiff = initLiffAndUser;
   window.updateNavLineProfileUI = updateNavLineProfileUI;
   window.openLineProfileModal = openLineProfileModal;
