@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261103-3";
+import { escapeHTML } from "./utils.js?v=20261103-4";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261103-3";
+} from "./globals.js?v=20261103-4";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -354,6 +354,13 @@ export function updateNavLineProfileUI() {
   }
 }
 
+// 是否在 LINE App 裡面（LIFF 瀏覽器或 LINE 內建瀏覽器）
+// LINE 裡的登入由 LINE 自動完成，登出後可能無法自動登入回來，所以 LINE 裡不提供登出
+function isInsideLineApp() {
+  const inClient = !!(window.liff && typeof liff.isInClient === "function" && liff.isInClient());
+  return inClient || /Line\//i.test(navigator.userAgent || "");
+}
+
 export function openLineProfileModal() {
   const modal = document.getElementById("modal-line-profile-info");
   if (!modal) return;
@@ -376,6 +383,9 @@ export function openLineProfileModal() {
   if (nameEl) nameEl.innerText = profile.displayName || "LINE 球友";
   const defNameEl = document.getElementById("line-modal-default-name");
   if (defNameEl) defNameEl.innerText = profile.displayName || "未設定";
+
+  const logoutBtn = document.getElementById("btn-line-logout");
+  if (logoutBtn) logoutBtn.classList.toggle("hidden", isInsideLineApp());
 
   modal.classList.remove("hidden");
   if (window.lucide) lucide.createIcons();
@@ -428,6 +438,11 @@ export function triggerLineLoginAction() {
 
 export function handleLineLogoutOrSwitch() {
   const STATE = window.STATE || {};
+  if (isInsideLineApp()) {
+    showToast(STATE.lang === "zh-TW" ? "在 LINE 裡會自動使用目前的 LINE 帳號，無法登出" : "Inside LINE, your current LINE account is used automatically", "info");
+    closeLineProfileModal();
+    return;
+  }
   if (window.liff && liff.isLoggedIn()) {
     const oldUserId = STATE.lineUserId;
     try {
