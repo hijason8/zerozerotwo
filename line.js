@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261103-4";
+import { escapeHTML } from "./utils.js?v=20261103-5";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261103-4";
+} from "./globals.js?v=20261103-5";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -143,10 +143,10 @@ export async function initLiffAndUser() {
     STATE.lineUserId = null;
     STATE.lineProfile = null;
     STATE.myClubs = [];
-    try { localStorage.removeItem("pb_last_line_uid"); } catch (e) { }
+    try { localStorage.removeItem("pb_last_line_uid"); localStorage.removeItem("pb_last_line_profile"); } catch (e) { }
+    markLineReady();
     updateNavLineProfileUI();
     if (typeof window.populateNavClubSelect === "function") window.populateNavClubSelect();
-    markLineReady();
     return;
   }
 
@@ -171,7 +171,16 @@ export async function initLiffAndUser() {
       const profile = await liff.getProfile();
       STATE.lineUserId = profile.userId;
       STATE.lineProfile = profile;
-      try { localStorage.setItem("pb_last_line_uid", profile.userId); } catch (e) { }
+      try {
+        localStorage.setItem("pb_last_line_uid", profile.userId);
+        localStorage.setItem("pb_last_line_profile", JSON.stringify({
+          userId: profile.userId,
+          displayName: profile.displayName || "",
+          pictureUrl: profile.pictureUrl || ""
+        }));
+      } catch (e) { }
+      // 拿到暱稱與頭像就先更新右上角，不必等後面讀資料庫的步驟
+      updateNavLineProfileUI();
 
       if (profile.displayName) {
         localStorage.setItem("pb_my_player_name", profile.displayName);
@@ -294,7 +303,7 @@ export async function initLiffAndUser() {
       STATE.lineUserId = null;
       STATE.lineProfile = null;
       STATE.myClubs = [];
-      try { localStorage.removeItem("pb_last_line_uid"); } catch (e) { }
+      try { localStorage.removeItem("pb_last_line_uid"); localStorage.removeItem("pb_last_line_profile"); } catch (e) { }
       console.info("[LIFF] Not logged in, running in guest mode.");
       if (typeof window.populateNavClubSelect === "function") {
         window.populateNavClubSelect();
@@ -302,16 +311,16 @@ export async function initLiffAndUser() {
     }
   } catch (err) {
     console.warn("[LIFF] Initialization error (safe fallback enabled):", err);
-    try { localStorage.removeItem("pb_last_line_uid"); } catch (e) { }
+    try { localStorage.removeItem("pb_last_line_uid"); localStorage.removeItem("pb_last_line_profile"); } catch (e) { }
     STATE.lineUserId = null;
     STATE.lineProfile = null;
     STATE.myClubs = [];
   } finally {
+    markLineReady();
     updateNavLineProfileUI();
     if (typeof window.populateNavClubSelect === "function") {
       window.populateNavClubSelect();
     }
-    markLineReady();
     checkOaFriendship();
   }
 }
@@ -323,6 +332,18 @@ export function updateNavLineProfileUI() {
   const STATE = window.STATE || {};
   const isZh = STATE.lang === "zh-TW";
   const profile = STATE.lineProfile;
+
+  if (!(profile && profile.displayName) && !STATE.lineReady) {
+    container.innerHTML = `
+      <span class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl card-inner border text-xs font-bold sub-text shrink-0">
+        <svg class="w-3.5 h-3.5 fill-current shrink-0 text-[#06C755]" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
+        </svg>
+        <span class="text-[11px] sm:text-xs whitespace-nowrap">${isZh ? "登入中…" : "Signing in…"}</span>
+      </span>
+    `;
+    return;
+  }
 
   if (profile && profile.displayName) {
     const avatarHtml = profile.pictureUrl
@@ -458,6 +479,7 @@ export function handleLineLogoutOrSwitch() {
     STATE.clubPlayerName = null;
 
     localStorage.removeItem("pb_last_line_uid");
+    localStorage.removeItem("pb_last_line_profile");
     localStorage.removeItem("pb_my_clubs");
     localStorage.removeItem("pb_last_club");
     localStorage.removeItem("pb_my_player_name");
