@@ -378,6 +378,93 @@ def adminTournamentAction(req: https_fn.Request) -> https_fn.Response:
 
 
 # ============================================================
+# 4b. HTTP REST API: 管理員會員漏斗統計（只回傳人數，不回傳任何名字或 LINE 代號）
+# ============================================================
+@https_fn.on_request(cors=CORS_CONFIG, invoker="public")
+def adminUserStats(req: https_fn.Request) -> https_fn.Response:
+    def _resp(payload: dict, status: int = 200) -> https_fn.Response:
+        return https_fn.Response(json.dumps(payload, ensure_ascii=False), status=status, mimetype="application/json")
+
+    if req.method != "POST":
+        return _resp({"error": "Method Not Allowed"}, 405)
+
+    body = req.get_json(silent=True) or {}
+    pin = (body.get("pin") or "").strip()
+
+    if _is_rate_limited(req, "admin"):
+        return _too_many_attempts()
+
+    try:
+        master_hash = _get_master_hash()
+        if not pin or not master_hash or sha256(pin) != master_hash:
+            _record_failure(req, "admin")
+            return _resp({"ok": False, "error": "管理員 PIN 驗證失敗，請重新登入管理員"}, 403)
+
+        users = db.reference("/users").get() or {}
+        mappings = db.reference("/club_mappings").get() or {}
+        clubs_meta = db.reference("/clubs_metadata").get() or {}
+        existing_clubs = {urllib.parse.unquote(k) for k in clubs_meta.keys()}
+
+        tz = timezone(timedelta(hours=8))  # 台灣時間
+        now = datetime.now(tz)
+        today_start_ms = int(datetime(now.year, now.month, now.day, tzinfo=tz).timestamp() * 1000)
+        now_ms = int(now.timestamp() * 1000)
+        day_ms = 24 * 60 * 60 * 1000
+
+        # 綁定：/club_mappings/{社團}/{LINE ID} = 球員名稱（只算現存社團）
+        bound_uids = set()
+        bound_by_club: Dict[str, set] = {}
+        for key, entries in mappings.items():
+            club = urllib.parse.unquote(key)
+            if club not in existing_clubs or not isinstance(entries, dict):
+                continue
+            uids = {uid for uid, name in entries.items() if name}
+            bound_by_club[club] = uids
+            bound_uids |= uids
+
+        total = len(users)
+        active_today = active_7d = active_30d = 0
+        joined_any = 0
+        joined_by_club: Dict[str, int] = {c: 0 for c in existing_clubs}
+        for uid, u in users.items():
+            if not isinstance(u, dict):
+                continue
+            last = u.get("lastLoginAt") or 0
+            if isinstance(last, (int, float)):
+                if last >= today_start_ms:
+                    active_today += 1
+                if now_ms - last <= 7 * day_ms:
+                    active_7d += 1
+                if now_ms - last <= 30 * day_ms:
+                    active_30d += 1
+            my_clubs = u.get("myClubs") or {}
+            joined = [urllib.parse.unquote(k) for k, v in my_clubs.items() if v] if isinstance(my_clubs, dict) else []
+            joined = [c for c in joined if c in existing_clubs]
+            if joined:
+                joined_any += 1
+            for c in joined:
+                joined_by_club[c] += 1
+
+        per_club = sorted(
+            [{"club": c, "joined": joined_by_club.get(c, 0), "bound": len(bound_by_club.get(c, set()))} for c in existing_clubs],
+            key=lambda x: (-x["joined"], x["club"])
+        )
+        return _resp({
+            "ok": True,
+            "totalUsers": total,
+            "activeToday": active_today,
+            "active7d": active_7d,
+            "active30d": active_30d,
+            "joinedAnyClub": joined_any,
+            "boundAnyClub": len(bound_uids),
+            "perClub": per_club
+        })
+    except Exception as err:
+        logging.exception(f"[adminUserStats] 發生例外: {err}")
+        return _resp({"ok": False, "error": "Internal Server Error"}, 500)
+
+
+# ============================================================
 # 5. HTTP REST API: LINE Bot Webhook (免跳轉輕量訊息回覆)
 # ============================================================
 def _get_line_config() -> Dict[str, str]:
