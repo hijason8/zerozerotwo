@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261103-5";
+import { escapeHTML } from "./utils.js?v=20261103-6";
 
 import {
   STATE,
@@ -16,13 +16,62 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261103-5";
+} from "./globals.js?v=20261103-6";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
 const LINE_OA_URL = (typeof window !== "undefined" && window.LINE_OA_URL) || "https://line.me/R/ti/p/@451lupmp";
 const LINE_OA_ID = (typeof window !== "undefined" && window.LINE_OA_ID) || "@451lupmp";
 const RELOGIN_FLAG = "zz_line_relogin_tried"; // 憑證過期時自動重新登入只試一次（存在 sessionStorage，關掉分頁就清除）
+
+// ============================================================
+// LINE 登入除錯紀錄：網址加 ?debug=1 開啟，畫面下方即時列出登入流程每一步。
+// 紀錄存在 sessionStorage（同一分頁跳轉後仍保留，關掉分頁就清除），不記錄使用者代號。
+// ============================================================
+const DEBUG_KEY = "zz_line_debug_log";
+const DEBUG_ON_KEY = "zz_line_debug_on";
+
+function isLineDebugOn() {
+  try {
+    if (new URLSearchParams(window.location.search).get("debug") === "1") {
+      sessionStorage.setItem(DEBUG_ON_KEY, "1");
+      return true;
+    }
+    return sessionStorage.getItem(DEBUG_ON_KEY) === "1";
+  } catch (e) { return false; }
+}
+
+export function lineDebug(msg) {
+  if (!isLineDebugOn()) return;
+  let log = [];
+  try { log = JSON.parse(sessionStorage.getItem(DEBUG_KEY) || "[]"); } catch (e) { }
+  const now = new Date();
+  const ts = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}.${String(now.getMilliseconds()).padStart(3, "0").slice(0, 1)}`;
+  log.push(`${ts} ${msg}`);
+  log = log.slice(-40);
+  try { sessionStorage.setItem(DEBUG_KEY, JSON.stringify(log)); } catch (e) { }
+  renderLineDebugPanel(log);
+}
+
+function renderLineDebugPanel(log) {
+  if (typeof document === "undefined" || !document.body) return;
+  let panel = document.getElementById("zz-line-debug-panel");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "zz-line-debug-panel";
+    panel.style.cssText = "position:fixed;left:8px;right:8px;bottom:8px;max-height:45vh;overflow:auto;z-index:99999;background:rgba(15,22,19,.92);color:#e6eee9;font:11px/1.45 ui-monospace,Menlo,monospace;padding:8px 10px;border-radius:10px;white-space:pre-wrap;word-break:break-all;";
+    document.body.appendChild(panel);
+  }
+  panel.textContent = "LINE 登入除錯（截圖給開發者）\n" + log.join("\n");
+  panel.scrollTop = panel.scrollHeight;
+}
+
+// 去掉 LINE 登入回傳的參數，作為重新登入後要回來的網址
+function cleanCurrentUrl() {
+  const u = new URL(window.location.href);
+  ["code", "state", "liffClientId", "liff.state", "liffRedirectUri"].forEach(k => u.searchParams.delete(k));
+  return u.toString();
+}
 
 // ============================================================
 // FIREBASE RTDB: USER PROFILE & CLUBS MODULE
@@ -152,8 +201,10 @@ export async function initLiffAndUser() {
   }
 
   try {
+    lineDebug(`開始初始化｜網址 ${window.location.pathname}${window.location.search.slice(0, 80)}｜含Line字樣=${/Line\//i.test(navigator.userAgent || "")}`);
     await liff.init({ liffId: LIFF_ID });
     STATE.isLiff = true;
+    lineDebug(`初始化完成｜網頁視窗內=${liff.isInClient()}｜已登入=${liff.isLoggedIn()}｜工具版本=${liff.getVersion ? liff.getVersion() : "?"}`);
 
     if (liff.isLoggedIn()) {
       closeLineLoginPromptModal();
@@ -173,7 +224,9 @@ export async function initLiffAndUser() {
       try {
         profile = await liff.getProfile();
         try { sessionStorage.removeItem(RELOGIN_FLAG); } catch (e) { }
+        lineDebug("取得暱稱成功 ✓");
       } catch (profileErr) {
+        lineDebug(`取得暱稱失敗：${profileErr && profileErr.message}`);
         // LINE 工具存著過期的登入憑證：以為已登入，但取資料被拒（The access token expired）。
         // 清掉過期憑證；不在 LINE 網頁視窗時自動重新登入一次（同一個分頁只試一次，避免無限重試）。
         console.warn("[LIFF] getProfile failed, clearing stale token:", profileErr);
@@ -182,9 +235,11 @@ export async function initLiffAndUser() {
         try { alreadyTried = sessionStorage.getItem(RELOGIN_FLAG) === "1"; } catch (e) { }
         if (!liff.isInClient() && !alreadyTried) {
           try { sessionStorage.setItem(RELOGIN_FLAG, "1"); } catch (e) { }
-          liff.login({ redirectUri: window.location.href });
+          lineDebug("已清除過期憑證 → 自動重新登入");
+          liff.login({ redirectUri: cleanCurrentUrl() });
           return;
         }
+        lineDebug(alreadyTried ? "已清除過期憑證；這個分頁已自動試過，不再重試" : "已清除過期憑證（網頁視窗內，無法自動登入）");
         throw profileErr;
       }
       STATE.lineUserId = profile.userId;
@@ -279,12 +334,23 @@ export async function initLiffAndUser() {
       }
     } else {
       const isLineBrowser = /Line\//i.test(navigator.userAgent || "");
-      if (liff.isInClient() || isLineBrowser) {
-        console.info("[LIFF] Inside LINE client/browser, auto upgrading to LIFF URL...");
-        const search = window.location.search || "";
-        window.location.replace(`https://liff.line.me/${LIFF_ID}${search}`);
+      let alreadyTried = false;
+      try { alreadyTried = sessionStorage.getItem(RELOGIN_FLAG) === "1"; } catch (e) { }
+      if ((liff.isInClient() || isLineBrowser) && !alreadyTried) {
+        try { sessionStorage.setItem(RELOGIN_FLAG, "1"); } catch (e) { }
+        if (liff.isInClient()) {
+          // LINE 網頁視窗內不能呼叫 liff.login()，重新開啟 LIFF 網址讓 LINE 自動登入
+          lineDebug("網頁視窗內未登入 → 重新開啟 LIFF 網址");
+          const search = window.location.search || "";
+          window.location.replace(`https://liff.line.me/${LIFF_ID}${search}`);
+        } else {
+          // LINE 內建瀏覽器：依 LINE 文件直接呼叫 liff.login()
+          lineDebug("LINE 內建瀏覽器未登入 → 呼叫登入");
+          liff.login({ redirectUri: cleanCurrentUrl() });
+        }
         return;
       }
+      if (alreadyTried) lineDebug("未登入；這個分頁已自動試過登入，不再重試（可按右上角手動登入）");
 
       const urlParams = new URLSearchParams(window.location.search);
       const hadOAuthParams = urlParams.has("code") || urlParams.has("state") || urlParams.has("liffClientId");
@@ -319,12 +385,14 @@ export async function initLiffAndUser() {
       }
     }
   } catch (err) {
+    lineDebug(`發生錯誤：${err && (err.code ? err.code + " " : "") + (err.message || err)}`);
     console.warn("[LIFF] Initialization error (safe fallback enabled):", err);
     try { localStorage.removeItem("pb_last_line_uid"); } catch (e) { }
     STATE.lineUserId = null;
     STATE.lineProfile = null;
     STATE.myClubs = [];
   } finally {
+    lineDebug(`結束｜右上角=${STATE.lineProfile ? "已登入" : "未登入"}`);
     updateNavLineProfileUI();
     if (typeof window.populateNavClubSelect === "function") {
       window.populateNavClubSelect();
@@ -437,10 +505,11 @@ function clearStaleLineToken() {
 }
 
 export function handleLineLoginClick() {
+  lineDebug(`按下登入｜已登入=${window.liff && liff.isLoggedIn ? liff.isLoggedIn() : "?"}`);
   clearStaleLineToken();
   if (window.liff && typeof liff.isLoggedIn === "function" && !liff.isLoggedIn()) {
     try {
-      liff.login({ redirectUri: window.location.href });
+      liff.login({ redirectUri: cleanCurrentUrl() });
       return;
     } catch (e) {
       console.warn("[LIFF] liff.login() error, fallback to LIFF URL:", e);
@@ -452,10 +521,11 @@ export function handleLineLoginClick() {
 
 export function triggerLineLoginAction() {
   closeLineLoginPromptModal();
+  lineDebug(`按下登入（提示視窗）｜已登入=${window.liff && liff.isLoggedIn ? liff.isLoggedIn() : "?"}`);
   clearStaleLineToken();
   if (window.liff && typeof liff.isLoggedIn === "function" && !liff.isLoggedIn()) {
     try {
-      liff.login({ redirectUri: window.location.href });
+      liff.login({ redirectUri: cleanCurrentUrl() });
       return;
     } catch (e) {
       console.warn("[LIFF] triggerLineLoginAction error, fallback to LIFF URL:", e);
