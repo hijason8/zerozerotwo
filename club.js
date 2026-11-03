@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261103-2";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261103-3";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261103-2";
+} from "./globals.js?v=20261103-3";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -268,6 +268,9 @@ const isTransientPlayer = (name) => {
     async function toggleAddCurrentClub() {
       const current = STATE.currentClub;
       if (!current) return;
+      // 等 LINE 登入確認完成，避免用網站開啟時暫時沿用的舊帳號加入
+      const ready = await waitLineReadyOrNotify();
+      if (!ready) return;
       if (!STATE.lineUserId) {
         openLineLoginPromptModal();
         return;
@@ -278,6 +281,15 @@ const isTransientPlayer = (name) => {
       if (typeof populateCreateClubSelect === "function") populateCreateClubSelect();
     }
     window.toggleAddCurrentClub = toggleAddCurrentClub;
+
+    async function waitLineReadyOrNotify() {
+      if (STATE.lineReady) return true;
+      const ok = typeof window.waitForLineReady === "function" ? await window.waitForLineReady() : true;
+      if (!ok) {
+        showToast(STATE.lang === "zh-TW" ? "LINE 登入確認中，請稍後再試一次" : "Checking LINE login, please try again shortly", "warning");
+      }
+      return ok;
+    }
 
     async function toggleCurrentClubStatus() {
       const current = STATE.currentClub;
@@ -1098,6 +1110,9 @@ const isTransientPlayer = (name) => {
     async function handleClubIdentityBadgeClick() {
       const clubName = STATE.currentClub;
       if (!clubName) return;
+      // 等 LINE 登入確認完成，避免用網站開啟時暫時沿用的舊帳號綁定
+      const ready = await waitLineReadyOrNotify();
+      if (!ready) return;
 
       const isZh = (STATE.lang === "zh-TW");
 
