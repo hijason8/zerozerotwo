@@ -486,7 +486,7 @@ export function openLineOAUrl() {
   }
 }
 
-// 官方帳號好友提醒：已登入但還沒加官方帳號好友的人，在頁面上方顯示提醒條
+// 官方帳號好友提醒：沒登入的訪客、或已登入但還沒加官方帳號好友的人，在頁面上方顯示提醒條
 // 網址加 ?oa_banner=1 可強制顯示（測試用，例如 PR 預覽網址無法使用 LINE 登入時）
 let oaBannerDismissed = false;
 
@@ -497,7 +497,11 @@ export async function checkOaFriendship() {
 
   const forceShow = new URLSearchParams(window.location.search).get("oa_banner") === "1";
   let show = forceShow;
-  if (!forceShow && window.liff && typeof liff.isLoggedIn === "function" && liff.isLoggedIn()) {
+  const isLoggedIn = !!(window.liff && typeof liff.isLoggedIn === "function" && liff.isLoggedIn());
+  if (!forceShow && !isLoggedIn) {
+    // 沒登入無法查詢好友狀態，一律提醒（訪客按 × 只在這次瀏覽有效，不留本地紀錄）
+    show = true;
+  } else if (!forceShow) {
     try {
       const friendship = await liff.getFriendship();
       STATE.isOaFriend = !!(friendship && friendship.friendFlag);
