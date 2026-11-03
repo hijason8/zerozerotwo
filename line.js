@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261102-2";
+import { escapeHTML } from "./utils.js?v=20261103-2";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261102-2";
+} from "./globals.js?v=20261103-2";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -289,6 +289,7 @@ export async function initLiffAndUser() {
     if (typeof window.populateNavClubSelect === "function") {
       window.populateNavClubSelect();
     }
+    checkOaFriendship();
   }
 }
 
@@ -485,6 +486,60 @@ export function openLineOAUrl() {
   }
 }
 
+// 官方帳號好友提醒：沒登入的訪客、或已登入但還沒加官方帳號好友的人，在頁面上方顯示提醒條
+// 網址加 ?oa_banner=1 可強制顯示（測試用，例如 PR 預覽網址無法使用 LINE 登入時）
+let oaBannerDismissed = false;
+
+export async function checkOaFriendship() {
+  const STATE = window.STATE || {};
+  const banner = document.getElementById("oa-friend-banner");
+  if (!banner) return;
+
+  const forceShow = new URLSearchParams(window.location.search).get("oa_banner") === "1";
+  let show = forceShow;
+  const isLoggedIn = !!(window.liff && typeof liff.isLoggedIn === "function" && liff.isLoggedIn());
+  if (!forceShow && !isLoggedIn) {
+    // 沒登入無法查詢好友狀態，一律提醒（訪客按 × 只在這次瀏覽有效，不留本地紀錄）
+    show = true;
+  } else if (!forceShow) {
+    try {
+      const friendship = await liff.getFriendship();
+      STATE.isOaFriend = !!(friendship && friendship.friendFlag);
+      show = !STATE.isOaFriend;
+    } catch (e) {
+      // 查詢失敗（例如登入頻道未連結官方帳號）就不提醒，避免誤報
+      console.warn("[LIFF] getFriendship error:", e);
+      show = false;
+    }
+  }
+  if (oaBannerDismissed) show = false;
+
+  const isZh = (STATE.lang === "zh-TW");
+  const textEl = document.getElementById("t-oa-friend-banner-text");
+  const btnEl = document.getElementById("t-oa-friend-banner-btn");
+  if (textEl) textEl.textContent = isZh ? "加入 ZZTWO 官方帳號好友，在 LINE 裡就能查活動、收賽況" : "Add ZZTWO official account to check events and get updates in LINE";
+  if (btnEl) btnEl.textContent = isZh ? "加入好友" : "Add Friend";
+
+  banner.classList.toggle("hidden", !show);
+  if (show && window.lucide) lucide.createIcons({ root: banner });
+}
+
+export function dismissOaFriendBanner() {
+  oaBannerDismissed = true;
+  const banner = document.getElementById("oa-friend-banner");
+  if (banner) banner.classList.add("hidden");
+}
+
+// 使用者去加完好友回到頁面時，重新查詢，加了就自動收起提醒條
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    const banner = document.getElementById("oa-friend-banner");
+    if (document.visibilityState === "visible" && banner && !banner.classList.contains("hidden")) {
+      checkOaFriendship();
+    }
+  });
+}
+
 export function copyLineOAId() {
   const STATE = window.STATE || {};
   const isZh = (STATE.lang === "zh-TW");
@@ -605,6 +660,8 @@ if (typeof window !== "undefined") {
   window.openLineOAModal = openLineOAModal;
   window.closeLineOAModal = closeLineOAModal;
   window.openLineOAUrl = openLineOAUrl;
+  window.checkOaFriendship = checkOaFriendship;
+  window.dismissOaFriendBanner = dismissOaFriendBanner;
   window.copyLineOAId = copyLineOAId;
   window.getTournamentShareUrl = getTournamentShareUrl;
   window.openShareModal = openShareModal;
