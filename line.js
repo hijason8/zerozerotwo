@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261102-2";
+import { escapeHTML } from "./utils.js?v=20261103-1";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261102-2";
+} from "./globals.js?v=20261103-1";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -289,6 +289,7 @@ export async function initLiffAndUser() {
     if (typeof window.populateNavClubSelect === "function") {
       window.populateNavClubSelect();
     }
+    checkOaFriendship();
   }
 }
 
@@ -655,6 +656,8 @@ if (typeof window !== "undefined") {
   window.openLineOAModal = openLineOAModal;
   window.closeLineOAModal = closeLineOAModal;
   window.openLineOAUrl = openLineOAUrl;
+  window.checkOaFriendship = checkOaFriendship;
+  window.dismissOaFriendBanner = dismissOaFriendBanner;
   window.copyLineOAId = copyLineOAId;
   window.getTournamentShareUrl = getTournamentShareUrl;
   window.openShareModal = openShareModal;
