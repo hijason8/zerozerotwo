@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261103-8";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-1";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261103-8";
+} from "./globals.js?v=20261104-1";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -3106,7 +3106,73 @@ const isTransientPlayer = (name) => {
         </div>
       `;
 
+      // 會員漏斗（登入 → 加入社團 → 綁定身分）：由後端統計，只回傳人數
+      renderAdminUserFunnel(container);
+
       lucide.createIcons();
+    }
+
+    async function renderAdminUserFunnel(container) {
+      if (!container || !STATE.isAdmin || !_adminPinCred) return;
+      const isZh = STATE.lang === "zh-TW";
+      const box = document.createElement("div");
+      box.id = "admin-user-funnel";
+      box.className = "glass-card rounded-2xl p-3.5 sm:p-4 border space-y-3";
+      box.innerHTML = `<div class="text-xs sub-text">${isZh ? "會員統計載入中…" : "Loading member stats…"}</div>`;
+      const first = container.firstElementChild;
+      if (first) first.insertAdjacentElement("afterend", box); else container.prepend(box);
+
+      let data = null;
+      try {
+        const res = await fetch(`${FUNCTIONS_BASE_URL}/adminUserStats`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: _adminPinCred })
+        });
+        data = await res.json().catch(() => null);
+        if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
+      } catch (e) {
+        box.innerHTML = `<div class="text-xs text-rose-500">${isZh ? "會員統計載入失敗：" : "Failed to load member stats: "}${escapeHTML(e.message || "")}</div>`;
+        return;
+      }
+
+      const pct = (n, d) => (d > 0 ? Math.round((n / d) * 100) : 0);
+      const step = (label, n, base, color) => `
+        <div class="space-y-1">
+          <div class="flex items-baseline justify-between gap-2 text-xs">
+            <span class="font-semibold">${label}</span>
+            <span class="font-mono font-black text-sm ${color}">${n}<span class="sub-text font-normal text-[11px]"> ${isZh ? "人" : ""}${base !== null ? `（${pct(n, base)}%）` : ""}</span></span>
+          </div>
+          <div class="h-2 rounded-full bg-stone-200/70 dark:bg-slate-800 overflow-hidden">
+            <div class="h-full rounded-full ${color.replace("text-", "bg-")}" style="width:${base ? pct(n, base) : 100}%"></div>
+          </div>
+        </div>`;
+
+      const rows = (data.perClub || []).map(c => `
+        <tr class="border-t border-stone-200/60 dark:border-slate-800">
+          <td class="py-1.5 pr-2 truncate max-w-[160px]">${escapeHTML(c.club)}</td>
+          <td class="py-1.5 px-2 text-center font-mono">${c.joined}</td>
+          <td class="py-1.5 pl-2 text-center font-mono">${c.bound}</td>
+        </tr>`).join("");
+
+      box.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="text-sm font-bold flex items-center gap-1.5"><i data-lucide="filter" class="w-4 h-4 text-[#06C755]"></i>${isZh ? "會員漏斗（依 LINE 帳號，不重複）" : "Member Funnel (unique LINE accounts)"}</h3>
+          <span class="text-[10px] sub-text">${isZh ? `今天 ${data.activeToday}・7 天 ${data.active7d}・30 天 ${data.active30d} 人登入` : `Today ${data.activeToday} · 7d ${data.active7d} · 30d ${data.active30d}`}</span>
+        </div>
+        ${step(isZh ? "① 用 LINE 登入過" : "① Logged in with LINE", data.totalUsers, null, "text-[#06C755]")}
+        ${step(isZh ? "② 加入至少一個社團" : "② Joined a club", data.joinedAnyClub, data.totalUsers, "text-amber-500")}
+        ${step(isZh ? "③ 綁定社團身分" : "③ Bound identity", data.boundAnyClub, data.totalUsers, "text-emerald-600")}
+        ${rows ? `
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead><tr class="sub-text text-[11px]"><th class="text-left py-1 pr-2">${isZh ? "社團" : "Club"}</th><th class="py-1 px-2">${isZh ? "加入" : "Joined"}</th><th class="py-1 pl-2">${isZh ? "綁定" : "Bound"}</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>` : ""}
+        <p class="text-[10px] sub-text">${isZh ? "只顯示人數，不顯示任何名字。百分比以「登入過」的人數為基準。" : "Counts only, no names. Percentages are of logged-in accounts."}</p>
+      `;
+      if (window.lucide) lucide.createIcons({ root: box });
     }
 
     async function adminRenameClub(oldName) {
