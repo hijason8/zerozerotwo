@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261103-6";
+import { escapeHTML } from "./utils.js?v=20261103-7";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261103-6";
+} from "./globals.js?v=20261103-7";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -33,7 +33,9 @@ const DEBUG_ON_KEY = "zz_line_debug_on";
 
 function isLineDebugOn() {
   try {
-    if (new URLSearchParams(window.location.search).get("debug") === "1") {
+    const params = new URLSearchParams(window.location.search);
+    const liffState = params.get("liff.state") || "";
+    if (params.get("debug") === "1" || /(^|[?&])debug=1(&|$)/.test(decodeURIComponent(liffState))) {
       sessionStorage.setItem(DEBUG_ON_KEY, "1");
       return true;
     }
@@ -239,7 +241,16 @@ export async function initLiffAndUser() {
           liff.login({ redirectUri: cleanCurrentUrl() });
           return;
         }
-        lineDebug(alreadyTried ? "已清除過期憑證；這個分頁已自動試過，不再重試" : "已清除過期憑證（網頁視窗內，無法自動登入）");
+        if (liff.isInClient() && !alreadyTried) {
+          // LINE 網頁視窗內不能呼叫 liff.login()，重新開啟 LIFF 網址，讓 LINE 重新自動登入、換新憑證
+          try { sessionStorage.setItem(RELOGIN_FLAG, "1"); } catch (e) { }
+          lineDebug("網頁視窗內憑證過期 → 已清除，重新開啟讓 LINE 自動登入");
+          const u = new URL(window.location.href);
+          ["code", "state", "liffClientId", "liff.state", "liffRedirectUri"].forEach(k => u.searchParams.delete(k));
+          window.location.replace(`https://liff.line.me/${LIFF_ID}${u.search}`);
+          return;
+        }
+        lineDebug("已清除過期憑證；這個分頁已自動試過，不再重試");
         throw profileErr;
       }
       STATE.lineUserId = profile.userId;
