@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-1";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-2";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261104-1";
+} from "./globals.js?v=20261104-2";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -939,16 +939,80 @@ const isTransientPlayer = (name) => {
     }
     window.handleModalCreateClubSubmit = handleModalCreateClubSubmit;
 
-    function openClubCreatedCredentialModal(clubName, pwd) {
+    // ----------------------------------------------------
+    // 社團短網址：https://zztwo.com/?c=K7Q2M
+    // /club_codes/{代碼} = 社團 key；/clubs_metadata/{社團 key}/code = 代碼
+    // 代碼用 5 碼英數字，去掉容易看錯的 0 O 1 I
+    // ----------------------------------------------------
+    const CLUB_CODE_CHARS = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+
+    function getCachedClubCode(clubName) {
+      if (!clubName) return null;
+      const key = encodeClubKey(clubName);
+      const meta = (STATE.clubsMetadataMap && STATE.clubsMetadataMap[key]) || null;
+      return meta && meta.code ? meta.code : null;
+    }
+
+    function cacheClubCode(clubName, code) {
+      const key = encodeClubKey(clubName);
+      if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
+      STATE.clubsMetadataMap[key] = { ...(STATE.clubsMetadataMap[key] || {}), code };
+      try {
+        const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
+        localMeta[key] = { ...(localMeta[key] || {}), code };
+        safeSetLocal("pb_clubs_metadata", JSON.stringify(localMeta));
+      } catch (e) { }
+    }
+
+    // 取得（沒有就建立）社團的短代碼；只替已存在 clubs_metadata 的社團建立
+    async function ensureClubCode(clubName) {
+      const name = (clubName || "").trim();
+      if (!name) return null;
+      const cached = getCachedClubCode(name);
+      if (cached) return cached;
+      if (!STATE.db) return null;
+      const key = encodeClubKey(name);
+      try {
+        const metaSnap = await get(ref(STATE.db, `clubs_metadata/${key}`));
+        if (!metaSnap.exists()) return null;
+        const existing = (metaSnap.val() || {}).code;
+        if (existing) { cacheClubCode(name, existing); return existing; }
+        for (let i = 0; i < 6; i++) {
+          let code = "";
+          for (let k = 0; k < 5; k++) code += CLUB_CODE_CHARS[Math.floor(Math.random() * CLUB_CODE_CHARS.length)];
+          try {
+            await set(ref(STATE.db, `club_codes/${code}`), key); // 資料庫規則：代碼已被使用就會拒絕
+          } catch (e) {
+            continue; // 撞號，換一組
+          }
+          await update(ref(STATE.db, `clubs_metadata/${key}`), { code });
+          cacheClubCode(name, code);
+          return code;
+        }
+      } catch (e) {
+        console.warn("[Club] ensureClubCode error:", e);
+      }
+      return null;
+    }
+    window.ensureClubCode = ensureClubCode;
+
+    // 社團分享網址：有短代碼用短網址，沒有就用原本的長網址（兩種都能用）
+    function getClubShareUrl(clubName) {
+      const code = getCachedClubCode(clubName);
+      if (code) return `${window.location.origin}/?c=${code}`;
+      return `${window.location.origin}${window.location.pathname}?club=${encodeURIComponent(clubName)}`;
+    }
+    window.getClubShareUrl = getClubShareUrl;
+
+    async function openClubCreatedCredentialModal(clubName, pwd) {
       const modal = document.getElementById("modal-club-created-credential");
       const nameEl = document.getElementById("cred-club-name");
       const pwdEl = document.getElementById("cred-club-pwd");
       const qrImg = document.getElementById("cred-club-qr-img");
       if (!modal) return;
 
-      const origin = window.location.origin;
-      const pathname = window.location.pathname;
-      const clubUrl = `${origin}${pathname}?club=${encodeURIComponent(clubName)}`;
+      await ensureClubCode(clubName);
+      const clubUrl = getClubShareUrl(clubName);
 
       STATE.lastCreatedClub = {
         name: clubName,
@@ -983,7 +1047,8 @@ const isTransientPlayer = (name) => {
       const club = STATE.lastCreatedClub;
       if (!club || !club.url) return;
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(club.url).then(() => {
+        const text = STATE.lang === "zh-TW" ? `【${club.name}】\n社團專屬連結 👉 ${club.url}` : `[${club.name}]\nClub link 👉 ${club.url}`;
+        navigator.clipboard.writeText(text).then(() => {
           showToast(STATE.lang === "zh-TW" ? `已複製「${club.name}」專屬網址！` : `Copied club link for "${club.name}"!`, "success");
         });
       }
@@ -1644,6 +1709,7 @@ const isTransientPlayer = (name) => {
       const descEl = document.getElementById("club-info-description-text");
       if (!descEl) return;
       const name = clubName || STATE.currentClub;
+      if (name) ensureClubCode(name); // 先準備好短代碼，按複製時就是短網址
       const isZh = (STATE.lang === "zh-TW");
       if (!name) {
         descEl.innerText = isZh ? "尚未選擇社團" : "No club selected";
@@ -1887,9 +1953,11 @@ const isTransientPlayer = (name) => {
     function copyClubLink(clubName) {
       const name = clubName || STATE.currentClub;
       if (!name) return;
-      const shareUrl = `${window.location.origin}${window.location.pathname}?club=${encodeURIComponent(name)}`;
+      const shareUrl = getClubShareUrl(name);
+      if (!getCachedClubCode(name)) ensureClubCode(name); // 還沒有短代碼就在背景建立，下次複製就是短網址
+      const text = STATE.lang === "zh-TW" ? `【${name}】\n社團專屬連結 👉 ${shareUrl}` : `[${name}]\nClub link 👉 ${shareUrl}`;
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(shareUrl).then(() => {
+        navigator.clipboard.writeText(text).then(() => {
           showToast(STATE.lang === "zh-TW" ? `已複製「${name}」專屬網址，可傳至 LINE 群組！` : `Copied club link for "${name}"!`, "success");
         });
       }
@@ -3260,6 +3328,10 @@ const isTransientPlayer = (name) => {
           try {
             await set(ref(STATE.db, `clubs_metadata/${newSafeKey}`), existingMeta);
             await remove(ref(STATE.db, `clubs_metadata/${oldSafeKey}`));
+            // 短網址跟著改名：代碼不變，改指向新名稱（資料庫規則要求新名稱的 metadata 已記錄同一個代碼）
+            if (existingMeta.code) {
+              await set(ref(STATE.db, `club_codes/${existingMeta.code}`), newSafeKey);
+            }
           } catch (e) {
             console.error("Migrate clubs_metadata error:", e);
           }

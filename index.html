@@ -2202,7 +2202,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261104-1";
+    import { I18N } from "./i18n.js?v=20261104-2";
     window.I18N = I18N;
 
     function t(key) {
@@ -2224,14 +2224,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261104-1";
-    import "./club.js?v=20261104-1";
-    import "./tournament-create.js?v=20261104-1";
-    import "./live.js?v=20261104-1";
-    import "./activities.js?v=20261104-1";
-    import "./hub.js?v=20261104-1";
-    import "./line.js?v=20261104-1";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261104-1";
+    } from "./utils.js?v=20261104-2";
+    import "./club.js?v=20261104-2";
+    import "./tournament-create.js?v=20261104-2";
+    import "./live.js?v=20261104-2";
+    import "./activities.js?v=20261104-2";
+    import "./hub.js?v=20261104-2";
+    import "./line.js?v=20261104-2";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261104-2";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2586,10 +2586,45 @@
       return val;
     }
 
+    // 社團短網址 ?c=代碼：查出社團名稱後，改成 ?club=名稱 再進入社團大廳
+    let _resolvingClubCode = null;
+    async function openClubByShortCode(rawCode) {
+      const code = String(rawCode || "").trim().toUpperCase();
+      if (_resolvingClubCode === code) return;
+      _resolvingClubCode = code;
+      let clubName = null;
+      if (/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}$/.test(code) && STATE.db) {
+        try {
+          const snap = await get(ref(STATE.db, `club_codes/${code}`));
+          if (snap.exists()) clubName = decodeURIComponent(String(snap.val()));
+        } catch (e) {
+          console.warn("[Routing] club code lookup error:", e);
+        }
+      }
+      _resolvingClubCode = null;
+      if (!clubName) {
+        showToast(STATE.lang === "zh-TW" ? "找不到這個社團連結，可能已失效" : "Club link not found", "warning");
+        navigateTo(STATE.lineUserId ? "activities" : "hub", false);
+        return;
+      }
+      if (!new URLSearchParams(window.location.search).has("liff.state")) {
+        window.history.replaceState({}, document.title, `${window.location.pathname}?club=${encodeURIComponent(clubName)}`);
+      }
+      STATE.currentClub = clubName;
+      localStorage.setItem("pb_last_club", clubName);
+      if (typeof checkAndPromptClubIdentityClaim === "function") checkAndPromptClubIdentityClaim(clubName);
+      navigateTo("history", false);
+    }
+
     function initRouting() {
       const tId = getQueryParam("t");
       const page = getQueryParam("page");
       const club = getQueryParam("club");
+      const clubCode = getQueryParam("c");
+      if (!tId && !club && clubCode) {
+        openClubByShortCode(clubCode);
+        return;
+      }
       if (tId) {
         loadLiveTournament(tId, false);
       } else if (club) {
