@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261103-4";
+import { escapeHTML } from "./utils.js?v=20261103-5";
 
 import {
   STATE,
@@ -16,12 +16,13 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261103-4";
+} from "./globals.js?v=20261103-5";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
 const LINE_OA_URL = (typeof window !== "undefined" && window.LINE_OA_URL) || "https://line.me/R/ti/p/@451lupmp";
 const LINE_OA_ID = (typeof window !== "undefined" && window.LINE_OA_ID) || "@451lupmp";
+const RELOGIN_FLAG = "zz_line_relogin_tried"; // 憑證過期時自動重新登入只試一次（存在 sessionStorage，關掉分頁就清除）
 
 // ============================================================
 // FIREBASE RTDB: USER PROFILE & CLUBS MODULE
@@ -168,7 +169,24 @@ export async function initLiffAndUser() {
         window.history.replaceState({}, document.title, cleanUrl);
       }
 
-      const profile = await liff.getProfile();
+      let profile;
+      try {
+        profile = await liff.getProfile();
+        try { sessionStorage.removeItem(RELOGIN_FLAG); } catch (e) { }
+      } catch (profileErr) {
+        // LINE 工具存著過期的登入憑證：以為已登入，但取資料被拒（The access token expired）。
+        // 清掉過期憑證；不在 LINE 網頁視窗時自動重新登入一次（同一個分頁只試一次，避免無限重試）。
+        console.warn("[LIFF] getProfile failed, clearing stale token:", profileErr);
+        try { liff.logout(); } catch (e) { }
+        let alreadyTried = false;
+        try { alreadyTried = sessionStorage.getItem(RELOGIN_FLAG) === "1"; } catch (e) { }
+        if (!liff.isInClient() && !alreadyTried) {
+          try { sessionStorage.setItem(RELOGIN_FLAG, "1"); } catch (e) { }
+          liff.login({ redirectUri: window.location.href });
+          return;
+        }
+        throw profileErr;
+      }
       STATE.lineUserId = profile.userId;
       STATE.lineProfile = profile;
       try { localStorage.setItem("pb_last_line_uid", profile.userId); } catch (e) { }
@@ -409,7 +427,17 @@ export function closeLineLoginPromptModal() {
   if (modal) modal.classList.add("hidden");
 }
 
+// 按登入時，如果 LINE 工具自認已登入、網站卻沒拿到使用者資料，代表憑證已失效，先清掉才能重新登入
+function clearStaleLineToken() {
+  const STATE = window.STATE || {};
+  if (window.liff && typeof liff.isLoggedIn === "function" && liff.isLoggedIn() && !STATE.lineProfile) {
+    try { liff.logout(); } catch (e) { }
+  }
+  try { sessionStorage.removeItem(RELOGIN_FLAG); } catch (e) { }
+}
+
 export function handleLineLoginClick() {
+  clearStaleLineToken();
   if (window.liff && typeof liff.isLoggedIn === "function" && !liff.isLoggedIn()) {
     try {
       liff.login({ redirectUri: window.location.href });
@@ -424,6 +452,7 @@ export function handleLineLoginClick() {
 
 export function triggerLineLoginAction() {
   closeLineLoginPromptModal();
+  clearStaleLineToken();
   if (window.liff && typeof liff.isLoggedIn === "function" && !liff.isLoggedIn()) {
     try {
       liff.login({ redirectUri: window.location.href });
