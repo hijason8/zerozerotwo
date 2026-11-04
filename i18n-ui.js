@@ -4,13 +4,23 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261104-6";
+import { STATE, t } from "./globals.js?v=20261104-7";
 
+// 兩段各自不斷行，窄螢幕時只會在逗號後換行
 const AUTO_GEN_HINT = {
-  zh: { rotating: "會產生「臨打 1、臨打 2…」彈性名額，誰到場都能代打，成績不計入社團戰績",
-        fixed: "會產生「隊伍 1、隊伍 2…」彈性名額，誰到場都能代打，成績不計入社團戰績" },
-  en: { rotating: "Adds flexible slots (Guest 1, Guest 2…) anyone can fill; results don't count toward club stats",
-        fixed: "Adds flexible slots (Team 1, Team 2…) anyone can fill; results don't count toward club stats" }
+  zh: { rotating: ["產生「臨打…」彈性名額，", "成績不計入社團總戰績。"],
+        fixed: ["產生「隊伍…」彈性名額，", "成績不計入社團總戰績。"] },
+  en: { rotating: ["Adds \"Guest…\" flexible slots.", "Results don't count toward club totals."],
+        fixed: ["Adds \"Team…\" flexible slots.", "Results don't count toward club totals."] }
+};
+const renderAutoGenHint = (el, parts) => {
+  el.textContent = "";
+  parts.forEach((txt, i) => {
+    const s = document.createElement("span");
+    s.className = "inline-block";
+    s.textContent = (i > 0 && !/[，。]$/.test(parts[i - 1]) ? " " : "") + txt;
+    el.appendChild(s);
+  });
 };
 
 
@@ -403,11 +413,11 @@ function applyDynamicLanguageUI(isZh) {
   const autoGenLabel = document.getElementById("t-auto-gen-label");
   if (autoGenLabel) {
     autoGenLabel.innerText = isZh
-      ? (partnerType === "fixed" ? "增加臨打隊伍：" : "增加臨打選手：")
-      : (partnerType === "fixed" ? "Add Guest Teams:" : "Add Guest Players:");
+      ? (partnerType === "fixed" ? "增加臨打隊伍" : "增加臨打選手")
+      : (partnerType === "fixed" ? "Add Guest Teams" : "Add Guest Players");
   }
   const autoGenHint = document.getElementById("t-auto-gen-hint");
-  if (autoGenHint) autoGenHint.innerText = (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[partnerType === "fixed" ? "fixed" : "rotating"];
+  if (autoGenHint) renderAutoGenHint(autoGenHint, (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[partnerType === "fixed" ? "fixed" : "rotating"]);
 
   if (typeof window.renderSelectedPlayerChips === "function") window.renderSelectedPlayerChips();
   if (typeof window.renderClubMemberChips === "function") window.renderClubMemberChips();

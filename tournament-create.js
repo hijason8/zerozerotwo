@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-6";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-7";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261104-6";
+} from "./scheduler.js?v=20261104-7";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,13 +52,23 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261104-6";
+} from "./globals.js?v=20261104-7";
 
+// 兩段各自不斷行，窄螢幕時只會在逗號後換行
 const AUTO_GEN_HINT = {
-  zh: { rotating: "會產生「臨打 1、臨打 2…」彈性名額，誰到場都能代打，成績不計入社團戰績",
-        fixed: "會產生「隊伍 1、隊伍 2…」彈性名額，誰到場都能代打，成績不計入社團戰績" },
-  en: { rotating: "Adds flexible slots (Guest 1, Guest 2…) anyone can fill; results don't count toward club stats",
-        fixed: "Adds flexible slots (Team 1, Team 2…) anyone can fill; results don't count toward club stats" }
+  zh: { rotating: ["產生「臨打…」彈性名額，", "成績不計入社團總戰績。"],
+        fixed: ["產生「隊伍…」彈性名額，", "成績不計入社團總戰績。"] },
+  en: { rotating: ["Adds \"Guest…\" flexible slots.", "Results don't count toward club totals."],
+        fixed: ["Adds \"Team…\" flexible slots.", "Results don't count toward club totals."] }
+};
+const renderAutoGenHint = (el, parts) => {
+  el.textContent = "";
+  parts.forEach((txt, i) => {
+    const s = document.createElement("span");
+    s.className = "inline-block";
+    s.textContent = (i > 0 && !/[，。]$/.test(parts[i - 1]) ? " " : "") + txt;
+    el.appendChild(s);
+  });
 };
 
 
@@ -305,9 +315,9 @@ const isTransientPlayer = (name) => {
       if (inputAdd) inputAdd.placeholder = isZh ? "姓名，支援空格批量輸入" : "Enter names (supports space/line batch input)...";
       if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "已登錄選手：" : (isRotating ? "已登錄選手：" : "已登錄隊伍：")) : (isSingles ? "Registered Singles:" : (isRotating ? "Registered Players:" : "Registered Teams:"));
       if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "社團常用隊伍：" : "社團常用選手：") : (type === "fixed" ? "Club Teams:" : "Club Players:");
-      if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "增加臨打隊伍：" : "增加臨打選手：") : (type === "fixed" ? "Add Guest Teams:" : "Add Guest Players:");
+      if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "增加臨打隊伍" : "增加臨打選手") : (type === "fixed" ? "Add Guest Teams" : "Add Guest Players");
       const autoGenHint = document.getElementById("t-auto-gen-hint");
-      if (autoGenHint) autoGenHint.innerText = (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[type === "fixed" ? "fixed" : "rotating"];
+      if (autoGenHint) renderAutoGenHint(autoGenHint, (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[type === "fixed" ? "fixed" : "rotating"]);
 
       updatePartnerToggleTexts();
       updatePlayerCountBadge();
