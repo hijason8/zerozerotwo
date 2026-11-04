@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-7";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-8";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261104-7";
+} from "./scheduler.js?v=20261104-8";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,23 +52,13 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261104-7";
+} from "./globals.js?v=20261104-8";
 
-// 兩段各自不斷行，窄螢幕時只會在逗號後換行
 const AUTO_GEN_HINT = {
-  zh: { rotating: ["產生「臨打…」彈性名額，", "成績不計入社團總戰績。"],
-        fixed: ["產生「隊伍…」彈性名額，", "成績不計入社團總戰績。"] },
-  en: { rotating: ["Adds \"Guest…\" flexible slots.", "Results don't count toward club totals."],
-        fixed: ["Adds \"Team…\" flexible slots.", "Results don't count toward club totals."] }
-};
-const renderAutoGenHint = (el, parts) => {
-  el.textContent = "";
-  parts.forEach((txt, i) => {
-    const s = document.createElement("span");
-    s.className = "inline-block";
-    s.textContent = (i > 0 && !/[，。]$/.test(parts[i - 1]) ? " " : "") + txt;
-    el.appendChild(s);
-  });
+  zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
+        fixed: "產生「隊伍」名額，成績不計入社團總戰績。" },
+  en: { rotating: "Adds \"Guest\" slots, not counted in club totals.",
+        fixed: "Adds \"Team\" slots, not counted in club totals." }
 };
 
 
@@ -317,7 +307,7 @@ const isTransientPlayer = (name) => {
       if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "社團常用隊伍：" : "社團常用選手：") : (type === "fixed" ? "Club Teams:" : "Club Players:");
       if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "增加臨打隊伍" : "增加臨打選手") : (type === "fixed" ? "Add Guest Teams" : "Add Guest Players");
       const autoGenHint = document.getElementById("t-auto-gen-hint");
-      if (autoGenHint) renderAutoGenHint(autoGenHint, (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[type === "fixed" ? "fixed" : "rotating"]);
+      if (autoGenHint) autoGenHint.textContent = (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[type === "fixed" ? "fixed" : "rotating"];
 
       updatePartnerToggleTexts();
       updatePlayerCountBadge();

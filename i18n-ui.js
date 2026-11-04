@@ -4,23 +4,13 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261104-7";
+import { STATE, t } from "./globals.js?v=20261104-8";
 
-// 兩段各自不斷行，窄螢幕時只會在逗號後換行
 const AUTO_GEN_HINT = {
-  zh: { rotating: ["產生「臨打…」彈性名額，", "成績不計入社團總戰績。"],
-        fixed: ["產生「隊伍…」彈性名額，", "成績不計入社團總戰績。"] },
-  en: { rotating: ["Adds \"Guest…\" flexible slots.", "Results don't count toward club totals."],
-        fixed: ["Adds \"Team…\" flexible slots.", "Results don't count toward club totals."] }
-};
-const renderAutoGenHint = (el, parts) => {
-  el.textContent = "";
-  parts.forEach((txt, i) => {
-    const s = document.createElement("span");
-    s.className = "inline-block";
-    s.textContent = (i > 0 && !/[，。]$/.test(parts[i - 1]) ? " " : "") + txt;
-    el.appendChild(s);
-  });
+  zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
+        fixed: "產生「隊伍」名額，成績不計入社團總戰績。" },
+  en: { rotating: "Adds \"Guest\" slots, not counted in club totals.",
+        fixed: "Adds \"Team\" slots, not counted in club totals." }
 };
 
 
@@ -417,7 +407,7 @@ function applyDynamicLanguageUI(isZh) {
       : (partnerType === "fixed" ? "Add Guest Teams" : "Add Guest Players");
   }
   const autoGenHint = document.getElementById("t-auto-gen-hint");
-  if (autoGenHint) renderAutoGenHint(autoGenHint, (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[partnerType === "fixed" ? "fixed" : "rotating"]);
+  if (autoGenHint) autoGenHint.textContent = (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[partnerType === "fixed" ? "fixed" : "rotating"];
 
   if (typeof window.renderSelectedPlayerChips === "function") window.renderSelectedPlayerChips();
   if (typeof window.renderClubMemberChips === "function") window.renderClubMemberChips();
