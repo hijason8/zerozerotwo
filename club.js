@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-4";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261104-9";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,14 +26,14 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261104-4";
+} from "./globals.js?v=20261104-9";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
     return window.isTransientPlayer(name);
   }
   if (!name || typeof name !== "string") return false;
-  return /^(臨打|臨時|補位|選手|隊伍|Guest|Player|Team)(\s*[-_#]?[0-9A-Za-z]+)?$/i.test(name.trim());
+  return /^(臨打|Guest|隊伍|Team)\s*[0-9]+$/i.test(name.trim());
 };
 
     export function getClubMembersList(clubName) {

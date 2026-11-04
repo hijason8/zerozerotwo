@@ -4,7 +4,15 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261104-4";
+import { STATE, t } from "./globals.js?v=20261104-9";
+
+const AUTO_GEN_HINT = {
+  zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
+        fixed: "產生「隊伍」名額，成績不計入社團總戰績。" },
+  en: { rotating: "Adds \"Guest\" slots, not counted in club totals.",
+        fixed: "Adds \"Team\" slots, not counted in club totals." }
+};
+
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -395,9 +403,11 @@ function applyDynamicLanguageUI(isZh) {
   const autoGenLabel = document.getElementById("t-auto-gen-label");
   if (autoGenLabel) {
     autoGenLabel.innerText = isZh
-      ? (partnerType === "fixed" ? "增加臨打隊伍：" : "增加臨打選手：")
-      : (partnerType === "fixed" ? "Add Guest Teams:" : "Add Guest Players:");
+      ? (partnerType === "fixed" ? "增加臨打隊伍" : "增加臨打選手")
+      : (partnerType === "fixed" ? "Add Guest Teams" : "Add Guest Players");
   }
+  const autoGenHint = document.getElementById("t-auto-gen-hint");
+  if (autoGenHint) autoGenHint.textContent = (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[partnerType === "fixed" ? "fixed" : "rotating"];
 
   if (typeof window.renderSelectedPlayerChips === "function") window.renderSelectedPlayerChips();
   if (typeof window.renderClubMemberChips === "function") window.renderClubMemberChips();

@@ -80,8 +80,8 @@ export function formatTournamentDate(val, lang = "zh-TW") {
 export function isTransientPlayer(name) {
   if (!name || typeof name !== "string") return false;
   const clean = name.trim();
-  // 匹配前綴：臨打、臨時、補位、選手、隊伍、Guest、Player、Team + 編號/代號
-  return /^(臨打|臨時|補位|選手|隊伍|Guest|Player|Team)(\s*[-_#]?[0-9A-Za-z]+)?$/i.test(clean);
+  // 只認「增加臨打選手 / 隊伍」按鈕產生的名字：臨打 N、Guest N、隊伍 N、Team N
+  return /^(臨打|Guest|隊伍|Team)\s*[0-9]+$/i.test(clean);
 }
 
 if (typeof window !== "undefined") {
