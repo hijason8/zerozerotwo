@@ -1616,6 +1616,35 @@
     </div>
   </div>
 
+  <!-- ==================== ADD LIVE PLAYER MODAL (補入選手) ==================== -->
+  <div id="modal-add-live-player"
+    class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4"
+    onclick="if(event.target === this) closeAddLivePlayerModal()">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border relative text-left shadow-2xl">
+      <button type="button" onclick="closeAddLivePlayerModal()" class="absolute top-3.5 right-3.5 sub-text hover:text-emerald-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+          <i data-lucide="user-plus" class="w-5 h-5"></i>
+        </div>
+        <h3 id="add-live-player-title" class="text-base font-bold font-display">補入選手</h3>
+      </div>
+
+      <form onsubmit="submitAddLivePlayer(event)" class="space-y-3">
+        <input type="text" id="add-live-player-input" maxlength="10" autocomplete="off" enterkeyhint="done"
+          onkeydown="if(event.key==='Enter' && event.isComposing){event.preventDefault();}"
+          class="w-full input-bg border rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none" />
+        <button type="submit"
+          class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-md active:scale-95 cursor-pointer">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span id="add-live-player-btn">加入名單</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== CLUB IDENTITY CLAIM MODAL (LINE 身分認領對話框) ==================== -->
   <div id="modal-club-claim-identity"
     class="fixed inset-0 z-50 bg-stone-900/60 dark:bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
@@ -2202,7 +2231,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261104-4";
+    import { I18N } from "./i18n.js?v=20261104-5";
     window.I18N = I18N;
 
     function t(key) {
@@ -2224,14 +2253,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261104-4";
-    import "./club.js?v=20261104-4";
-    import "./tournament-create.js?v=20261104-4";
-    import "./live.js?v=20261104-4";
-    import "./activities.js?v=20261104-4";
-    import "./hub.js?v=20261104-4";
-    import "./line.js?v=20261104-4";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261104-4";
+    } from "./utils.js?v=20261104-5";
+    import "./club.js?v=20261104-5";
+    import "./tournament-create.js?v=20261104-5";
+    import "./live.js?v=20261104-5";
+    import "./activities.js?v=20261104-5";
+    import "./hub.js?v=20261104-5";
+    import "./line.js?v=20261104-5";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261104-5";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

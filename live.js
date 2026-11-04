@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261104-4";
+} from "./utils.js?v=20261104-5";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261104-4";
+} from "./scheduler.js?v=20261104-5";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261104-4";
+} from "./globals.js?v=20261104-5";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -2095,7 +2095,7 @@ async function submitAddMatch() {
 }
 window.submitAddMatch = submitAddMatch;
 
-async function addLivePlayerPrompt() {
+function addLivePlayerPrompt() {
   const tData = STATE.tournamentData;
   if (!tData) return;
 
@@ -2104,15 +2104,43 @@ async function addLivePlayerPrompt() {
     return;
   }
 
+  const modal = document.getElementById("modal-add-live-player");
+  if (!modal) return;
   const isTeam = getTournamentIsTeamMode(tData);
   const isZh = (STATE.lang === "zh-TW");
+  const title = document.getElementById("add-live-player-title");
+  const btn = document.getElementById("add-live-player-btn");
+  const input = document.getElementById("add-live-player-input");
+  if (title) title.innerText = isTeam ? (isZh ? "補入隊伍" : "Add Team") : (isZh ? "補入選手" : "Add Player");
+  if (btn) btn.innerText = isZh ? "加入名單" : "Add";
+  if (input) {
+    input.value = "";
+    input.placeholder = isTeam ? (isZh ? "隊伍名稱" : "Team name") : (isZh ? "選手姓名" : "Player name");
+  }
+  modal.classList.remove("hidden");
+  lucide.createIcons({ root: modal });
+  setTimeout(() => { if (input) input.focus(); }, 50);
+}
+window.addLivePlayerPrompt = addLivePlayerPrompt;
 
-  const promptMsg = isTeam
-    ? (isZh ? "➕ 請輸入新加入隊伍名稱 (上限10字)：" : "➕ Enter new team name (max 10 chars):")
-    : (isZh ? "➕ 請輸入新加入選手姓名 (上限10字)：" : "➕ Enter new player name (max 10 chars):");
+function closeAddLivePlayerModal() {
+  const modal = document.getElementById("modal-add-live-player");
+  if (modal) modal.classList.add("hidden");
+}
+window.closeAddLivePlayerModal = closeAddLivePlayerModal;
 
-  const name = prompt(promptMsg);
-  if (!name || !name.trim()) return;
+async function submitAddLivePlayer(e) {
+  if (e) e.preventDefault();
+  const tData = STATE.tournamentData;
+  if (!tData) return;
+  const isTeam = getTournamentIsTeamMode(tData);
+  const isZh = (STATE.lang === "zh-TW");
+  const input = document.getElementById("add-live-player-input");
+  const name = input ? input.value : "";
+  if (!name || !name.trim()) {
+    showToast(isTeam ? (isZh ? "請輸入隊伍名稱" : "Please enter a team name") : (isZh ? "請輸入選手姓名" : "Please enter a name"), "warning");
+    return;
+  }
   let cleanName = name.trim();
   if (cleanName.length > 10) {
     cleanName = cleanName.slice(0, 10);
@@ -2129,6 +2157,7 @@ async function addLivePlayerPrompt() {
   }
 
   tData.players.push(cleanName);
+  closeAddLivePlayerModal();
 
   // Persist to club if clubName exists
   if (tData.clubName) {
@@ -2159,7 +2188,7 @@ async function addLivePlayerPrompt() {
 
   renderLiveUI(tData);
 }
-window.addLivePlayerPrompt = addLivePlayerPrompt;
+window.submitAddLivePlayer = submitAddLivePlayer;
 
 async function saveMatchScore(matchId) {
   const tObj = STATE.tournamentData;
