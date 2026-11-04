@@ -4,7 +4,15 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261104-5";
+import { STATE, t } from "./globals.js?v=20261104-6";
+
+const AUTO_GEN_HINT = {
+  zh: { rotating: "會產生「臨打 1、臨打 2…」彈性名額，誰到場都能代打，成績不計入社團戰績",
+        fixed: "會產生「隊伍 1、隊伍 2…」彈性名額，誰到場都能代打，成績不計入社團戰績" },
+  en: { rotating: "Adds flexible slots (Guest 1, Guest 2…) anyone can fill; results don't count toward club stats",
+        fixed: "Adds flexible slots (Team 1, Team 2…) anyone can fill; results don't count toward club stats" }
+};
+
 
 // ====================================================
 // 1. 純文字 ID -> i18n 字典鍵值 (直接呼叫 t(key))
@@ -398,6 +406,8 @@ function applyDynamicLanguageUI(isZh) {
       ? (partnerType === "fixed" ? "增加臨打隊伍：" : "增加臨打選手：")
       : (partnerType === "fixed" ? "Add Guest Teams:" : "Add Guest Players:");
   }
+  const autoGenHint = document.getElementById("t-auto-gen-hint");
+  if (autoGenHint) autoGenHint.innerText = (isZh ? AUTO_GEN_HINT.zh : AUTO_GEN_HINT.en)[partnerType === "fixed" ? "fixed" : "rotating"];
 
   if (typeof window.renderSelectedPlayerChips === "function") window.renderSelectedPlayerChips();
   if (typeof window.renderClubMemberChips === "function") window.renderClubMemberChips();
