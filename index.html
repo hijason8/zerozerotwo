@@ -32,24 +32,33 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
     rel="stylesheet" />
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            display: ['Outfit', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
 
   <!-- Lucide Icons CDN -->
   <script defer src="https://unpkg.com/lucide@1.53.0/dist/umd/lucide.min.js"></script>
+  <!-- 效能：lucide.createIcons() 預設會把整頁「已畫好」的圖示全部重畫一次。
+       這裡讓它只畫還沒畫的、或名稱被改過的圖示（type="module" 會在上面的 lucide 載入後才執行） -->
+  <script type="module">
+    (function () {
+      var L = window.lucide;
+      if (!L || L.__zzSkipRendered) return;
+      var original = L.createIcons;
+      L.createIcons = function (opts) {
+        opts = opts || {};
+        var base = opts.root || document;
+        var root = {
+          querySelectorAll: function (sel) {
+            var list = base.querySelectorAll(sel);
+            if (sel !== "[data-lucide]") return list;
+            return Array.prototype.filter.call(list, function (el) {
+              return el.tagName.toLowerCase() !== "svg" || !el.classList.contains("lucide-" + el.getAttribute("data-lucide"));
+            });
+          }
+        };
+        return original.call(L, Object.assign({}, opts, { root: root }));
+      };
+      L.__zzSkipRendered = true;
+    })();
+  </script>
 
   <!-- LINE LIFF SDK -->
   <script defer charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -126,6 +135,9 @@
 
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="./styles.css?v=20261020-21" />
+  <!-- Tailwind CSS：預先產生好的樣式檔（設定在 tailwind.config.js，改了 class 後執行 ./build-css.sh）
+       放在 styles.css 之後，維持與原本 CDN 版相同的樣式優先順序 -->
+  <link rel="stylesheet" href="./tailwind.css?v=20261111-1" />
 </head>
 
 <body
