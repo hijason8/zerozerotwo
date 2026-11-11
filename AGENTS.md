@@ -120,3 +120,11 @@
   * 開賽前 ➜ 稱為**【接龍大廳】**（關注報名名冊、簽到與開賽設定）。
   * 開賽後 ➜ 稱為**【即時計分板】**（關注比分卡、遙控器權限與排行榜）。
 
+
+---
+
+## 七、 樣式檔 (Tailwind) 維護規則
+* 網站不再使用 Tailwind CDN（`cdn.tailwindcss.com` 會在每支手機上現場編譯，拖慢開啟速度），改為預先產生的 `tailwind.css`。
+* **新增或修改 HTML / JS 裡的 Tailwind class 後，必須執行 `./build-css.sh` 重新產生 `tailwind.css`，並一起 commit**，否則新 class 不會有樣式。
+* Class 名稱不可用字串拼接產生（例如 `bg-${color}-500`），必須寫出完整名稱，產生器才找得到。
+* 設定檔：`tailwind.config.js`（darkMode: class、字型 Inter / Outfit）。
