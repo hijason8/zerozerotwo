@@ -826,8 +826,8 @@ const isTransientPlayer = (name) => {
           STATE.authenticatedClubs.add(clubName);
         }
 
-        // 2. 儲存更新後的 metadata
-        const metaObj = {
+        // 2. 儲存更新後的 metadata（經由後端：有密碼的社團需驗證密碼，資料庫規則禁止前端直接改）
+        let metaObj = {
           ...existingMeta,
           isPrivate: isPrivate,
           hasPassword: hasPassword,
@@ -835,12 +835,26 @@ const isTransientPlayer = (name) => {
           updatedAt: Date.now()
         };
 
-        if (STATE.db) {
-          try {
-            await set(ref(STATE.db, `clubs_metadata/${safeKey}`), metaObj);
-          } catch (err) {
-            console.warn("[Firebase] clubs_metadata update error:", err);
+        // 有密碼但這次瀏覽還沒輸入過（例如剛從建立賽事進來），先請使用者輸入一次
+        if (hasPassword && !getClubCredential(clubName)) {
+          if (!(await verifyClubAccess(clubName, true))) return;
+        }
+        try {
+          const res = await fetch(`${FUNCTIONS_BASE_URL}/updateClubMeta`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clubName, credential: getClubCredential(clubName), description, isPrivate })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.ok) {
+            showToast(data.error || (isZh ? "儲存失敗" : "Save failed"), "error");
+            return;
           }
+          if (data.meta) metaObj = data.meta;
+        } catch (err) {
+          console.warn("[Club] updateClubMeta error:", err);
+          showToast(isZh ? "儲存失敗，請檢查網路" : "Save failed, check your network", "error");
+          return;
         }
 
         if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
@@ -895,16 +909,12 @@ const isTransientPlayer = (name) => {
       const currentMembers = getClubMembersList(rawName);
       saveClubMembersList(rawName, currentMembers);
 
-      // 2. 儲存密碼 (選填)
-      if (pwd) {
-        if (!(await setClubPasswordDB(rawName, pwd))) return;
-      }
-
-      // 3. 儲存社團隱私與說明中繼資料 (clubs_metadata - 包含 hasPassword 與 description)
+      // 2. 儲存社團隱私與說明中繼資料 (clubs_metadata)
+      //    先以「尚無密碼」寫入（資料庫規則：有密碼的社團前端不能直接寫），密碼設定成功後由後端標記 hasPassword
       const safeKey = encodeClubKey(rawName);
       const metaObj = {
         isPrivate: isPrivate,
-        hasPassword: !!pwd,
+        hasPassword: false,
         description: description,
         createdAt: Date.now()
       };
@@ -914,6 +924,12 @@ const isTransientPlayer = (name) => {
         } catch (err) {
           console.warn("[Firebase] clubs_metadata set error:", err);
         }
+      }
+
+      // 3. 儲存密碼 (選填)
+      if (pwd) {
+        if (!(await setClubPasswordDB(rawName, pwd))) return;
+        metaObj.hasPassword = true;
       }
 
       if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
@@ -2699,6 +2715,28 @@ const isTransientPlayer = (name) => {
     }
     window.adminTournamentAction = adminTournamentAction;
 
+    // 管理員社團改名／刪除：雲端資料一律由後端驗證 Master PIN 後一次處理
+    async function callAdminClubAction(payload) {
+      if (!STATE.isAdmin || !_adminPinCred) {
+        showToast(STATE.lang === "zh-TW" ? "請先登入管理員" : "Please log in as admin first", "error");
+        return false;
+      }
+      try {
+        const res = await fetch(`${FUNCTIONS_BASE_URL}/adminClubAction`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, pin: _adminPinCred })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) return true;
+        showToast(data.error || (STATE.lang === "zh-TW" ? "操作失敗" : "Action failed"), "error");
+      } catch (e) {
+        console.error("adminClubAction error:", e);
+        showToast(STATE.lang === "zh-TW" ? "操作失敗，請檢查網路" : "Action failed, check your network", "error");
+      }
+      return false;
+    }
+
     async function setClubPasswordDB(clubName, password) {
       if (!clubName || !clubName.trim()) return false;
       const key = clubName.trim();
@@ -2715,14 +2753,7 @@ const isTransientPlayer = (name) => {
       if (!ok) return false;
       if (password) _verifiedClubCreds.set(key, password);
       else _verifiedClubCreds.delete(key);
-
-      if (STATE.db) {
-        try {
-          await update(ref(STATE.db, `clubs_metadata/${safeKey}`), { hasPassword });
-        } catch (e) {
-          console.error("setClubPassword metadata error:", e);
-        }
-      }
+      // clubs_metadata 的 hasPassword 標記由後端同步更新
 
       // 2. 同步本地中繼快取
       if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
@@ -3252,21 +3283,13 @@ const isTransientPlayer = (name) => {
       const cleanNew = newName.trim();
       if (!cleanNew || cleanNew === oldName) return;
 
-      // 1. Update all tournaments in Firebase via Atomic Multi-Path Update and Local Cache
+      // 0. 雲端搬移（賽事、成員、綁定、密碼、說明、短網址）由後端驗證 Master PIN 後一次完成
+      if (!(await callAdminClubAction({ action: "rename", clubName: oldName, newClubName: cleanNew }))) return;
+
+      // 1. 本地快取：賽事的社團名稱
       const allT = STATE.allTournamentsCache || [];
-      const updates = {};
       for (const t of allT) {
-        if (t.clubName === oldName) {
-          t.clubName = cleanNew;
-          updates[`tournaments/${t.id}/clubName`] = cleanNew;
-        }
-      }
-      if (Object.keys(updates).length > 0 && STATE.db) {
-        try {
-          await update(ref(STATE.db), updates);
-        } catch (e) {
-          console.error("Update tournament clubName error:", e);
-        }
+        if (t.clubName === oldName) t.clubName = cleanNew;
       }
 
       // Update local tournaments cache
@@ -3276,15 +3299,9 @@ const isTransientPlayer = (name) => {
       });
       safeSetLocal("pb_tournaments", JSON.stringify(localT));
 
-      // 2. Migrate club password status（經由後端把密碼搬到新名稱，避免改名後密碼失效）
+      // 2. 本地快取：密碼狀態（雲端已由後端搬移）
       const hadPwd = hasClubPassword(oldName);
       if (hadPwd) {
-        await callManageClubPassword({
-          action: "rename",
-          clubName: oldName,
-          newClubName: cleanNew,
-          credential: getClubCredential(oldName)
-        });
         const newSafeKey = encodeClubKey(cleanNew);
         if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
         if (!STATE.clubsMetadataMap[newSafeKey]) STATE.clubsMetadataMap[newSafeKey] = {};
@@ -3298,15 +3315,6 @@ const isTransientPlayer = (name) => {
         localMembers[cleanNew] = oldMembers;
         delete localMembers[oldName];
         safeSetLocal("pb_club_members", JSON.stringify(localMembers));
-
-        if (STATE.db) {
-          try {
-            await set(ref(STATE.db, `club_members/${encodeClubKey(cleanNew)}`), oldMembers);
-            await remove(ref(STATE.db, `club_members/${encodeClubKey(oldName)}`));
-          } catch (e) {
-            console.error("Migrate club members error:", e);
-          }
-        }
       }
 
       // 4. Migrate club metadata
@@ -3323,19 +3331,6 @@ const isTransientPlayer = (name) => {
         if (!STATE.clubsMetadataMap) STATE.clubsMetadataMap = {};
         STATE.clubsMetadataMap[newSafeKey] = existingMeta;
         delete STATE.clubsMetadataMap[oldSafeKey];
-
-        if (STATE.db) {
-          try {
-            await set(ref(STATE.db, `clubs_metadata/${newSafeKey}`), existingMeta);
-            await remove(ref(STATE.db, `clubs_metadata/${oldSafeKey}`));
-            // 短網址跟著改名：代碼不變，改指向新名稱（資料庫規則要求新名稱的 metadata 已記錄同一個代碼）
-            if (existingMeta.code) {
-              await set(ref(STATE.db, `club_codes/${existingMeta.code}`), newSafeKey);
-            }
-          } catch (e) {
-            console.error("Migrate clubs_metadata error:", e);
-          }
-        }
       }
 
       // 5. Migrate user myClubs list
@@ -3347,7 +3342,7 @@ const isTransientPlayer = (name) => {
       if (Array.isArray(STATE.myClubs) && STATE.myClubs.includes(oldName)) {
         STATE.myClubs = STATE.myClubs.map(c => c === oldName ? cleanNew : c);
       }
-      if (STATE.db && STATE.lineUserId) {
+      if (STATE.db && STATE.lineUserId && Array.isArray(STATE.myClubs) && STATE.myClubs.includes(cleanNew)) {
         try {
           const updates = {};
           updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(oldName)}`] = null;
@@ -3455,14 +3450,13 @@ const isTransientPlayer = (name) => {
 
       const safeKey = typeof encodeClubKey === "function" ? encodeClubKey(clubName) : encodeURIComponent(clubName);
 
+      // 0. 雲端清除（賽事關聯、成員、綁定、密碼、說明、短網址）由後端驗證 Master PIN 後一次完成
+      if (!(await callAdminClubAction({ action: "delete", clubName }))) return;
+
       // 1. 解除快取與本地賽事的社團關聯，消除賽事關聯幽靈
-      const updates = {};
       const allT = STATE.allTournamentsCache || [];
       allT.forEach(t => {
-        if (t && t.clubName === clubName) {
-          t.clubName = "";
-          updates[`tournaments/${t.id}/clubName`] = "";
-        }
+        if (t && t.clubName === clubName) t.clubName = "";
       });
 
       const localT = safeGetLocalJSON("pb_tournaments", {});
@@ -3515,34 +3509,12 @@ const isTransientPlayer = (name) => {
         STATE.currentClub = null;
       }
 
-      // 4. Firebase 雲端徹底清除 (包含 members, passwords, metadata, user myClubs)
-      if (STATE.db) {
+      // 4. 管理員自己的「常用社團」（未綁定身分時後端不會知道）
+      if (STATE.db && STATE.lineUserId) {
         try {
-          if (Object.keys(updates).length > 0) {
-            await update(ref(STATE.db), updates);
-          }
-          await remove(ref(STATE.db, `club_members/${safeKey}`));
-          // LINE 綁定一併清除，並從綁定者的「我的社團」移除，避免留下殘留資料
-          try {
-            const mapSnap = await get(ref(STATE.db, `club_mappings/${safeKey}`));
-            const boundUids = Object.keys(mapSnap.val() || {});
-            for (const uid of boundUids) {
-              await remove(ref(STATE.db, `users/${uid}/myClubs/${encodeURIComponent(clubName)}`));
-            }
-            await remove(ref(STATE.db, `club_mappings/${safeKey}`));
-          } catch (mapErr) {
-            console.warn("adminDeleteClub club_mappings cleanup error:", mapErr);
-          }
-          if (hasClubPassword(clubName)) {
-            await callManageClubPassword({ action: "remove", clubName, credential: getClubCredential(clubName) });
-          }
-          await remove(ref(STATE.db, `clubs_metadata/${safeKey}`));
-
-          if (STATE.lineUserId) {
-            await remove(ref(STATE.db, `users/${STATE.lineUserId}/myClubs/${encodeURIComponent(clubName)}`));
-          }
+          await remove(ref(STATE.db, `users/${STATE.lineUserId}/myClubs/${encodeURIComponent(clubName)}`));
         } catch (e) {
-          console.error('adminDeleteClub Firebase error:', e);
+          console.error('adminDeleteClub myClubs error:', e);
         }
       }
 

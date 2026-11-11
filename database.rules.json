@@ -11,15 +11,21 @@
       "$tournament_id": {
         ".write": "!data.exists() || data.child('status').val() !== 'completed'",
         ".validate": "newData.hasChildren(['id', 'name'])",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
         "clubName": {
-          ".write": true
+          ".validate": "newData.isString() && newData.val().length <= 40"
         }
       }
     },
     "club_members": {
       ".read": true,
       "$club_key": {
-        ".write": true
+        ".write": "newData.exists() || !data.child('1').exists()",
+        "$index": {
+          ".validate": "newData.isString() && newData.val().length <= 20"
+        }
       }
     },
     "club_passwords": {
@@ -29,19 +35,65 @@
     "club_mappings": {
       ".read": true,
       "$club_key": {
-        ".write": true
+        ".write": "!newData.exists() && !root.child('clubs_metadata').child($club_key).exists()",
+        "$user_id": {
+          ".write": true,
+          ".validate": "newData.isString() && newData.val().length <= 20"
+        }
       }
     },
     "clubs_metadata": {
       ".read": true,
       "$club_key": {
-        ".write": true
+        ".write": "!root.child('club_passwords').child($club_key).exists()",
+        "isPrivate": {
+          ".validate": "newData.isBoolean()"
+        },
+        "hasPassword": {
+          ".validate": "newData.isBoolean() && newData.val() === root.child('club_passwords').child($club_key).exists()"
+        },
+        "description": {
+          ".validate": "newData.isString() && newData.val().length <= 200"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "code": {
+          ".write": "!data.exists() && root.child('club_codes').child(newData.val()).val() === $club_key",
+          ".validate": "newData.isString() && newData.val().matches(/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}$/)"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "users": {
       "$user_id": {
         ".read": true,
-        ".write": true
+        ".write": true,
+        "displayName": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
+        "pictureUrl": {
+          ".validate": "newData.isString() && newData.val().length <= 500"
+        },
+        "lastLoginAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "lastClub": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "myClubs": {
+          "$club": {
+            ".validate": "newData.isBoolean() && $club.length <= 200"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "app_config": {

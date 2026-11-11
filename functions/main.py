@@ -7,6 +7,8 @@ Firebase Cloud Functions for ZeroZeroTwo (Python 2nd Gen)
 5. lineWebhook (HTTP REST API): LINE Bot Webhook 訊息回覆 (免跳轉輕量方案)
 6. manageClubPassword (HTTP REST API): 社團密碼設定 / 移除 / 改名搬移（資料庫規則禁止前端直接寫密碼）
 7. adminTournamentAction (HTTP REST API): 管理員刪除 / 改名賽事（已完賽賽事被資料庫鎖住，需驗證 Master PIN）
+8. updateClubMeta (HTTP REST API): 儲存社團說明 / 公開私密設定（有密碼的社團需驗證密碼）
+9. adminClubAction (HTTP REST API): 管理員社團改名 / 刪除（需驗證 Master PIN）
 """
 
 import os
@@ -53,8 +55,9 @@ RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 
 
 def _client_key(req: https_fn.Request) -> str:
+    # 使用者可自行偽造 X-Forwarded-For 的前段；Google 會把實際連線位址附加在「最後一個」，只信任最後一個
     forwarded = req.headers.get("X-Forwarded-For", "") or ""
-    ip = forwarded.split(",")[0].strip() or (req.remote_addr or "unknown")
+    ip = forwarded.split(",")[-1].strip() or (req.remote_addr or "unknown")
     return sha256(ip)[:24]
 
 
@@ -95,7 +98,18 @@ def _too_many_attempts() -> https_fn.Response:
         status=429, mimetype="application/json")
 
 
+def _uri_component(text: str) -> str:
+    """與網頁的 encodeURIComponent 相同的編碼"""
+    return quote(text, safe="-_.!~*'()")
+
+
 def _club_key(club_name: str) -> str:
+    """與網頁 encodeClubKey 相同：encodeURIComponent 後再把 . 換成 %2E"""
+    return _uri_component(club_name.strip()).replace(".", "%2E")
+
+
+def _legacy_club_key(club_name: str) -> str:
+    """舊版後端使用的編碼（只差在 ! ' ( ) * 這幾個符號），讀取舊密碼用"""
     return quote(club_name.strip(), safe="").replace(".", "%2E")
 
 
@@ -106,11 +120,38 @@ def _get_master_hash():
     return master_hash
 
 
-def _get_club_hash(safe_key: str):
+def _get_club_hash(safe_key: str, club_name: str = ""):
     stored = db.reference(f"/club_passwords/{safe_key}").get()
+    if not stored and club_name:
+        legacy_key = _legacy_club_key(club_name)
+        if legacy_key != safe_key:
+            stored = db.reference(f"/club_passwords/{legacy_key}").get()
     if not stored:
         stored = db.reference(f"/clubs/{safe_key}/password_hash").get()
     return stored
+
+
+def _is_club_authorized(stored_hash, credential: str) -> bool:
+    """社團沒有密碼 → 放行；有密碼 → 需提供社團密碼或 Master PIN"""
+    if not stored_hash:
+        return True
+    if not credential:
+        return False
+    cred_hash = sha256(credential)
+    if cred_hash == stored_hash:
+        return True
+    master_hash = _get_master_hash()
+    return bool(master_hash and cred_hash == master_hash)
+
+
+def _set_meta_has_password(safe_key: str, has_password: bool) -> None:
+    """同步 clubs_metadata 的 hasPassword 標記（資料庫規則禁止前端改有密碼社團的資料）"""
+    try:
+        meta_ref = db.reference(f"/clubs_metadata/{safe_key}")
+        if meta_ref.get() is not None:
+            meta_ref.update({"hasPassword": has_password})
+    except Exception as err:
+        logging.warning(f"[ClubMeta] 更新 hasPassword 失敗: {err}")
 
 
 # ============================================================
@@ -181,7 +222,7 @@ def generateSchedule(req: https_fn.Request) -> https_fn.Response:
     except Exception as err:
         logging.exception(f"[generateSchedule] 排賽計算發生例外: {err}")
         return https_fn.Response(
-            json.dumps({"error": str(err)}),
+            json.dumps({"error": "Internal Server Error"}),
             status=500,
             mimetype="application/json"
         )
@@ -208,7 +249,7 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
 
     try:
         safe_key = _club_key(club_name)
-        stored_hash = _get_club_hash(safe_key)
+        stored_hash = _get_club_hash(safe_key, club_name)
 
         has_password = bool(stored_hash)
 
@@ -235,7 +276,7 @@ def verifyClubPassword(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps({"valid": False, "hasPassword": True}), status=200, mimetype="application/json")
     except Exception as err:
         logging.exception(f"[verifyClubPassword] 驗證密碼發生例外: {err}")
-        return https_fn.Response(json.dumps({"error": str(err)}), status=500, mimetype="application/json")
+        return https_fn.Response(json.dumps({"error": "Internal Server Error"}), status=500, mimetype="application/json")
 
 
 # ============================================================
@@ -264,7 +305,7 @@ def verifyAdminPin(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps({"valid": is_valid}), status=200, mimetype="application/json")
     except Exception as err:
         logging.exception(f"[verifyAdminPin] 驗證 PIN 發生例外: {err}")
-        return https_fn.Response(json.dumps({"error": str(err)}), status=500, mimetype="application/json")
+        return https_fn.Response(json.dumps({"error": "Internal Server Error"}), status=500, mimetype="application/json")
 
 
 # ============================================================
@@ -299,7 +340,7 @@ def manageClubPassword(req: https_fn.Request) -> https_fn.Response:
 
     try:
         safe_key = _club_key(club_name)
-        stored_hash = _get_club_hash(safe_key)
+        stored_hash = _get_club_hash(safe_key, club_name)
 
         # 已有密碼：必須驗證目前密碼或 Master PIN；尚無密碼：允許首次設定
         if stored_hash:
@@ -311,12 +352,19 @@ def manageClubPassword(req: https_fn.Request) -> https_fn.Response:
                 return _resp({"ok": False, "error": "密碼錯誤"}, 403)
 
         pwd_ref = db.reference(f"/club_passwords/{safe_key}")
+        legacy_key = _legacy_club_key(club_name)
         if action == "set":
             pwd_ref.set(sha256(new_password))
+            if legacy_key != safe_key:
+                db.reference(f"/club_passwords/{legacy_key}").delete()
+            _set_meta_has_password(safe_key, True)
             return _resp({"ok": True, "hasPassword": True})
 
         if action == "remove":
             pwd_ref.delete()
+            if legacy_key != safe_key:
+                db.reference(f"/club_passwords/{legacy_key}").delete()
+            _set_meta_has_password(safe_key, False)
             return _resp({"ok": True, "hasPassword": False})
 
         # rename：把密碼搬到新社團名稱底下
@@ -374,6 +422,154 @@ def adminTournamentAction(req: https_fn.Request) -> https_fn.Response:
         return _resp({"ok": True})
     except Exception as err:
         logging.exception(f"[adminTournamentAction] 發生例外: {err}")
+        return _resp({"ok": False, "error": "Internal Server Error"}, 500)
+
+
+# ============================================================
+# 8. HTTP REST API: 儲存社團說明 / 公開私密設定
+#    有密碼的社團：資料庫規則禁止前端直接改，必須提供社團密碼或 Master PIN。
+# ============================================================
+CLUB_DESC_MAX = 200
+
+
+@https_fn.on_request(cors=CORS_CONFIG, invoker="public")
+def updateClubMeta(req: https_fn.Request) -> https_fn.Response:
+    def _resp(payload: dict, status: int = 200) -> https_fn.Response:
+        return https_fn.Response(json.dumps(payload, ensure_ascii=False), status=status, mimetype="application/json")
+
+    if req.method != "POST":
+        return _resp({"error": "Method Not Allowed"}, 405)
+
+    body = req.get_json(silent=True) or {}
+    club_name = (body.get("clubName") or "").strip()
+    credential = (body.get("credential") or "").strip()
+    description = body.get("description", None)
+    is_private = body.get("isPrivate", None)
+
+    if not club_name or len(club_name) > 40:
+        return _resp({"ok": False, "error": "參數錯誤"}, 400)
+    if description is not None and (not isinstance(description, str) or len(description) > CLUB_DESC_MAX):
+        return _resp({"ok": False, "error": f"說明不可超過 {CLUB_DESC_MAX} 字"}, 400)
+    if is_private is not None and not isinstance(is_private, bool):
+        return _resp({"ok": False, "error": "參數錯誤"}, 400)
+
+    if _is_rate_limited(req, "club"):
+        return _too_many_attempts()
+
+    try:
+        safe_key = _club_key(club_name)
+        stored_hash = _get_club_hash(safe_key, club_name)
+        if not _is_club_authorized(stored_hash, credential):
+            _record_failure(req, "club")
+            return _resp({"ok": False, "error": "密碼錯誤"}, 403)
+
+        meta_ref = db.reference(f"/clubs_metadata/{safe_key}")
+        existing = meta_ref.get() or {}
+        if not isinstance(existing, dict):
+            existing = {}
+        changes: Dict[str, Any] = {"hasPassword": bool(stored_hash), "updatedAt": _now_ms()}
+        if description is not None:
+            changes["description"] = description.strip()
+        if is_private is not None:
+            changes["isPrivate"] = is_private
+        if not existing:
+            changes["createdAt"] = _now_ms()
+        meta_ref.update(changes)
+        return _resp({"ok": True, "meta": {**existing, **changes}})
+    except Exception as err:
+        logging.exception(f"[updateClubMeta] 發生例外: {err}")
+        return _resp({"ok": False, "error": "Internal Server Error"}, 500)
+
+
+# ============================================================
+# 9. HTTP REST API: 管理員社團改名 / 刪除（需 Master PIN）
+#    一次搬移或清除：賽事的社團名稱、成員名單、LINE 綁定、會員常用社團、密碼、說明、短網址。
+# ============================================================
+@https_fn.on_request(cors=CORS_CONFIG, invoker="public")
+def adminClubAction(req: https_fn.Request) -> https_fn.Response:
+    def _resp(payload: dict, status: int = 200) -> https_fn.Response:
+        return https_fn.Response(json.dumps(payload, ensure_ascii=False), status=status, mimetype="application/json")
+
+    if req.method != "POST":
+        return _resp({"error": "Method Not Allowed"}, 405)
+
+    body = req.get_json(silent=True) or {}
+    action = (body.get("action") or "").strip()
+    club_name = (body.get("clubName") or "").strip()
+    new_name = (body.get("newClubName") or "").strip()
+    pin = (body.get("pin") or "").strip()
+
+    if action not in ("rename", "delete") or not club_name or club_name == "__general__":
+        return _resp({"ok": False, "error": "參數錯誤"}, 400)
+    if action == "rename" and (not new_name or len(new_name) > 40 or new_name == club_name):
+        return _resp({"ok": False, "error": "新名稱不可空白、相同或超過 40 字"}, 400)
+
+    if _is_rate_limited(req, "admin"):
+        return _too_many_attempts()
+
+    try:
+        master_hash = _get_master_hash()
+        if not pin or not master_hash or sha256(pin) != master_hash:
+            _record_failure(req, "admin")
+            return _resp({"ok": False, "error": "管理員 PIN 驗證失敗，請重新登入管理員"}, 403)
+
+        old_key = _club_key(club_name)
+        new_key = _club_key(new_name) if action == "rename" else ""
+        target_name = new_name if action == "rename" else ""
+
+        if action == "rename":
+            if db.reference(f"/clubs_metadata/{new_key}").get() is not None:
+                return _resp({"ok": False, "error": "新名稱已被其他社團使用"}, 409)
+            if _get_club_hash(new_key, new_name):
+                return _resp({"ok": False, "error": "新名稱已有密碼"}, 409)
+
+        updates: Dict[str, Any] = {}
+
+        # 1. 賽事的社團名稱（含已完賽，後端不受資料庫規則限制）
+        tournaments = db.reference("/tournaments").order_by_child("clubName").equal_to(club_name).get() or {}
+        for tid in tournaments.keys():
+            updates[f"tournaments/{tid}/clubName"] = target_name
+
+        # 2. 成員名單
+        members = db.reference(f"/club_members/{old_key}").get()
+        updates[f"club_members/{old_key}"] = None
+        if action == "rename" and members:
+            updates[f"club_members/{new_key}"] = members
+
+        # 3. LINE 綁定與綁定者的常用社團
+        mappings = db.reference(f"/club_mappings/{old_key}").get() or {}
+        updates[f"club_mappings/{old_key}"] = None
+        if action == "rename" and isinstance(mappings, dict) and mappings:
+            updates[f"club_mappings/{new_key}"] = mappings
+        old_uri = _uri_component(club_name)
+        if isinstance(mappings, dict):
+            for uid in mappings.keys():
+                updates[f"users/{uid}/myClubs/{old_uri}"] = None
+                if action == "rename":
+                    updates[f"users/{uid}/myClubs/{_uri_component(new_name)}"] = True
+
+        # 4. 密碼
+        stored_hash = _get_club_hash(old_key, club_name)
+        updates[f"club_passwords/{old_key}"] = None
+        legacy_key = _legacy_club_key(club_name)
+        if legacy_key != old_key:
+            updates[f"club_passwords/{legacy_key}"] = None
+        if action == "rename" and stored_hash:
+            updates[f"club_passwords/{new_key}"] = stored_hash
+
+        # 5. 社團說明與短網址
+        meta = db.reference(f"/clubs_metadata/{old_key}").get()
+        updates[f"clubs_metadata/{old_key}"] = None
+        code = meta.get("code") if isinstance(meta, dict) else None
+        if action == "rename" and isinstance(meta, dict):
+            updates[f"clubs_metadata/{new_key}"] = {**meta, "hasPassword": bool(stored_hash), "updatedAt": _now_ms()}
+        if code and re.fullmatch(r"[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}", str(code)):
+            updates[f"club_codes/{code}"] = new_key if action == "rename" else None
+
+        db.reference("/").update(updates)
+        return _resp({"ok": True, "tournaments": len(tournaments), "bindings": len(mappings) if isinstance(mappings, dict) else 0})
+    except Exception as err:
+        logging.exception(f"[adminClubAction] 發生例外: {err}")
         return _resp({"ok": False, "error": "Internal Server Error"}, 500)
 
 
