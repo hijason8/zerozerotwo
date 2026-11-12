@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-14";
+} from "./utils.js?v=20261112-15";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-14";
+} from "./scheduler.js?v=20261112-15";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-14";
+} from "./globals.js?v=20261112-15";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -276,7 +276,7 @@ function renderLiveUI(data) {
   const perUnit = isTeamMode ? (isZh ? "隊" : "team") : (isZh ? "人" : "p");
 
   if (data.status === "registering") {
-    document.getElementById("live-players-count").innerText = `${pCount} 人`;
+    document.getElementById("live-players-count").innerText = isZh ? `${pCount} 人` : `${pCount} ${unit}`;
   } else {
     document.getElementById("live-players-count").innerText = isZh
       ? (isFreeMode ? `${pCount} ${unit}登記` : `${pCount} ${unit} (每${perUnit}約 ${estGamesPerPlayer} 場)`)
@@ -918,15 +918,15 @@ function renderLobbySchedulePlans(tData) {
                 ${isSelected ? '<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>' : '<i data-lucide="circle" class="w-3.5 h-3.5 opacity-40"></i>'}
                 ${planName}
               </span>
-              <span class="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">共 ${p.totalGames} 局</span>
+              <span class="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">${isZh ? `共 ${p.totalGames} 局` : `${p.totalGames} games`}</span>
             </div>
             <div class="space-y-0.5">
               <div class="text-xs font-bold text-stone-800 dark:text-stone-200">
-                每${unitLabel}各打 <strong class="text-emerald-600 dark:text-emerald-400">${p.gamesEach}</strong> 場
+                ${isZh ? `每${unitLabel}各打 <strong class="text-emerald-600 dark:text-emerald-400">${p.gamesEach}</strong> 場` : `<strong class="text-emerald-600 dark:text-emerald-400">${p.gamesEach}</strong> each`}
               </div>
               <div class="text-[10px] sub-text flex items-center justify-between">
-                <span>休 ${p.restEach} 場</span>
-                <span>約 ${Math.round(p.avgMins)} 分/局</span>
+                <span>${isZh ? `休 ${p.restEach} 場` : `rest ${p.restEach}`}</span>
+                <span>${isZh ? `約 ${Math.round(p.avgMins)} 分/局` : `~${Math.round(p.avgMins)} min/game`}</span>
               </div>
             </div>
           </button>
@@ -938,7 +938,7 @@ function renderLobbySchedulePlans(tData) {
   // 更新開賽按鈕文字
   const currentPlan = plans.find(p => p.totalGames === selectedGames);
   if (startBtn && currentPlan) {
-    startBtn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i> <span>${isZh ? `依【${currentPlan.totalGames} 局方案 (每${unitLabel} ${currentPlan.gamesEach} 場)】平均模式開賽！` : `Start with Fair Mode (${currentPlan.totalGames} Games)`}</span>`;
+    startBtn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i> <span>${isZh ? `依【${currentPlan.totalGames} 局方案 (每${unitLabel} ${currentPlan.gamesEach} 場)】平均模式開賽！` : `Start: ${currentPlan.totalGames} games (${currentPlan.gamesEach} each)`}</span>`;
   }
 
   lucide.createIcons();
@@ -990,7 +990,7 @@ function promptConfirmStartTournament(startMode = "schedule") {
   const modal = document.getElementById("modal-confirm-start-tournament");
   if (!modal) {
     const confirmMsg = startMode === "practice"
-      ? (isZh ? `🏓 確定要以目前 ${n} 人開啟自由練球模式嗎？\n（開賽後將結束報名接龍）` : `🎯 確認全員到齊，正式排賽開打？\n（共 ${n} ${unitLabel}，開賽後將正式生成對戰賽程並結束報名）`)
+      ? (isZh ? `🏓 確定要以目前 ${n} 人開啟自由練球模式嗎？\n（開賽後將結束報名接龍）` : `Start free play with ${n} ${unitLabel}?\n(Sign-up will close)`)
       : (isZh ? `🎯 確認全員到齊，正式排賽開打？\n（共 ${n} ${unitLabel}，開賽後將正式生成對戰賽程並結束報名）` : `Start tournament with ${n} ${unitLabel}?`);
     if (confirm(confirmMsg)) {
       startTournamentFromLobby(startMode, true);
@@ -2003,7 +2003,7 @@ async function submitAddMatch() {
   const tData = STATE.tournamentData;
   if (!tData) return;
   if (!isTournamentAdmin(tData)) {
-    showToast(STATE.lang === "zh-TW" ? "請先開啟操作模式！" : "Please unlock Edit Mode first!", "warning");
+    showToast(STATE.lang === "zh-TW" ? "請先開啟操作模式！" : "Please enable controls first!", "warning");
     return;
   }
   const isTeam = getTournamentIsTeamMode(tData);

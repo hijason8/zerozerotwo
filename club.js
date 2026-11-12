@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-14";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-15";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261112-14";
+} from "./globals.js?v=20261112-15";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -1039,9 +1039,9 @@ const isTransientPlayer = (name) => {
       if (nameEl) nameEl.innerText = clubName;
       if (pwdEl) {
         if (pwd) {
-          pwdEl.innerHTML = `<span class="text-amber-500 font-bold select-all">${escapeHTML(pwd)}</span> <span class="text-[10px] sub-text font-normal">🔒 需密碼</span>`;
+          pwdEl.innerHTML = `<span class="text-amber-500 font-bold select-all">${escapeHTML(pwd)}</span> <span class="text-[10px] sub-text font-normal">🔒 ${STATE.lang === "zh-TW" ? "需密碼" : "Required"}</span>`;
         } else {
-          pwdEl.innerHTML = `<span class="text-emerald-500 font-medium">無密碼 (公開)</span>`;
+          pwdEl.innerHTML = `<span class="text-emerald-500 font-medium">${STATE.lang === "zh-TW" ? "無密碼 (公開)" : "None"}</span>`;
         }
       }
       if (qrImg) {
@@ -1267,7 +1267,7 @@ const isTransientPlayer = (name) => {
 
       if (!modal) return;
 
-      if (titleEl) titleEl.innerText = `【${effectiveClub}】球員身分對照`;
+      if (titleEl) titleEl.innerText = STATE.lang === "zh-TW" ? `【${effectiveClub}】球員身分對照` : effectiveClub;
 
       // 預設填入 LINE 暱稱 (上限10字)
       const lineName = (STATE.lineProfile && STATE.lineProfile.displayName)
@@ -1298,7 +1298,7 @@ const isTransientPlayer = (name) => {
       const availableNames = clubMembers.filter(m => m && m.trim() && !claimedNames.has(m.trim()) && !isTransientPlayer(m.trim()));
 
       if (countEl) {
-        countEl.innerText = `${availableNames.length} 人待認領`;
+        countEl.innerText = STATE.lang === "zh-TW" ? `${availableNames.length} 人待認領` : `${availableNames.length}`;
       }
 
       // 3. 渲染 Chips
@@ -1306,7 +1306,7 @@ const isTransientPlayer = (name) => {
         if (availableNames.length === 0) {
           containerEl.innerHTML = `
             <div class="w-full py-3 text-center text-xs sub-text">
-              目前名冊中的球員已全數認領或為全新社團，請在下方輸入暱稱完成確認綁定！
+              ${STATE.lang === "zh-TW" ? "目前名冊中的球員已全數認領或為全新社團，請在下方輸入暱稱完成確認綁定！" : "No unclaimed names. Enter your name below."}
             </div>
           `;
         } else {
@@ -1355,7 +1355,7 @@ const isTransientPlayer = (name) => {
       const input = document.getElementById("claim-new-player-input");
       let name = input ? input.value.trim() : "";
       if (!name) {
-        showToast("請輸入顯示姓名！", "warning");
+        showToast(STATE.lang === "zh-TW" ? "請輸入顯示姓名！" : "Enter a name!", "warning");
         if (input) input.focus();
         return;
       }
@@ -1387,7 +1387,7 @@ const isTransientPlayer = (name) => {
 
       let cleanName = chosenName.trim();
       if (!cleanName) {
-        showToast("姓名不可為空！", "warning");
+        showToast(STATE.lang === "zh-TW" ? "姓名不可為空！" : "Enter a name!", "warning");
         return;
       }
       if (cleanName.length > 10) {
@@ -1404,7 +1404,7 @@ const isTransientPlayer = (name) => {
             const currentMappings = mapSnap.val() || {};
             for (const [uid, bName] of Object.entries(currentMappings)) {
               if (uid !== STATE.lineUserId && String(bName).trim() === cleanName) {
-                showToast(`「${cleanName}」已被其他球友綁定，請選擇其他姓名！`, "warning");
+                showToast(STATE.lang === "zh-TW" ? `「${cleanName}」已被其他球友綁定，請選擇其他姓名！` : `"${cleanName}" is taken. Pick another name.`, "warning");
                 return;
               }
             }
@@ -2037,8 +2037,8 @@ const isTransientPlayer = (name) => {
       if (headerActionsEl) headerActionsEl.classList.remove("hidden");
       if (btnClubCreate) btnClubCreate.classList.remove("hidden");
       if (btnShareClub) btnShareClub.classList.add("hidden"); // 已移入社團說明分頁
-      if (headerTitleEl) headerTitleEl.innerText = `${clubName} 社團大廳`;
-      if (headerSubEl) headerSubEl.innerText = `${clubName} 專屬戰績榜、歷次賽事存檔與出賽名冊`;
+      if (headerTitleEl) headerTitleEl.innerText = STATE.lang === "zh-TW" ? `${clubName} 社團大廳` : clubName;
+      if (headerSubEl) headerSubEl.innerText = STATE.lang === "zh-TW" ? `${clubName} 專屬戰績榜、歷次賽事存檔與出賽名冊` : "Stats, history and members";
 
       updateNavClubSelectValue();
 
@@ -2072,7 +2072,7 @@ const isTransientPlayer = (name) => {
       if (aggregateSection) aggregateSection.classList.remove("hidden");
       if (aggregateClubNameEl) aggregateClubNameEl.innerText = clubName;
       if (sectionTitleEl) {
-        sectionTitleEl.innerHTML = `<i data-lucide="calendar" class="w-4 h-4"></i> ${escapeHTML(clubName)} 歷次賽事紀錄`;
+        sectionTitleEl.innerHTML = `<i data-lucide="calendar" class="w-4 h-4"></i> ${escapeHTML(clubName)} ${STATE.lang === "zh-TW" ? "歷次賽事紀錄" : "History"}`;
       }
 
       populateHistoryMonthSelect(completedClubTournaments);
@@ -2414,7 +2414,7 @@ const isTransientPlayer = (name) => {
                       </tr>
                     </thead>
                     <tbody class="divide-y font-medium text-xs">
-                      ${matchRows || `<tr><td colspan="5" class="py-4 text-center sub-text text-xs">尚無場次紀錄</td></tr>`}
+                      ${matchRows || `<tr><td colspan="5" class="py-4 text-center sub-text text-xs">${STATE.lang === "zh-TW" ? "尚無場次紀錄" : "No games yet"}</td></tr>`}
                     </tbody>
                   </table>
                 </div>

@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-14";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-15";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-14";
+} from "./scheduler.js?v=20261112-15";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261112-14";
+} from "./globals.js?v=20261112-15";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -684,9 +684,10 @@ const isTransientPlayer = (name) => {
       if (pubBtn) pubBtn.className = `${isPrivate ? "mode-btn-inactive" : "mode-btn-active"} ${base}`;
       if (privBtn) privBtn.className = `${isPrivate ? "mode-btn-active" : "mode-btn-inactive"} ${base}`;
       const hint = document.getElementById("create-privacy-hint");
+      const isZh = (window.STATE?.lang || "zh-TW") === "zh-TW";
       if (hint) hint.innerText = isPrivate
-        ? "不會出現在「臨打活動」，只有拿到分享連結的人能進入"
-        : "會出現在「臨打活動」，大家都看得到";
+        ? (isZh ? "不會出現在「臨打活動」，只有拿到分享連結的人能進入" : "Hidden from Drop-in Games. Only people with the link can join.")
+        : (isZh ? "會出現在「臨打活動」，大家都看得到" : "Shown in Drop-in Games for everyone.");
     }
     window.setCreatePrivacy = setCreatePrivacy;
     window.onClubSelectChange = onClubSelectChange;
@@ -1081,15 +1082,15 @@ const isTransientPlayer = (name) => {
         if (wrapClub) {
           wrapClub.innerHTML = `
             <div class="flex items-center justify-between mb-1">
-              <label class="block text-xs sm:text-sm font-semibold">2. 所屬社團</label>
-              <span class="text-[10px] px-2 py-0.5 rounded-full card-inner border font-bold text-amber-600 dark:text-amber-400">社團專屬球局</span>
+              <label class="block text-xs sm:text-sm font-semibold">${STATE.lang === "zh-TW" ? "2. 所屬社團" : "2. Club"}</label>
+              <span class="text-[10px] px-2 py-0.5 rounded-full card-inner border font-bold text-amber-600 dark:text-amber-400">${STATE.lang === "zh-TW" ? "社團專屬球局" : "Club game"}</span>
             </div>
             <div class="p-3 rounded-xl card-inner border flex items-center justify-between">
               <div class="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
                 <i data-lucide="shield" class="w-4 h-4"></i>
                 <span>${escapeHTML(clubName)}</span>
               </div>
-              <span class="text-[11px] sub-text">歸檔至該社團大廳</span>
+              <span class="text-[11px] sub-text">${STATE.lang === "zh-TW" ? "歸檔至該社團大廳" : "Saved to this club"}</span>
             </div>
             <select id="create-club-select" class="hidden">
               <option value="${escapeHTML(clubName)}" selected>${escapeHTML(clubName)}</option>
@@ -1411,7 +1412,7 @@ const isTransientPlayer = (name) => {
         addMyTournamentId(tournamentId);
         addCreatedTournamentId(tournamentId);
 
-        const engineTag = backendSuccess ? " (⚡雲端排賽)" : " (💻本地排賽)";
+        const engineTag = STATE.lang === "zh-TW" ? (backendSuccess ? " (⚡雲端排賽)" : " (💻本地排賽)") : "";
         if (STATE.db) {
           try {
             await set(ref(STATE.db, `tournaments/${tournamentId}`), tournamentObj);

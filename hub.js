@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261112-14";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261112-15";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261112-14";
+} from "./globals.js?v=20261112-15";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -268,7 +268,7 @@ export function renderTournamentCard(tData, opts = {}) {
           <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
             class="flex-1 card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-500"></i>
-            <span>${STATE.lang === 'zh-TW' ? '觀看結果' : 'View Results'}</span>
+            <span>${STATE.lang === 'zh-TW' ? '觀看結果' : 'Results'}</span>
           </button>
         ` : `
           <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"

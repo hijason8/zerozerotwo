@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261112-14";
+import { escapeHTML } from "./utils.js?v=20261112-15";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261112-14";
+} from "./globals.js?v=20261112-15";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -477,9 +477,9 @@ export function openLineProfileModal() {
     }
   }
   const nameEl = document.getElementById("line-modal-profile-name");
-  if (nameEl) nameEl.innerText = profile.displayName || "LINE 球友";
+  if (nameEl) nameEl.innerText = profile.displayName || (STATE.lang === "zh-TW" ? "LINE 球友" : "LINE user");
   const defNameEl = document.getElementById("line-modal-default-name");
-  if (defNameEl) defNameEl.innerText = profile.displayName || "未設定";
+  if (defNameEl) defNameEl.innerText = profile.displayName || (STATE.lang === "zh-TW" ? "未設定" : "Not set");
 
   const logoutBtn = document.getElementById("btn-line-logout");
   if (logoutBtn) logoutBtn.classList.toggle("hidden", isInsideLineApp());

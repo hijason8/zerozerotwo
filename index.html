@@ -188,7 +188,7 @@
         <div class="relative shrink-0">
           <button id="btn-settings-toggle" onclick="toggleSettingsDropdown(event)"
             class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl card-inner border hover:border-emerald-500/50 flex items-center justify-center sub-text hover:text-stone-900 dark:hover:text-white transition shadow-sm active:scale-95 cursor-pointer"
-            title="設定與管理">
+            title="設定與管理" data-en-title="Settings">
             <i data-lucide="settings" class="w-4 h-4"></i>
           </button>
 
@@ -268,7 +268,7 @@
         class="shrink-0 px-3 py-1.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white text-xs font-bold shadow-sm active:scale-95 transition cursor-pointer">
         <span id="t-oa-friend-banner-btn">加入好友</span>
       </button>
-      <button type="button" onclick="dismissOaFriendBanner()" aria-label="關閉提醒"
+      <button type="button" onclick="dismissOaFriendBanner()" aria-label="關閉提醒" data-en-title="Close"
         class="shrink-0 w-7 h-7 rounded-lg sub-text hover:text-stone-900 dark:hover:text-white flex items-center justify-center cursor-pointer">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -298,7 +298,7 @@
         <!-- 1. 加入 / 已加入 社團按鈕 -->
         <button type="button" id="btn-toggle-my-club" onclick="toggleCurrentClubStatus()"
           class="hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm active:scale-95 shrink-0 cursor-pointer"
-          title="加入或退出社團">
+          title="加入或退出社團" data-en-title="Join or leave club">
           <span id="t-btn-toggle-my-club">加入</span>
         </button>
 
@@ -406,7 +406,7 @@
           <p id="t-activities-empty-hint" class="text-xs sub-text"></p>
           <button type="button" id="activities-login-btn" onclick="handleLineLoginClick()"
             class="hidden mt-2 px-5 py-2.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm active:scale-95 transition">
-            <i data-lucide="message-circle" class="w-4 h-4"></i> 用 LINE 登入
+            <i data-lucide="message-circle" class="w-4 h-4"></i> <span data-en="Log in with LINE">用 LINE 登入</span>
           </button>
         </div>
         <div id="activities-discover-clubs-wrap" class="space-y-3">
@@ -460,13 +460,13 @@
 
         <!-- 臨打賽事的公開設定：僅限連結＝不出現在臨打活動列表與 LINE 機器人回覆 -->
         <div id="wrap-create-privacy">
-          <label class="block text-xs sm:text-sm font-semibold mb-1.5">誰看得到</label>
+          <label class="block text-xs sm:text-sm font-semibold mb-1.5" data-en="Visibility">誰看得到</label>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" id="btn-create-public" onclick="setCreatePrivacy(false)" class="mode-btn-active py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start gap-2 hover-lift active:scale-95 shadow-sm">
-              <i data-lucide="globe" class="w-4 h-4"></i> <span class="text-xs sm:text-sm font-display font-black">公開</span>
+              <i data-lucide="globe" class="w-4 h-4"></i> <span class="text-xs sm:text-sm font-display font-black" data-en="Public">公開</span>
             </button>
             <button type="button" id="btn-create-private" onclick="setCreatePrivacy(true)" class="mode-btn-inactive py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start gap-2 hover-lift active:scale-95 shadow-sm">
-              <i data-lucide="link" class="w-4 h-4"></i> <span class="text-xs sm:text-sm font-display font-black">僅限連結</span>
+              <i data-lucide="link" class="w-4 h-4"></i> <span class="text-xs sm:text-sm font-display font-black" data-en="Link only">僅限連結</span>
             </button>
           </div>
           <p id="create-privacy-hint" class="text-[11px] sub-text mt-1">會出現在「臨打活動」，大家都看得到</p>
@@ -871,7 +871,7 @@
               </button>
               <button type="button" onclick="cancelRegistrationTournament()" id="btn-lobby-delete-tournament"
                 class="px-3 py-1 rounded-xl card-inner border hover:border-rose-500/50 hover:bg-rose-500/10 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95 text-stone-700 dark:text-slate-300 hover:text-rose-500"
-                title="取消此球局">
+                title="取消此球局" data-en-title="Cancel this game">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500"></i>
                 <span id="t-lobby-btn-delete">取消球局</span>
               </button>
@@ -1207,18 +1207,18 @@
       <div class="flex items-center justify-between border-b border-stone-300 dark:border-slate-800 pb-3">
         <div>
           <h2 id="t-admin-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2">
-            <i data-lucide="shield-check" class="w-5 h-5 text-rose-500"></i> 管理員控制台
+            <i data-lucide="shield-check" class="w-5 h-5 text-rose-500"></i> <span data-en="Admin">管理員控制台</span>
           </h2>
-          <p id="t-admin-desc" class="text-xs sub-text mt-0.5">社團密碼管理 · 賽事管理 · 成員管理</p>
+          <p id="t-admin-desc" class="text-xs sub-text mt-0.5" data-en="Passwords · Tournaments · Members">社團密碼管理 · 賽事管理 · 成員管理</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="navigateTo('hub')"
             class="card-inner border px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 sub-text hover:text-emerald-500 transition shadow-sm">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span id="t-admin-back">返回大廳</span>
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span id="t-admin-back" data-en="Back">返回大廳</span>
           </button>
           <button onclick="exitAdminMode()"
             class="card-inner border px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 text-rose-500 hover:bg-rose-500/10 border-rose-500/30 transition shadow-sm">
-            <i data-lucide="log-out" class="w-3.5 h-3.5"></i> 退出管理員
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i> <span data-en="Exit Admin">退出管理員</span>
           </button>
         </div>
       </div>
@@ -1254,29 +1254,29 @@
             <path
               d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z" />
           </svg>
-          <span id="t-line-modal-connected">LINE 已連動</span>
+          <span id="t-line-modal-connected" data-en="LINE linked">LINE 已連動</span>
         </p>
       </div>
 
       <div class="p-3 rounded-xl bg-stone-100 dark:bg-slate-900/60 border text-left text-xs space-y-1.5 sub-text">
         <div class="flex items-center justify-between">
-          <span>預設報名暱稱：</span>
+          <span data-en="Sign-up name:">預設報名暱稱：</span>
           <span id="line-modal-default-name" class="font-bold text-stone-900 dark:text-white"></span>
         </div>
         <div class="flex items-center justify-between">
-          <span>一鍵報名簽到：</span>
-          <span class="text-emerald-500 font-bold">已啟用</span>
+          <span data-en="One-tap sign-up:">一鍵報名簽到：</span>
+          <span class="text-emerald-500 font-bold" data-en="On">已啟用</span>
         </div>
       </div>
 
       <div class="flex gap-2">
         <button type="button" id="btn-line-logout" onclick="handleLineLogoutOrSwitch()"
           class="flex-1 py-2 px-3 rounded-xl border border-stone-300 dark:border-slate-700 hover:border-stone-400 text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition">
-          切換 / 登出
+          <span data-en="Switch / Log out">切換 / 登出</span>
         </button>
         <button type="button" onclick="closeLineProfileModal()"
           class="flex-1 py-2 px-3 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer">
-          確定
+          <span data-en="OK">確定</span>
         </button>
       </div>
     </div>
@@ -1299,22 +1299,22 @@
       </div>
 
       <div>
-        <h3 class="text-base font-bold font-display text-stone-900 dark:text-white">未登入 LINE</h3>
-        <p class="text-xs sub-text mt-1">連動 LINE 後可享有專屬便利功能：</p>
+        <h3 class="text-base font-bold font-display text-stone-900 dark:text-white" data-en="Not logged in">未登入 LINE</h3>
+        <p class="text-xs sub-text mt-1" data-en="Log in with LINE to:">連動 LINE 後可享有專屬便利功能：</p>
       </div>
 
       <div class="text-left text-xs space-y-2 p-3 rounded-xl bg-stone-100 dark:bg-slate-900/60 border">
         <div class="flex items-start gap-2">
           <i data-lucide="zap" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-          <span>一鍵帶入 LINE 暱稱與頭像極速報名</span>
+          <span data-en="Sign up in one tap with your LINE name">一鍵帶入 LINE 暱稱與頭像極速報名</span>
         </div>
         <div class="flex items-start gap-2">
           <i data-lucide="share-2" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-          <span>一鍵將即時賽況與戰報分享至 LINE 群組</span>
+          <span data-en="Share live scores to LINE groups">一鍵將即時賽況與戰報分享至 LINE 群組</span>
         </div>
         <div class="flex items-start gap-2">
           <i data-lucide="trophy" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-          <span>社團個人累積戰績與積分專屬記錄</span>
+          <span data-en="Keep your club stats">社團個人累積戰績與積分專屬記錄</span>
         </div>
       </div>
 
@@ -1325,13 +1325,13 @@
             <path
               d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z" />
           </svg>
-          <span>立即以 LINE 帳號登入</span>
+          <span data-en="Log in with LINE">立即以 LINE 帳號登入</span>
         </button>
 
         <a href="https://liff.line.me/2012043789-KvKpHLCt" target="_blank"
           class="w-full py-2 px-3 rounded-xl border border-stone-200 dark:border-slate-800 hover:border-emerald-500/50 text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center justify-center gap-1.5">
           <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-          <span>在 LINE App 中開啟本系統</span>
+          <span data-en="Open in LINE app">在 LINE App 中開啟本系統</span>
         </a>
       </div>
     </div>
@@ -1382,7 +1382,7 @@
           </span>
           <button type="button" onclick="copyLineOAId()"
             class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold transition flex items-center gap-1 active:scale-95 cursor-pointer"
-            title="複製 LINE ID">
+            title="複製 LINE ID" data-en-title="Copy LINE ID">
             <i data-lucide="copy" class="w-3 h-3 text-stone-500"></i>
             <span id="t-btn-copy-line-id">複製</span>
           </button>
@@ -1426,7 +1426,7 @@
             </h3>
             <span class="text-[10px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 px-2 py-0.5 rounded-full uppercase tracking-wider">Guide</span>
           </div>
-          <p class="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">匹克球系統使用手冊 · 免下載、零摩擦賽事管理</p>
+          <p class="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5" data-en="Pickleball scheduling · no app download">匹克球系統使用手冊 · 免下載、零摩擦賽事管理</p>
         </div>
         <button onclick="closeUserGuideModal()"
           class="sub-text hover:text-emerald-500 p-1.5 rounded-lg transition cursor-pointer">
@@ -1437,6 +1437,57 @@
       <!-- Scrollable Manual Content (Clean, Professional Typography, Matching PDF Aesthetic) -->
       <div
         class="p-4 sm:p-6 overflow-y-auto space-y-6 text-xs sm:text-[13px] leading-relaxed text-stone-700 dark:text-slate-300">
+      <div data-lang-block="en" class="hidden space-y-6">
+        <div class="bg-stone-50 dark:bg-slate-900/60 border border-stone-200 dark:border-slate-800/80 border-l-[3.5px] border-l-emerald-500 p-3.5 sm:p-4 rounded-xl text-stone-700 dark:text-slate-300">
+          <strong class="text-stone-900 dark:text-white font-bold">Welcome to ZeroZeroTwo!</strong> Sign-ups, scheduling and stats for pickleball, all through LINE. No app to download.
+        </div>
+        <section class="space-y-3">
+          <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
+            <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">1. Players & LINE</h4>
+          </div>
+          <div class="space-y-2.5 pl-1">
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">No sign-up:</span> <span>Open a link in LINE and you're logged in.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">One name per club:</span> <span>Use a different player name in each club. Stats stay separate.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">When to link:</span> <span>Watching needs nothing. You'll be asked to link your name when you sign up for a game.</span></div>
+          </div>
+        </section>
+        <section class="space-y-3">
+          <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
+            <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">2. Clubs & Activities</h4>
+          </div>
+          <div class="space-y-2.5 pl-1">
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Drop-in Games:</span> <span>All public games.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Join a club:</span> <span>Tap “Join” on a club page to keep it in your menu.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Activities:</span> <span>Games you signed up for and the latest from your clubs.</span></div>
+          </div>
+        </section>
+        <section class="space-y-3">
+          <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
+            <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">3. Create a Game</h4>
+          </div>
+          <div class="space-y-2.5 pl-1">
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Sign-up first:</span> <span>Share the link in LINE. Players tap +1, then you start at the court.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Start now:</span> <span>Enter the players and get a schedule right away.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Fair Mode:</span> <span>Set hours or games. Everyone plays about the same and partners rotate.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Free Play:</span> <span>No fixed schedule. Add games as you go, with “fewest games first” or random picks.</span></div>
+          </div>
+        </section>
+        <section class="space-y-3">
+          <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
+            <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">4. Scoring & Passwords</h4>
+          </div>
+          <div class="space-y-2.5 pl-1">
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Anyone can score:</span> <span>Tap “Enable Controls” and anyone on site can enter scores. No password.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Locked when done:</span> <span>Finished games become read-only.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Club password:</span> <span>Only for club settings, like the description and privacy.</span></div>
+          </div>
+        </section>
+      </div>
+      <div data-lang-block="zh" class="space-y-6">
 
         <!-- Hero Card -->
         <div class="bg-stone-50 dark:bg-slate-900/60 border border-stone-200 dark:border-slate-800/80 border-l-[3.5px] border-l-emerald-500 p-3.5 sm:p-4 rounded-xl text-stone-700 dark:text-slate-300">
@@ -1589,6 +1640,7 @@
             </div>
           </div>
         </section>
+      </div>
 
       </div>
 
@@ -1598,11 +1650,11 @@
         <a href="ZeroZeroTwo_使用手冊.pdf" target="_blank" download="ZeroZeroTwo_匹克球系統使用手冊.pdf"
           class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-stone-300 dark:border-slate-700 hover:border-emerald-500 text-stone-700 dark:text-slate-200 hover:text-emerald-600 text-xs font-semibold transition active:scale-95 bg-white dark:bg-slate-800/80 shadow-sm cursor-pointer">
           <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
-          <span>下載 PDF 手冊</span>
+          <span data-en="Download PDF (Chinese)">下載 PDF 手冊</span>
         </a>
         <button type="button" onclick="closeUserGuideModal()"
           class="w-full sm:w-auto px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition active:scale-95 shadow-sm cursor-pointer">
-          關閉手冊
+          <span data-en="Close">關閉手冊</span>
         </button>
       </div>
 
@@ -1684,7 +1736,7 @@
             <i data-lucide="user-check" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="text-base font-bold font-display">歡迎！請認領您的球員身分</h3>
+            <h3 class="text-base font-bold font-display" data-en="Claim your player name">歡迎！請認領您的球員身分</h3>
             <p id="claim-modal-club-title" class="text-[11px] sub-text">社團球員與 LINE 帳號綁定</p>
           </div>
         </div>
@@ -1697,7 +1749,8 @@
       <div
         class="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 text-xs flex items-start gap-2 shadow-inner">
         <i data-lucide="info" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-        <div class="text-[11px] leading-tight">
+        <div class="text-[11px] leading-tight" data-lang-block="en">Played here before? Tap your <strong>name</strong> below to link it to your LINE.</div>
+        <div class="text-[11px] leading-tight" data-lang-block="zh">
           若您過去曾在本團出賽過，請在下方點擊您的<strong>「姓名」</strong>進行認領，未來的社團排賽與戰績將無縫綁定至您的 LINE 帳號！
         </div>
       </div>
@@ -1705,7 +1758,7 @@
       <!-- 待認領名單區 (Chips) -->
       <div class="space-y-1.5">
         <div class="flex items-center justify-between px-1">
-          <span class="text-xs font-bold sub-text">本團待認領成員：</span>
+          <span class="text-xs font-bold sub-text" data-en="Unclaimed players:">本團待認領成員：</span>
           <span id="claim-available-count" class="text-[10px] sub-text font-mono"></span>
         </div>
         <div id="claim-members-container"
@@ -1717,22 +1770,22 @@
       <!-- 分隔線 -->
       <div class="relative flex py-1 items-center">
         <div class="flex-grow border-t border-stone-300 dark:border-slate-800"></div>
-        <span class="flex-shrink mx-3 text-[11px] sub-text font-bold">我是新加入的球員</span>
+        <span class="flex-shrink mx-3 text-[11px] sub-text font-bold" data-en="I'm new here">我是新加入的球員</span>
         <div class="flex-grow border-t border-stone-300 dark:border-slate-800"></div>
       </div>
 
       <!-- 新朋友直接輸入暱稱與確認綁定按鈕 (不搞二選一) -->
       <div class="space-y-1.5">
         <div class="flex items-center gap-2">
-          <input type="text" id="claim-new-player-input" maxlength="10" placeholder="輸入球員姓名 (最多10字)"
+          <input type="text" id="claim-new-player-input" maxlength="10" placeholder="輸入球員姓名 (最多10字)" data-en-placeholder="Player name (max 10)"
             class="flex-1 input-bg border rounded-xl px-3 py-2.5 text-xs focus:border-emerald-500 focus:outline-none"
             onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); handleClaimNewPlayerSubmit();}" />
           <button type="button" onclick="handleClaimNewPlayerSubmit()"
             class="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs shrink-0 transition active:scale-95 cursor-pointer shadow-sm">
-            確認綁定
+            <span data-en="Link">確認綁定</span>
           </button>
         </div>
-        <p class="text-[10px] sub-text px-1">已預先填入您的 LINE 暱稱，可直接確認或修改為習慣的外號 (上限10字)</p>
+        <p class="text-[10px] sub-text px-1" data-en="Your LINE name is filled in. Edit it if you like (max 10).">已預先填入您的 LINE 暱稱，可直接確認或修改為習慣的外號 (上限10字)</p>
       </div>
 
       <!-- 解除綁定區 (僅在已綁定時動態顯示) -->
@@ -1763,8 +1816,8 @@
       </div>
 
       <div>
-        <h3 id="t-cred-modal-title" class="text-base sm:text-lg font-bold font-display">🎉 社團建立成功！專屬憑證</h3>
-        <p id="t-cred-modal-desc" class="text-xs sub-text mt-0.5">這是您社團的專屬存取代號與入口</p>
+        <h3 id="t-cred-modal-title" class="text-base sm:text-lg font-bold font-display" data-en="🎉 Club Created!">🎉 社團建立成功！專屬憑證</h3>
+        <p id="t-cred-modal-desc" class="text-xs sub-text mt-0.5" data-en="Your club's link and details">這是您社團的專屬存取代號與入口</p>
       </div>
 
       <!-- 截屏強提醒 (Highlight Alert) -->
@@ -1772,8 +1825,8 @@
         class="p-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300 text-left flex items-start gap-2 shadow-inner">
         <i data-lucide="camera" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i>
         <div class="text-[11px] leading-tight font-medium">
-          <strong class="font-bold">強烈建議立即「螢幕截圖」保存此畫面！</strong>
-          <span class="block mt-0.5 opacity-90">避免日後遺失專屬管理連結或防護密碼。</span>
+          <strong class="font-bold" data-en="Take a screenshot now!">強烈建議立即「螢幕截圖」保存此畫面！</strong>
+          <span class="block mt-0.5 opacity-90" data-en="So you don't lose the link or password.">避免日後遺失專屬管理連結或防護密碼。</span>
         </div>
       </div>
 
@@ -1785,12 +1838,12 @@
       <!-- 重要社團資訊 (名稱、網址、密碼) -->
       <div class="card-inner rounded-xl p-3 border text-left space-y-2 text-xs">
         <div class="flex items-center justify-between">
-          <span class="sub-text font-semibold">社團名稱</span>
+          <span class="sub-text font-semibold" data-en="Club">社團名稱</span>
           <span id="cred-club-name"
             class="font-bold font-display text-emerald-600 dark:text-emerald-400 text-sm truncate max-w-[180px]"></span>
         </div>
         <div class="flex items-center justify-between">
-          <span class="sub-text font-semibold">防護密碼</span>
+          <span class="sub-text font-semibold" data-en="Password">防護密碼</span>
           <span id="cred-club-pwd" class="font-mono font-bold text-stone-800 dark:text-stone-200"></span>
         </div>
       </div>
@@ -1804,7 +1857,7 @@
             <path
               d="M12 2C6.48 2 2 5.82 2 10.53c0 2.93 1.77 5.51 4.45 6.98-.19.7-.7 2.54-.8 2.92-.12.47.17.46.36.33.15-.1 2.37-1.61 3.33-2.27.87.16 1.76.24 2.66.24 5.52 0 10-3.82 10-8.53S17.52 2 12 2z" />
           </svg>
-          <span>分享社團邀請至 LINE 好友 / 群組</span>
+          <span data-en="Share to LINE">分享社團邀請至 LINE 好友 / 群組</span>
         </button>
 
         <div class="flex items-center gap-2">
@@ -1812,13 +1865,13 @@
           <button type="button" onclick="copyClubLinkFromCredential()"
             class="flex-1 py-2 px-3 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
             <i data-lucide="copy" class="w-3.5 h-3.5 text-emerald-500"></i>
-            <span>複製專屬網址</span>
+            <span data-en="Copy Link">複製專屬網址</span>
           </button>
 
           <!-- 進入社團大廳按鈕 -->
           <button type="button" onclick="enterClubFromCredential()"
             class="flex-1 py-2 px-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
-            <span>進入社團大廳</span>
+            <span data-en="Go to Club">進入社團大廳</span>
             <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -1892,7 +1945,7 @@
 
       <!-- Quick Preset Chips -->
       <div class="space-y-1.5">
-        <label class="block text-xs font-semibold sub-text">快速選擇常用時間：</label>
+        <label class="block text-xs font-semibold sub-text" data-en="Quick pick:">快速選擇常用時間：</label>
         <div class="grid grid-cols-4 gap-1.5">
           <button type="button" onclick="setQuickDuration(1.0)"
             class="py-1.5 px-2 rounded-xl card-inner border hover:border-amber-500 font-mono text-xs font-bold transition text-center active:scale-95">1.0h</button>
@@ -1915,11 +1968,11 @@
 
       <!-- Numeric Input -->
       <div class="space-y-1.5">
-        <label class="block text-xs font-semibold sub-text">或自訂比賽小時：</label>
+        <label class="block text-xs font-semibold sub-text" data-en="Or enter hours:">或自訂比賽小時：</label>
         <div class="relative">
           <input type="number" id="edit-duration-input" min="0.5" max="8" step="0.5" value="2.0"
             class="w-full input-bg border rounded-xl p-2.5 pr-12 text-sm font-mono focus:border-amber-500 focus:outline-none" />
-          <span class="absolute right-3 top-2.5 text-xs font-bold sub-text">小時</span>
+          <span class="absolute right-3 top-2.5 text-xs font-bold sub-text" data-en="hrs">小時</span>
         </div>
       </div>
 
@@ -1927,11 +1980,11 @@
       <div class="grid grid-cols-2 gap-2 pt-1">
         <button type="button" onclick="closeEditDurationModal()"
           class="py-2.5 px-3 rounded-xl card-inner border font-bold text-xs hover:border-stone-400 transition text-center">
-          取消
+          <span data-en="Cancel">取消</span>
         </button>
         <button type="button" onclick="saveTournamentDuration()"
           class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-md active:scale-95 transition text-center flex items-center justify-center gap-1">
-          <i data-lucide="check" class="w-3.5 h-3.5"></i> 儲存時間
+          <i data-lucide="check" class="w-3.5 h-3.5"></i> <span data-en="Save">儲存時間</span>
         </button>
       </div>
     </div>
@@ -2198,7 +2251,7 @@
         </button>
         <button type="button" onclick="closeExploreClubsModal()"
           class="px-3.5 py-1.5 rounded-xl card-inner border text-xs font-semibold hover:border-stone-400 transition cursor-pointer">
-          關閉
+          <span data-en="Close">關閉</span>
         </button>
       </div>
     </div>
@@ -2257,7 +2310,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261112-14";
+    import { I18N } from "./i18n.js?v=20261112-15";
     window.I18N = I18N;
 
     function t(key) {
@@ -2279,14 +2332,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261112-14";
+    } from "./utils.js?v=20261112-15";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261112-14";
-    import "./live.js?v=20261112-14";
-    import "./activities.js?v=20261112-14";
-    import "./hub.js?v=20261112-14";
-    import "./line.js?v=20261112-14";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261112-14";
+    import "./tournament-create.js?v=20261112-15";
+    import "./live.js?v=20261112-15";
+    import "./activities.js?v=20261112-15";
+    import "./hub.js?v=20261112-15";
+    import "./line.js?v=20261112-15";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261112-15";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

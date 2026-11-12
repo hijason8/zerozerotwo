@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261112-14";
+import { STATE, t } from "./globals.js?v=20261112-15";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -168,11 +168,39 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-activities-avail-text": [
     "報名中",
-    "Open for Sign Up"
+    "Open for Sign-up"
   ],
   "t-activities-comp-text": [
     "近期完賽球局 (3日內)",
-    "Recent Completed Matches (3 Days)"
+    "Finished (last 3 days)"
+  ],
+  "t-hub-live-heading": [
+    "比賽中",
+    "In Progress"
+  ],
+  "t-hub-signup-heading": [
+    "報名中",
+    "Open for Sign-up"
+  ],
+  "t-hub-completed-heading": [
+    "近期完賽球局 (3日內)",
+    "Finished (last 3 days)"
+  ],
+  "t-activities-discover-clubs": [
+    "活躍社團",
+    "Active Clubs"
+  ],
+  "t-lobby-plans-title": [
+    "🎯 請選擇排賽方案 (依預計時長試算)：",
+    "🎯 Choose a plan (based on duration):"
+  ],
+  "t-lobby-start-btn-text": [
+    "全員到齊，立即排賽開打！",
+    "Everyone's here, start!"
+  ],
+  "t-btn-close-line-oa": [
+    "關閉",
+    "Close"
   ],
   "t-label-notes-text": [
     "活動備註 / 補充說明",
@@ -228,11 +256,11 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-modal-duration-title": [
     "調整比賽時間",
-    "Adjust Tournament Duration"
+    "Edit Duration"
   ],
   "t-modal-duration-desc": [
     "修改預計總時間，開賽將依此自動試算局數",
-    "Update duration, system will recalculate optimal schedule on start"
+    "Games are recalculated when you start"
   ],
   "t-label-duration": [
     "預計比賽總時間",
@@ -509,6 +537,28 @@ export function applyLanguageUI() {
 
   // 6) 執行動態/條件式更新
   applyDynamicLanguageUI(isZh);
+
+  // 6b) 頁面上直接標註的英文：data-en（文字）、data-en-placeholder、data-en-title；
+  //     中文原文第一次套用時記在 data-zh*，切回中文時還原
+  document.querySelectorAll("[data-en]").forEach(el => {
+    if (el.dataset.zh === undefined) el.dataset.zh = el.textContent;
+    el.textContent = isZh ? el.dataset.zh : el.dataset.en;
+  });
+  document.querySelectorAll("[data-en-placeholder]").forEach(el => {
+    if (el.dataset.zhPlaceholder === undefined) el.dataset.zhPlaceholder = el.getAttribute("placeholder") || "";
+    el.setAttribute("placeholder", isZh ? el.dataset.zhPlaceholder : el.dataset.enPlaceholder);
+  });
+  document.querySelectorAll("[data-en-title]").forEach(el => {
+    if (el.dataset.zhTitle === undefined) el.dataset.zhTitle = el.getAttribute("title") || "";
+    el.setAttribute("title", isZh ? el.dataset.zhTitle : el.dataset.enTitle);
+  });
+  // 建立賽事頁的「誰看得到」說明文字跟著語言切換
+  const privInput = document.getElementById("create-privacy");
+  if (privInput && window.setCreatePrivacy) window.setCreatePrivacy(privInput.value === "private");
+  // 中英各一份的區塊（例如使用手冊）：data-lang-block="zh" / "en"
+  document.querySelectorAll("[data-lang-block]").forEach(el => {
+    el.classList.toggle("hidden", el.dataset.langBlock !== (isZh ? "zh" : "en"));
+  });
 
   // 7) 觸發關聯試算與圖示渲染
   if (typeof window.updatePlayerCountBadge === "function") window.updatePlayerCountBadge();
