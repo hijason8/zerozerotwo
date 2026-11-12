@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-8";
+} from "./utils.js?v=20261112-9";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-8";
+} from "./scheduler.js?v=20261112-9";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-8";
+} from "./globals.js?v=20261112-9";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1585,17 +1585,13 @@ async function toggleVoidMatch(matchId) {
     // 已經是取消狀態：要恢復請輸入分數後按「修改」
     showToast(STATE.lang === "zh-TW" ? "此局已取消，輸入分數後按「修改」即可恢復" : "Already voided. Enter scores and tap Edit to restore.", "info");
     return;
-  } else {
-    const confirmMsg = STATE.lang === "zh-TW"
-      ? `確定後，該局將不計入勝負與排行。`
-      : `🚫 Void Game ${matchId}? (Will not count in leaderboard)`;
-    if (!confirm(confirmMsg)) return;
-
-    match.voided = true;
-    match.completed = true;
-    match.blueScore = null;
-    match.redScore = null;
   }
+
+  // 不跳確認視窗，直接取消，右下角提示
+  match.voided = true;
+  match.completed = true;
+  match.blueScore = null;
+  match.redScore = null;
 
   saveToLocalTournaments(tData);
   if (STATE.db) {
@@ -1615,6 +1611,7 @@ async function toggleVoidMatch(matchId) {
   }
 
   renderLiveUI(tData);
+  showToast(STATE.lang === "zh-TW" ? "已取消該場賽事" : "Match voided", "success");
 }
 window.toggleVoidMatch = toggleVoidMatch;
 
@@ -2218,6 +2215,7 @@ async function saveMatchScore(matchId) {
   const matchIdx = tObj.matches.findIndex(m => m.id === matchId);
   if (matchIdx === -1) return;
 
+  const wasVoided = tObj.matches[matchIdx].voided === true;
   tObj.matches[matchIdx].blueScore = blueScore;
   tObj.matches[matchIdx].redScore = redScore;
   tObj.matches[matchIdx].completed = true;
@@ -2226,6 +2224,7 @@ async function saveMatchScore(matchId) {
   // Always save locally first
   saveToLocalTournaments(tObj);
   renderLiveUI(tObj);
+  if (wasVoided) showToast(STATE.lang === "zh-TW" ? "已恢復賽事" : "Match restored", "success");
 
   if (STATE.db) {
     try {
