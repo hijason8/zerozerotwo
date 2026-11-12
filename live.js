@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-16";
+} from "./utils.js?v=20261112-17";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-16";
+} from "./scheduler.js?v=20261112-17";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-16";
+} from "./globals.js?v=20261112-17";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -551,7 +551,7 @@ function renderLiveUI(data) {
                 <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeJsAttr(clubName)}')"
                   class="w-full py-2.5 px-3.5 rounded-xl card-inner border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold transition flex items-center justify-between gap-2 shadow-sm active:scale-95 cursor-pointer">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Identity Not Bound. Tap to Claim"}</span>
+                    <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Name not linked. Tap to link"}</span>
                   </div>
                   <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-bold shrink-0">
                     ${isZh ? "前往認領" : "Claim"}
@@ -1303,11 +1303,11 @@ async function completeTournamentAndReturn() {
   if (uncompletedCount > 0) {
     confirmMsg = STATE.lang === "zh-TW"
       ? `目前尚有 ${uncompletedCount} 場比賽未完成，確定要提早結束並將賽事歸檔嗎？`
-      : `There are still ${uncompletedCount} unplayed matches. Complete early and archived?`;
+      : `${uncompletedCount} games not played yet. End early and archive?`;
   } else {
     confirmMsg = STATE.lang === "zh-TW"
       ? `確認完賽嗎？\n\n⚠️ 提醒：完賽後賽事將全面凍結，無法再修正分數！`
-      : `Complete ?\n\n⚠️ Note: The tournament will be frozen and scores cannot be modified!`;
+      : `End the tournament?\n\n⚠️ Scores will be locked after this.`;
   }
 
   if (!confirm(confirmMsg)) return;

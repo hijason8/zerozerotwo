@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-16";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-17";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-16";
+} from "./scheduler.js?v=20261112-17";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261112-16";
+} from "./globals.js?v=20261112-17";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -210,15 +210,15 @@ const isTransientPlayer = (name) => {
       if (partnerType === "singles") {
         descEl.innerHTML = isZh
           ? "<b>👤 自由單打模式</b>：名單為個人選手（至少 2 人）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」即可自由挑選選手進行 1v1 單打對決！"
-          : "<b>👤 Free Singles</b>: Enter players (min 2). Click '+ Add Match' to pair up 1v1 matchups on the fly!";
+          : "<b>👤 Free Singles</b>: Enter players (min 2). Tap \"➕ Add Game\" to pick a 1v1 anytime.";
       } else if (partnerType === "fixed") {
         descEl.innerHTML = isZh
           ? "<b>🛡️ 自由隊伍模式</b>：名單為固定隊伍（至少 2 隊）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」由各隊自由約戰 1v1 對決！"
-          : "<b>🛡️ Free Team Mode</b>: Enter teams (min 2). Click '+ Add Match' to pair up teams on the fly!";
+          : "<b>🛡️ Free Teams</b>: Enter teams (min 2). Tap \"➕ Add Game\" to pick two teams anytime.";
       } else {
         descEl.innerHTML = isZh
           ? "<b>👥 自由雙打 / 自由配對</b>：名單為個人選手（至少 2 人）。進入賽事後自由度極高，可隨時自選 2v2 雙打或 1v1 單打，支援手動點選、場次少者優先與隨機抽籤！"
-          : "<b>👥 Free Doubles / Open</b>: Enter players (min 2). In live view, freely choose 2v2 doubles or 1v1 singles with tap-to-seat, least-played priority, or random draw!";
+          : "<b>👥 Free Doubles</b>: Enter players (min 2). Pick 2v2 or 1v1 anytime: by hand, fewest games first, or random.";
       }
     }
     window.updateFreeNoticeText = updateFreeNoticeText;
@@ -381,7 +381,7 @@ const isTransientPlayer = (name) => {
           noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-stone-500/10 text-stone-600 dark:text-slate-300 border border-stone-300/30";
           noticeEl.innerHTML = `
             <i data-lucide="info" class="w-4 h-4 shrink-0 text-stone-400"></i>
-            <span>${isZh ? `目前已登錄 <b>${count}</b> 人（個人單打開賽至少需 2 人）。` : `Currently <b>${count}</b> players registered (min 2 needed for singles).`}</span>
+            <span>${isZh ? `目前已登錄 <b>${count}</b> 人（個人單打開賽至少需 2 人）。` : `<b>${count}</b> players now (singles needs 2).`}</span>
           `;
           noticeEl.classList.remove("hidden");
         } else if (count === 2) {
@@ -410,7 +410,7 @@ const isTransientPlayer = (name) => {
           noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20";
           noticeEl.innerHTML = `
             <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0 text-rose-500"></i>
-            <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人單場輪替單打，板凳等候時間較長。若有多面場地建議分開建立賽事！` : `${count} players on 1 court for singles. High wait times. Consider splitting into separate tournaments.`}</span>
+            <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人單場輪替單打，板凳等候時間較長。若有多面場地建議分開建立賽事！` : `${count} players on 1 court for singles. Long waits. With more courts, create separate games.`}</span>
           `;
           noticeEl.classList.remove("hidden");
         }
@@ -422,7 +422,7 @@ const isTransientPlayer = (name) => {
         noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-stone-500/10 text-stone-600 dark:text-slate-300 border border-stone-300/30";
         noticeEl.innerHTML = `
           <i data-lucide="info" class="w-4 h-4 shrink-0 text-stone-400"></i>
-          <span>${isZh ? `目前已登錄 <b>${count}</b> 人（雙打單一球場開賽至少需 4 人）。` : `Currently <b>${count}</b> players registered (min 4 needed for doubles).`}</span>
+          <span>${isZh ? `目前已登錄 <b>${count}</b> 人（雙打單一球場開賽至少需 4 人）。` : `<b>${count}</b> players now (doubles needs 4).`}</span>
         `;
         noticeEl.classList.remove("hidden");
       } else if (count <= 8) {
@@ -437,14 +437,14 @@ const isTransientPlayer = (name) => {
         noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20";
         noticeEl.innerHTML = `
           <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 text-amber-500"></i>
-          <span><b>${isZh ? "🟡 等候時間略長" : "🟡 Moderate Wait"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），每打 1 局平均需休 1~2 局。` : `${count} players (${count - 4} resting), players rest 1-2 games between matches.`}</span>
+          <span><b>${isZh ? "🟡 等候時間略長" : "🟡 Moderate Wait"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），每打 1 局平均需休 1~2 局。` : `${count} players (${count - 4} resting), rest 1-2 games each time.`}</span>
         `;
         noticeEl.classList.remove("hidden");
       } else {
         noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20";
         noticeEl.innerHTML = `
           <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0 text-rose-500"></i>
-          <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），單場輪替易連休 3 局以上手感變冷。若有多面場地建議分開建立賽事！` : `${count} players (${count - 4} resting). High wait times on 1 court. Consider splitting into separate tournaments.`}</span>
+          <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），單場輪替易連休 3 局以上手感變冷。若有多面場地建議分開建立賽事！` : `${count} players (${count - 4} resting). Long waits. With more courts, create separate games.`}</span>
         `;
         noticeEl.classList.remove("hidden");
       }
