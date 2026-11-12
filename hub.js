@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261112-14";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261112-18";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261112-14";
+} from "./globals.js?v=20261112-18";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -268,7 +268,7 @@ export function renderTournamentCard(tData, opts = {}) {
           <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
             class="flex-1 card-inner border hover:border-emerald-500/50 text-stone-800 dark:text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
             <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-500"></i>
-            <span>${STATE.lang === 'zh-TW' ? '觀看結果' : 'View Results'}</span>
+            <span>${STATE.lang === 'zh-TW' ? '觀看結果' : 'Results'}</span>
           </button>
         ` : `
           <button onclick="enterTournament('${escapeJsAttr(tData.id)}')"
@@ -300,11 +300,11 @@ export function renderCardWithRegistration(tData) {
   const isBound = (reg.isBound !== false);
   const badge = isBound ? `
     <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
-      <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `綁定『${name}』出賽` : `Bound: ${name}`}
+      <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `綁定『${name}』出賽` : `Linked: ${name}`}
     </span></div>
   ` : `
     <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 inline-flex items-center gap-1">
-      <i data-lucide="alert-circle" class="w-3 h-3 text-amber-500"></i> ${isZh ? `未綁定『${name}』出賽` : `Unbound: ${name}`}
+      <i data-lucide="alert-circle" class="w-3 h-3 text-amber-500"></i> ${isZh ? `未綁定『${name}』出賽` : `Not linked: ${name}`}
     </span></div>
   `;
   return renderTournamentCard(tData, { extraHTML: badge });
@@ -493,7 +493,7 @@ export async function deleteTournament(id, skipConfirm = false) {
   if (!skipConfirm) {
     const confirmMsg = STATE.lang === "zh-TW"
       ? `確定要刪除此賽事嗎，比賽紀錄不會歸檔紀錄？`
-      : `Are you sure you want to delete this tournament? Match records will not be archived.`;
+      : `Delete this tournament? Its games won't be saved.`;
     if (!confirm(confirmMsg)) return;
   }
 

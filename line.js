@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261112-14";
+import { escapeHTML } from "./utils.js?v=20261112-18";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261112-14";
+} from "./globals.js?v=20261112-18";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -477,9 +477,9 @@ export function openLineProfileModal() {
     }
   }
   const nameEl = document.getElementById("line-modal-profile-name");
-  if (nameEl) nameEl.innerText = profile.displayName || "LINE 球友";
+  if (nameEl) nameEl.innerText = profile.displayName || (STATE.lang === "zh-TW" ? "LINE 球友" : "LINE user");
   const defNameEl = document.getElementById("line-modal-default-name");
-  if (defNameEl) defNameEl.innerText = profile.displayName || "未設定";
+  if (defNameEl) defNameEl.innerText = profile.displayName || (STATE.lang === "zh-TW" ? "未設定" : "Not set");
 
   const logoutBtn = document.getElementById("btn-line-logout");
   if (logoutBtn) logoutBtn.classList.toggle("hidden", isInsideLineApp());
@@ -663,12 +663,7 @@ export async function checkOaFriendship() {
   }
   if (oaBannerDismissed) show = false;
 
-  const isZh = (STATE.lang === "zh-TW");
-  const textEl = document.getElementById("t-oa-friend-banner-text");
-  const btnEl = document.getElementById("t-oa-friend-banner-btn");
-  if (textEl) textEl.textContent = isZh ? "加入 ZZTWO 官方帳號好友，在 LINE 裡就能查活動、收賽況" : "Add ZZTWO official account to check events and get updates in LINE";
-  if (btnEl) btnEl.textContent = isZh ? "加入好友" : "Add Friend";
-
+  // 提醒條文字由 i18n-ui.js 的 I18N_CUSTOM_TEXTS 管理，切換語言時會即時更新
   banner.classList.toggle("hidden", !show);
   if (show && window.lucide) lucide.createIcons({ root: banner });
 }

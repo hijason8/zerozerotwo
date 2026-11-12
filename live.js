@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-14";
+} from "./utils.js?v=20261112-18";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-14";
+} from "./scheduler.js?v=20261112-18";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-14";
+} from "./globals.js?v=20261112-18";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -276,11 +276,11 @@ function renderLiveUI(data) {
   const perUnit = isTeamMode ? (isZh ? "隊" : "team") : (isZh ? "人" : "p");
 
   if (data.status === "registering") {
-    document.getElementById("live-players-count").innerText = `${pCount} 人`;
+    document.getElementById("live-players-count").innerText = isZh ? `${pCount} 人` : `${pCount} ${unit}`;
   } else {
     document.getElementById("live-players-count").innerText = isZh
       ? (isFreeMode ? `${pCount} ${unit}登記` : `${pCount} ${unit} (每${perUnit}約 ${estGamesPerPlayer} 場)`)
-      : (isFreeMode ? `${pCount} ${unit}` : `${pCount} ${unit} (~${estGamesPerPlayer} g/${perUnit})`);
+      : (isFreeMode ? `${pCount} ${unit}` : `${pCount} ${unit} (~${estGamesPerPlayer} games each)`);
   }
   document.getElementById("live-duration").innerText = data.durationHours || "2.0";
 
@@ -551,7 +551,7 @@ function renderLiveUI(data) {
                 <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeJsAttr(clubName)}')"
                   class="w-full py-2.5 px-3.5 rounded-xl card-inner border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold transition flex items-center justify-between gap-2 shadow-sm active:scale-95 cursor-pointer">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Identity Not Bound. Tap to Claim"}</span>
+                    <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Name not linked. Tap to link"}</span>
                   </div>
                   <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-bold shrink-0">
                     ${isZh ? "前往認領" : "Claim"}
@@ -789,11 +789,11 @@ function renderLobbySchedulePlans(tData) {
     if (n >= 1) {
       practiceBtn.disabled = false;
       practiceBtn.classList.remove("opacity-50", "cursor-not-allowed");
-      practiceBtn.innerHTML = `<span>${isZh ? `自由模式/練球 (不排賽程，以目前 ${n} 人直接開打)` : `Free Mode / Practice (${n} players)`}</span>`;
+      practiceBtn.innerHTML = `<span>${isZh ? `自由模式/練球 (不排賽程，以目前 ${n} 人直接開打)` : `Free Play (${n} ${unitLabel})`}</span>`;
     } else {
       practiceBtn.disabled = true;
       practiceBtn.classList.add("opacity-50", "cursor-not-allowed");
-      practiceBtn.innerHTML = `<span>${isZh ? '自由模式/練球 (等待人員報名簽到)' : 'Free Mode / Practice (Waiting for players)'}</span>`;
+      practiceBtn.innerHTML = `<span>${isZh ? '自由模式/練球 (等待人員報名簽到)' : 'Free Play (waiting for players)'}</span>`;
     }
   }
 
@@ -918,15 +918,15 @@ function renderLobbySchedulePlans(tData) {
                 ${isSelected ? '<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>' : '<i data-lucide="circle" class="w-3.5 h-3.5 opacity-40"></i>'}
                 ${planName}
               </span>
-              <span class="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">共 ${p.totalGames} 局</span>
+              <span class="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">${isZh ? `共 ${p.totalGames} 局` : `${p.totalGames} games`}</span>
             </div>
             <div class="space-y-0.5">
               <div class="text-xs font-bold text-stone-800 dark:text-stone-200">
-                每${unitLabel}各打 <strong class="text-emerald-600 dark:text-emerald-400">${p.gamesEach}</strong> 場
+                ${isZh ? `每${unitLabel}各打 <strong class="text-emerald-600 dark:text-emerald-400">${p.gamesEach}</strong> 場` : `<strong class="text-emerald-600 dark:text-emerald-400">${p.gamesEach}</strong> each`}
               </div>
               <div class="text-[10px] sub-text flex items-center justify-between">
-                <span>休 ${p.restEach} 場</span>
-                <span>約 ${Math.round(p.avgMins)} 分/局</span>
+                <span>${isZh ? `休 ${p.restEach} 場` : `rest ${p.restEach}`}</span>
+                <span>${isZh ? `約 ${Math.round(p.avgMins)} 分/局` : `~${Math.round(p.avgMins)} min/game`}</span>
               </div>
             </div>
           </button>
@@ -938,7 +938,7 @@ function renderLobbySchedulePlans(tData) {
   // 更新開賽按鈕文字
   const currentPlan = plans.find(p => p.totalGames === selectedGames);
   if (startBtn && currentPlan) {
-    startBtn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i> <span>${isZh ? `依【${currentPlan.totalGames} 局方案 (每${unitLabel} ${currentPlan.gamesEach} 場)】平均模式開賽！` : `Start with Fair Mode (${currentPlan.totalGames} Games)`}</span>`;
+    startBtn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i> <span>${isZh ? `依【${currentPlan.totalGames} 局方案 (每${unitLabel} ${currentPlan.gamesEach} 場)】平均模式開賽！` : `Start: ${currentPlan.totalGames} games (${currentPlan.gamesEach} each)`}</span>`;
   }
 
   lucide.createIcons();
@@ -990,7 +990,7 @@ function promptConfirmStartTournament(startMode = "schedule") {
   const modal = document.getElementById("modal-confirm-start-tournament");
   if (!modal) {
     const confirmMsg = startMode === "practice"
-      ? (isZh ? `🏓 確定要以目前 ${n} 人開啟自由練球模式嗎？\n（開賽後將結束報名接龍）` : `🎯 確認全員到齊，正式排賽開打？\n（共 ${n} ${unitLabel}，開賽後將正式生成對戰賽程並結束報名）`)
+      ? (isZh ? `🏓 確定要以目前 ${n} 人開啟自由練球模式嗎？\n（開賽後將結束報名接龍）` : `Start free play with ${n} ${unitLabel}?\n(Sign-up will close)`)
       : (isZh ? `🎯 確認全員到齊，正式排賽開打？\n（共 ${n} ${unitLabel}，開賽後將正式生成對戰賽程並結束報名）` : `Start tournament with ${n} ${unitLabel}?`);
     if (confirm(confirmMsg)) {
       startTournamentFromLobby(startMode, true);
@@ -1303,11 +1303,11 @@ async function completeTournamentAndReturn() {
   if (uncompletedCount > 0) {
     confirmMsg = STATE.lang === "zh-TW"
       ? `目前尚有 ${uncompletedCount} 場比賽未完成，確定要提早結束並將賽事歸檔嗎？`
-      : `There are still ${uncompletedCount} unplayed matches. Complete early and archived?`;
+      : `${uncompletedCount} games not played yet. End early and archive?`;
   } else {
     confirmMsg = STATE.lang === "zh-TW"
       ? `確認完賽嗎？\n\n⚠️ 提醒：完賽後賽事將全面凍結，無法再修正分數！`
-      : `Complete ?\n\n⚠️ Note: The tournament will be frozen and scores cannot be modified!`;
+      : `End the tournament?\n\n⚠️ Scores will be locked after this.`;
   }
 
   if (!confirm(confirmMsg)) return;
@@ -2003,7 +2003,7 @@ async function submitAddMatch() {
   const tData = STATE.tournamentData;
   if (!tData) return;
   if (!isTournamentAdmin(tData)) {
-    showToast(STATE.lang === "zh-TW" ? "請先開啟操作模式！" : "Please unlock Edit Mode first!", "warning");
+    showToast(STATE.lang === "zh-TW" ? "請先開啟操作模式！" : "Please enable controls first!", "warning");
     return;
   }
   const isTeam = getTournamentIsTeamMode(tData);
