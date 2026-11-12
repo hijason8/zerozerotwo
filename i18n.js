@@ -525,15 +525,15 @@ export const I18N = {
     modeFairDesc: "",
     modeFreeTitle: "Free Play / Practice",
     modeFreeDesc: "",
-    labelDuration: "Estimated Total Duration",
+    labelDuration: "Total Time",
     unitHours: "Hours",
     unitMins: "Mins",
     freeNoticeTitle: "Free Play Guide:",
     freeNoticeDesc: "In live view, unlock Admin Mode to add matches and players on the fly!",
     labelPlayers: "4. Players",
     playersBadge: "Players",
-    timeCalcTitle: "Estimated Matchups & Schedule:",
-    submitCreateBtn: "Start Tournament Now",
+    timeCalcTitle: "Estimate:",
+    submitCreateBtn: "Start Now",
 
     // Entry Mode & Registration Lobby
     labelEntryMode: "Entry Format",

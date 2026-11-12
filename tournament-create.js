@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-15";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-16";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-15";
+} from "./scheduler.js?v=20261112-16";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261112-15";
+} from "./globals.js?v=20261112-16";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -121,7 +121,7 @@ const isTransientPlayer = (name) => {
         if (maxPlayersWrap) maxPlayersWrap.classList.add("hidden");
         if (instantSections) instantSections.classList.remove("hidden");
         if (submitBtn) {
-          submitBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> <span id="t-btn-submit-create-text">${isZh ? "確認並立即開打" : "Start Tournament Now"}</span>`;
+          submitBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> <span id="t-btn-submit-create-text">${isZh ? "確認並立即開打" : "Start Now"}</span>`;
         }
         const currentMode = document.getElementById("create-tournament-mode")?.value || "fair";
         setCreateMode(currentMode);
@@ -303,7 +303,7 @@ const isTransientPlayer = (name) => {
         }
       }
       if (inputAdd) inputAdd.placeholder = isZh ? "姓名，支援空格批量輸入" : "Enter names (supports space/line batch input)...";
-      if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "已登錄選手：" : (isRotating ? "已登錄選手：" : "已登錄隊伍：")) : (isSingles ? "Registered Singles:" : (isRotating ? "Registered Players:" : "Registered Teams:"));
+      if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "已登錄選手：" : (isRotating ? "已登錄選手：" : "已登錄隊伍：")) : (isSingles ? "Players:" : (isRotating ? "Players:" : "Teams:"));
       if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "社團常用隊伍：" : "社團常用選手：") : (type === "fixed" ? "Club Teams:" : "Club Players:");
       if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "增加臨打隊伍" : "增加臨打選手") : (type === "fixed" ? "Add Guest Teams" : "Add Guest Players");
       const autoGenHint = document.getElementById("t-auto-gen-hint");
@@ -482,8 +482,8 @@ const isTransientPlayer = (name) => {
             : `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。<span class="opacity-80">請輸入至少 ${minUnits} 個參賽單位 (${unitLabel}) 開始試算。</span>`;
         } else {
           hintText.innerHTML = strategy === "full-cycle"
-            ? `💡 <strong>Full Round-Robin</strong>: Force 1 full cycle so all participants pair & match up. Please enter at least ${minUnits} units.`
-            : `💡 <strong>By Duration</strong>: Specify total duration, auto-calc best game options. Please enter at least ${minUnits} units.`;
+            ? `💡 <strong>Full Round-Robin</strong>: One full round so everyone partners and faces everyone. Enter at least ${minUnits} ${isTeamMode ? "teams" : "players"}.`
+            : `💡 <strong>By Duration</strong>: Set the total time and the best game count is calculated. Enter at least ${minUnits} ${isTeamMode ? "teams" : "players"}.`;
         }
         if (optionsContainer) {
           optionsContainer.innerHTML = "";
@@ -612,14 +612,14 @@ const isTransientPlayer = (name) => {
       if (badge) {
         badge.innerText = STATE.lang === "zh-TW"
           ? `已選：${activePlan.totalGames} 局 (每單位 ${activePlan.gamesEach} 場)`
-          : `Selected: ${activePlan.totalGames} games (${activePlan.gamesEach} g/u)`;
+          : `Selected: ${activePlan.totalGames} games (${activePlan.gamesEach} each)`;
         badge.classList.remove("hidden");
       }
 
       if (STATE.lang === "zh-TW") {
         hintText.innerHTML = `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。<br/>總時間 <strong>${totalMinutes} 分鐘</strong> (${durationHours}h) · 目前選定 <strong class="text-emerald-500">${activePlan.totalGames} 局賽程</strong>，<strong class="text-emerald-600 dark:text-emerald-400">每單位(人/隊)各打 ${activePlan.gamesEach} 場</strong> (休 ${activePlan.restEach} 場，單局約 ${activePlan.avgMins} 分鐘)。`;
       } else {
-        hintText.innerHTML = `💡 <strong>By Duration</strong>: Specify total duration, auto-calc best game options.<br/>Total <strong>${totalMinutes} mins</strong> (${durationHours}h) · Selected <strong class="text-emerald-500">${activePlan.totalGames} games</strong> — <strong class="text-emerald-600 dark:text-emerald-400">each unit plays ${activePlan.gamesEach} games</strong> (rest ${activePlan.restEach}, ~${activePlan.avgMins}m/game).`;
+        hintText.innerHTML = `💡 <strong>By Duration</strong>: Set the total time and the best game count is calculated.<br/>Total <strong>${totalMinutes} mins</strong> (${durationHours}h) · Selected <strong class="text-emerald-500">${activePlan.totalGames} games</strong> — <strong class="text-emerald-600 dark:text-emerald-400">${activePlan.gamesEach} each</strong> (rest ${activePlan.restEach}, ~${activePlan.avgMins}m/game).`;
       }
 
       if (optionsContainer) {
@@ -628,7 +628,7 @@ const isTransientPlayer = (name) => {
         const isZh = (STATE.lang === "zh-TW");
         optionsContainer.innerHTML = `
           <div class="text-[11px] font-bold sub-text uppercase tracking-wider mb-1 flex items-center gap-1">
-            <span>${isZh ? '推薦公平排賽方案（點選直接套用）：' : 'Recommended Schedule Options (Click to Select):'}</span>
+            <span>${isZh ? '推薦公平排賽方案（點選直接套用）：' : 'Options (tap to pick):'}</span>
           </div>
           <div class="grid grid-cols-1 ${gridColsClass} gap-2">
             ${plans.map((p, idx) => {
@@ -639,15 +639,15 @@ const isTransientPlayer = (name) => {
                   class="cursor-pointer rounded-xl p-2.5 transition border-2 text-left space-y-1 ${isSelected ? 'border-amber-500 bg-amber-500/10 shadow-sm' : 'border-stone-200 dark:border-slate-800 card-inner hover:border-amber-500/40'}">
                   <div class="flex items-center justify-between">
                     <span class="font-bold text-xs flex items-center gap-1 ${isSelected ? 'text-amber-600 dark:text-amber-400 font-display' : ''}">
-                      ${isSelected ? '✅' : '📌'} ${isZh ? `方案 ${idx + 1}：共 ${p.totalGames} 局` : `Option ${idx + 1}: ${p.totalGames} Games`}
+                      ${isSelected ? '✅' : '📌'} ${isZh ? `方案 ${idx + 1}：共 ${p.totalGames} 局` : `Option ${idx + 1}: ${p.totalGames} games`}
                     </span>
                     <span class="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                      ${isZh ? `每${unitText} ${p.gamesEach} 場` : `${p.gamesEach} Games / ${unitText}`}
+                      ${isZh ? `每${unitText} ${p.gamesEach} 場` : `${p.gamesEach} each`}
                     </span>
                   </div>
                   <div class="text-[10.5px] sub-text flex items-center justify-between">
-                    <span>${isZh ? `各休 ${p.restEach} 場` : `Rest ${p.restEach} Games`}</span>
-                    <span>${isZh ? `均配 ~${p.avgMins}分/局` : `~${p.avgMins} mins/game`}</span>
+                    <span>${isZh ? `各休 ${p.restEach} 場` : `rest ${p.restEach}`}</span>
+                    <span>${isZh ? `均配 ~${p.avgMins}分/局` : `~${p.avgMins} min/game`}</span>
                   </div>
                 </div>
               `;
@@ -1449,7 +1449,7 @@ const isTransientPlayer = (name) => {
           if (isReg) {
             submitBtn.innerHTML = `<i data-lucide="clipboard-check" class="w-4 h-4"></i> <span id="t-btn-submit-create-text">${isZh ? "確認" : "Confirm"}</span>`;
           } else {
-            submitBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> <span id="t-btn-submit-create-text">${isZh ? "確認並立即開打" : "Start Tournament Now"}</span>`;
+            submitBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> <span id="t-btn-submit-create-text">${isZh ? "確認並立即開打" : "Start Now"}</span>`;
           }
         }
         lucide.createIcons();

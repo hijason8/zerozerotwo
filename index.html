@@ -531,7 +531,7 @@
           <div class="relative">
             <input type="number" id="create-max-players" min="2" max="100" placeholder=""
               class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none transition pr-10 font-bold font-mono" />
-            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs sub-text font-bold">人</span>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs sub-text font-bold" data-en="ppl">人</span>
           </div>
         </div>
 
@@ -947,7 +947,7 @@
           <button type="button" id="btn-lobby-start-practice" onclick="promptConfirmStartTournament('practice')"
             class="w-full card-inner border hover:border-emerald-500/50 hover:bg-emerald-500/5 font-bold py-3 rounded-2xl transition text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 text-stone-700 dark:text-slate-300 cursor-pointer">
             <i data-lucide="activity" class="w-4 h-4 text-teal-500"></i>
-            <span id="t-lobby-practice-btn-text">自由模式/練球 (不排賽程，直接開始)</span>
+            <span id="t-lobby-practice-btn-text" data-en="Free play (no schedule)">自由模式/練球 (不排賽程，直接開始)</span>
           </button>
         </div>
       </div>
@@ -1021,7 +1021,7 @@
       <!-- 2. Empty State (尚無社團賽事時顯示) -->
       <div id="club-empty-state" class="hidden glass-card rounded-2xl p-8 text-center space-y-3 border">
         <i data-lucide="shield" class="w-8 h-8 text-emerald-500 mx-auto"></i>
-        <p class="text-xs sub-text" id="t-no-clubs-yet">目前尚未建立任何社團。點擊下方按鈕或上方下拉選單建立專屬社團！</p>
+        <p class="text-xs sub-text" id="t-no-clubs-yet" data-en="No clubs yet. Create one below!">目前尚未建立任何社團。點擊下方按鈕或上方下拉選單建立專屬社團！</p>
         <button onclick="openCreateClubModal()"
           class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white dark:text-slate-950 font-bold text-xs shadow-sm active:scale-95 transition inline-flex items-center gap-1.5 cursor-pointer">
           <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span id="t-empty-create-club-btn">建立新社團</span>
@@ -2310,7 +2310,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261112-15";
+    import { I18N } from "./i18n.js?v=20261112-16";
     window.I18N = I18N;
 
     function t(key) {
@@ -2332,14 +2332,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261112-15";
+    } from "./utils.js?v=20261112-16";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261112-15";
-    import "./live.js?v=20261112-15";
-    import "./activities.js?v=20261112-15";
-    import "./hub.js?v=20261112-15";
-    import "./line.js?v=20261112-15";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261112-15";
+    import "./tournament-create.js?v=20261112-16";
+    import "./live.js?v=20261112-16";
+    import "./activities.js?v=20261112-16";
+    import "./hub.js?v=20261112-16";
+    import "./line.js?v=20261112-16";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261112-16";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

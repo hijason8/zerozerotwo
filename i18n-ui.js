@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261112-15";
+import { STATE, t } from "./globals.js?v=20261112-16";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -240,7 +240,7 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-mode-fair-title": [
     "平均模式",
-    "Fair Rotation"
+    "Fair Mode"
   ],
   "t-mode-free-title": [
     "自由模式/練球",
@@ -264,7 +264,7 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-label-duration": [
     "預計比賽總時間",
-    "Estimated Total Duration"
+    "Total Time"
   ],
   "t-unit-hours": [
     "小時",
@@ -296,7 +296,7 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-label-fair-duration": [
     "6. 排賽目標與時間限制",
-    "6. Schedule Goal & Duration"
+    "6. Schedule"
   ],
   "t-strategy-time-title": [
     "按時間排賽",
@@ -359,7 +359,7 @@ export const I18N_HTML = {
   "t-create-title": () => `<i data-lucide="plus-circle" class="w-5 h-5 text-orange-500"></i> ${t("createTitle")}`,
   "t-label-modal-club-name": () => `${t("labelModalClubName")} <span class="text-rose-500">*</span>`,
   "t-modal-club-name-label": () => `${t("labelModalClubName")} <span class="text-rose-500">*</span>`,
-  "t-time-calc-title": (isZh) => `<i data-lucide="clock" class="w-3.5 h-3.5"></i> <span>${isZh ? "時間與配局試算：" : "Estimated Matchups & Schedule:"}</span>`,
+  "t-time-calc-title": (isZh) => `<i data-lucide="clock" class="w-3.5 h-3.5"></i> <span>${isZh ? "時間與配局試算：" : "Estimate:"}</span>`,
   "t-schedule-title": () => `<i data-lucide="swords" class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500"></i> ${t("scheduleTitle")}`,
   "t-leaderboard-title": () => `<i data-lucide="crown" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-500"></i> ${t("leaderboardTitle")}`,
   "t-copy-btn": () => `<i data-lucide="copy" class="w-3.5 h-3.5"></i> ${t("copyBtn")}`
@@ -413,7 +413,7 @@ function applyDynamicLanguageUI(isZh) {
   if (submitBtnTextEl) {
     submitBtnTextEl.innerText = isReg
       ? (isZh ? "確認" : "Confirm")
-      : (isZh ? "確認並立即開打" : "Start Tournament Now");
+      : (isZh ? "確認並立即開打" : "Start Now");
   }
 
   // 清空多餘描述欄
