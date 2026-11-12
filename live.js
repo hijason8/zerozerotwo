@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-1";
+} from "./utils.js?v=20261112-2";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-1";
+} from "./scheduler.js?v=20261112-2";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-1";
+} from "./globals.js?v=20261112-2";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1494,16 +1494,13 @@ function renderMatchesList(matches, hasAdmin = false) {
             `;
       } else {
         footerHTML = `
-              <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-                <div class="sub-text truncate min-w-0 flex-1">
-                  <span>${t("restingLabel")}<strong class="text-stone-800 dark:text-slate-200 font-semibold">${m.resting && m.resting.length ? m.resting.join(', ') : t('noResting')}</strong></span>
-                </div>
+              <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
                 <div class="flex items-center gap-1.5 shrink-0">
                   <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-2 py-1 font-semibold rounded-lg text-[11px] transition text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Match">
                     ${t("voidMatchBtn")}
                   </button>
                   <button onclick="saveMatchScore(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${isDone ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
-                    <i data-lucide="${isDone ? 'edit-2' : 'check'}" class="w-3.5 h-3.5"></i> ${isDone ? t("editScoreBtn") : t("saveScoreBtn")}
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i> ${isDone ? t("editScoreBtn") : t("saveScoreBtn")}
                   </button>
                 </div>
               </div>
@@ -1513,15 +1510,12 @@ function renderMatchesList(matches, hasAdmin = false) {
       // Viewer footer
       let statusBadge = `<span class="sub-text text-[11px] italic">${t("inProgressBadge")}</span>`;
       if (isVoided) {
-        statusBadge = `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px]">${t("voidMatchBtn")}</span>`;
+        statusBadge = `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px]">${t("viewerVoidedBadge")}</span>`;
       } else if (isDone) {
         statusBadge = `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px]">${t("finishedBadge")}</span>`;
       }
       footerHTML = `
-            <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-              <div class="sub-text truncate min-w-0 flex-1">
-                <span>${t("restingLabel")}<strong class="text-stone-800 dark:text-slate-200 font-semibold">${m.resting && m.resting.length ? m.resting.join(', ') : t('noResting')}</strong></span>
-              </div>
+            <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
               <div class="shrink-0 whitespace-nowrap">${statusBadge}</div>
             </div>
           `;
@@ -1535,7 +1529,7 @@ function renderMatchesList(matches, hasAdmin = false) {
                 <span class="w-6 h-6 rounded-lg card-inner text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-mono border font-black">${Number(m.id)}</span>
                 ${STATE.lang === 'zh-TW' ? `第 ${Number(m.id)} 局` : `Game ${Number(m.id)}`}
               </span>
-              ${isVoided ? `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400">${t("voidedBadge")}</span>` : ''}
+              ${isVoided && hasAdmin ? `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400">${t("voidedBadge")}</span>` : ''}
             </div>
 
             ${scoreHTML}
@@ -1599,7 +1593,7 @@ async function toggleVoidMatch(matchId) {
     match.completed = false;
   } else {
     const confirmMsg = STATE.lang === "zh-TW"
-      ? `🚫 確定將第 ${matchId} 局標記為「取消」嗎？\n（該局將不計入勝負與得分排行榜）`
+      ? `確定將第 ${matchId} 局標記為「流局」嗎？\n（該局將不計入勝負與得分排行榜）`
       : `🚫 Void Game ${matchId}? (Will not count in leaderboard)`;
     if (!confirm(confirmMsg)) return;
 
