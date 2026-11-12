@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-10";
+} from "./utils.js?v=20261112-11";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-10";
+} from "./scheduler.js?v=20261112-11";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-10";
+} from "./globals.js?v=20261112-11";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -2257,9 +2257,10 @@ async function saveMatchScore(matchId) {
 window.saveMatchScore = saveMatchScore;
 
 function showCompletionNotice() {
+  // 不再對「結束賽事」按鈕加外框與閃爍效果；若之前加過就移除
   const completeBtn = document.getElementById("btn-complete-and-return");
   if (completeBtn) {
-    completeBtn.classList.add("ring-4", "ring-amber-500", "animate-pulse");
+    completeBtn.classList.remove("ring-4", "ring-amber-500", "animate-pulse");
   }
 }
 window.showCompletionNotice = showCompletionNotice;
