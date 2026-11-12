@@ -1587,7 +1587,7 @@ async function toggleVoidMatch(matchId) {
     return;
   } else {
     const confirmMsg = STATE.lang === "zh-TW"
-      ? `🚫 確定將第 ${matchId} 局標記為「取消」嗎？\n\n確定後，該局將不計入勝負與排行。`
+      ? `確定後，該局將不計入勝負與排行。`
       : `🚫 Void Game ${matchId}? (Will not count in leaderboard)`;
     if (!confirm(confirmMsg)) return;
 
