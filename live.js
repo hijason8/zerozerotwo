@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-12";
+} from "./utils.js?v=20261112-13";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-12";
+} from "./scheduler.js?v=20261112-13";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-12";
+} from "./globals.js?v=20261112-13";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1500,29 +1500,24 @@ function renderMatchesList(matches, hasAdmin = false) {
             `;
       }
     } else {
-      // Viewer footer
-      // 進行中的局不顯示狀態（沒有底部那一行）
-      let statusBadge = '';
-      if (isVoided) {
-        statusBadge = `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px]">${t("voidedBadge")}</span>`;
-      } else if (isDone) {
-        statusBadge = `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px]">${t("finishedBadge")}</span>`;
-      }
-      footerHTML = statusBadge ? `
-            <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-              <div class="shrink-0 whitespace-nowrap">${statusBadge}</div>
-            </div>
-          ` : '';
+      // 觀賽模式不再有底部那一行，狀態改在右上角顯示
+      footerHTML = '';
+    }
+
+    // 右上角狀態標籤（與原本右下角相同用詞）；進行中不顯示
+    let statusBadge = '';
+    if (isVoided) {
+      statusBadge = `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px] whitespace-nowrap">${t("voidedBadge")}</span>`;
+    } else if (isDone) {
+      statusBadge = `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px] whitespace-nowrap">${t("finishedBadge")}</span>`;
     }
 
     return `
           <div class="glass-card hover-lift rounded-2xl p-3.5 sm:p-4 border ${isVoided ? 'border-rose-500/30 bg-rose-500/5' : isDone ? 'border-emerald-500/40 shadow-sm' : ''} transition space-y-3">
             <!-- Game Header -->
-            <div class="flex items-center justify-between">
-              <span class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5">
-                <span class="w-6 h-6 rounded-lg card-inner text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-mono border font-black">${Number(m.id)}</span>
-                ${STATE.lang === 'zh-TW' ? `第 ${Number(m.id)} 局` : `Game ${Number(m.id)}`}
-              </span>
+            <div class="flex items-center justify-between gap-2">
+              <span class="w-6 h-6 rounded-lg card-inner text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-mono border font-black shrink-0">${Number(m.id)}</span>
+              ${statusBadge}
             </div>
 
             ${scoreHTML}
