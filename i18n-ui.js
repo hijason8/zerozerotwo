@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261112-17";
+import { STATE, t } from "./globals.js?v=20261112-18";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -197,6 +197,14 @@ export const I18N_CUSTOM_TEXTS = {
   "t-lobby-start-btn-text": [
     "全員到齊，立即排賽開打！",
     "Everyone's here, start!"
+  ],
+  "t-oa-friend-banner-text": [
+    "加入 ZZTWO 官方帳號好友，在 LINE 裡就能查活動、收賽況",
+    "Add ZZTWO on LINE to see games and get updates"
+  ],
+  "t-oa-friend-banner-btn": [
+    "加入好友",
+    "Add Friend"
   ],
   "t-btn-close-line-oa": [
     "關閉",
