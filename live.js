@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-6";
+} from "./utils.js?v=20261112-7";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-6";
+} from "./scheduler.js?v=20261112-7";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-6";
+} from "./globals.js?v=20261112-7";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1587,7 +1587,7 @@ async function toggleVoidMatch(matchId) {
     return;
   } else {
     const confirmMsg = STATE.lang === "zh-TW"
-      ? `🚫 確定將第 ${matchId} 局標記為「取消」嗎？\n（該局將不計入勝負與得分排行榜）`
+      ? `🚫 確定將第 ${matchId} 局標記為「取消」嗎？\n\n確定後，該局將不計入勝負與排行。`
       : `🚫 Void Game ${matchId}? (Will not count in leaderboard)`;
     if (!confirm(confirmMsg)) return;
 
