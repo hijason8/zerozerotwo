@@ -173,11 +173,14 @@ html.light .hover-lift:hover {
 }
 
 .winner-card-blue {
+  /* 獲勝方底色比一般再深一些（原 20%） */
+  background-color: rgba(59, 130, 246, 0.28) !important;
   border-color: rgba(59, 130, 246, 0.5) !important;
   box-shadow: 0 0 18px -2px rgba(59, 130, 246, 0.25);
 }
 
 .winner-card-red {
+  background-color: rgba(244, 63, 94, 0.28) !important;
   border-color: rgba(244, 63, 94, 0.5) !important;
   box-shadow: 0 0 18px -2px rgba(244, 63, 94, 0.25);
 }
