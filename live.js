@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-5";
+} from "./utils.js?v=20261112-6";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-5";
+} from "./scheduler.js?v=20261112-6";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-5";
+} from "./globals.js?v=20261112-6";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1400,7 +1400,7 @@ function renderMatchesList(matches, hasAdmin = false) {
     if (hasAdmin) {
       scoreHTML = `
             <!-- Teams Grid (Admin Mode - Editable with Quick Stepper) -->
-            <div class="grid grid-cols-2 gap-2 sm:gap-3 ${isVoided ? 'opacity-50' : ''}">
+            <div class="grid grid-cols-2 gap-2 sm:gap-3">
               <!-- Blue Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-blue-500/15 to-blue-500/5 border border-blue-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
@@ -1409,9 +1409,9 @@ function renderMatchesList(matches, hasAdmin = false) {
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
-                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${Number(m.id)}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? escapeHTML(m.blueScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-blue-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-blue-400 scoreboard-num shadow-inner" />
-                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', -1)"  class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${Number(m.id)}"  value="${m.blueScore != null ? escapeHTML(m.blueScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-blue-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-blue-400 scoreboard-num shadow-inner" />
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', 1)"  class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
                 </div>
               </div>
 
@@ -1423,9 +1423,9 @@ function renderMatchesList(matches, hasAdmin = false) {
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
-                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${Number(m.id)}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? escapeHTML(m.redScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-rose-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-rose-400 scoreboard-num shadow-inner" />
-                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', -1)"  class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${Number(m.id)}"  value="${m.redScore != null ? escapeHTML(m.redScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-rose-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-rose-400 scoreboard-num shadow-inner" />
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', 1)"  class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
                 </div>
               </div>
             </div>
@@ -1483,24 +1483,17 @@ function renderMatchesList(matches, hasAdmin = false) {
     // Action / Status Footer
     let footerHTML = '';
     if (hasAdmin) {
-      if (isVoided) {
-        footerHTML = `
-              <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-                <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 whitespace-nowrap">${t("voidedNotice")}</span>
-                <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0">
-                  <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> ${t("restoreMatchBtn")}
-                </button>
-              </div>
-            `;
-      } else {
+      // 已取消的局與已儲存的局相同：「取消」＋「修改」，分數可直接調整後按「修改」恢復
+      const showEdit = isDone || isVoided;
+      {
         footerHTML = `
               <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
                 <div class="flex items-center gap-1.5 shrink-0">
                   <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 active:scale-95 text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Match">
                     ${t("voidMatchBtn")}
                   </button>
-                  <button onclick="saveMatchScore(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${isDone ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
-                    <i data-lucide="${isDone ? 'edit-2' : 'check'}" class="w-3.5 h-3.5"></i> ${isDone ? t("editScoreBtn") : t("saveScoreBtn")}
+                  <button onclick="saveMatchScore(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${showEdit ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
+                    <i data-lucide="${showEdit ? 'edit-2' : 'check'}" class="w-3.5 h-3.5"></i> ${showEdit ? t("editScoreBtn") : t("saveScoreBtn")}
                   </button>
                 </div>
               </div>
@@ -1589,8 +1582,9 @@ async function toggleVoidMatch(matchId) {
   if (!match) return;
 
   if (match.voided) {
-    match.voided = false;
-    match.completed = false;
+    // 已經是取消狀態：要恢復請輸入分數後按「修改」
+    showToast(STATE.lang === "zh-TW" ? "此局已取消，輸入分數後按「修改」即可恢復" : "Already voided. Enter scores and tap Edit to restore.", "info");
+    return;
   } else {
     const confirmMsg = STATE.lang === "zh-TW"
       ? `🚫 確定將第 ${matchId} 局標記為「取消」嗎？\n（該局將不計入勝負與得分排行榜）`
