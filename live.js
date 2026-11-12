@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-4";
+} from "./utils.js?v=20261112-5";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-4";
+} from "./scheduler.js?v=20261112-5";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-4";
+} from "./globals.js?v=20261112-5";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1508,17 +1508,18 @@ function renderMatchesList(matches, hasAdmin = false) {
       }
     } else {
       // Viewer footer
-      let statusBadge = `<span class="sub-text text-[11px] italic">${t("inProgressBadge")}</span>`;
+      // 進行中的局不顯示狀態（沒有底部那一行）
+      let statusBadge = '';
       if (isVoided) {
         statusBadge = `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px]">${t("voidedBadge")}</span>`;
       } else if (isDone) {
         statusBadge = `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px]">${t("finishedBadge")}</span>`;
       }
-      footerHTML = `
+      footerHTML = statusBadge ? `
             <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
               <div class="shrink-0 whitespace-nowrap">${statusBadge}</div>
             </div>
-          `;
+          ` : '';
     }
 
     return `
