@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-20";
+} from "./utils.js?v=20261112-21";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-20";
+} from "./scheduler.js?v=20261112-21";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-20";
+} from "./globals.js?v=20261112-21";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -2456,12 +2456,14 @@ function renderQueueList(matches, hasAdmin) {
       </div>`;
   }).join("");
 
+  // 已打完的局：精簡一行；只有取消的局標示，「復原」只放在最近完成的那一局
+  const latestDoneId = (done.find(m => !m.voided) || {}).id;
   const doneHTML = done.map(m => {
     const names = arr => (arr || []).filter(Boolean).map(escapeHTML).join("、");
     const badge = m.voided
       ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px] whitespace-nowrap">${t("voidedBadge")}</span>`
-      : `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px] whitespace-nowrap">${t("finishedBadge")}</span>`;
-    const undoBtn = (hasAdmin && !isFinished && !m.voided)
+      : "";
+    const undoBtn = (hasAdmin && !isFinished && !m.voided && m.id === latestDoneId)
       ? `<button onclick="undoQueueMatch(${Number(m.id)})" class="px-2 py-0.5 rounded-md text-[11px] font-bold border border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400 active:scale-95 whitespace-nowrap">${isZh ? "復原" : "Undo"}</button>`
       : "";
     return `
@@ -2472,7 +2474,7 @@ function renderQueueList(matches, hasAdmin) {
       </div>`;
   }).join("");
 
-  container.innerHTML = pendingHTML + (doneHTML ? `<div class="space-y-1.5 pt-1">${doneHTML}</div>` : "");
+  container.innerHTML = pendingHTML + (doneHTML ? `<div class="space-y-1.5 pt-2"><div class="text-[11px] font-bold sub-text px-1">${isZh ? "已打完" : "Played"}</div>${doneHTML}</div>` : "");
   lucide.createIcons({ root: container });
 }
 
