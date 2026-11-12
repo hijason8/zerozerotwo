@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261104-9";
+} from "./utils.js?v=20261112-1";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261104-9";
+} from "./scheduler.js?v=20261112-1";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261104-9";
+} from "./globals.js?v=20261112-1";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1495,7 +1495,7 @@ function renderMatchesList(matches, hasAdmin = false) {
       } else {
         footerHTML = `
               <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-                <div class="sub-text truncate">
+                <div class="sub-text truncate min-w-0 flex-1">
                   <span>${t("restingLabel")}<strong class="text-stone-800 dark:text-slate-200 font-semibold">${m.resting && m.resting.length ? m.resting.join(', ') : t('noResting')}</strong></span>
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
@@ -1519,10 +1519,10 @@ function renderMatchesList(matches, hasAdmin = false) {
       }
       footerHTML = `
             <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-              <div class="sub-text truncate">
+              <div class="sub-text truncate min-w-0 flex-1">
                 <span>${t("restingLabel")}<strong class="text-stone-800 dark:text-slate-200 font-semibold">${m.resting && m.resting.length ? m.resting.join(', ') : t('noResting')}</strong></span>
               </div>
-              <div>${statusBadge}</div>
+              <div class="shrink-0 whitespace-nowrap">${statusBadge}</div>
             </div>
           `;
     }
