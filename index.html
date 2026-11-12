@@ -65,6 +65,16 @@
 
   <!-- 全域核心輔助工具早期載入 (保證任何子模組 import 期間呼叫零錯誤) -->
   <script>
+    // 提示的位置：手機上有底部導覽列時貼在導覽列上方，沒有時貼近畫面底部
+    window.positionToastContainer = function(container) {
+      if (!container) return;
+      if (window.innerWidth >= 640) { container.style.bottom = ""; return; }
+      const nav = document.getElementById("club-bottom-nav");
+      const navVisible = nav && getComputedStyle(nav).display !== "none" && nav.getBoundingClientRect().height > 0;
+      container.style.bottom = navVisible
+        ? `${Math.round(nav.getBoundingClientRect().height) + 12}px`
+        : "calc(1rem + env(safe-area-inset-bottom, 0px))";
+    };
     window.showToast = function(msg, type = "info", duration = 3000) {
       const container = document.getElementById("toast-container");
       if (!container) {
@@ -72,6 +82,7 @@
         return;
       }
       container.innerHTML = "";
+      if (typeof window.positionToastContainer === "function") window.positionToastContainer(container);
       const toast = document.createElement("div");
       let bgClass = "card-inner border text-slate-700 dark:text-slate-200";
       if (type === "success") bgClass = "bg-emerald-50 dark:bg-emerald-950/90 border-emerald-500/50 text-emerald-800 dark:text-emerald-300";
@@ -2246,7 +2257,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261112-11";
+    import { I18N } from "./i18n.js?v=20261112-12";
     window.I18N = I18N;
 
     function t(key) {
@@ -2268,14 +2279,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261112-11";
+    } from "./utils.js?v=20261112-12";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261112-11";
-    import "./live.js?v=20261112-11";
-    import "./activities.js?v=20261112-11";
-    import "./hub.js?v=20261112-11";
-    import "./line.js?v=20261112-11";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261112-11";
+    import "./tournament-create.js?v=20261112-12";
+    import "./live.js?v=20261112-12";
+    import "./activities.js?v=20261112-12";
+    import "./hub.js?v=20261112-12";
+    import "./line.js?v=20261112-12";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261112-12";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2976,6 +2987,7 @@
 
       // 避免堆疊：有新 Toast 時清空舊的，保持單一乾淨展示
       container.innerHTML = "";
+      window.positionToastContainer(container);
 
       const toast = document.createElement("div");
 
