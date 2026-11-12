@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261112-18";
+import { STATE, t } from "./globals.js?v=20261113-1";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -251,8 +251,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Fair Mode"
   ],
   "t-mode-free-title": [
-    "自由模式/練球",
-    "Free Play / Practice"
+    "自由模式",
+    "Free Play"
   ],
   "t-lobby-btn-edit-duration": [
     "調整時間",
@@ -283,8 +283,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Free Play Guide:"
   ],
   "t-free-notice-desc": [
-    "進入賽事後，使用管理模式隨時點擊「➕ 新增場次」與「補入選手」即時開局記分！",
-    "In live view, unlock Admin Mode to add matches and players on the fly!"
+    "賽局內可單場新增賽事，支援少數優先或隨機抽籤。",
+    "Add games one at a time during play, with fewest-games-first or random picks."
   ],
   "t-partner-rotating-text": [
     "輪替隊友",

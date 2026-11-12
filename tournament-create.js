@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-18";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-1";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-18";
+} from "./scheduler.js?v=20261113-1";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261112-18";
+} from "./globals.js?v=20261113-1";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -203,23 +203,12 @@ const isTransientPlayer = (name) => {
     window.updatePartnerToggleTexts = updatePartnerToggleTexts;
 
     function updateFreeNoticeText() {
-      const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
       const descEl = document.getElementById("t-free-notice-desc");
       if (!descEl) return;
       const isZh = (STATE.lang === "zh-TW");
-      if (partnerType === "singles") {
-        descEl.innerHTML = isZh
-          ? "<b>👤 自由單打模式</b>：名單為個人選手（至少 2 人）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」即可自由挑選選手進行 1v1 單打對決！"
-          : "<b>👤 Free Singles</b>: Enter players (min 2). Tap \"➕ Add Game\" to pick a 1v1 anytime.";
-      } else if (partnerType === "fixed") {
-        descEl.innerHTML = isZh
-          ? "<b>🛡️ 自由隊伍模式</b>：名單為固定隊伍（至少 2 隊）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」由各隊自由約戰 1v1 對決！"
-          : "<b>🛡️ Free Teams</b>: Enter teams (min 2). Tap \"➕ Add Game\" to pick two teams anytime.";
-      } else {
-        descEl.innerHTML = isZh
-          ? "<b>👥 自由雙打 / 自由配對</b>：名單為個人選手（至少 2 人）。進入賽事後自由度極高，可隨時自選 2v2 雙打或 1v1 單打，支援手動點選、場次少者優先與隨機抽籤！"
-          : "<b>👥 Free Doubles</b>: Enter players (min 2). Pick 2v2 or 1v1 anytime: by hand, fewest games first, or random.";
-      }
+      descEl.innerText = isZh
+        ? "賽局內可單場新增賽事，支援少數優先或隨機抽籤。"
+        : "Add games one at a time during play, with fewest-games-first or random picks.";
     }
     window.updateFreeNoticeText = updateFreeNoticeText;
 
