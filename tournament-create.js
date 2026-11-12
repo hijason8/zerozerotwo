@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-18";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-19";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-18";
+} from "./scheduler.js?v=20261112-19";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261112-18";
+} from "./globals.js?v=20261112-19";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -124,7 +124,8 @@ const isTransientPlayer = (name) => {
           submitBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> <span id="t-btn-submit-create-text">${isZh ? "確認並立即開打" : "Start Now"}</span>`;
         }
         const currentMode = document.getElementById("create-tournament-mode")?.value || "fair";
-        setCreateMode(currentMode);
+        const keepQueue = document.getElementById("create-no-score")?.value === "1";
+        setCreateMode(keepQueue ? "queue" : currentMode);
       }
       lucide.createIcons();
     }
@@ -144,6 +145,12 @@ const isTransientPlayer = (name) => {
     window.triggerCreateTournament = triggerCreateTournament;
 
     function setCreateMode(mode) {
+      // 「只排賽」沿用自由模式，只多一個不計分標記
+      const isQueue = (mode === "queue");
+      const noScoreInput = document.getElementById("create-no-score");
+      if (noScoreInput) noScoreInput.value = isQueue ? "1" : "0";
+      const btnQueue = document.getElementById("btn-mode-queue");
+      if (isQueue) mode = "free";
       const modeInput = document.getElementById("create-tournament-mode");
       if (modeInput) modeInput.value = mode;
 
@@ -157,7 +164,8 @@ const isTransientPlayer = (name) => {
       const inactiveCls = "mode-btn-inactive py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
 
       if (btnFair) btnFair.className = mode === "fair" ? activeCls : inactiveCls;
-      if (btnFree) btnFree.className = mode === "free" ? activeCls : inactiveCls;
+      if (btnFree) btnFree.className = (mode === "free" && !isQueue) ? activeCls : inactiveCls;
+      if (btnQueue) btnQueue.className = isQueue ? activeCls : inactiveCls;
 
       const wrapPartnerToggle = document.getElementById("wrap-partner-toggle");
 
@@ -207,6 +215,15 @@ const isTransientPlayer = (name) => {
       const descEl = document.getElementById("t-free-notice-desc");
       if (!descEl) return;
       const isZh = (STATE.lang === "zh-TW");
+      const titleEl = document.getElementById("t-free-notice-title");
+      if (document.getElementById("create-no-score")?.value === "1") {
+        if (titleEl) titleEl.innerText = isZh ? "只排賽說明：" : "No Scoring:";
+        descEl.innerHTML = isZh
+          ? "不計分，畫面顯示「現在上場」和「下一場」。按「完成」自動排下一場，場次少的人優先。"
+          : "Shows Now Playing and Up Next. Tap Done and the next game is set, fewest games first.";
+        return;
+      }
+      if (titleEl) titleEl.innerText = isZh ? "自由模式說明：" : "Free Play Guide:";
       if (partnerType === "singles") {
         descEl.innerHTML = isZh
           ? "<b>👤 自由單打模式</b>：名單為個人選手（至少 2 人）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」即可自由挑選選手進行 1v1 單打對決！"
@@ -1407,6 +1424,14 @@ const isTransientPlayer = (name) => {
           matches: matches,
           status: "active"
         };
+
+        // 只排賽（不計分）：直接排好「現在上場」與「下一場」
+        if (mode === "free" && document.getElementById("create-no-score")?.value === "1") {
+          tournamentObj.noScore = true;
+          tournamentObj.isPracticeMode = true;
+          tournamentObj.matches = [];
+          if (typeof window.fillRotationQueue === "function") window.fillRotationQueue(tournamentObj);
+        }
 
         saveToLocalTournaments(tournamentObj);
         addMyTournamentId(tournamentId);

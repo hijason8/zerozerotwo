@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261112-18";
+import { STATE, t } from "./globals.js?v=20261112-19";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -563,6 +563,8 @@ export function applyLanguageUI() {
   // 建立賽事頁的「誰看得到」說明文字跟著語言切換
   const privInput = document.getElementById("create-privacy");
   if (privInput && window.setCreatePrivacy) window.setCreatePrivacy(privInput.value === "private");
+  // 自由模式／只排賽說明文字跟著語言切換
+  if (window.updateFreeNoticeText) window.updateFreeNoticeText();
   // 中英各一份的區塊（例如使用手冊）：data-lang-block="zh" / "en"
   document.querySelectorAll("[data-lang-block]").forEach(el => {
     el.classList.toggle("hidden", el.dataset.langBlock !== (isZh ? "zh" : "en"));

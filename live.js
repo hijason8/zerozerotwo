@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-18";
+} from "./utils.js?v=20261112-19";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-18";
+} from "./scheduler.js?v=20261112-19";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-18";
+} from "./globals.js?v=20261112-19";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -213,6 +213,9 @@ function renderLiveUI(data) {
     if (data.status === "registering") {
       modeBadge.innerText = isZh ? "📋 報名中" : "📋 Registering";
       modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+    } else if (isNoScoreTournament(data)) {
+      modeBadge.innerText = isZh ? "只排賽" : "No Scoring";
+      modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
     } else if (isSingles) {
       modeBadge.innerText = isZh ? "個人單打" : "Singles (1v1)";
       modeBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold border bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20";
@@ -577,6 +580,9 @@ function renderLiveUI(data) {
   renderMatchesList(data.matches || [], hasAdmin);
 
   // Calculate & Render Leaderboard
+  // 只排賽沒有比分，不顯示戰績排行
+  const leaderboardCol = document.getElementById("live-leaderboard-col");
+  if (leaderboardCol) leaderboardCol.classList.toggle("hidden", isNoScoreTournament(data));
   const leaderboardData = calculateLeaderboard(data.players || [], data.matches || []);
   renderLeaderboardTable(leaderboardData);
 
@@ -969,7 +975,12 @@ function promptConfirmStartTournament(startMode = "schedule") {
   const n = players.length;
 
   // 檢查開賽門檻
-  if (startMode === "practice") {
+  if (startMode === "queue") {
+    if (n < 2) {
+      showToast(isZh ? "至少需 2 位選手！" : "At least 2 players needed!", "warning");
+      return;
+    }
+  } else if (startMode === "practice") {
     if (n < 1) {
       showToast(isZh ? "至少需 1 位選手才能開始練球！" : "At least 1 player needed to start practice!", "warning");
       return;
@@ -989,7 +1000,9 @@ function promptConfirmStartTournament(startMode = "schedule") {
   PENDING_LOBBY_START_MODE = startMode;
   const modal = document.getElementById("modal-confirm-start-tournament");
   if (!modal) {
-    const confirmMsg = startMode === "practice"
+    const confirmMsg = startMode === "queue"
+      ? (isZh ? `確定以目前 ${n} 人開始只排賽（不計分）？` : `Start with ${n} ${unitLabel}, no scoring?`)
+      : startMode === "practice"
       ? (isZh ? `🏓 確定要以目前 ${n} 人開啟自由練球模式嗎？\n（開賽後將結束報名接龍）` : `Start free play with ${n} ${unitLabel}?\n(Sign-up will close)`)
       : (isZh ? `🎯 確認全員到齊，正式排賽開打？\n（共 ${n} ${unitLabel}，開賽後將正式生成對戰賽程並結束報名）` : `Start tournament with ${n} ${unitLabel}?`);
     if (confirm(confirmMsg)) {
@@ -1011,7 +1024,27 @@ function promptConfirmStartTournament(startMode = "schedule") {
     cancelBtnText.innerText = t("btnWaitCancel") || (isZh ? "再等等 / 取消" : "Wait / Cancel");
   }
 
-  if (startMode === "practice") {
+  if (startMode === "queue") {
+    if (iconBox) iconBox.className = "w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0";
+    if (iconEl) iconEl.setAttribute("data-lucide", "list-ordered");
+    if (titleEl) titleEl.innerText = isZh ? "開始只排賽？" : "Start without scoring?";
+    if (subtitleEl) subtitleEl.innerText = isZh ? "不計分，按「完成」自動排下一場" : "Tap Done and the next game is set";
+    if (summaryCard) {
+      summaryCard.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="sub-text">${isZh ? "目前名單" : "Players"}</span>
+              <span class="font-bold font-mono text-emerald-600 dark:text-emerald-400">${n} ${unitLabel}</span>
+            </div>
+          `;
+    }
+    if (warningText) {
+      warningText.innerHTML = `
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0 text-amber-500"></i>
+            <span>${isZh ? "開始後將結束接龍報名，晚到的人可以再補入名單。" : "Sign-up will close. Late players can be added later."}</span>
+          `;
+    }
+    if (confirmBtnText) confirmBtnText.innerText = isZh ? "開始" : "Start";
+  } else if (startMode === "practice") {
     if (iconBox) iconBox.className = "w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0";
     if (iconEl) iconEl.setAttribute("data-lucide", "activity");
     if (titleEl) titleEl.innerText = isZh ? "確認開啟自由模式？" : "Confirm Free Practice Mode?";
@@ -1105,6 +1138,29 @@ async function startTournamentFromLobby(startMode = 'schedule', confirmed = fals
   const isSingles = (tData.partnerType === "singles");
   const isTeamMode = !!(tData.isTeamMode || tData.partnerType === "fixed");
   const minUnits = isSingles ? 2 : 4;
+
+  // 0. 若點選「只排賽（不計分）」
+  if (startMode === 'queue') {
+    if (players.length < 2) {
+      showToast(isZh ? "至少需 2 位選手！" : "At least 2 players needed!", "warning");
+      return;
+    }
+    tData.tournamentMode = "free";
+    tData.isPracticeMode = true;
+    tData.noScore = true;
+    tData.matches = [];
+    fillRotationQueue(tData);
+    tData.status = "active";
+    tData.startedAt = new Date().toISOString();
+    STATE.isViewerMode = true;
+
+    saveToLocalTournaments(tData);
+    if (STATE.db) {
+      await set(ref(STATE.db, `tournaments/${tData.id}`), tData);
+    }
+    renderLiveUI(tData);
+    return;
+  }
 
   // 1. 若點選「自由練球 / 暢打」
   if (startMode === 'practice') {
@@ -1296,6 +1352,28 @@ async function completeTournamentAndReturn() {
     return;
   }
 
+  // 只排賽：排在後面還沒打的局直接拿掉，不算取消
+  if (isNoScoreTournament(tData)) {
+    if (!confirm(STATE.lang === "zh-TW" ? "結束今天的排賽？" : "End today's games?")) return;
+    tData.matches = (tData.matches || []).filter(m => m.completed || m.voided);
+    tData.status = "completed";
+    tData.completedAt = Date.now();
+    if (STATE.db) {
+      try {
+        await update(ref(STATE.db, `tournaments/${tData.id}`), {
+          status: "completed",
+          completedAt: tData.completedAt,
+          matches: tData.matches
+        });
+      } catch (err) {
+        console.error("Complete tournament error:", err);
+      }
+    }
+    saveToLocalTournaments(tData);
+    navigateTo(STATE.lineUserId ? "activities" : "hub");
+    return;
+  }
+
   const uncompletedMatches = (tData.matches || []).filter(m => !m.completed && !m.voided);
   const uncompletedCount = uncompletedMatches.length;
 
@@ -1355,6 +1433,10 @@ function stepMatchScore(matchId, side, delta) {
 window.stepMatchScore = stepMatchScore;
 
 function renderMatchesList(matches, hasAdmin = false) {
+  if (isNoScoreTournament(STATE.tournamentData)) {
+    renderQueueList(matches, hasAdmin);
+    return;
+  }
   const container = document.getElementById("matches-container");
   const validMatches = (matches || []).filter(m => !m.voided);
   const doneCount = validMatches.filter(m => m.completed).length;
@@ -1592,6 +1674,19 @@ async function toggleVoidMatch(matchId) {
   match.completed = true;
   match.blueScore = null;
   match.redScore = null;
+
+  // 只排賽：取消一局後自動補上下一場
+  if (isNoScoreTournament(tData)) {
+    const before = tData.matches.length;
+    fillRotationQueue(tData);
+    const changed = [tData.matches.findIndex(m => m.id === matchId)];
+    for (let i = before; i < tData.matches.length; i++) changed.push(i);
+    saveToLocalTournaments(tData);
+    renderLiveUI(tData);
+    showToast(STATE.lang === "zh-TW" ? "已取消該場賽事" : "Match voided", "success");
+    await syncMatchesAt(tData, changed);
+    return;
+  }
 
   saveToLocalTournaments(tData);
   if (STATE.db) {
@@ -1838,17 +1933,13 @@ function randomPickAddMatchPlayers() {
 }
 window.randomPickAddMatchPlayers = randomPickAddMatchPlayers;
 
-function autoPickAddMatchPlayers() {
-  const tData = STATE.tournamentData;
-  if (!tData) return;
+// 場次少優先選人（新增場次的「產生」與「只排賽」自動排下一場共用）
+// 回傳座位順序：單打 [藍, 紅]；雙打 [藍1, 藍2, 紅1, 紅2]；人數不足回傳 null
+function computeFairPick(tData, isSingles) {
   const paused = getPausedPlayers(tData);
   const players = (tData.players || []).filter(p => !paused.includes(p));
-  const isSingles = (STATE.addMatchFormat === "singles");
   const minRequired = isSingles ? 2 : 4;
-  if (players.length < minRequired) {
-    renderAddMatchRosterChips();
-    return;
-  }
+  if (players.length < minRequired) return null;
 
   // 場次少優先（陸續到場也公平）：
   // 1) 總場數少的先上（含已排未打），中途加入的人會優先上場補回場數
@@ -1902,6 +1993,18 @@ function autoPickAddMatchPlayers() {
     const best = scored[0].o;
     players.length = 0;
     players.push(best[0][0], best[0][1], best[1][0], best[1][1]);
+  }
+  return players;
+}
+
+function autoPickAddMatchPlayers() {
+  const tData = STATE.tournamentData;
+  if (!tData) return;
+  const isSingles = (STATE.addMatchFormat === "singles");
+  const players = computeFairPick(tData, isSingles);
+  if (!players) {
+    renderAddMatchRosterChips();
+    return;
   }
 
   const setVal = (id, val) => {
@@ -2171,9 +2274,186 @@ async function submitAddLivePlayer(e) {
     }
   }
 
+  // 只排賽：人數補足後自動排出現在上場／下一場
+  if (isNoScoreTournament(tData) && !isTournamentFinished(tData)) {
+    const before = (tData.matches || []).length;
+    fillRotationQueue(tData);
+    const changed = [];
+    for (let i = before; i < tData.matches.length; i++) changed.push(i);
+    await syncMatchesAt(tData, changed);
+  }
+
   renderLiveUI(tData);
 }
 window.submitAddLivePlayer = submitAddLivePlayer;
+
+// ----------------------------------------------------
+// 只排賽（不計分）：一面場排隊上場，取代拍牌
+// 永遠保持「現在上場」＋「下一場」兩局，按「完成」自動遞補
+// ----------------------------------------------------
+function isNoScoreTournament(tData) {
+  return !!(tData && tData.noScore);
+}
+window.isNoScoreTournament = isNoScoreTournament;
+
+function fillRotationQueue(tData) {
+  if (!tData) return [];
+  if (!tData.matches) tData.matches = [];
+  const added = [];
+  let pending = tData.matches.filter(m => m && !m.completed && !m.voided).length;
+  while (pending < 2) {
+    const paused = getPausedPlayers(tData);
+    const active = (tData.players || []).filter(p => !paused.includes(p));
+    const singles = tData.partnerType === "singles" || getTournamentIsTeamMode(tData) || active.length < 4;
+    const pick = computeFairPick(tData, singles);
+    if (!pick) break;
+    const id = tData.matches.length + 1;
+    const m = {
+      id,
+      roundName: `Game ${id}`,
+      blue: singles ? [pick[0]] : [pick[0], pick[1]],
+      red: singles ? [pick[1]] : [pick[2], pick[3]],
+      resting: (tData.players || []).filter(p => !pick.includes(p)),
+      blueScore: null,
+      redScore: null,
+      completed: false
+    };
+    tData.matches.push(m);
+    added.push(m);
+    pending++;
+  }
+  return added;
+}
+window.fillRotationQueue = fillRotationQueue;
+
+async function syncMatchesAt(tData, indices) {
+  if (!STATE.db || !tData || !indices.length) return;
+  try {
+    const updates = {};
+    [...new Set(indices)].forEach(i => {
+      if (tData.matches[i]) updates[`tournaments/${tData.id}/matches/${i}`] = tData.matches[i];
+    });
+    await update(ref(STATE.db), updates);
+  } catch (e) {
+    console.error("Firebase sync error:", e);
+  }
+}
+
+async function completeQueueMatch(matchId) {
+  const tData = STATE.tournamentData;
+  if (!tData || !tData.matches) return;
+  const isZh = STATE.lang === "zh-TW";
+  if (!isTournamentAdmin(tData)) {
+    showToast(isZh ? "請先點擊「開啟操作」！" : "Please enable controls first!", "warning");
+    return;
+  }
+  const idx = tData.matches.findIndex(m => m.id === matchId);
+  if (idx === -1 || tData.matches[idx].completed) return;
+  const m = tData.matches[idx];
+  m.completed = true;
+  m.voided = false;
+  m.blueScore = null;
+  m.redScore = null;
+  const before = tData.matches.length;
+  fillRotationQueue(tData);
+  const changed = [idx];
+  for (let i = before; i < tData.matches.length; i++) changed.push(i);
+
+  saveToLocalTournaments(tData);
+  renderLiveUI(tData);
+  showToast(isZh ? `第 ${m.id} 局完成` : `Game ${m.id} done`, "success");
+  await syncMatchesAt(tData, changed);
+}
+window.completeQueueMatch = completeQueueMatch;
+
+async function undoQueueMatch(matchId) {
+  const tData = STATE.tournamentData;
+  if (!tData || !tData.matches) return;
+  const isZh = STATE.lang === "zh-TW";
+  if (!isTournamentAdmin(tData)) {
+    showToast(isZh ? "請先點擊「開啟操作」！" : "Please enable controls first!", "warning");
+    return;
+  }
+  const idx = tData.matches.findIndex(m => m.id === matchId);
+  if (idx === -1) return;
+  const m = tData.matches[idx];
+  m.completed = false;
+  m.voided = false;
+  saveToLocalTournaments(tData);
+  renderLiveUI(tData);
+  showToast(isZh ? `第 ${m.id} 局已復原` : `Game ${m.id} restored`, "success");
+  await syncMatchesAt(tData, [idx]);
+}
+window.undoQueueMatch = undoQueueMatch;
+
+function renderQueueList(matches, hasAdmin) {
+  const container = document.getElementById("matches-container");
+  const isZh = STATE.lang === "zh-TW";
+  const list = (matches || []).filter(Boolean);
+  const pending = list.filter(m => !m.completed && !m.voided).sort((a, b) => a.id - b.id);
+  const done = list.filter(m => m.completed || m.voided).sort((a, b) => b.id - a.id);
+  const isFinished = isTournamentFinished(STATE.tournamentData);
+
+  if (pending.length === 0 && done.length === 0) {
+    container.innerHTML = `
+      <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2 border">
+        <p class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? "人數不足" : "Not enough players"}</p>
+        <p class="sub-text text-xs">${isZh ? "開啟操作後「補入名單」，就會自動排出下一場" : "Enable controls and add players to fill the next game."}</p>
+      </div>`;
+    return;
+  }
+
+  const side = (names, color) => `
+    <div class="p-3 sm:p-3.5 rounded-2xl ${color === "blue" ? "bg-blue-500/10 border-blue-500/25" : "bg-rose-500/10 border-rose-500/25"} border space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white">
+      ${(names || []).filter(Boolean).map(n => `<div class="truncate">${escapeHTML(n)}</div>`).join("")}
+    </div>`;
+
+  const pendingHTML = pending.map((m, i) => {
+    const isNow = i === 0;
+    const label = isNow ? (isZh ? "現在上場" : "Now Playing") : (i === 1 ? (isZh ? "下一場" : "Up Next") : (isZh ? "待上場" : "Waiting"));
+    const labelCls = isNow
+      ? "bg-emerald-500 text-white"
+      : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30";
+    const footer = (hasAdmin && !isFinished) ? `
+      <div class="flex items-center justify-end gap-1.5 pt-1 border-t border-stone-200 dark:border-slate-800/60">
+        <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 active:scale-95 text-rose-500 hover:bg-rose-500/10 border border-rose-500/20">${t("voidMatchBtn")}</button>
+        <button onclick="completeQueueMatch(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i> ${isZh ? "完成" : "Done"}
+        </button>
+      </div>` : "";
+    return `
+      <div class="glass-card rounded-2xl p-3.5 sm:p-4 border ${isNow ? "border-emerald-500/50 shadow-sm" : ""} transition space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-display font-extrabold flex items-center gap-1.5">
+            <span class="w-6 h-6 rounded-lg card-inner text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-mono border font-black">${Number(m.id)}</span>
+            ${isZh ? `第 ${Number(m.id)} 局` : `Game ${Number(m.id)}`}
+          </span>
+          <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${labelCls}">${label}</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 sm:gap-3">${side(m.blue, "blue")}${side(m.red, "red")}</div>
+        ${footer}
+      </div>`;
+  }).join("");
+
+  const doneHTML = done.map(m => {
+    const names = arr => (arr || []).filter(Boolean).map(escapeHTML).join("、");
+    const badge = m.voided
+      ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px] whitespace-nowrap">${t("voidedBadge")}</span>`
+      : `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px] whitespace-nowrap">${t("finishedBadge")}</span>`;
+    const undoBtn = (hasAdmin && !isFinished && !m.voided)
+      ? `<button onclick="undoQueueMatch(${Number(m.id)})" class="px-2 py-0.5 rounded-md text-[11px] font-bold border border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400 active:scale-95 whitespace-nowrap">${isZh ? "復原" : "Undo"}</button>`
+      : "";
+    return `
+      <div class="glass-card rounded-xl px-3 py-2 border flex items-center gap-2 text-xs ${m.voided ? "opacity-60" : ""}">
+        <span class="font-mono font-black text-emerald-600 dark:text-emerald-400 w-6 text-center shrink-0">${Number(m.id)}</span>
+        <span class="flex-1 min-w-0 truncate"><span class="text-blue-600 dark:text-blue-400 font-semibold">${names(m.blue)}</span> <span class="sub-text">vs</span> <span class="text-rose-600 dark:text-rose-400 font-semibold">${names(m.red)}</span></span>
+        ${undoBtn}${badge}
+      </div>`;
+  }).join("");
+
+  container.innerHTML = pendingHTML + (doneHTML ? `<div class="space-y-1.5 pt-1">${doneHTML}</div>` : "");
+  lucide.createIcons({ root: container });
+}
 
 async function saveMatchScore(matchId) {
   const tObj = STATE.tournamentData;
