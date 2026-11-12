@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261104-9";
+} from "./utils.js?v=20261112-11";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261104-9";
+} from "./scheduler.js?v=20261112-11";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261104-9";
+} from "./globals.js?v=20261112-11";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1400,7 +1400,7 @@ function renderMatchesList(matches, hasAdmin = false) {
     if (hasAdmin) {
       scoreHTML = `
             <!-- Teams Grid (Admin Mode - Editable with Quick Stepper) -->
-            <div class="grid grid-cols-2 gap-2 sm:gap-3 ${isVoided ? 'opacity-50' : ''}">
+            <div class="grid grid-cols-2 gap-2 sm:gap-3">
               <!-- Blue Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-blue-500/15 to-blue-500/5 border border-blue-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
@@ -1409,9 +1409,9 @@ function renderMatchesList(matches, hasAdmin = false) {
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
-                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${Number(m.id)}" ${isVoided ? 'disabled' : ''} value="${m.blueScore != null ? escapeHTML(m.blueScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-blue-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-blue-400 scoreboard-num shadow-inner" />
-                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', -1)"  class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-blue-${Number(m.id)}"  value="${m.blueScore != null ? escapeHTML(m.blueScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-blue-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-blue-400 scoreboard-num shadow-inner" />
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'blue', 1)"  class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
                 </div>
               </div>
 
@@ -1423,9 +1423,9 @@ function renderMatchesList(matches, hasAdmin = false) {
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
-                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', -1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${Number(m.id)}" ${isVoided ? 'disabled' : ''} value="${m.redScore != null ? escapeHTML(m.redScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-rose-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-rose-400 scoreboard-num shadow-inner" />
-                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', 1)" ${isVoided ? 'disabled' : ''} class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', -1)"  class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-rose-500 hover:border-rose-500/40 active:scale-90 transition select-none shadow-sm">−1</button>
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" id="score-red-${Number(m.id)}"  value="${m.redScore != null ? escapeHTML(m.redScore) : ''}" placeholder="0" class="w-14 sm:w-16 input-bg border border-rose-500/40 rounded-xl py-1.5 text-center font-mono text-xl sm:text-2xl font-black focus:outline-none focus:border-rose-400 scoreboard-num shadow-inner" />
+                  <button type="button" onclick="stepMatchScore(${Number(m.id)}, 'red', 1)"  class="w-8 h-8 rounded-xl card-inner border flex items-center justify-center text-xs font-black sub-text hover:text-emerald-500 hover:border-emerald-500/40 active:scale-90 transition select-none shadow-sm">+1</button>
                 </div>
               </div>
             </div>
@@ -1483,27 +1483,17 @@ function renderMatchesList(matches, hasAdmin = false) {
     // Action / Status Footer
     let footerHTML = '';
     if (hasAdmin) {
-      if (isVoided) {
+      // 已取消的局與已儲存的局相同：「取消」＋「修改」，分數可直接調整後按「修改」恢復
+      const showEdit = isDone || isVoided;
+      {
         footerHTML = `
-              <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-                <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20">${t("voidedNotice")}</span>
-                <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-2.5 py-1 font-bold rounded-lg text-xs transition bg-stone-500/10 hover:bg-stone-500/20 sub-text border">
-                  ${t("restoreMatchBtn")}
-                </button>
-              </div>
-            `;
-      } else {
-        footerHTML = `
-              <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-                <div class="sub-text truncate">
-                  <span>${t("restingLabel")}<strong class="text-stone-800 dark:text-slate-200 font-semibold">${m.resting && m.resting.length ? m.resting.join(', ') : t('noResting')}</strong></span>
-                </div>
+              <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
                 <div class="flex items-center gap-1.5 shrink-0">
-                  <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-2 py-1 font-semibold rounded-lg text-[11px] transition text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Match">
+                  <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 active:scale-95 text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Match">
                     ${t("voidMatchBtn")}
                   </button>
-                  <button onclick="saveMatchScore(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${isDone ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
-                    <i data-lucide="${isDone ? 'edit-2' : 'check'}" class="w-3.5 h-3.5"></i> ${isDone ? t("editScoreBtn") : t("saveScoreBtn")}
+                  <button onclick="saveMatchScore(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${showEdit ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
+                    <i data-lucide="${showEdit ? 'edit-2' : 'check'}" class="w-3.5 h-3.5"></i> ${showEdit ? t("editScoreBtn") : t("saveScoreBtn")}
                   </button>
                 </div>
               </div>
@@ -1511,20 +1501,18 @@ function renderMatchesList(matches, hasAdmin = false) {
       }
     } else {
       // Viewer footer
-      let statusBadge = `<span class="sub-text text-[11px] italic">${t("inProgressBadge")}</span>`;
+      // 進行中的局不顯示狀態（沒有底部那一行）
+      let statusBadge = '';
       if (isVoided) {
-        statusBadge = `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px]">${t("voidMatchBtn")}</span>`;
+        statusBadge = `<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20 text-[11px]">${t("voidedBadge")}</span>`;
       } else if (isDone) {
         statusBadge = `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[11px]">${t("finishedBadge")}</span>`;
       }
-      footerHTML = `
-            <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
-              <div class="sub-text truncate">
-                <span>${t("restingLabel")}<strong class="text-stone-800 dark:text-slate-200 font-semibold">${m.resting && m.resting.length ? m.resting.join(', ') : t('noResting')}</strong></span>
-              </div>
-              <div>${statusBadge}</div>
+      footerHTML = statusBadge ? `
+            <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
+              <div class="shrink-0 whitespace-nowrap">${statusBadge}</div>
             </div>
-          `;
+          ` : '';
     }
 
     return `
@@ -1535,7 +1523,6 @@ function renderMatchesList(matches, hasAdmin = false) {
                 <span class="w-6 h-6 rounded-lg card-inner text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-mono border font-black">${Number(m.id)}</span>
                 ${STATE.lang === 'zh-TW' ? `第 ${Number(m.id)} 局` : `Game ${Number(m.id)}`}
               </span>
-              ${isVoided ? `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400">${t("voidedBadge")}</span>` : ''}
             </div>
 
             ${scoreHTML}
@@ -1595,19 +1582,16 @@ async function toggleVoidMatch(matchId) {
   if (!match) return;
 
   if (match.voided) {
-    match.voided = false;
-    match.completed = false;
-  } else {
-    const confirmMsg = STATE.lang === "zh-TW"
-      ? `🚫 確定將第 ${matchId} 局標記為「取消」嗎？\n（該局將不計入勝負與得分排行榜）`
-      : `🚫 Void Game ${matchId}? (Will not count in leaderboard)`;
-    if (!confirm(confirmMsg)) return;
-
-    match.voided = true;
-    match.completed = true;
-    match.blueScore = null;
-    match.redScore = null;
+    // 已經是取消狀態：要恢復請輸入分數後按「修改」
+    showToast(STATE.lang === "zh-TW" ? "此局已取消，輸入分數後按「修改」即可恢復" : "Already voided. Enter scores and tap Edit to restore.", "success");
+    return;
   }
+
+  // 不跳確認視窗，直接取消，右下角提示
+  match.voided = true;
+  match.completed = true;
+  match.blueScore = null;
+  match.redScore = null;
 
   saveToLocalTournaments(tData);
   if (STATE.db) {
@@ -1627,6 +1611,7 @@ async function toggleVoidMatch(matchId) {
   }
 
   renderLiveUI(tData);
+  showToast(STATE.lang === "zh-TW" ? "已取消該場賽事" : "Match voided", "success");
 }
 window.toggleVoidMatch = toggleVoidMatch;
 
@@ -2230,6 +2215,8 @@ async function saveMatchScore(matchId) {
   const matchIdx = tObj.matches.findIndex(m => m.id === matchId);
   if (matchIdx === -1) return;
 
+  const wasVoided = tObj.matches[matchIdx].voided === true;
+  const wasSaved = tObj.matches[matchIdx].completed === true && !wasVoided;
   tObj.matches[matchIdx].blueScore = blueScore;
   tObj.matches[matchIdx].redScore = redScore;
   tObj.matches[matchIdx].completed = true;
@@ -2238,6 +2225,11 @@ async function saveMatchScore(matchId) {
   // Always save locally first
   saveToLocalTournaments(tObj);
   renderLiveUI(tObj);
+  // 右下角綠色提示：第一次儲存／修改已存分數／恢復已取消的局
+  const isZhToast = STATE.lang === "zh-TW";
+  if (wasVoided) showToast(isZhToast ? "已恢復賽事" : "Match restored", "success");
+  else if (wasSaved) showToast(isZhToast ? "修改完畢" : "Score updated", "success");
+  else showToast(isZhToast ? "儲存完畢" : "Score saved", "success");
 
   if (STATE.db) {
     try {
@@ -2265,9 +2257,10 @@ async function saveMatchScore(matchId) {
 window.saveMatchScore = saveMatchScore;
 
 function showCompletionNotice() {
+  // 不再對「結束賽事」按鈕加外框與閃爍效果；若之前加過就移除
   const completeBtn = document.getElementById("btn-complete-and-return");
   if (completeBtn) {
-    completeBtn.classList.add("ring-4", "ring-amber-500", "animate-pulse");
+    completeBtn.classList.remove("ring-4", "ring-amber-500", "animate-pulse");
   }
 }
 window.showCompletionNotice = showCompletionNotice;
