@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-19";
+} from "./utils.js?v=20261112-20";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-19";
+} from "./scheduler.js?v=20261112-20";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-19";
+} from "./globals.js?v=20261112-20";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -314,10 +314,14 @@ function renderLiveUI(data) {
   const headerProgressBar = document.getElementById("live-header-progress-bar");
   if (headerProgressBar) {
     headerProgressBar.style.width = `${matchPct}%`;
+    // 只排賽沒有總局數，不顯示進度條
+    if (headerProgressBar.parentElement) headerProgressBar.parentElement.classList.toggle("hidden", isNoScoreTournament(data));
   }
   const progressTextEl = document.getElementById("live-progress-text");
   if (progressTextEl) {
-    progressTextEl.innerText = `${doneMatches}/${totalMatches} (${matchPct}%)`;
+    progressTextEl.innerText = isNoScoreTournament(data)
+      ? (isZh ? `已打 ${(data.matches || []).filter(m => m.completed && !m.voided).length} 局` : `${(data.matches || []).filter(m => m.completed && !m.voided).length} played`)
+      : `${doneMatches}/${totalMatches} (${matchPct}%)`;
   }
 
   // 自由模式 / 練球 專屬「結束練球」按鈕 (僅在 0 場次純暢打時顯示，一旦新增場次則由「結束賽事」取代)
@@ -1948,7 +1952,10 @@ function computeFairPick(tData, isSingles) {
   const matches = (tData.matches || []).filter(m => m && !m.voided);
   const sideOf = m => (m.blue || []).concat(m.red || []);
   const gamesCount = {}, restCount = {}, streakCount = {};
-  players.forEach(p => { gamesCount[p] = 0; restCount[p] = matches.length; streakCount[p] = 0; });
+  // 只排賽：晚到的人從大家目前的場數起算，像拍牌一樣直接排隊，不會連打補場數
+  const joinOffsets = {};
+  if (tData.noScore && Array.isArray(tData.joinOffsets)) tData.joinOffsets.forEach(o => { if (o && o.n) joinOffsets[o.n] = Number(o.b) || 0; });
+  players.forEach(p => { gamesCount[p] = joinOffsets[p] || 0; restCount[p] = matches.length; streakCount[p] = 0; });
   matches.forEach(m => sideOf(m).forEach(p => { if (gamesCount[p] !== undefined) gamesCount[p]++; }));
   players.forEach(p => {
     for (let i = matches.length - 1; i >= 0; i--) {
@@ -2242,6 +2249,20 @@ async function submitAddLivePlayer(e) {
       : (isZh ? "選手名單中已存在此姓名！" : "Player already in roster!");
     showToast(dupMsg, "warning");
     return;
+  }
+
+  // 只排賽：記下加入時大家的最少場數，晚到的人從這裡起算
+  if (isNoScoreTournament(tData)) {
+    const played = {};
+    const offs = Array.isArray(tData.joinOffsets) ? tData.joinOffsets : [];
+    (tData.players || []).forEach(p => { const o = offs.find(x => x && x.n === p); played[p] = o ? (Number(o.b) || 0) : 0; });
+    (tData.matches || []).filter(m => m && !m.voided).forEach(m => (m.blue || []).concat(m.red || []).forEach(p => { if (played[p] !== undefined) played[p]++; }));
+    const counts = Object.values(played);
+    const base = counts.length ? Math.min(...counts) : 0;
+    tData.joinOffsets = offs.filter(x => x && x.n !== cleanName).concat([{ n: cleanName, b: base }]);
+    if (STATE.db) {
+      try { await set(ref(STATE.db, `tournaments/${tData.id}/joinOffsets`), tData.joinOffsets); } catch (e) { console.error("Firebase sync error:", e); }
+    }
   }
 
   tData.players.push(cleanName);
