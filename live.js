@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-12";
+} from "./utils.js?v=20261112-14";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-12";
+} from "./scheduler.js?v=20261112-14";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-12";
+} from "./globals.js?v=20261112-14";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1446,7 +1446,7 @@ function renderMatchesList(matches, hasAdmin = false) {
                     <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
                       ${escapeHTML(m.blue[0] || '')}
                     </div>
-                    ${blueWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-blue-500 text-white shrink-0 shadow-sm animate-pulse">WIN</span>` : ''}
+                    ${blueWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-blue-500 text-white shrink-0 shadow-sm">WIN</span>` : ''}
                   </div>
                   ${m.blue[1] ? `
                   <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
@@ -1465,7 +1465,7 @@ function renderMatchesList(matches, hasAdmin = false) {
                     <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
                       ${escapeHTML(m.red[0] || '')}
                     </div>
-                    ${redWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-rose-500 text-white shrink-0 shadow-sm animate-pulse">WIN</span>` : ''}
+                    ${redWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-rose-500 text-white shrink-0 shadow-sm">WIN</span>` : ''}
                   </div>
                   ${m.red[1] ? `
                   <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
