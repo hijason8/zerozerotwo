@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-9";
+} from "./utils.js?v=20261112-10";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-9";
+} from "./scheduler.js?v=20261112-10";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-9";
+} from "./globals.js?v=20261112-10";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1583,7 +1583,7 @@ async function toggleVoidMatch(matchId) {
 
   if (match.voided) {
     // 已經是取消狀態：要恢復請輸入分數後按「修改」
-    showToast(STATE.lang === "zh-TW" ? "此局已取消，輸入分數後按「修改」即可恢復" : "Already voided. Enter scores and tap Edit to restore.", "info");
+    showToast(STATE.lang === "zh-TW" ? "此局已取消，輸入分數後按「修改」即可恢復" : "Already voided. Enter scores and tap Edit to restore.", "success");
     return;
   }
 
@@ -2216,6 +2216,7 @@ async function saveMatchScore(matchId) {
   if (matchIdx === -1) return;
 
   const wasVoided = tObj.matches[matchIdx].voided === true;
+  const wasSaved = tObj.matches[matchIdx].completed === true && !wasVoided;
   tObj.matches[matchIdx].blueScore = blueScore;
   tObj.matches[matchIdx].redScore = redScore;
   tObj.matches[matchIdx].completed = true;
@@ -2224,7 +2225,11 @@ async function saveMatchScore(matchId) {
   // Always save locally first
   saveToLocalTournaments(tObj);
   renderLiveUI(tObj);
-  if (wasVoided) showToast(STATE.lang === "zh-TW" ? "已恢復賽事" : "Match restored", "success");
+  // 右下角綠色提示：第一次儲存／修改已存分數／恢復已取消的局
+  const isZhToast = STATE.lang === "zh-TW";
+  if (wasVoided) showToast(isZhToast ? "已恢復賽事" : "Match restored", "success");
+  else if (wasSaved) showToast(isZhToast ? "修改完畢" : "Score updated", "success");
+  else showToast(isZhToast ? "儲存完畢" : "Score saved", "success");
 
   if (STATE.db) {
     try {
