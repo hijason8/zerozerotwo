@@ -458,9 +458,24 @@
           </div>
         </div>
 
+        <!-- 活動備註 (選填，限50字) -->
+        <div id="wrap-create-notes">
+          <div class="flex items-center justify-between mb-1">
+            <label id="t-label-notes" class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-500"></i>
+              <span id="t-label-notes-text">活動備註</span>
+              <span id="t-label-notes-opt" class="text-[10px] font-normal sub-text">(選填)</span>
+            </label>
+            <span id="create-notes-counter" class="text-[10px] font-mono sub-text">0/50</span>
+          </div>
+          <textarea id="create-notes" maxlength="50" rows="2" placeholder="例：公館球場4號場、費用150元、請自備球拍..."
+            oninput="updateCreateNotesCounter()" onkeydown="handleCreateNotesKeyDown(event)"
+            class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none leading-relaxed transition"></textarea>
+        </div>
+
         <!-- 臨打賽事的公開設定：僅限連結＝不出現在臨打活動列表與 LINE 機器人回覆 -->
         <div id="wrap-create-privacy">
-          <label class="block text-xs sm:text-sm font-semibold mb-1.5" data-en="Visibility">誰看得到</label>
+          <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-privacy" data-en="3. Visibility">3. 誰看得到</label>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" id="btn-create-public" onclick="setCreatePrivacy(false)" class="mode-btn-active py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start gap-2 hover-lift active:scale-95 shadow-sm">
               <i data-lucide="globe" class="w-4 h-4"></i> <span class="text-xs sm:text-sm font-display font-black" data-en="Public">公開</span>
@@ -473,24 +488,9 @@
           <input type="hidden" id="create-privacy" value="public" />
         </div>
 
-        <!-- 活動備註 / 補充說明 (選填，限50字) -->
-        <div id="wrap-create-notes">
-          <div class="flex items-center justify-between mb-1">
-            <label id="t-label-notes" class="block text-xs sm:text-sm font-semibold flex items-center gap-1.5">
-              <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-500"></i>
-              <span id="t-label-notes-text">活動備註 / 補充說明</span>
-              <span id="t-label-notes-opt" class="text-[10px] font-normal sub-text">(選填)</span>
-            </label>
-            <span id="create-notes-counter" class="text-[10px] font-mono sub-text">0/50</span>
-          </div>
-          <textarea id="create-notes" maxlength="50" rows="2" placeholder="例：公館球場4號場、費用150元、請自備球拍..."
-            oninput="updateCreateNotesCounter()" onkeydown="handleCreateNotesKeyDown(event)"
-            class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none leading-relaxed transition"></textarea>
-        </div>
-
         <!-- 3. Entry Type Selector (直接開打 VS 建立接龍) -->
         <div id="wrap-create-entry-type">
-          <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-entry-type">3. 開局方式</label>
+          <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-entry-type">4. 開局方式</label>
           <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
             <button type="button" id="btn-entry-instant" onclick="setCreateEntryType('instant')"
               class="mode-btn-active py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
@@ -539,7 +539,7 @@
         <div id="wrap-instant-play-sections" class="space-y-4 sm:space-y-5">
           <!-- 4. Tournament Mode Selector -->
           <div id="wrap-create-mode">
-            <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-mode">4. 賽事模式選擇</label>
+            <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-mode">賽事模式選擇</label>
             <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
               <button type="button" id="btn-mode-fair" onclick="setCreateMode('fair')"
                 class="mode-btn-active py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
@@ -560,7 +560,7 @@
           <div id="wrap-create-players" class="space-y-2">
             <!-- Header Bar with Partner Type Switcher -->
             <div class="flex items-center justify-between gap-2">
-              <label id="t-label-players" class="block text-xs sm:text-sm font-semibold shrink-0">5. 參賽選手名單</label>
+              <label id="t-label-players" class="block text-xs sm:text-sm font-semibold shrink-0">參賽選手名單</label>
               <div id="wrap-partner-toggle"
                 class="inline-flex w-fit p-0.5 bg-stone-200 dark:bg-slate-800/80 rounded-xl text-xs font-bold shrink-0">
                 <button type="button" id="btn-partner-rotating" onclick="setPartnerType('rotating')"
@@ -651,8 +651,7 @@
           <!-- 6. Fair Mode Strategy & Duration (Shown in Fair Mode) -->
           <div id="wrap-fair-duration" class="space-y-3">
             <div>
-              <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-fair-duration">6.
-                排賽目標與時間限制</label>
+              <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-fair-duration">排賽目標與時間限制</label>
               <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
                 <button type="button" id="btn-strategy-time" onclick="setFairStrategy('time')"
                   class="mode-btn-active py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
@@ -2294,7 +2293,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-6";
+    import { I18N } from "./i18n.js?v=20261113-7";
     window.I18N = I18N;
 
     function t(key) {
@@ -2316,14 +2315,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-6";
+    } from "./utils.js?v=20261113-7";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-6";
-    import "./live.js?v=20261113-6";
-    import "./activities.js?v=20261113-6";
-    import "./hub.js?v=20261113-6";
-    import "./line.js?v=20261113-6";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-6";
+    import "./tournament-create.js?v=20261113-7";
+    import "./live.js?v=20261113-7";
+    import "./activities.js?v=20261113-7";
+    import "./hub.js?v=20261113-7";
+    import "./line.js?v=20261113-7";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-7";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

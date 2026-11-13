@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261113-6";
+import { STATE, t } from "./globals.js?v=20261113-7";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -211,8 +211,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Close"
   ],
   "t-label-notes-text": [
-    "活動備註 / 補充說明",
-    "Notes / Details"
+    "活動備註",
+    "Notes"
   ],
   "t-label-notes-opt": [
     "(選填)",
@@ -223,8 +223,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Event Notes / Details:"
   ],
   "t-label-entry-type": [
-    "3. 開局方式",
-    "3. Entry Format"
+    "4. 開局方式",
+    "4. Entry Format"
   ],
   "t-entry-reg-title": [
     "建立接龍",
@@ -243,8 +243,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Create a sign-up room and share the link to your LINE or chat group for players to RSVP (+1). Once everyone is present, choose Fair Rotation or Free Play to start!"
   ],
   "t-label-mode": [
-    "4. 賽事模式選擇",
-    "4. Match Mode"
+    "賽事模式選擇",
+    "Match Mode"
   ],
   "t-mode-fair-title": [
     "平均模式",
@@ -303,8 +303,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Add"
   ],
   "t-label-fair-duration": [
-    "6. 排賽目標與時間限制",
-    "6. Schedule"
+    "排賽目標與時間限制",
+    "Schedule"
   ],
   "t-strategy-time-title": [
     "按時間排賽",
@@ -562,6 +562,7 @@ export function applyLanguageUI() {
   // 建立賽事頁的「誰看得到」說明文字跟著語言切換
   const privInput = document.getElementById("create-privacy");
   if (privInput && window.setCreatePrivacy) window.setCreatePrivacy(privInput.value === "private");
+  if (window.updateCreateNumbering) window.updateCreateNumbering();
   // 中英各一份的區塊（例如使用手冊）：data-lang-block="zh" / "en"
   document.querySelectorAll("[data-lang-block]").forEach(el => {
     el.classList.toggle("hidden", el.dataset.langBlock !== (isZh ? "zh" : "en"));

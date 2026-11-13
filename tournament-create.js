@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-6";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-7";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-6";
+} from "./scheduler.js?v=20261113-7";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261113-6";
+} from "./globals.js?v=20261113-7";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -284,12 +284,12 @@ const isTransientPlayer = (name) => {
       if (labelPlayers) {
         if (isZh) {
           if (mode === "free") {
-            labelPlayers.innerText = isSingles ? "4. 自由單打選手名單" : (isRotating ? "4. 自由雙打選手名單" : "4. 自由隊伍名單");
+            labelPlayers.innerText = isSingles ? "自由單打選手名單" : (isRotating ? "自由雙打選手名單" : "自由隊伍名單");
           } else {
-            labelPlayers.innerText = isSingles ? "4. 個人單打選手名單" : (isRotating ? "4. 參賽選手名單" : "4. 參賽隊伍名單");
+            labelPlayers.innerText = isSingles ? "個人單打選手名單" : (isRotating ? "參賽選手名單" : "參賽隊伍名單");
           }
         } else {
-          labelPlayers.innerText = isSingles ? "4. Singles Player Roster" : (isRotating ? "4. Player Roster" : "4. Team Roster");
+          labelPlayers.innerText = isSingles ? "Singles Players" : (isRotating ? "Players" : "Teams");
         }
       }
       if (inputAdd) inputAdd.placeholder = isZh ? "姓名，支援空格批量輸入" : "Enter names (supports space/line batch input)...";
@@ -646,8 +646,19 @@ const isTransientPlayer = (name) => {
       const clubVal = (document.getElementById("create-club-select")?.value || "").trim();
       const wrapPrivacy = document.getElementById("wrap-create-privacy");
       if (wrapPrivacy) wrapPrivacy.classList.toggle("hidden", !!clubVal);
+      updateCreateNumbering();
       if (clubVal) setCreatePrivacy(false);
     }
+
+    // 「3. 誰看得到」只在臨打時出現；選了社團就隱藏，開局方式改成第 3 項
+    function updateCreateNumbering() {
+      const wrapPrivacy = document.getElementById("wrap-create-privacy");
+      const label = document.getElementById("t-label-entry-type");
+      if (!label) return;
+      const n = (wrapPrivacy && wrapPrivacy.classList.contains("hidden")) ? 3 : 4;
+      label.innerText = (STATE.lang === "zh-TW") ? `${n}. 開局方式` : `${n}. Entry Format`;
+    }
+    window.updateCreateNumbering = updateCreateNumbering;
 
     function setCreatePrivacy(isPrivate) {
       const input = document.getElementById("create-privacy");
