@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261113-7";
+import { STATE, t } from "./globals.js?v=20261113-8";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -239,12 +239,12 @@ export const I18N_CUSTOM_TEXTS = {
     "How Sign-up Works:"
   ],
   "t-reg-hint-desc": [
-    "建立報名房間後，將網址發至 LINE 群組供球友即時簽到。全員到齊後，可於現場決定以「平均模式」自動排賽或「自由模式」開打！",
-    "Create a sign-up room and share the link to your LINE or chat group for players to RSVP (+1). Once everyone is present, choose Fair Rotation or Free Play to start!"
+    "等待報名，賽事模式待開賽時確認",
+    "Open for sign-up; pick the mode when you start"
   ],
   "t-label-mode": [
-    "賽事模式選擇",
-    "Match Mode"
+    "5. 賽事模式選擇",
+    "5. Match Mode"
   ],
   "t-mode-fair-title": [
     "平均模式",

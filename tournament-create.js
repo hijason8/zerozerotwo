@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-7";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-8";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-7";
+} from "./scheduler.js?v=20261113-8";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261113-7";
+} from "./globals.js?v=20261113-8";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -654,9 +654,11 @@ const isTransientPlayer = (name) => {
     function updateCreateNumbering() {
       const wrapPrivacy = document.getElementById("wrap-create-privacy");
       const label = document.getElementById("t-label-entry-type");
-      if (!label) return;
+      const modeLabel = document.getElementById("t-label-mode");
+      const isZh = (STATE.lang === "zh-TW");
       const n = (wrapPrivacy && wrapPrivacy.classList.contains("hidden")) ? 3 : 4;
-      label.innerText = (STATE.lang === "zh-TW") ? `${n}. 開局方式` : `${n}. Entry Format`;
+      if (label) label.innerText = isZh ? `${n}. 開局方式` : `${n}. Entry Format`;
+      if (modeLabel) modeLabel.innerText = isZh ? `${n + 1}. 賽事模式選擇` : `${n + 1}. Match Mode`;
     }
     window.updateCreateNumbering = updateCreateNumbering;
 

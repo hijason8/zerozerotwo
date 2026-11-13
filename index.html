@@ -484,7 +484,6 @@
               <i data-lucide="link" class="w-4 h-4"></i> <span class="text-xs sm:text-sm font-display font-black" data-en="Link only">僅限連結</span>
             </button>
           </div>
-          <p id="create-privacy-hint" class="text-[11px] sub-text mt-1">會出現在「臨打活動」，大家都看得到</p>
           <input type="hidden" id="create-privacy" value="public" />
         </div>
 
@@ -507,19 +506,8 @@
               </div>
             </button>
           </div>
+          <p id="wrap-registration-hint" class="hidden text-[11px] sub-text mt-1"><span id="t-reg-hint-desc">等待報名，賽事模式待開賽時確認</span></p>
           <input type="hidden" id="create-entry-mode" value="instant" />
-        </div>
-
-        <!-- Registration Hint Box (Hidden when entryMode === 'instant') -->
-        <div id="wrap-registration-hint"
-          class="hidden p-3.5 sm:p-4 rounded-2xl card-inner border border-emerald-500/30 text-xs space-y-1.5 bg-emerald-500/5">
-          <div class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-            <i data-lucide="info" class="w-4 h-4"></i>
-            <span id="t-reg-hint-title">建立接龍說明</span>
-          </div>
-          <p class="sub-text text-[11px] leading-relaxed" id="t-reg-hint-desc">
-            建立報名房間後，將網址發至 LINE 群組供球友即時簽到。全員到齊後，可於現場決定以「平均模式」自動排賽或「自由模式」開打！
-          </p>
         </div>
 
         <!-- 人數上限 (選填，直接開打時隱藏) -->
@@ -539,7 +527,7 @@
         <div id="wrap-instant-play-sections" class="space-y-4 sm:space-y-5">
           <!-- 4. Tournament Mode Selector -->
           <div id="wrap-create-mode">
-            <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-mode">賽事模式選擇</label>
+            <label class="block text-xs sm:text-sm font-semibold mb-1.5" id="t-label-mode">5. 賽事模式選擇</label>
             <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
               <button type="button" id="btn-mode-fair" onclick="setCreateMode('fair')"
                 class="mode-btn-active py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm">
@@ -2293,7 +2281,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-7";
+    import { I18N } from "./i18n.js?v=20261113-8";
     window.I18N = I18N;
 
     function t(key) {
@@ -2315,14 +2303,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-7";
+    } from "./utils.js?v=20261113-8";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-7";
-    import "./live.js?v=20261113-7";
-    import "./activities.js?v=20261113-7";
-    import "./hub.js?v=20261113-7";
-    import "./line.js?v=20261113-7";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-7";
+    import "./tournament-create.js?v=20261113-8";
+    import "./live.js?v=20261113-8";
+    import "./activities.js?v=20261113-8";
+    import "./hub.js?v=20261113-8";
+    import "./line.js?v=20261113-8";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-8";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
