@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-22";
+} from "./utils.js?v=20261113-23";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-22";
+} from "./scheduler.js?v=20261113-23";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-22";
+} from "./globals.js?v=20261113-23";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -144,8 +144,6 @@ function updateFollowButton(tData) {
   if (!btn) return;
   const on = !!(tData && isFollowing(tData.id));
   btn.classList.toggle("text-amber-500", on);
-  btn.classList.toggle("border-amber-500/40", on);
-  btn.classList.toggle("bg-amber-500/10", on);
   btn.classList.toggle("text-stone-400", !on);
   const svg = btn.querySelector("svg");
   if (svg) svg.setAttribute("fill", on ? "currentColor" : "none");
