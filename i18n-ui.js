@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261113-15";
+import { STATE, t } from "./globals.js?v=20261113-16";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -74,7 +74,6 @@ export const I18N_TEXT_KEYS = {
   "t-desktop-tab-profile": "clubTabProfile",
   "t-tab-info": "clubTabInfo",
   "t-desktop-tab-info": "clubTabInfo",
-  "t-club-active-heading": "clubActiveHeading",
   "t-club-no-activities-msg": "clubNoActivitiesHint",
   "t-history-matches-heading": "historyMatchesHeading",
   "t-club-profile-heading": "clubProfileHeading",
@@ -171,6 +170,18 @@ export const I18N_CUSTOM_TEXTS = {
     "Open for Sign-up"
   ],
   "t-activities-comp-text": [
+    "近期完賽球局 (3日內)",
+    "Finished (last 3 days)"
+  ],
+  "t-club-signup-heading": [
+    "報名中",
+    "Open for Sign-up"
+  ],
+  "t-club-live-heading": [
+    "比賽中",
+    "In Progress"
+  ],
+  "t-club-completed-heading": [
     "近期完賽球局 (3日內)",
     "Finished (last 3 days)"
   ],
