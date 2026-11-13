@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-15";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-16";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-15";
+} from "./globals.js?v=20261113-16";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -2044,26 +2044,47 @@ const isTransientPlayer = (name) => {
 
       const clubTournamentsAll = (allList || []).filter(t => (t.clubName || '').trim() === clubName);
 
-      // Render Active Tournaments for this Club
-      const clubActiveSection = document.getElementById("club-active-section");
-      const clubActiveListEl = document.getElementById("club-active-tournaments-list");
-      const clubNoActivitiesHint = document.getElementById("club-no-activities-hint");
-      // 進行中＝尚未按「結束賽事」的賽事（分數都登錄完但還沒結束的也算，否則會同時不在進行中、也不在歷史存檔裡）
-      const clubActiveTournaments = clubTournamentsAll.filter(t => !isTournamentFinished(t));
-
-      if (clubActiveSection && clubActiveListEl) {
-        if (clubActiveTournaments.length > 0) {
-          clubActiveSection.classList.remove("hidden");
-          if (clubNoActivitiesHint) clubNoActivitiesHint.classList.add("hidden");
-          // 與社團活動、臨打活動共用同一張賽事卡片（呈現與操作一致）
-          clubActiveListEl.innerHTML = clubActiveTournaments
-            .sort((x, y) => new Date(y.createdAt) - new Date(x.createdAt))
-            .map(tData => window.renderCardWithRegistration(tData)).join("");
-        } else {
-          clubActiveSection.classList.remove("hidden");
-          clubActiveListEl.innerHTML = "";
-          if (clubNoActivitiesHint) clubNoActivitiesHint.classList.remove("hidden");
-        }
+      // 社團頁活動：與臨打活動相同的三個區塊（報名中 → 比賽中 → 近期完賽 3 日內）
+      {
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+        const nowMs = Date.now();
+        const finishedTime = (t) => {
+          const raw = t && (t.completedAt || t.startedAt || t.createdAt);
+          if (!raw) return null;
+          const d = typeof raw === "number" ? new Date(raw) : parseTournamentDate(raw);
+          return d && !isNaN(d.getTime()) ? d : null;
+        };
+        const signupList = [];
+        const liveList = [];
+        const completedList = [];
+        clubTournamentsAll.forEach(t => {
+          if (isTournamentFinished(t)) {
+            const d = finishedTime(t);
+            if (!d || nowMs - d.getTime() <= THREE_DAYS_MS) completedList.push(t);
+          } else if (t.status === "registering") {
+            signupList.push(t);
+          } else {
+            liveList.push(t);
+          }
+        });
+        const byCreated = (x, y) => new Date(y.createdAt) - new Date(x.createdAt);
+        signupList.sort(byCreated);
+        liveList.sort(byCreated);
+        completedList.sort((a, b) => (finishedTime(b)?.getTime() || 0) - (finishedTime(a)?.getTime() || 0));
+        const fillSection = (key, list) => {
+          const section = document.getElementById(`club-${key}-section`);
+          const container = document.getElementById(`club-${key}-list`);
+          const countEl = document.getElementById(`club-${key}-count`);
+          if (section) section.classList.toggle("hidden", list.length === 0);
+          if (countEl) countEl.innerText = `${list.length}`;
+          // 與社團活動、臨打活動共用同一張賽事卡片
+          if (container) container.innerHTML = list.map(t => window.renderCardWithRegistration(t)).join("");
+        };
+        fillSection("signup", signupList);
+        fillSection("live", liveList);
+        fillSection("completed", completedList);
+        const clubNoActivitiesHint = document.getElementById("club-no-activities-hint");
+        if (clubNoActivitiesHint) clubNoActivitiesHint.classList.toggle("hidden", signupList.length + liveList.length + completedList.length > 0);
       }
 
       const completedClubTournaments = clubTournamentsAll.filter(tData => isTournamentFinished(tData));
