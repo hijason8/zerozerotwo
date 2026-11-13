@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-27";
-import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-27";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-28";
+import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-28";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261113-27";
+} from "./globals.js?v=20261113-28";
 
 let activitiesSearchKeyword = "";
 
@@ -177,7 +177,7 @@ export function displayActivitiesList(list) {
       if (titleEl) titleEl.innerText = isZh ? "登入 LINE 後，可加入社團、關注賽事" : "Log in with LINE to join clubs and follow games";
     } else {
       if (titleEl) titleEl.innerText = isZh ? "目前沒有關注的球局" : "Nothing you follow right now";
-      if (hintEl) hintEl.innerText = isZh ? "在賽事頁按右上角 ⭐ 關注，或加入下方的社團" : "Tap ⭐ on a game page, or join a club below";
+      if (hintEl) hintEl.innerText = isZh ? "點選 ☆ 號，關注賽事" : "Tap ☆ to follow a game";
     }
     if (loginBtn) loginBtn.classList.toggle("hidden", isLoggedIn);
     // 未登入：只留一行粗體標題，不顯示灰字說明
