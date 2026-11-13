@@ -468,7 +468,7 @@
             </label>
             <span id="create-notes-counter" class="text-[10px] font-mono sub-text">0/50</span>
           </div>
-          <textarea id="create-notes" maxlength="50" rows="2" placeholder="例：公館球場4號場、費用150元、請自備球拍..."
+          <textarea id="create-notes" maxlength="50" rows="2"
             oninput="updateCreateNotesCounter()" onkeydown="handleCreateNotesKeyDown(event)"
             class="block w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none leading-relaxed transition"></textarea>
         </div>
@@ -579,7 +579,7 @@
               <!-- Row 1: Single Unified Input Bar + Live Count Badge -->
               <div class="flex items-center gap-2">
                 <div class="relative flex-1">
-                  <input type="text" id="quick-add-player-input" placeholder="姓名，支援空格批量輸入"
+                  <input type="text" id="quick-add-player-input" placeholder="支援批量輸入"
                     class="w-full input-bg border rounded-xl pl-3 pr-20 sm:pr-24 py-2 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none shadow-inner"
                     onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault(); quickAddPlayer();}"
                     onpaste="setTimeout(quickAddPlayer, 50)" />
@@ -2288,7 +2288,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-10";
+    import { I18N } from "./i18n.js?v=20261113-11";
     window.I18N = I18N;
 
     function t(key) {
@@ -2310,14 +2310,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-10";
+    } from "./utils.js?v=20261113-11";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-10";
-    import "./live.js?v=20261113-10";
-    import "./activities.js?v=20261113-10";
-    import "./hub.js?v=20261113-10";
-    import "./line.js?v=20261113-10";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-10";
+    import "./tournament-create.js?v=20261113-11";
+    import "./live.js?v=20261113-11";
+    import "./activities.js?v=20261113-11";
+    import "./hub.js?v=20261113-11";
+    import "./line.js?v=20261113-11";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-11";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

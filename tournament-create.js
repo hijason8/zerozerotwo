@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-10";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-11";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-10";
+} from "./scheduler.js?v=20261113-11";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261113-10";
+} from "./globals.js?v=20261113-11";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -292,7 +292,7 @@ const isTransientPlayer = (name) => {
           labelPlayers.innerText = isSingles ? "Singles Players" : (isRotating ? "Players" : "Teams");
         }
       }
-      if (inputAdd) inputAdd.placeholder = isZh ? "姓名，支援空格批量輸入" : "Enter names (supports space/line batch input)...";
+      if (inputAdd) inputAdd.placeholder = isZh ? "支援批量輸入" : "Batch input OK";
       if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "已登錄選手：" : (isRotating ? "已登錄選手：" : "已登錄隊伍：")) : (isSingles ? "Players:" : (isRotating ? "Players:" : "Teams:"));
       if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "社團常用隊伍：" : "社團常用選手：") : (type === "fixed" ? "Club Teams:" : "Club Players:");
       if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "增加臨打隊伍" : "增加臨打選手") : (type === "fixed" ? "Add Guest Teams" : "Add Guest Players");

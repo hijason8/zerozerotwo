@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261113-10";
+import { STATE, t } from "./globals.js?v=20261113-11";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -326,10 +326,6 @@ export const I18N_CUSTOM_TEXTS = {
 export const I18N_PLACEHOLDERS = {
   "quick-code-modal-input": "modalSearchPlaceholder",
   "hub-quick-code-input": "quickCodePlaceholder",
-  "create-notes": [
-    "例：公館球場4號場、費用150元、請自備球拍...",
-    "e.g. Court 4, Fee $150, Bring your own paddle..."
-  ],
   "create-max-players": [
     "",
     ""
@@ -344,8 +340,8 @@ export const I18N_PLACEHOLDERS = {
     "Count"
   ],
   "quick-add-player-input": [
-    "姓名，支援空格批量輸入",
-    "Enter names (supports space/line batch input)..."
+    "支援批量輸入",
+    "Batch input OK"
   ],
   "create-name": "placeholderName",
   "create-players": "placeholderPlayers"
