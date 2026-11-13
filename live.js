@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-21";
+} from "./utils.js?v=20261113-22";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-21";
+} from "./scheduler.js?v=20261113-22";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-21";
+} from "./globals.js?v=20261113-22";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
