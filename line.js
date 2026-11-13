@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261113-16";
+import { escapeHTML } from "./utils.js?v=20261113-28";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261113-16";
+} from "./globals.js?v=20261113-28";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -301,37 +301,17 @@ export async function initLiffAndUser() {
 
       console.info(`[LIFF] Logged in successfully: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
 
-      STATE.userBindings = STATE.userBindings || {};
-      if (STATE.db && Array.isArray(STATE.myClubs) && STATE.myClubs.length > 0) {
-        // 各社團的身分綁定同時查詢，不再一個一個排隊
-        await Promise.all(STATE.myClubs.map(async (clubName) => {
-          const safeClub = typeof window.encodeClubKey === "function" ? window.encodeClubKey(clubName) : encodeURIComponent(clubName.trim()).replace(/\./g, "%2E");
-          try {
-            const snap = await get(ref(STATE.db, `club_mappings/${safeClub}/${STATE.lineUserId}`));
-            if (snap.exists() && snap.val()) {
-              const bName = String(snap.val()).trim();
-              STATE.userBindings[clubName] = bName;
-              localStorage.setItem(`pb_bound_name_${clubName}`, bName);
-              if (STATE.currentClub === clubName) {
-                STATE.clubPlayerName = bName;
-              }
-            }
-          } catch (e) { }
-        }));
-      }
-
+      // 我的關注：以 LINE 帳號記錄關注的球局（取代球員綁定）
+      STATE.myRecords = {
+        following: (userData && userData.following) || {}
+      };
+      try { localStorage.setItem(`pb_my_records_${STATE.lineUserId}`, JSON.stringify(STATE.myRecords)); } catch (e) { }
+      // 紀錄載入後重畫目前頁面（我的關注、臨打活動的僅限連結球局、賽事頁的星號）
       try {
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (k && k.startsWith("pb_bound_name_") && k !== "pb_bound_name___general__") {
-            const cName = k.replace("pb_bound_name_", "");
-            if (!Array.isArray(STATE.myClubs) || !STATE.myClubs.includes(cName)) {
-              keysToRemove.push(k);
-            }
-          }
-        }
-        keysToRemove.forEach(k => localStorage.removeItem(k));
+        const cachedList = Array.isArray(STATE.allTournamentsCache) ? STATE.allTournamentsCache : [];
+        if (STATE.currentPage === "hub" && typeof window.displayHubTournamentsList === "function") window.displayHubTournamentsList(cachedList);
+        if (STATE.currentPage === "activities" && typeof window.displayActivitiesList === "function") window.displayActivitiesList(cachedList);
+        if (STATE.currentPage === "live" && STATE.tournamentData && typeof window.renderLiveUI === "function") window.renderLiveUI(STATE.tournamentData);
       } catch (e) { }
 
       // ?page=hub 現在是獨立的「臨打賽事」頁，登入後保留原頁面；實際切換頁面由 initApp 統一處理
@@ -340,9 +320,6 @@ export async function initLiffAndUser() {
         window.populateNavClubSelect();
       }
 
-      if (STATE.currentClub && typeof window.checkAndPromptClubIdentityClaim === "function") {
-        window.checkAndPromptClubIdentityClaim(STATE.currentClub);
-      }
     } else {
       const isLineBrowser = /Line\//i.test(navigator.userAgent || "");
       let alreadyTried = false;
@@ -478,8 +455,6 @@ export function openLineProfileModal() {
   }
   const nameEl = document.getElementById("line-modal-profile-name");
   if (nameEl) nameEl.innerText = profile.displayName || (STATE.lang === "zh-TW" ? "LINE 球友" : "LINE user");
-  const defNameEl = document.getElementById("line-modal-default-name");
-  if (defNameEl) defNameEl.innerText = profile.displayName || (STATE.lang === "zh-TW" ? "未設定" : "Not set");
 
   const logoutBtn = document.getElementById("btn-line-logout");
   if (logoutBtn) logoutBtn.classList.toggle("hidden", isInsideLineApp());

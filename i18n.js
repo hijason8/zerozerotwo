@@ -154,7 +154,7 @@ export const I18N = {
     enterRegistration: "進入報名",
     btnWaitCancel: "再等等 / 取消",
     lobbyEmptyHint: "目前尚無人報名，請在下方輸入姓名或點選社團成員加入！",
-    lobbyInputPlaceholder: "未綁定，請輸入姓名（支援空格批量輸入）",
+    lobbyInputPlaceholder: "輸入姓名（支援批量輸入）",
 
     // Club Member Roster
     clubMembersTitle: "社團常用成員名單 (點擊選取)",
@@ -556,7 +556,7 @@ export const I18N = {
     enterRegistration: "Sign Up",
     btnWaitCancel: "Wait / Cancel",
     lobbyEmptyHint: "No one yet. Enter a name below or tap a club member!",
-    lobbyInputPlaceholder: "Enter name (supports space batch input)",
+    lobbyInputPlaceholder: "Enter names (batch OK)",
 
     // Club Member Roster
     clubMembersTitle: "Club Members (Click to select)",

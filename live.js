@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-16";
+} from "./utils.js?v=20261113-28";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-16";
+} from "./scheduler.js?v=20261113-28";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-16";
+} from "./globals.js?v=20261113-28";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -63,11 +63,17 @@ async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
     if (STATE.dbUnsubscribe) STATE.dbUnsubscribe();
     const tRef = ref(STATE.db, `tournaments/${tId}`);
 
+    let followHintShown = false;
     STATE.dbUnsubscribe = onValue(tRef, (snapshot) => {
       if (snapshot.exists()) {
         STATE.tournamentData = snapshot.val();
         saveToLocalTournaments(STATE.tournamentData);
         renderLiveUI(STATE.tournamentData);
+        // 每次打開賽事頁：還沒關注就提醒一次
+        if (!followHintShown) {
+          followHintShown = true;
+          showFollowHint(tId);
+        }
       } else {
         const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
         delete local[tId];
@@ -82,11 +88,21 @@ async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
 }
 window.loadLiveTournament = loadLiveTournament;
 
+function showFollowHint(tId) {
+  if (isFollowing(tId)) return;
+  setTimeout(() => {
+    if (STATE.currentTournamentId === tId && !isFollowing(tId)) {
+      showToast(STATE.lang === "zh-TW" ? "點選 ☆ 號，加入「我的關注」" : "Tap ☆ to add it to Following", "info");
+    }
+  }, 800);
+}
+
 function loadFromLocalCache(tId) {
   const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
   if (local[tId]) {
     STATE.tournamentData = local[tId];
     renderLiveUI(STATE.tournamentData);
+    showFollowHint(tId);
   } else {
     navigateTo("hub");
   }
@@ -101,8 +117,73 @@ function addCreatedTournamentId(tId) {
       localStorage.setItem("pb_created_tournaments", JSON.stringify(list));
     }
   } catch (e) { }
+  // 自己建立的球局自動關注（記在 LINE 帳號底下，換手機也找得到）
+  setFollowing(tId, true);
 }
 window.addCreatedTournamentId = addCreatedTournamentId;
+
+// ----------------------------------------------------
+// 我的關注：users/{LINE ID}/following/{賽事ID} = 關注時間
+// 建立賽事、用 LINE 一鍵報名會自動關注；其他球局在賽事頁右上角按 ⭐
+// ----------------------------------------------------
+function loadMyRecordsFromCache() {
+  if (!STATE.myRecords && STATE.lineUserId) {
+    try { STATE.myRecords = JSON.parse(localStorage.getItem(`pb_my_records_${STATE.lineUserId}`) || "null"); } catch (e) { }
+  }
+  return STATE.myRecords;
+}
+
+function isFollowing(tId) {
+  if (!STATE.lineUserId || !tId) return false;
+  const rec = loadMyRecordsFromCache();
+  return !!(rec && rec.following && rec.following[tId]);
+}
+window.isFollowing = isFollowing;
+
+function setFollowing(tId, on) {
+  if (!STATE.lineUserId || !tId) return;
+  loadMyRecordsFromCache();
+  if (!STATE.myRecords) STATE.myRecords = { following: {} };
+  if (!STATE.myRecords.following) STATE.myRecords.following = {};
+  if (on) STATE.myRecords.following[tId] = Date.now();
+  else delete STATE.myRecords.following[tId];
+  try { localStorage.setItem(`pb_my_records_${STATE.lineUserId}`, JSON.stringify(STATE.myRecords)); } catch (e) { }
+  if (STATE.db) {
+    const r = ref(STATE.db, `users/${STATE.lineUserId}/following/${tId}`);
+    (on ? set(r, STATE.myRecords.following[tId]) : remove(r)).catch(e => console.warn("[Follow] save failed:", e));
+  }
+}
+window.setFollowing = setFollowing;
+
+function updateFollowButton(tData) {
+  const btn = document.getElementById("btn-live-follow");
+  if (!btn) return;
+  const on = !!(tData && isFollowing(tData.id));
+  btn.classList.toggle("text-amber-500", on);
+  btn.classList.toggle("text-stone-400", !on);
+  const svg = btn.querySelector("svg");
+  if (svg) svg.setAttribute("fill", on ? "currentColor" : "none");
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  btn.title = STATE.lang === "zh-TW" ? (on ? "取消關注" : "關注") : (on ? "Unfollow" : "Follow");
+}
+
+function toggleFollowCurrentTournament() {
+  const tData = STATE.tournamentData;
+  if (!tData || !tData.id) return;
+  const isZh = STATE.lang === "zh-TW";
+  if (!STATE.lineUserId) {
+    if (typeof window.openLineLoginPromptModal === "function") window.openLineLoginPromptModal();
+    else showToast(isZh ? "請先登入 LINE" : "Log in with LINE first", "warning");
+    return;
+  }
+  const next = !isFollowing(tData.id);
+  setFollowing(tData.id, next);
+  updateFollowButton(tData);
+  showToast(next
+    ? (isZh ? "已加入關注，可在「我的關注」找到" : "Following. Find it in My Following.")
+    : (isZh ? "已取消關注" : "Unfollowed"), "success");
+}
+window.toggleFollowCurrentTournament = toggleFollowCurrentTournament;
 
 function isTournamentAdmin(tData) {
   if (!tData) return false;
@@ -162,6 +243,7 @@ window.toggleTournamentAdminMode = toggleTournamentAdminMode;
 
 function renderLiveUI(data) {
   if (!data) return;
+  updateFollowButton(data);
 
   if (data.name) {
     document.title = `${data.name} · ZeroZeroTwo`;
@@ -485,77 +567,9 @@ function renderLiveUI(data) {
       }
     }
 
+    // LINE 一鍵報名已移除：報名統一用下方輸入框（登入 LINE 時報名會自動關注）
     const liffBannerEl = document.getElementById("lobby-liff-profile-banner");
-    if (liffBannerEl) {
-      // 1. 未登入 LINE：直接隱藏該按鈕，維持版面俐落
-      if (!STATE.lineUserId || !STATE.lineProfile) {
-        liffBannerEl.classList.add("hidden");
-      } else {
-        liffBannerEl.classList.remove("hidden");
-        const clubName = data.clubName || STATE.currentClub || "";
-        let boundName = null;
-        if (clubName) {
-          boundName = localStorage.getItem(`pb_bound_name_${clubName}`);
-          if (!boundName && STATE.currentClub === clubName && STATE.clubPlayerName) {
-            boundName = STATE.clubPlayerName;
-          }
-        } else {
-          boundName = localStorage.getItem("pb_bound_name___general__") || STATE.clubPlayerName || null;
-        }
-        if (boundName && boundName.length > 10) {
-          boundName = boundName.slice(0, 10);
-        }
-
-        const currentRoster = Array.isArray(data.players) ? data.players : [];
-        const isJoined = boundName ? currentRoster.includes(boundName) : false;
-
-        if (isJoined) {
-          // 4. 已在名單中：顯示「已以『球員姓名』報名簽到」狀態條與「取消報名」按鈕，下方帶有垂直無擠壓情境出口
-          liffBannerEl.innerHTML = `
-                <div class="space-y-1.5">
-                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold gap-2">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0"></i>
-                      <span class="truncate">${isZh ? `已以「${escapeHTML(boundName)}」報名簽到` : `Joined as "${escapeHTML(boundName)}"`}</span>
-                    </div>
-                    <button type="button" onclick="unregisterPlayerFromTournament('${escapeJsAttr(boundName)}')"
-                      class="text-[10px] sm:text-xs px-2.5 py-1 rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold transition shrink-0 cursor-pointer">
-                      ${isZh ? "取消報名" : "Withdraw"}
-                    </button>
-                  </div>
-                  <div class="flex items-center justify-between px-1 text-[11px] sub-text">
-                    <span class="flex items-center gap-1"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? "報名已列入名單" : "Signed up"}</span>
-                    <button type="button" onclick="navigateTo('activities')" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer">
-                      ${isZh ? "查看社團活動" : "Club Activities"} <i data-lucide="chevron-right" class="w-3 h-3"></i>
-                    </button>
-                  </div>
-                </div>
-              `;
-        } else if (boundName) {
-          // 3. 已在社團內綁定球員身分：顯示「使用社團綁定身分報名」按鈕
-          liffBannerEl.innerHTML = `
-                <button type="button" onclick="registerPlayerToTournament('${escapeJsAttr(boundName)}')"
-                  class="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-md active:scale-95 cursor-pointer">
-                  <i data-lucide="user-check" class="w-4 h-4 shrink-0"></i>
-                  <span class="truncate">${isZh ? `使用社團綁定身分報名（${escapeHTML(boundName)}）` : `Join with club identity (${escapeHTML(boundName)})`}</span>
-                </button>
-              `;
-        } else {
-          // 2. 登入 LINE 但未綁定社團球員身分：顯示社團大廳風格的質感琥珀按鈕「⚠️ 尚未綁定球員身分，請先完成認領」，點擊立即開啟認領彈窗
-          liffBannerEl.innerHTML = `
-                <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeJsAttr(clubName)}')"
-                  class="w-full py-2.5 px-3.5 rounded-xl card-inner border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold transition flex items-center justify-between gap-2 shadow-sm active:scale-95 cursor-pointer">
-                  <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Name not linked. Tap to link"}</span>
-                  </div>
-                  <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-bold shrink-0">
-                    ${isZh ? "前往認領" : "Claim"}
-                  </span>
-                </button>
-              `;
-        }
-      }
-    }
+    if (liffBannerEl) liffBannerEl.classList.add("hidden");
 
     renderLobbySchedulePlans(data);
 
@@ -578,13 +592,6 @@ function renderLiveUI(data) {
   lucide.createIcons();
 }
 
-function handleLobbyClaimIdentityClick(clubName) {
-  const targetClub = clubName || STATE.currentClub || (STATE.tournamentData && STATE.tournamentData.clubName) || "";
-  if (typeof showClubIdentityClaimModal === "function") {
-    showClubIdentityClaimModal(targetClub);
-  }
-}
-window.handleLobbyClaimIdentityClick = handleLobbyClaimIdentityClick;
 
 // ----------------------------------------------------
 // REGISTRATION LOBBY ACTIONS & CHECK-IN CONTROLLERS
@@ -670,6 +677,8 @@ async function registerPlayerToTournament(playerName) {
       } catch (e) { }
     }
   }
+  // 登入 LINE 的人按報名（不論幫自己或代打）：自動關注這場
+  if (STATE.lineUserId && !isFollowing(tData.id)) setFollowing(tData.id, true);
   renderLiveUI(tData);
 }
 window.registerPlayerToTournament = registerPlayerToTournament;
@@ -710,46 +719,13 @@ async function unregisterPlayerFromTournament(playerName) {
 }
 window.unregisterPlayerFromTournament = unregisterPlayerFromTournament;
 
-async function promptCustomPlayerNameAndRegister() {
-  const isZh = STATE.lang === "zh-TW";
-  const savedCustom = localStorage.getItem("pb_custom_player_name") || "";
-  const defaultSuggest = (savedCustom || (STATE.lineProfile && STATE.lineProfile.displayName) || "").slice(0, 10);
-
-  const promptMsg = isZh
-    ? "請輸入您在球局中要顯示的選手暱稱 (上限10字)："
-    : "Enter your tournament player display name (max 10 chars):";
-
-  const entered = prompt(promptMsg, defaultSuggest);
-  if (entered === null) return;
-
-  let clean = entered.trim();
-  if (!clean) {
-    showToast(isZh ? "選手名稱不得為空！" : "Player name cannot be empty!", "warning");
-    return;
-  }
-  if (clean.length > 10) {
-    clean = clean.slice(0, 10);
-  }
-
-  try {
-    localStorage.setItem("pb_custom_player_name", clean);
-  } catch (e) { }
-
-  await registerPlayerToTournament(clean);
-}
-window.promptCustomPlayerNameAndRegister = promptCustomPlayerNameAndRegister;
-
 async function joinRegistrationFromInput() {
   const input = document.getElementById("lobby-player-input");
   let raw = input ? input.value.trim() : "";
 
   if (!raw) {
-    if (STATE.lineProfile && STATE.lineProfile.displayName) {
-      await promptCustomPlayerNameAndRegister();
-    } else {
-      showToast(STATE.lang === "zh-TW" ? "請輸入選手姓名！" : "Please enter player name!", "warning");
-      if (input) input.focus();
-    }
+    showToast(STATE.lang === "zh-TW" ? "請輸入選手姓名！" : "Please enter player name!", "warning");
+    if (input) input.focus();
     return;
   }
 

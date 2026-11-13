@@ -91,6 +91,11 @@
             ".validate": "newData.isBoolean() && $club.length <= 200"
           }
         },
+        "following": {
+          "$tournament_id": {
+            ".validate": "newData.isNumber()"
+          }
+        },
         "$other": {
           ".validate": false
         }

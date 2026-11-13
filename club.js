@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-16";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-28";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-16";
+} from "./globals.js?v=20261113-28";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -215,7 +215,7 @@ const isTransientPlayer = (name) => {
       const uniqueClubs = Array.from(set).sort((a, b) => a.localeCompare(b, "zh-Hant"));
       const isZh = STATE.lang === "zh-TW";
       const defaultLabel = isZh ? "臨打活動" : "Drop-in Games";
-      const activitiesLabel = isZh ? "社團活動" : "Club Activities";
+      const activitiesLabel = isZh ? "我的關注" : "Following";
       const exploreOptionLabel = isZh ? "探索/建立新社團" : "Explore / Create Club";
 
       const isLoggedIn = !!STATE.lineUserId;
@@ -1674,7 +1674,7 @@ const isTransientPlayer = (name) => {
     // CLUB SPACE 4-TABS NAVIGATION & CONTENT RENDERING
     // ----------------------------------------------------
     function switchClubTab(targetTab) {
-      const validTabs = ["activities", "records", "profile", "info"];
+      const validTabs = ["activities", "records", "info"];
       if (!validTabs.includes(targetTab)) targetTab = "activities";
 
       STATE.activeClubTab = targetTab;
@@ -1935,10 +1935,6 @@ const isTransientPlayer = (name) => {
         clubBottomNav.classList.remove("hidden");
       }
 
-      // 檢查並提示 LINE 身分認領
-      if (STATE.currentClub && STATE.lineUserId) {
-        checkAndPromptClubIdentityClaim(STATE.currentClub);
-      }
 
       return true;
     }
@@ -2077,7 +2073,7 @@ const isTransientPlayer = (name) => {
           const countEl = document.getElementById(`club-${key}-count`);
           if (section) section.classList.toggle("hidden", list.length === 0);
           if (countEl) countEl.innerText = `${list.length}`;
-          // 與社團活動、臨打活動共用同一張賽事卡片
+          // 與我的關注、臨打活動共用同一張賽事卡片
           if (container) container.innerHTML = list.map(t => window.renderCardWithRegistration(t)).join("");
         };
         fillSection("signup", signupList);
