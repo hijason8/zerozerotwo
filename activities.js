@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-16";
-import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-16";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-17";
+import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-17";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261113-16";
+} from "./globals.js?v=20261113-17";
 
 let activitiesSearchKeyword = "";
 
@@ -32,72 +32,22 @@ export function onActivitiesSearchInput(keyword) {
   displayActivitiesList(list);
 }
 
+// 我報名的：只看這個 LINE 帳號自己報名的紀錄（users/{LINE ID}/signed），不再比對名字或綁定
 export function checkTournamentRegistrationStatus(tournament) {
   const STATE = window.STATE || {};
-  if (!tournament || !Array.isArray(tournament.players)) {
+  if (!tournament || !tournament.id || !STATE.lineUserId) {
     return { isRegistered: false, registeredName: null };
   }
-  // 嚴格雙軌：訪客未登入 LINE 無法綁定或預定個人活動
-  if (!STATE.lineUserId) {
-    return { isRegistered: false, registeredName: null };
+  if (!STATE.myRecords) {
+    try { STATE.myRecords = JSON.parse(localStorage.getItem(`pb_my_records_${STATE.lineUserId}`) || "null"); } catch (e) { }
   }
-
-  const clubName = (tournament.clubName || "").trim();
-  // 關鍵門禁：若為社團球局，但使用者根本未加入該社團，100% 絕不判定為本人已報名！
-  if (clubName && (!Array.isArray(STATE.myClubs) || !STATE.myClubs.includes(clubName))) {
-    return { isRegistered: false, registeredName: null };
+  const signed = (STATE.myRecords && STATE.myRecords.signed) || {};
+  const name = signed[tournament.id];
+  const players = Array.isArray(tournament.players) ? tournament.players.map(p => (typeof p === "string" ? p : (p && p.name) || "").trim()) : [];
+  if (name && players.includes(String(name).trim())) {
+    return { isRegistered: true, registeredName: String(name).trim() };
   }
-
-  let boundName = null;
-  if (clubName) {
-    // 嚴格僅查詢該賽事所屬社團之綁定身分，優先使用記憶體雲端快取，絕不跨社團污染比對
-    if (STATE.userBindings && STATE.userBindings[clubName]) {
-      boundName = STATE.userBindings[clubName];
-    } else {
-      boundName = localStorage.getItem(`pb_bound_name_${clubName}`);
-    }
-    if (!boundName && STATE.currentClub === clubName && STATE.clubPlayerName) {
-      boundName = STATE.clubPlayerName;
-    }
-  } else {
-    boundName = (STATE.userBindings && STATE.userBindings.__general__) || localStorage.getItem("pb_bound_name___general__") || null;
-  }
-  if (boundName) boundName = boundName.trim();
-
-  const myDisplayName = (STATE.lineProfile && STATE.lineProfile.displayName)
-    ? STATE.lineProfile.displayName.trim()
-    : null;
-
-  const isMyClubOrPublic = !clubName || (Array.isArray(STATE.myClubs) && STATE.myClubs.includes(clubName));
-
-  for (const p of tournament.players) {
-    let pName = "";
-    let pLineId = "";
-    if (typeof p === "string") {
-      pName = p.trim();
-    } else if (p && typeof p === "object") {
-      pName = (p.name || "").trim();
-      pLineId = (p.lineUserId || "").trim();
-    }
-
-    // 1. 若 LINE User ID 相符，100% 絕對確定為本人出賽 (判定為綁定出賽)
-    if (pLineId && pLineId === STATE.lineUserId) {
-      return { isRegistered: true, registeredName: pName || boundName || myDisplayName || "我", isBound: true };
-    }
-
-    // 2. 若為該賽事所屬社團的明確綁定身分相符 (僅本社團，絕不跨社團猜測) -> 綁定出賽
-    if (boundName && pName === boundName) {
-      return { isRegistered: true, registeredName: boundName, isBound: true };
-    }
-
-    // 3. 若為公開賽事或自己的社團，且球員名與 LINE 暱稱完全相符 -> 視是否已綁定區分
-    if (isMyClubOrPublic && myDisplayName && pName === myDisplayName) {
-      const isActuallyBound = Boolean(boundName && boundName === pName);
-      return { isRegistered: true, registeredName: myDisplayName, isBound: isActuallyBound };
-    }
-  }
-
-  return { isRegistered: false, registeredName: null, isBound: false };
+  return { isRegistered: false, registeredName: null };
 }
 
 export function renderActivitiesPage() {

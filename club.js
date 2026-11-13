@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-16";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-17";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-16";
+} from "./globals.js?v=20261113-17";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -1674,7 +1674,7 @@ const isTransientPlayer = (name) => {
     // CLUB SPACE 4-TABS NAVIGATION & CONTENT RENDERING
     // ----------------------------------------------------
     function switchClubTab(targetTab) {
-      const validTabs = ["activities", "records", "profile", "info"];
+      const validTabs = ["activities", "records", "info"];
       if (!validTabs.includes(targetTab)) targetTab = "activities";
 
       STATE.activeClubTab = targetTab;
@@ -1935,10 +1935,6 @@ const isTransientPlayer = (name) => {
         clubBottomNav.classList.remove("hidden");
       }
 
-      // 檢查並提示 LINE 身分認領
-      if (STATE.currentClub && STATE.lineUserId) {
-        checkAndPromptClubIdentityClaim(STATE.currentClub);
-      }
 
       return true;
     }

@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-16";
+} from "./utils.js?v=20261113-17";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-16";
+} from "./scheduler.js?v=20261113-17";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-16";
+} from "./globals.js?v=20261113-17";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -101,8 +101,25 @@ function addCreatedTournamentId(tId) {
       localStorage.setItem("pb_created_tournaments", JSON.stringify(list));
     }
   } catch (e) { }
+  // 我建立的：記在 LINE 帳號底下，換手機或換瀏覽器也找得到
+  saveMyRecord("created", tId, Date.now());
 }
 window.addCreatedTournamentId = addCreatedTournamentId;
+
+// 以 LINE 帳號記錄「我建立的／我報名的」（users/{LINE ID}/created、signed）；value 為 null 代表刪除
+function saveMyRecord(kind, tId, value) {
+  if (!STATE.lineUserId || !tId) return;
+  if (!STATE.myRecords) STATE.myRecords = { created: {}, signed: {} };
+  if (!STATE.myRecords[kind]) STATE.myRecords[kind] = {};
+  if (value === null) delete STATE.myRecords[kind][tId];
+  else STATE.myRecords[kind][tId] = value;
+  try { localStorage.setItem(`pb_my_records_${STATE.lineUserId}`, JSON.stringify(STATE.myRecords)); } catch (e) { }
+  if (STATE.db) {
+    const r = ref(STATE.db, `users/${STATE.lineUserId}/${kind}/${tId}`);
+    (value === null ? remove(r) : set(r, value)).catch(e => console.warn("[Records] save failed:", e));
+  }
+}
+window.saveMyRecord = saveMyRecord;
 
 function isTournamentAdmin(tData) {
   if (!tData) return false;
@@ -492,66 +509,45 @@ function renderLiveUI(data) {
         liffBannerEl.classList.add("hidden");
       } else {
         liffBannerEl.classList.remove("hidden");
-        const clubName = data.clubName || STATE.currentClub || "";
-        let boundName = null;
-        if (clubName) {
-          boundName = localStorage.getItem(`pb_bound_name_${clubName}`);
-          if (!boundName && STATE.currentClub === clubName && STATE.clubPlayerName) {
-            boundName = STATE.clubPlayerName;
-          }
-        } else {
-          boundName = localStorage.getItem("pb_bound_name___general__") || STATE.clubPlayerName || null;
+        // 我報名的：以 LINE 帳號記錄，不需要綁定球員
+        if (!STATE.myRecords) {
+          try { STATE.myRecords = JSON.parse(localStorage.getItem(`pb_my_records_${STATE.lineUserId}`) || "null"); } catch (e) { }
         }
-        if (boundName && boundName.length > 10) {
-          boundName = boundName.slice(0, 10);
-        }
-
         const currentRoster = Array.isArray(data.players) ? data.players : [];
-        const isJoined = boundName ? currentRoster.includes(boundName) : false;
+        const signedName = (STATE.myRecords && STATE.myRecords.signed && STATE.myRecords.signed[data.id]) || null;
+        const isJoined = signedName ? currentRoster.includes(signedName) : false;
+        let suggestName = "";
+        try { suggestName = localStorage.getItem("pb_custom_player_name") || ""; } catch (e) { }
+        suggestName = (suggestName || (STATE.lineProfile && STATE.lineProfile.displayName) || "").trim().slice(0, 10);
 
         if (isJoined) {
-          // 4. 已在名單中：顯示「已以『球員姓名』報名簽到」狀態條與「取消報名」按鈕，下方帶有垂直無擠壓情境出口
+          // 已報名：顯示用哪個名字報名，可取消
           liffBannerEl.innerHTML = `
-                <div class="space-y-1.5">
-                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold gap-2">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0"></i>
-                      <span class="truncate">${isZh ? `已以「${escapeHTML(boundName)}」報名簽到` : `Joined as "${escapeHTML(boundName)}"`}</span>
-                    </div>
-                    <button type="button" onclick="unregisterPlayerFromTournament('${escapeJsAttr(boundName)}')"
-                      class="text-[10px] sm:text-xs px-2.5 py-1 rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold transition shrink-0 cursor-pointer">
-                      ${isZh ? "取消報名" : "Withdraw"}
-                    </button>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                    <span class="truncate">${isZh ? `已以「${escapeHTML(signedName)}」報名` : `Signed up as "${escapeHTML(signedName)}"`}</span>
                   </div>
-                  <div class="flex items-center justify-between px-1 text-[11px] sub-text">
-                    <span class="flex items-center gap-1"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? "報名已列入名單" : "Signed up"}</span>
-                    <button type="button" onclick="navigateTo('activities')" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer">
-                      ${isZh ? "查看社團活動" : "Club Activities"} <i data-lucide="chevron-right" class="w-3 h-3"></i>
-                    </button>
-                  </div>
+                  <button type="button" onclick="unregisterPlayerFromTournament('${escapeJsAttr(signedName)}')"
+                    class="text-[10px] sm:text-xs px-2.5 py-1 rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold transition shrink-0 cursor-pointer">
+                    ${isZh ? "取消報名" : "Withdraw"}
+                  </button>
                 </div>
               `;
-        } else if (boundName) {
-          // 3. 已在社團內綁定球員身分：顯示「使用社團綁定身分報名」按鈕
-          liffBannerEl.innerHTML = `
-                <button type="button" onclick="registerPlayerToTournament('${escapeJsAttr(boundName)}')"
-                  class="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-md active:scale-95 cursor-pointer">
-                  <i data-lucide="user-check" class="w-4 h-4 shrink-0"></i>
-                  <span class="truncate">${isZh ? `使用社團綁定身分報名（${escapeHTML(boundName)}）` : `Join with club identity (${escapeHTML(boundName)})`}</span>
-                </button>
-              `;
         } else {
-          // 2. 登入 LINE 但未綁定社團球員身分：顯示社團大廳風格的質感琥珀按鈕「⚠️ 尚未綁定球員身分，請先完成認領」，點擊立即開啟認領彈窗
+          // 未報名：用 LINE 一鍵報名（名字可改）
           liffBannerEl.innerHTML = `
-                <button type="button" onclick="handleLobbyClaimIdentityClick('${escapeJsAttr(clubName)}')"
-                  class="w-full py-2.5 px-3.5 rounded-xl card-inner border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold transition flex items-center justify-between gap-2 shadow-sm active:scale-95 cursor-pointer">
-                  <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="truncate">${isZh ? "⚠️ 尚未綁定球員身分，請先完成認領" : "⚠️ Name not linked. Tap to link"}</span>
-                  </div>
-                  <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-bold shrink-0">
-                    ${isZh ? "前往認領" : "Claim"}
-                  </span>
-                </button>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="registerSelfToTournament('${escapeJsAttr(suggestName)}')"
+                    class="flex-1 min-w-0 py-2.5 px-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-md active:scale-95 cursor-pointer">
+                    <i data-lucide="user-check" class="w-4 h-4 shrink-0"></i>
+                    <span class="truncate">${isZh ? `以「${escapeHTML(suggestName)}」報名` : `Sign up as "${escapeHTML(suggestName)}"`}</span>
+                  </button>
+                  <button type="button" onclick="promptCustomPlayerNameAndRegister()"
+                    class="py-2.5 px-3 rounded-xl card-inner border text-xs font-bold sub-text hover:border-emerald-500/50 transition shrink-0 active:scale-95 cursor-pointer">
+                    ${isZh ? "換名字" : "Change"}
+                  </button>
+                </div>
               `;
         }
       }
@@ -578,13 +574,6 @@ function renderLiveUI(data) {
   lucide.createIcons();
 }
 
-function handleLobbyClaimIdentityClick(clubName) {
-  const targetClub = clubName || STATE.currentClub || (STATE.tournamentData && STATE.tournamentData.clubName) || "";
-  if (typeof showClubIdentityClaimModal === "function") {
-    showClubIdentityClaimModal(targetClub);
-  }
-}
-window.handleLobbyClaimIdentityClick = handleLobbyClaimIdentityClick;
 
 // ----------------------------------------------------
 // REGISTRATION LOBBY ACTIONS & CHECK-IN CONTROLLERS
@@ -706,9 +695,28 @@ async function unregisterPlayerFromTournament(playerName) {
       } catch (e) { }
     }
   }
+  // 取消的是自己用 LINE 報名的名字：一併移除「我報名的」紀錄
+  if (STATE.myRecords && STATE.myRecords.signed && STATE.myRecords.signed[tData.id] === name) {
+    saveMyRecord("signed", tData.id, null);
+  }
   renderLiveUI(tData);
 }
 window.unregisterPlayerFromTournament = unregisterPlayerFromTournament;
+
+// 自己用 LINE 報名：報名成功後記在 LINE 帳號底下（我報名的）
+async function registerSelfToTournament(playerName) {
+  const tData = STATE.tournamentData;
+  const name = (playerName || "").trim().slice(0, 10);
+  if (!tData || !name) return;
+  await registerPlayerToTournament(name);
+  const latest = STATE.tournamentData;
+  if (latest && latest.id === tData.id && (latest.players || []).includes(name)) {
+    try { localStorage.setItem("pb_custom_player_name", name); } catch (e) { }
+    saveMyRecord("signed", tData.id, name);
+    renderLiveUI(latest);
+  }
+}
+window.registerSelfToTournament = registerSelfToTournament;
 
 async function promptCustomPlayerNameAndRegister() {
   const isZh = STATE.lang === "zh-TW";
@@ -735,7 +743,7 @@ async function promptCustomPlayerNameAndRegister() {
     localStorage.setItem("pb_custom_player_name", clean);
   } catch (e) { }
 
-  await registerPlayerToTournament(clean);
+  await registerSelfToTournament(clean);
 }
 window.promptCustomPlayerNameAndRegister = promptCustomPlayerNameAndRegister;
 

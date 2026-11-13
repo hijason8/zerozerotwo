@@ -91,6 +91,16 @@
             ".validate": "newData.isBoolean() && $club.length <= 200"
           }
         },
+        "created": {
+          "$tournament_id": {
+            ".validate": "newData.isNumber()"
+          }
+        },
+        "signed": {
+          "$tournament_id": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          }
+        },
         "$other": {
           ".validate": false
         }

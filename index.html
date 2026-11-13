@@ -1025,10 +1025,6 @@
             class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
             <i data-lucide="trophy" class="w-4 h-4"></i> <span id="t-desktop-tab-records">戰績</span>
           </button>
-          <button type="button" id="desktop-tab-btn-profile" onclick="switchClubTab('profile')"
-            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
-            <i data-lucide="user" class="w-4 h-4"></i> <span id="t-desktop-tab-profile">個人</span>
-          </button>
           <button type="button" id="desktop-tab-btn-info" onclick="switchClubTab('info')"
             class="px-3.5 py-1.5 rounded-xl text-xs font-semibold sub-text hover:text-stone-900 dark:hover:text-white transition flex items-center gap-1.5 card-inner border">
             <i data-lucide="info" class="w-4 h-4"></i> <span id="t-desktop-tab-info">社團</span>
@@ -1130,45 +1126,6 @@
           </div>
         </div>
 
-        <!-- TAB 3: 個人 (#content-tab-profile，預設隱藏) -->
-        <div id="content-tab-profile" class="hidden space-y-4">
-          <!-- 滿寬身分綁定卡片 -->
-          <div class="glass-card rounded-2xl p-4 sm:p-5 border space-y-3.5 shadow-sm text-left">
-            <div class="flex items-center justify-between border-b pb-3 border-stone-200 dark:border-slate-800">
-              <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                  <i data-lucide="user-check" class="w-4 h-4"></i>
-                </div>
-                <h4 class="text-sm sm:text-base font-bold font-display text-stone-900 dark:text-white flex items-center gap-1.5 flex-wrap">
-                  <span id="t-club-profile-heading">社團球員身分綁定</span>
-                  <span id="club-profile-badge-status" class="text-xs sm:text-sm font-bold"></span>
-                </h4>
-              </div>
-            </div>
-
-            <!-- 身分資訊與說明 -->
-            <div class="space-y-3">
-              <div id="t-club-profile-tip-box" class="text-xs sub-text leading-relaxed bg-stone-500/5 p-3 rounded-xl border border-stone-200/60 dark:border-slate-800 flex items-center gap-2">
-                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500 shrink-0"></i>
-                <span id="t-club-profile-tip-text">綁定社團專屬身份後，即可累積個人數據</span>
-              </div>
-
-              <!-- 當前綁定角色顯示區 (已綁定時動態注入數據卡片) -->
-              <div id="club-profile-detail-wrap" class="hidden">
-              </div>
-
-              <!-- 動作按鈕：綁定社團球員身分 -->
-              <div class="pt-0.5">
-                <button type="button" id="btn-club-profile-action" onclick="handleClubIdentityBadgeClick()"
-                  class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer">
-                  <i data-lucide="link" class="w-4 h-4"></i>
-                  <span id="btn-club-profile-action-text">綁定社團球員身分</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- TAB 4: 社團 (#content-tab-info，預設隱藏) -->
         <div id="content-tab-info" class="hidden space-y-4">
           <!-- 社團簡介卡片 -->
@@ -1265,10 +1222,6 @@
       </div>
 
       <div class="p-3 rounded-xl bg-stone-100 dark:bg-slate-900/60 border text-left text-xs space-y-1.5 sub-text">
-        <div class="flex items-center justify-between">
-          <span data-en="Sign-up name:">預設報名暱稱：</span>
-          <span id="line-modal-default-name" class="font-bold text-stone-900 dark:text-white"></span>
-        </div>
         <div class="flex items-center justify-between">
           <span data-en="One-tap sign-up:">一鍵報名簽到：</span>
           <span class="text-emerald-500 font-bold" data-en="On">已啟用</span>
@@ -1450,8 +1403,8 @@
           </div>
           <div class="space-y-2.5 pl-1">
             <div><span class="font-bold text-stone-900 dark:text-slate-100">No sign-up:</span> <span>Open a link in LINE and you're logged in.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">One name per club:</span> <span>Use a different player name in each club. Stats stay separate.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Link when needed:</span> <span>Watching needs nothing. You'll be asked to claim your name when you sign up, then your stats follow your LINE.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">One-tap sign-up:</span> <span>Sign up with your LINE name, or tap “Change” to use another.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Your games:</span> <span>Games you create or sign up for are saved to your LINE, on any device.</span></div>
           </div>
         </section>
         <section class="space-y-3">
@@ -1511,8 +1464,8 @@
           </div>
           <div class="space-y-2.5 pl-1">
             <div><span class="font-bold text-stone-900 dark:text-slate-100">免註冊：</span> <span>從 LINE 打開連結即自動登入。</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">一社團一名字：</span> <span>可在不同社團用不同球員名稱，戰績分開計算。</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">需要時才綁定：</span> <span>觀賽不用綁定；報名時才會請你認領名字，之後戰績跟著你的 LINE。</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">一鍵報名：</span> <span>用 LINE 名字直接報名，也可以按「換名字」。</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">我的球局：</span> <span>你建立或報名的球局記在 LINE 帳號，換手機也找得到。</span></div>
           </div>
         </section>
         <section class="space-y-3">
@@ -2175,7 +2128,7 @@
   <!-- ==================== CLUB BOTTOM NAVIGATION (社團專屬 4 分頁底部導覽列) ==================== -->
   <nav id="club-bottom-nav"
     class="fixed bottom-0 left-0 w-full glass-nav border-t border-stone-200 dark:border-slate-800 z-40 pb-safe sm:hidden hidden transition-all shadow-lg">
-    <div class="grid grid-cols-4 h-[72px] max-w-md mx-auto items-center text-center px-1">
+    <div class="grid grid-cols-3 h-[72px] max-w-md mx-auto items-center text-center px-1">
       <!-- Tab 1: 活動 -->
       <button type="button" id="tab-btn-activities" onclick="switchClubTab('activities')"
         class="flex flex-col items-center justify-center gap-1.5 h-full w-full py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition active:scale-95 cursor-pointer">
@@ -2188,13 +2141,6 @@
         class="flex flex-col items-center justify-center gap-1.5 h-full w-full py-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 dark:text-slate-400 dark:hover:text-slate-200 transition active:scale-95 cursor-pointer">
         <i data-lucide="trophy" class="w-[26px] h-[26px] stroke-[2]"></i>
         <span class="text-xs font-semibold leading-none" id="t-tab-records">戰績</span>
-      </button>
-
-      <!-- Tab 3: 個人 -->
-      <button type="button" id="tab-btn-profile" onclick="switchClubTab('profile')"
-        class="flex flex-col items-center justify-center gap-1.5 h-full w-full py-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 dark:text-slate-400 dark:hover:text-slate-200 transition active:scale-95 cursor-pointer">
-        <i data-lucide="user" class="w-[26px] h-[26px] stroke-[2]"></i>
-        <span class="text-xs font-semibold leading-none" id="t-tab-profile">個人</span>
       </button>
 
       <!-- Tab 4: 社團 -->
@@ -2225,7 +2171,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-16";
+    import { I18N } from "./i18n.js?v=20261113-17";
     window.I18N = I18N;
 
     function t(key) {
@@ -2247,14 +2193,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-16";
+    } from "./utils.js?v=20261113-17";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-16";
-    import "./live.js?v=20261113-16";
-    import "./activities.js?v=20261113-16";
-    import "./hub.js?v=20261113-16";
-    import "./line.js?v=20261113-16";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-16";
+    import "./tournament-create.js?v=20261113-17";
+    import "./live.js?v=20261113-17";
+    import "./activities.js?v=20261113-17";
+    import "./hub.js?v=20261113-17";
+    import "./line.js?v=20261113-17";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-17";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
