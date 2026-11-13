@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-8";
-import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-8";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-9";
+import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-9";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261113-8";
+} from "./globals.js?v=20261113-9";
 
 let activitiesSearchKeyword = "";
 
