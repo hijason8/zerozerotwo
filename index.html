@@ -84,11 +84,8 @@
       container.innerHTML = "";
       if (typeof window.positionToastContainer === "function") window.positionToastContainer(container);
       const toast = document.createElement("div");
-      let bgClass = "card-inner border text-slate-700 dark:text-slate-200";
-      if (type === "success") bgClass = "bg-emerald-50 dark:bg-emerald-950/90 border-emerald-500/50 text-emerald-800 dark:text-emerald-300";
-      else if (type === "error") bgClass = "bg-rose-50 dark:bg-rose-950/90 border-rose-500/50 text-rose-800 dark:text-rose-300";
-      else if (type === "warning") bgClass = "bg-amber-50 dark:bg-amber-950/90 border-amber-500/50 text-amber-800 dark:text-amber-300";
-      else if (type === "celebrate") bgClass = "bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/5 border-amber-500/60 text-stone-900 dark:text-amber-200 shadow-2xl backdrop-blur-md";
+      // 所有提示統一使用綠色樣式
+      const bgClass = "bg-emerald-50 dark:bg-emerald-950/90 border-emerald-500/50 text-emerald-800 dark:text-emerald-300";
       toast.className = `px-3.5 py-2.5 rounded-xl border text-xs font-semibold shadow-xl transition transform translate-y-2 ${bgClass} flex items-center gap-2 pointer-events-auto max-w-sm sm:max-w-md`;
       // 一律以純文字顯示，避免名字中夾帶的程式碼被執行
       const span = document.createElement("span");
@@ -2154,7 +2151,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-30";
+    import { I18N } from "./i18n.js?v=20261113-32";
     window.I18N = I18N;
 
     function t(key) {
@@ -2176,14 +2173,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-30";
+    } from "./utils.js?v=20261113-32";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-30";
-    import "./live.js?v=20261113-30";
-    import "./activities.js?v=20261113-30";
-    import "./hub.js?v=20261113-30";
-    import "./line.js?v=20261113-30";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-30";
+    import "./tournament-create.js?v=20261113-32";
+    import "./live.js?v=20261113-32";
+    import "./activities.js?v=20261113-32";
+    import "./hub.js?v=20261113-32";
+    import "./line.js?v=20261113-32";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-32";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2884,11 +2881,8 @@
 
       const toast = document.createElement("div");
 
-      let bgClass = "card-inner border text-slate-700 dark:text-slate-200";
-      if (type === "success") bgClass = "bg-emerald-50 dark:bg-emerald-950/90 border-emerald-500/50 text-emerald-800 dark:text-emerald-300";
-      else if (type === "error") bgClass = "bg-rose-50 dark:bg-rose-950/90 border-rose-500/50 text-rose-800 dark:text-rose-300";
-      else if (type === "warning") bgClass = "bg-amber-50 dark:bg-amber-950/90 border-amber-500/50 text-amber-800 dark:text-amber-300";
-      else if (type === "celebrate") bgClass = "bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/5 border-amber-500/60 text-stone-900 dark:text-amber-200 shadow-2xl backdrop-blur-md";
+      // 所有提示統一使用綠色樣式
+      const bgClass = "bg-emerald-50 dark:bg-emerald-950/90 border-emerald-500/50 text-emerald-800 dark:text-emerald-300";
 
       toast.className = `px-3.5 py-2.5 rounded-xl border text-xs font-semibold shadow-xl transition transform translate-y-2 ${bgClass} flex items-center gap-2 pointer-events-auto max-w-sm sm:max-w-md`;
 

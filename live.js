@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-30";
+} from "./utils.js?v=20261113-32";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-30";
+} from "./scheduler.js?v=20261113-32";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-30";
+} from "./globals.js?v=20261113-32";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -78,7 +78,7 @@ async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
         const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
         delete local[tId];
         safeSetLocal("pb_tournaments", JSON.stringify(local));
-        showToast(STATE.lang === "zh-TW" ? "❌ 此賽事已不存在或已被刪除" : "Tournament not found or deleted", "error");
+        showToast(STATE.lang === "zh-TW" ? "此賽事已不存在或已被刪除" : "Tournament not found or deleted", "error");
         navigateTo("hub");
       }
     });
@@ -92,7 +92,7 @@ function showFollowHint(tId) {
   if (isFollowing(tId)) return;
   setTimeout(() => {
     if (STATE.currentTournamentId === tId && !isFollowing(tId)) {
-      showToast(STATE.lang === "zh-TW" ? "點選 ☆ 號，加入「我的關注」" : "Tap ☆ to add it to Following", "info");
+      showToast(STATE.lang === "zh-TW" ? "點選 ☆ 號，加入「我的關注」" : "Tap ☆ to add it to Following", "success");
     }
   }, 800);
 }
