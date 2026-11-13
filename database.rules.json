@@ -33,14 +33,8 @@
       ".write": false
     },
     "club_mappings": {
-      ".read": true,
-      "$club_key": {
-        ".write": "!newData.exists() && !root.child('clubs_metadata').child($club_key).exists()",
-        "$user_id": {
-          ".write": true,
-          ".validate": "newData.isString() && newData.val().length <= 20"
-        }
-      }
+      ".read": false,
+      ".write": false
     },
     "clubs_metadata": {
       ".read": true,
