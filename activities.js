@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-26";
-import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-26";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-27";
+import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-27";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261113-26";
+} from "./globals.js?v=20261113-27";
 
 let activitiesSearchKeyword = "";
 
@@ -174,13 +174,14 @@ export function displayActivitiesList(list) {
     const hintEl = document.getElementById("t-activities-empty-hint");
     const loginBtn = document.getElementById("activities-login-btn");
     if (!isLoggedIn) {
-      if (titleEl) titleEl.innerText = isZh ? "登入 LINE，查看我的關注" : "Log in with LINE to see what you follow";
-      if (hintEl) hintEl.innerText = isZh ? "登入後可以加入社團、關注球局、一鍵報名" : "Join clubs, follow games and sign up in one tap";
+      if (titleEl) titleEl.innerText = isZh ? "登入 LINE 後，可加入社團、關注賽事" : "Log in with LINE to join clubs and follow games";
     } else {
       if (titleEl) titleEl.innerText = isZh ? "目前沒有關注的球局" : "Nothing you follow right now";
       if (hintEl) hintEl.innerText = isZh ? "在賽事頁按右上角 ⭐ 關注，或加入下方的社團" : "Tap ⭐ on a game page, or join a club below";
     }
     if (loginBtn) loginBtn.classList.toggle("hidden", isLoggedIn);
+    // 未登入：只留一行粗體標題，不顯示灰字說明
+    if (hintEl) hintEl.classList.toggle("hidden", !isLoggedIn);
     renderDiscover(list || [], { isZh });
   }
 
