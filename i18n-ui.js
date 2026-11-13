@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261113-1";
+import { STATE, t } from "./globals.js?v=20261113-2";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -239,7 +239,7 @@ export const I18N_CUSTOM_TEXTS = {
     "How Sign-up Works:"
   ],
   "t-reg-hint-desc": [
-    "建立報名房間後，將網址發至 LINE 群組供球友即時簽到。全員到齊後，可於現場決定以「平均模式」自動排賽或「自由模式/練球」開打！",
+    "建立報名房間後，將網址發至 LINE 群組供球友即時簽到。全員到齊後，可於現場決定以「平均模式」自動排賽或「自由模式」開打！",
     "Create a sign-up room and share the link to your LINE or chat group for players to RSVP (+1). Once everyone is present, choose Fair Rotation or Free Play to start!"
   ],
   "t-label-mode": [
@@ -283,8 +283,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Free Play Guide:"
   ],
   "t-free-notice-desc": [
-    "賽局內可單場新增賽事，支援少數優先或隨機抽籤。",
-    "Add games one at a time during play, with fewest-games-first or random picks."
+    "💡 賽局內可單場新增賽事，支援少數優先或隨機抽籤。",
+    "💡 Add games one at a time during play, with fewest-games-first or random picks."
   ],
   "t-partner-rotating-text": [
     "輪替隊友",
@@ -367,7 +367,6 @@ export const I18N_HTML = {
   "t-create-title": () => `<i data-lucide="plus-circle" class="w-5 h-5 text-orange-500"></i> ${t("createTitle")}`,
   "t-label-modal-club-name": () => `${t("labelModalClubName")} <span class="text-rose-500">*</span>`,
   "t-modal-club-name-label": () => `${t("labelModalClubName")} <span class="text-rose-500">*</span>`,
-  "t-time-calc-title": (isZh) => `<i data-lucide="clock" class="w-3.5 h-3.5"></i> <span>${isZh ? "時間與配局試算：" : "Estimate:"}</span>`,
   "t-schedule-title": () => `<i data-lucide="swords" class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500"></i> ${t("scheduleTitle")}`,
   "t-leaderboard-title": () => `<i data-lucide="crown" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-500"></i> ${t("leaderboardTitle")}`,
   "t-copy-btn": () => `<i data-lucide="copy" class="w-3.5 h-3.5"></i> ${t("copyBtn")}`

@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-1";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-2";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-1";
+} from "./scheduler.js?v=20261113-2";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261113-1";
+} from "./globals.js?v=20261113-2";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -207,8 +207,8 @@ const isTransientPlayer = (name) => {
       if (!descEl) return;
       const isZh = (STATE.lang === "zh-TW");
       descEl.innerText = isZh
-        ? "賽局內可單場新增賽事，支援少數優先或隨機抽籤。"
-        : "Add games one at a time during play, with fewest-games-first or random picks.";
+        ? "💡 賽局內可單場新增賽事，支援少數優先或隨機抽籤。"
+        : "💡 Add games one at a time during play, with fewest-games-first or random picks.";
     }
     window.updateFreeNoticeText = updateFreeNoticeText;
 
