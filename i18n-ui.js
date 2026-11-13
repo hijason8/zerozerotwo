@@ -256,11 +256,11 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-lobby-btn-edit-duration": [
     "調整時間",
-    "Edit Duration"
+    "Edit Time"
   ],
   "t-lobby-btn-delete": [
     "取消球局",
-    "Delete"
+    "Cancel Game"
   ],
   "t-modal-duration-title": [
     "調整比賽時間",
