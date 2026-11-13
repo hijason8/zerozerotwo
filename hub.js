@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-17";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-18";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-17";
+} from "./globals.js?v=20261113-18";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -289,20 +289,14 @@ export function renderTournamentCard(tData, opts = {}) {
 
 if (typeof window !== "undefined") window.renderTournamentCard = renderTournamentCard;
 
-// 卡片＋「已報名『某某』」標記（自己用 LINE 報名時才加），社團活動與臨打活動共用
+// 卡片：我關注的球局在卡片上加一顆小 ⭐（我的關注、臨打活動、社團頁共用）
 export function renderCardWithRegistration(tData) {
+  const following = typeof window.isFollowing === "function" && tData && window.isFollowing(tData.id);
+  if (!following) return renderTournamentCard(tData);
   const STATE = window.STATE || {};
-  const isZh = STATE.lang === "zh-TW";
-  const check = typeof window.checkTournamentRegistrationStatus === "function" ? window.checkTournamentRegistrationStatus : null;
-  const reg = check ? check(tData) : { isRegistered: false };
-  if (!reg.isRegistered || !reg.registeredName) return renderTournamentCard(tData);
-  const name = escapeHTML(reg.registeredName);
-  const badge = `
-    <div><span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
-      <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> ${isZh ? `已報名『${name}』` : `Signed up: ${name}`}
-    </span></div>
-  `;
-  return renderTournamentCard(tData, { extraHTML: badge });
+  const label = STATE.lang === "zh-TW" ? "已關注" : "Following";
+  const star = `<div><span class="text-xs text-amber-500" title="${label}" aria-label="${label}">★</span></div>`;
+  return renderTournamentCard(tData, { extraHTML: star });
 }
 if (typeof window !== "undefined") window.renderCardWithRegistration = renderCardWithRegistration;
 
@@ -336,12 +330,10 @@ export function displayHubTournamentsList(list) {
     const isClub = !!(t.clubName && t.clubName.trim());
     if (isClub) return false;
     if (t.isPrivate !== true) return true;
-    // 僅限連結的賽事：只有建立者與已報名的人在自己的臨打活動看得到
+    // 僅限連結的賽事：只有建立者與關注的人在自己的臨打活動看得到
     if (createdHere.includes(t.id)) return true;
-    // 用 LINE 帳號建立的（換手機、換瀏覽器也找得到）
-    if (STATE.myRecords && STATE.myRecords.created && STATE.myRecords.created[t.id]) return true;
-    const check = window.checkTournamentRegistrationStatus;
-    return typeof check === "function" && check(t).isRegistered;
+    // 我關注的（自己建立或報名會自動關注；換手機、換瀏覽器也找得到）
+    return typeof window.isFollowing === "function" && window.isFollowing(t.id);
   });
   filteredList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 

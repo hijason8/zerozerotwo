@@ -8,7 +8,7 @@ import {
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML } from "./utils.js?v=20261113-17";
+import { escapeHTML } from "./utils.js?v=20261113-18";
 
 import {
   STATE,
@@ -16,7 +16,7 @@ import {
   showToast,
   navigateTo,
   renderLiveUI
-} from "./globals.js?v=20261113-17";
+} from "./globals.js?v=20261113-18";
 
 const LIFF_ID = (typeof window !== "undefined" && window.LIFF_ID) || "2012043789-KvKpHLCt";
 const LIFF_URL = (typeof window !== "undefined" && window.LIFF_URL) || "https://liff.line.me/2012043789-KvKpHLCt";
@@ -301,13 +301,12 @@ export async function initLiffAndUser() {
 
       console.info(`[LIFF] Logged in successfully: ${profile.displayName} (${profile.userId}), Clubs:`, STATE.myClubs);
 
-      // 我建立的／我報名的：以 LINE 帳號記錄（取代球員綁定）
+      // 我的關注：以 LINE 帳號記錄關注的球局（取代球員綁定）
       STATE.myRecords = {
-        created: (userData && userData.created) || {},
-        signed: (userData && userData.signed) || {}
+        following: (userData && userData.following) || {}
       };
       try { localStorage.setItem(`pb_my_records_${STATE.lineUserId}`, JSON.stringify(STATE.myRecords)); } catch (e) { }
-      // 紀錄載入後重畫目前頁面（臨打活動要顯示自己建立的僅限連結球局、卡片要標示已報名）
+      // 紀錄載入後重畫目前頁面（我的關注、臨打活動的僅限連結球局、賽事頁的星號）
       try {
         const cachedList = Array.isArray(STATE.allTournamentsCache) ? STATE.allTournamentsCache : [];
         if (STATE.currentPage === "hub" && typeof window.displayHubTournamentsList === "function") window.displayHubTournamentsList(cachedList);

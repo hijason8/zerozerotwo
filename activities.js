@@ -1,6 +1,6 @@
 // ============================================================
 // ZEROZEROTWO - ACTIVITIES & WAITING SIGNUP MODULE
-// 負責【比賽中/已報名】與【等待報名】社團活動總表、報名狀態比對、關鍵字搜尋
+// 負責【我的關注】：加入社團的球局＋關注的球局（報名中 → 比賽中 → 近期完賽）
 // ============================================================
 
 import {
@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-17";
-import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-17";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-18";
+import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-18";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261113-17";
+} from "./globals.js?v=20261113-18";
 
 let activitiesSearchKeyword = "";
 
@@ -32,27 +32,15 @@ export function onActivitiesSearchInput(keyword) {
   displayActivitiesList(list);
 }
 
-// 我報名的：只看這個 LINE 帳號自己報名的紀錄（users/{LINE ID}/signed），不再比對名字或綁定
+// 是否在「我的關注」裡（users/{LINE ID}/following）
 export function checkTournamentRegistrationStatus(tournament) {
-  const STATE = window.STATE || {};
-  if (!tournament || !tournament.id || !STATE.lineUserId) {
-    return { isRegistered: false, registeredName: null };
-  }
-  if (!STATE.myRecords) {
-    try { STATE.myRecords = JSON.parse(localStorage.getItem(`pb_my_records_${STATE.lineUserId}`) || "null"); } catch (e) { }
-  }
-  const signed = (STATE.myRecords && STATE.myRecords.signed) || {};
-  const name = signed[tournament.id];
-  const players = Array.isArray(tournament.players) ? tournament.players.map(p => (typeof p === "string" ? p : (p && p.name) || "").trim()) : [];
-  if (name && players.includes(String(name).trim())) {
-    return { isRegistered: true, registeredName: String(name).trim() };
-  }
-  return { isRegistered: false, registeredName: null };
+  const following = typeof window.isFollowing === "function" && tournament && window.isFollowing(tournament.id);
+  return { isRegistered: false, registeredName: null, isFollowing: !!following };
 }
 
 export function renderActivitiesPage() {
   const STATE = window.STATE || {};
-  // 訪客未登入 LINE：仍可進入社團活動頁，畫面改為鼓勵登入（資料照常載入，用來列出活躍社團）
+  // 訪客未登入 LINE：仍可進入我的關注頁，畫面改為鼓勵登入（資料照常載入，用來列出活躍社團）
 
   // 1. 優先使用快取資料立即可見
   const localData = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
@@ -136,12 +124,13 @@ export function displayActivitiesList(list) {
   const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
   const nowMs = Date.now();
 
-  // 社團活動：只看「我的社團」的賽事（臨打活動在另一頁，兩邊徹底分開）
+  // 我的關注：我加入的社團的球局＋我關注的所有球局（臨打、社團、僅限連結都算）
   const myClubsList = (Array.isArray(STATE.myClubs) ? STATE.myClubs : []).map(c => (c || "").trim()).filter(Boolean);
+  const followFn = typeof window.isFollowing === "function" ? window.isFollowing : () => false;
   const clubGames = isLoggedIn ? (list || []).filter(t => {
     if (!t) return false;
     const c = (t.clubName || "").trim();
-    if (!c || !myClubsList.includes(c)) return false;
+    if (!followFn(t.id) && (!c || !myClubsList.includes(c))) return false;
     if (!activitiesSearchKeyword) return true;
     const kw = activitiesSearchKeyword;
     return (t.name || "").toLowerCase().includes(kw) || c.toLowerCase().includes(kw) || (t.venue || "").toLowerCase().includes(kw);
@@ -185,14 +174,11 @@ export function displayActivitiesList(list) {
     const hintEl = document.getElementById("t-activities-empty-hint");
     const loginBtn = document.getElementById("activities-login-btn");
     if (!isLoggedIn) {
-      if (titleEl) titleEl.innerText = isZh ? "登入 LINE，查看你的社團活動" : "Log in with LINE to see your club activities";
-      if (hintEl) hintEl.innerText = isZh ? "登入後可以加入社團、一鍵報名、保存個人戰績" : "Join clubs, sign up in one tap and keep your match history";
-    } else if (myClubsList.length === 0) {
-      if (titleEl) titleEl.innerText = isZh ? "你還沒有加入社團" : "You haven't joined a club yet";
-      if (hintEl) hintEl.innerText = isZh ? "從下方的活躍社團開始，或從選單「探索/建立新社團」" : "Start with an active club below, or use Explore / Create Club";
+      if (titleEl) titleEl.innerText = isZh ? "登入 LINE，查看我的關注" : "Log in with LINE to see what you follow";
+      if (hintEl) hintEl.innerText = isZh ? "登入後可以加入社團、關注球局、一鍵報名" : "Join clubs, follow games and sign up in one tap";
     } else {
-      if (titleEl) titleEl.innerText = isZh ? "你的社團最近沒有活動" : "No recent activities in your clubs";
-      if (hintEl) hintEl.innerText = isZh ? "也可以看看下方其他活躍的社團" : "Check out other active clubs below";
+      if (titleEl) titleEl.innerText = isZh ? "目前沒有關注的球局" : "Nothing you follow right now";
+      if (hintEl) hintEl.innerText = isZh ? "在賽事頁按右上角 ⭐ 關注，或加入下方的社團" : "Tap ⭐ on a game page, or join a club below";
     }
     if (loginBtn) loginBtn.classList.toggle("hidden", isLoggedIn);
     renderDiscover(list || [], { isZh });

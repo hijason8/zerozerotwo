@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-17";
+} from "./utils.js?v=20261113-18";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-17";
+} from "./scheduler.js?v=20261113-18";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-17";
+} from "./globals.js?v=20261113-18";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -101,25 +101,75 @@ function addCreatedTournamentId(tId) {
       localStorage.setItem("pb_created_tournaments", JSON.stringify(list));
     }
   } catch (e) { }
-  // 我建立的：記在 LINE 帳號底下，換手機或換瀏覽器也找得到
-  saveMyRecord("created", tId, Date.now());
+  // 自己建立的球局自動關注（記在 LINE 帳號底下，換手機也找得到）
+  setFollowing(tId, true);
 }
 window.addCreatedTournamentId = addCreatedTournamentId;
 
-// 以 LINE 帳號記錄「我建立的／我報名的」（users/{LINE ID}/created、signed）；value 為 null 代表刪除
-function saveMyRecord(kind, tId, value) {
+// ----------------------------------------------------
+// 我的關注：users/{LINE ID}/following/{賽事ID} = 關注時間
+// 建立賽事、用 LINE 一鍵報名會自動關注；其他球局在賽事頁右上角按 ⭐
+// ----------------------------------------------------
+function loadMyRecordsFromCache() {
+  if (!STATE.myRecords && STATE.lineUserId) {
+    try { STATE.myRecords = JSON.parse(localStorage.getItem(`pb_my_records_${STATE.lineUserId}`) || "null"); } catch (e) { }
+  }
+  return STATE.myRecords;
+}
+
+function isFollowing(tId) {
+  if (!STATE.lineUserId || !tId) return false;
+  const rec = loadMyRecordsFromCache();
+  return !!(rec && rec.following && rec.following[tId]);
+}
+window.isFollowing = isFollowing;
+
+function setFollowing(tId, on) {
   if (!STATE.lineUserId || !tId) return;
-  if (!STATE.myRecords) STATE.myRecords = { created: {}, signed: {} };
-  if (!STATE.myRecords[kind]) STATE.myRecords[kind] = {};
-  if (value === null) delete STATE.myRecords[kind][tId];
-  else STATE.myRecords[kind][tId] = value;
+  loadMyRecordsFromCache();
+  if (!STATE.myRecords) STATE.myRecords = { following: {} };
+  if (!STATE.myRecords.following) STATE.myRecords.following = {};
+  if (on) STATE.myRecords.following[tId] = Date.now();
+  else delete STATE.myRecords.following[tId];
   try { localStorage.setItem(`pb_my_records_${STATE.lineUserId}`, JSON.stringify(STATE.myRecords)); } catch (e) { }
   if (STATE.db) {
-    const r = ref(STATE.db, `users/${STATE.lineUserId}/${kind}/${tId}`);
-    (value === null ? remove(r) : set(r, value)).catch(e => console.warn("[Records] save failed:", e));
+    const r = ref(STATE.db, `users/${STATE.lineUserId}/following/${tId}`);
+    (on ? set(r, STATE.myRecords.following[tId]) : remove(r)).catch(e => console.warn("[Follow] save failed:", e));
   }
 }
-window.saveMyRecord = saveMyRecord;
+window.setFollowing = setFollowing;
+
+function updateFollowButton(tData) {
+  const btn = document.getElementById("btn-live-follow");
+  if (!btn) return;
+  const on = !!(tData && isFollowing(tData.id));
+  btn.classList.toggle("text-amber-500", on);
+  btn.classList.toggle("border-amber-500/40", on);
+  btn.classList.toggle("bg-amber-500/10", on);
+  btn.classList.toggle("text-stone-400", !on);
+  const svg = btn.querySelector("svg");
+  if (svg) svg.setAttribute("fill", on ? "currentColor" : "none");
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  btn.title = STATE.lang === "zh-TW" ? (on ? "取消關注" : "關注") : (on ? "Unfollow" : "Follow");
+}
+
+function toggleFollowCurrentTournament() {
+  const tData = STATE.tournamentData;
+  if (!tData || !tData.id) return;
+  const isZh = STATE.lang === "zh-TW";
+  if (!STATE.lineUserId) {
+    if (typeof window.openLineLoginPromptModal === "function") window.openLineLoginPromptModal();
+    else showToast(isZh ? "請先登入 LINE" : "Log in with LINE first", "warning");
+    return;
+  }
+  const next = !isFollowing(tData.id);
+  setFollowing(tData.id, next);
+  updateFollowButton(tData);
+  showToast(next
+    ? (isZh ? "已加入關注，可在「我的關注」找到" : "Following. Find it in My Following.")
+    : (isZh ? "已取消關注" : "Unfollowed"), "success");
+}
+window.toggleFollowCurrentTournament = toggleFollowCurrentTournament;
 
 function isTournamentAdmin(tData) {
   if (!tData) return false;
@@ -179,6 +229,7 @@ window.toggleTournamentAdminMode = toggleTournamentAdminMode;
 
 function renderLiveUI(data) {
   if (!data) return;
+  updateFollowButton(data);
 
   if (data.name) {
     document.title = `${data.name} · ZeroZeroTwo`;
@@ -509,16 +560,13 @@ function renderLiveUI(data) {
         liffBannerEl.classList.add("hidden");
       } else {
         liffBannerEl.classList.remove("hidden");
-        // 我報名的：以 LINE 帳號記錄，不需要綁定球員
-        if (!STATE.myRecords) {
-          try { STATE.myRecords = JSON.parse(localStorage.getItem(`pb_my_records_${STATE.lineUserId}`) || "null"); } catch (e) { }
-        }
+        // LINE 一鍵報名：用上次報名的名字或 LINE 名字，不需要綁定球員
         const currentRoster = Array.isArray(data.players) ? data.players : [];
-        const signedName = (STATE.myRecords && STATE.myRecords.signed && STATE.myRecords.signed[data.id]) || null;
-        const isJoined = signedName ? currentRoster.includes(signedName) : false;
         let suggestName = "";
         try { suggestName = localStorage.getItem("pb_custom_player_name") || ""; } catch (e) { }
         suggestName = (suggestName || (STATE.lineProfile && STATE.lineProfile.displayName) || "").trim().slice(0, 10);
+        const signedName = suggestName;
+        const isJoined = signedName ? currentRoster.includes(signedName) : false;
 
         if (isJoined) {
           // 已報名：顯示用哪個名字報名，可取消
@@ -695,15 +743,11 @@ async function unregisterPlayerFromTournament(playerName) {
       } catch (e) { }
     }
   }
-  // 取消的是自己用 LINE 報名的名字：一併移除「我報名的」紀錄
-  if (STATE.myRecords && STATE.myRecords.signed && STATE.myRecords.signed[tData.id] === name) {
-    saveMyRecord("signed", tData.id, null);
-  }
   renderLiveUI(tData);
 }
 window.unregisterPlayerFromTournament = unregisterPlayerFromTournament;
 
-// 自己用 LINE 報名：報名成功後記在 LINE 帳號底下（我報名的）
+// 自己用 LINE 報名：報名成功後自動關注這場
 async function registerSelfToTournament(playerName) {
   const tData = STATE.tournamentData;
   const name = (playerName || "").trim().slice(0, 10);
@@ -712,7 +756,7 @@ async function registerSelfToTournament(playerName) {
   const latest = STATE.tournamentData;
   if (latest && latest.id === tData.id && (latest.players || []).includes(name)) {
     try { localStorage.setItem("pb_custom_player_name", name); } catch (e) { }
-    saveMyRecord("signed", tData.id, name);
+    setFollowing(tData.id, true);
     renderLiveUI(latest);
   }
 }
