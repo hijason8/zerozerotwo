@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-11";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-12";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-11";
+} from "./scheduler.js?v=20261113-12";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261113-11";
+} from "./globals.js?v=20261113-12";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -345,7 +345,7 @@ const isTransientPlayer = (name) => {
           noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-stone-500/10 text-stone-600 dark:text-slate-300 border border-stone-300/30";
           noticeEl.innerHTML = `
             <i data-lucide="info" class="w-4 h-4 shrink-0 text-stone-400"></i>
-            <span>${isZh ? `自由模式名單登錄滿 <b>2</b> 個單位即可開賽，後續隨時可補人！` : `At least 2 units needed for Free Mode, more can be added anytime!`}</span>
+            <span>${isZh ? `自由模式名單登錄滿 <b>2</b> 個單位即可開賽，後續隨時可補人！` : `Start with <b>2</b> ${unit}; add more anytime.`}</span>
           `;
           noticeEl.classList.remove("hidden");
         } else {
