@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-2";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-3";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-2";
+} from "./scheduler.js?v=20261113-3";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261113-2";
+} from "./globals.js?v=20261113-3";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -243,7 +243,7 @@ const isTransientPlayer = (name) => {
       const badge = document.getElementById("fair-plan-selected-badge");
       if (badge) {
         badge.innerText = "";
-        badge.classList.add("hidden");
+        { badge.classList.add("hidden"); badge.parentElement.classList.add("hidden"); }
       }
     }
     window.resetSelectedPlan = resetSelectedPlan;
@@ -478,7 +478,7 @@ const isTransientPlayer = (name) => {
           optionsContainer.innerHTML = "";
           optionsContainer.classList.add("hidden");
         }
-        if (badge) badge.classList.add("hidden");
+        if (badge) { badge.classList.add("hidden"); badge.parentElement.classList.add("hidden"); }
         return;
       }
 
@@ -504,7 +504,7 @@ const isTransientPlayer = (name) => {
           badge.innerText = STATE.lang === "zh-TW"
             ? `全循環：共 ${fullGames} 局 (每${unitLabel} ${gamesPerUnit} 場)`
             : `Full Cycle: ${fullGames} games (${gamesPerUnit} g/u)`;
-          badge.classList.remove("hidden");
+          { badge.classList.remove("hidden"); badge.parentElement.classList.remove("hidden"); }
         }
 
         if (STATE.lang === "zh-TW") {
@@ -602,7 +602,7 @@ const isTransientPlayer = (name) => {
         badge.innerText = STATE.lang === "zh-TW"
           ? `已選：${activePlan.totalGames} 局 (每單位 ${activePlan.gamesEach} 場)`
           : `Selected: ${activePlan.totalGames} games (${activePlan.gamesEach} each)`;
-        badge.classList.remove("hidden");
+        { badge.classList.remove("hidden"); badge.parentElement.classList.remove("hidden"); }
       }
 
       if (STATE.lang === "zh-TW") {
