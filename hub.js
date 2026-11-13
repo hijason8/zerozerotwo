@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-19";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-20";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-19";
+} from "./globals.js?v=20261113-20";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -205,7 +205,7 @@ export function renderTournamentCard(tData, opts = {}) {
           ${tData.partnerType === 'singles' ? `<span class="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">${STATE.lang === 'zh-TW' ? '個人單打' : 'Singles'}</span>` : ''}
         </div>
 
-        <h3 class="text-base sm:text-lg font-bold font-display line-clamp-1 group-hover:text-emerald-500 transition-colors">${escapeHTML(tData.name || '未命名賽事')}</h3>
+        <h3 class="text-base sm:text-lg font-bold font-display line-clamp-1 group-hover:text-emerald-500 transition-colors">${opts.followed ? `<span class="text-amber-500 mr-1" title="${STATE.lang === 'zh-TW' ? '已關注' : 'Following'}">★</span>` : ''}${escapeHTML(tData.name || '未命名賽事')}</h3>
 
         <div class="flex items-center gap-2 text-xs sub-text flex-wrap">
           <span class="flex items-center gap-1">
@@ -293,10 +293,7 @@ if (typeof window !== "undefined") window.renderTournamentCard = renderTournamen
 export function renderCardWithRegistration(tData) {
   const following = typeof window.isFollowing === "function" && tData && window.isFollowing(tData.id);
   if (!following) return renderTournamentCard(tData);
-  const STATE = window.STATE || {};
-  const label = STATE.lang === "zh-TW" ? "已關注" : "Following";
-  const star = `<div><span class="text-xs text-amber-500" title="${label}" aria-label="${label}">★</span></div>`;
-  return renderTournamentCard(tData, { extraHTML: star });
+  return renderTournamentCard(tData, { followed: true });
 }
 if (typeof window !== "undefined") window.renderCardWithRegistration = renderCardWithRegistration;
 
