@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-13";
+} from "./utils.js?v=20261113-14";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-13";
+} from "./scheduler.js?v=20261113-14";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-13";
+} from "./globals.js?v=20261113-14";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -355,16 +355,11 @@ function renderLiveUI(data) {
     }
   }
 
-  // Copy Report Button (Only visible when tournament is completed)
+  // 文字賽報：任何階段都能複製（內容依報名中／開打前／比賽中／結束自動調整）
   const copyReportBtn = document.getElementById("btn-live-copy-report");
   if (copyReportBtn) {
-    if (isFinished) {
-      copyReportBtn.classList.remove("hidden");
-      copyReportBtn.classList.add("flex");
-    } else {
-      copyReportBtn.classList.add("hidden");
-      copyReportBtn.classList.remove("flex");
-    }
+    copyReportBtn.classList.remove("hidden");
+    copyReportBtn.classList.add("flex");
   }
 
   // Add Match / Add Player Toolbar (visible if hasAdmin)

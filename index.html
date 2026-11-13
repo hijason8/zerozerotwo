@@ -777,7 +777,7 @@
             <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-500" id="icon-toggle-live-admin"></i>
             <span id="text-toggle-live-admin">開啟操作</span>
           </button>
-          <!-- Copy Report Button (Only visible when tournament is completed) -->
+          <!-- 文字賽報：任何階段都可複製（報名名單／賽程表／進行中戰報／完整戰報） -->
           <button onclick="liveCopyReport()" id="btn-live-copy-report"
             class="hidden flex-1 px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none cursor-pointer">
             <i data-lucide="file-text" class="w-3.5 h-3.5 text-stone-500 dark:text-slate-400"></i>
@@ -786,7 +786,7 @@
           <button onclick="openShareModal()" id="t-share-btn"
             class="flex-1 px-3 py-2 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 outline-none cursor-pointer">
             <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-            <span id="t-share-btn-text">分享賽事</span>
+            <span id="t-share-btn-text">賽事連結</span>
           </button>
         </div>
       </div>
@@ -846,6 +846,12 @@
                 class="px-3 py-1 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95">
                 <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-500"></i>
                 <span id="t-lobby-share-btn">分享報名連結</span>
+              </button>
+              <!-- 文字賽報：報名階段複製報名名單 -->
+              <button type="button" onclick="liveCopyReport()"
+                class="px-3 py-1 rounded-xl card-inner border hover:border-emerald-500/50 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95">
+                <i data-lucide="file-text" class="w-3.5 h-3.5 text-stone-500 dark:text-slate-400"></i>
+                <span data-en="Text Report">文字賽報</span>
               </button>
               <button type="button" onclick="cancelRegistrationTournament()" id="btn-lobby-delete-tournament"
                 class="px-3 py-1 rounded-xl card-inner border hover:border-rose-500/50 hover:bg-rose-500/10 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95 text-stone-700 dark:text-slate-300 hover:text-rose-500"
@@ -1435,7 +1441,7 @@
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Drop-in Games:</span> <span>All public games.</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Club Activities:</span> <span>Games you signed up for and the latest from your clubs.</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Join a club:</span> <span>Tap “Join” on a club page to add it to the top-left menu.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Share:</span> <span>Tap “Share” to send the link in LINE. It opens that game directly.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Link:</span> <span>Tap “Link” to send the link in LINE. It opens that game directly.</span></div>
           </div>
         </section>
         <section class="space-y-3">
@@ -1470,7 +1476,7 @@
           </div>
           <div class="space-y-2.5 pl-1">
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Standings:</span> <span>Wins, then point diff, points for, and points against (fewer is better).</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Text Report:</span> <span>After the end, tap “Text Report” to copy the podium and every score, ready for LINE.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Text Report:</span> <span>Tap “Text Report” anytime to copy for LINE: the schedule before play, live scores and standings during play, the full report at the end.</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Club stats:</span> <span>Club games add up in the club's “Stats” tab.</span></div>
           </div>
         </section>
@@ -1496,7 +1502,7 @@
             <div><span class="font-bold text-stone-900 dark:text-slate-100">臨打活動：</span> <span>所有公開球局。</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">社團活動：</span> <span>你報名的球局，和你加入社團的最新球局。</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">加入社團：</span> <span>在社團頁按「加入」，社團就會出現在左上角選單。</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">分享連結：</span> <span>按「分享賽事」把連結傳到 LINE，點開就能直接進入該場賽事。</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">分享連結：</span> <span>按「賽事連結」把連結傳到 LINE，點開就能直接進入該場賽事。</span></div>
           </div>
         </section>
         <section class="space-y-3">
@@ -1531,7 +1537,7 @@
           </div>
           <div class="space-y-2.5 pl-1">
             <div><span class="font-bold text-stone-900 dark:text-slate-100">即時排名：</span> <span>依序比較勝場、淨勝分、總得分、總失分（失分少者優先）。</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">文字賽報：</span> <span>結束後按「文字賽報」，複製含冠亞季軍與各局比分的戰報，直接貼到 LINE 群組。</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">文字賽報：</span> <span>隨時按「文字賽報」複製到 LINE：開打前是賽程表，比賽中附目前比分與排名，結束後是完整戰報。</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">社團戰績：</span> <span>社團賽事會累積到社團的「戰績」分頁。</span></div>
           </div>
         </section>
@@ -2197,7 +2203,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-13";
+    import { I18N } from "./i18n.js?v=20261113-14";
     window.I18N = I18N;
 
     function t(key) {
@@ -2219,14 +2225,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-13";
+    } from "./utils.js?v=20261113-14";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-13";
-    import "./live.js?v=20261113-13";
-    import "./activities.js?v=20261113-13";
-    import "./hub.js?v=20261113-13";
-    import "./line.js?v=20261113-13";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-13";
+    import "./tournament-create.js?v=20261113-14";
+    import "./live.js?v=20261113-14";
+    import "./activities.js?v=20261113-14";
+    import "./hub.js?v=20261113-14";
+    import "./line.js?v=20261113-14";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-14";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

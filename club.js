@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-13";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-14";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-13";
+} from "./globals.js?v=20261113-14";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -2568,9 +2568,53 @@ const isTransientPlayer = (name) => {
         modeStr = isZh ? "平均模式" : "Fair Schedule";
       }
 
+      // 依賽事階段決定賽報內容
+      const isRegistering = tData.status === "registering";
+      const isFinishedT = tData.status === "completed" || tData.status === "finished";
+      const scoredCount = matches.filter(m => m.completed && !m.voided && m.blueScore != null && m.redScore != null).length;
+      const footer = `\n${"-".repeat(34)}\nZeroZeroTwo${isZh ? " " : " Pickleball Tournament System"}`;
+      const copyText = (text, zhMsg, enMsg) => {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(isZh ? zhMsg : enMsg);
+        });
+      };
+      const infoLine = () => {
+        let line = isZh ? `日期：${dateStr}` : `Date: ${dateStr}`;
+        if (tData.clubName && tData.clubName.trim()) line += isZh ? ` | 社團：${tData.clubName.trim()}` : ` | Club: ${tData.clubName.trim()}`;
+        return line + "\n";
+      };
+
+      // 1) 接龍報名中：複製報名名單
+      if (isRegistering) {
+        report += isZh ? `【報名名單】${tData.name}\n` : `[SIGN-UP LIST] ${tData.name}\n`;
+        report += infoLine();
+        report += isZh ? `已報名 ${unitStr}${tData.maxPlayers ? `（上限 ${tData.maxPlayers}）` : ""}\n` : `Signed up: ${unitStr}${tData.maxPlayers ? ` (max ${tData.maxPlayers})` : ""}\n`;
+        report += `${"-".repeat(34)}\n`;
+        players.forEach((p, i) => { report += `  ${i + 1}. ${p}\n`; });
+        copyText(report + footer, "報名名單已複製！", "Sign-up list copied!");
+        return;
+      }
+
+      // 2) 已開打但還沒有任何比分：複製賽程表
+      if (!isFinishedT && scoredCount === 0) {
+        report += isZh ? `【賽程表】${tData.name}\n` : `[SCHEDULE] ${tData.name}\n`;
+        report += infoLine().replace(/\n$/, "") + (isZh ? ` | 賽制：${modeStr}\n` : ` | Format: ${modeStr}\n`);
+        report += isZh ? `${isTeam ? "參賽隊伍" : "參賽人數"}：${unitStr} | 共 ${totalMatches} 局\n` : `${isTeam ? "Teams" : "Players"}: ${unitStr} | ${totalMatches} games\n`;
+        report += `${"-".repeat(34)}\n`;
+        matches.forEach(m => {
+          const bNames = (m.blue || []).join(' & ');
+          const rNames = (m.red || []).join(' & ');
+          report += isZh ? `  第 ${m.id} 局  ${bNames} vs ${rNames}${m.voided ? "（已取消）" : ""}\n` : `  Game ${m.id}  ${bNames} vs ${rNames}${m.voided ? " (voided)" : ""}\n`;
+        });
+        copyText(report + footer, "賽程表已複製！", "Schedule copied!");
+        return;
+      }
+
+      const inProgress = !isFinishedT;
+
       // Title & Basic Info
       if (isZh) {
-        report += `【賽事戰報】${tData.name}\n`;
+        report += `【賽事戰報${inProgress ? "（進行中）" : ""}】${tData.name}\n`;
         report += `日期：${dateStr}`;
         if (tData.clubName && tData.clubName.trim()) {
           report += ` | 社團：${tData.clubName.trim()}`;
@@ -2578,7 +2622,7 @@ const isTransientPlayer = (name) => {
         report += ` | 賽制：${modeStr}\n`;
         report += `${isTeam ? "參賽隊伍" : "參賽人數"}：${unitStr} | 對局統計：${countBadgeStr}\n`;
       } else {
-        report += `[TOURNAMENT REPORT] ${tData.name}\n`;
+        report += `[TOURNAMENT REPORT${inProgress ? " (IN PROGRESS)" : ""}] ${tData.name}\n`;
         report += `Date: ${dateStr}`;
         if (tData.clubName && tData.clubName.trim()) {
           report += ` | Club: ${tData.clubName.trim()}`;
@@ -2588,8 +2632,8 @@ const isTransientPlayer = (name) => {
       }
       report += `${"-".repeat(34)}\n\n`;
 
-      // Podium / Top 3
-      if (leaderboard.some(p => p.played > 0)) {
+      // Podium / Top 3（比賽結束才列冠亞季軍）
+      if (!inProgress && leaderboard.some(p => p.played > 0)) {
         if (isZh) {
           report += `【榮譽榜】\n`;
           if (leaderboard[0]?.played > 0) report += `  1. 冠軍：${leaderboard[0].name} (${leaderboard[0].wins}勝 ${leaderboard[0].losses}敗, 淨勝分 ${leaderboard[0].diff > 0 ? '+' : ''}${leaderboard[0].diff})\n`;
@@ -2605,7 +2649,7 @@ const isTransientPlayer = (name) => {
       }
 
       // Full Standings
-      report += `${isZh ? "【完整戰報】" : "[STANDINGS]"}\n`;
+      report += `${isZh ? (inProgress ? "【目前排名】" : "【完整戰報】") : "[STANDINGS]"}\n`;
       leaderboard.forEach((row, idx) => {
         const rank = idx + 1;
         const diffStr = row.diff > 0 ? `+${row.diff}` : `${row.diff}`;
@@ -2627,7 +2671,7 @@ const isTransientPlayer = (name) => {
         } else if (m.completed && m.blueScore != null && m.redScore != null) {
           report += `  #${m.id} ${bNames}  ${m.blueScore} : ${m.redScore}  ${rNames}\n`;
         } else {
-          report += `  #${m.id} ${bNames} [${isZh ? "未完賽" : "Pending"}] ${rNames}\n`;
+          report += `  #${m.id} ${bNames} [${isZh ? "待賽" : "Pending"}] ${rNames}\n`;
         }
       });
 
