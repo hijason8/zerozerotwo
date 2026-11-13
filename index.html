@@ -550,20 +550,10 @@
                 <span class="text-xs sm:text-sm font-display font-black" id="t-mode-free-title">自由模式</span>
               </button>
             </div>
+            <!-- 模式說明（跟「誰看得到」一樣是按鈕下方一行小字） -->
+            <p id="wrap-fair-notice" class="text-[11px] sub-text mt-1"><span id="time-estimate-text">指定總比賽時間，系統自動試算最佳場數與時間對應。</span></p>
+            <p id="wrap-free-notice" class="hidden text-[11px] sub-text mt-1"><span id="t-free-notice-desc">賽事內單場新增，支援少數優先或隨機抽籤</span></p>
             <input type="hidden" id="create-tournament-mode" value="fair" />
-          </div>
-
-          <!-- 平均模式說明（放在賽事模式選擇下方） -->
-          <div id="wrap-fair-notice" class="p-3.5 rounded-xl card-inner border text-xs">
-            <p id="time-estimate-text" class="sub-text text-[11px] leading-relaxed">💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。</p>
-          </div>
-
-          <!-- Free Mode Initial Option & Notice Card (Shown when Free Mode selected) -->
-          <div id="wrap-free-notice"
-            class="hidden p-3.5 rounded-xl card-inner border text-xs">
-            <p class="sub-text text-[11px] leading-relaxed" id="t-free-notice-desc">💡
-              賽局內可單場新增賽事，支援少數優先或隨機抽籤。
-            </p>
           </div>
 
           <!-- 5. Player Roster Section (Unified Compact Chips Container) -->
@@ -2304,7 +2294,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-5";
+    import { I18N } from "./i18n.js?v=20261113-6";
     window.I18N = I18N;
 
     function t(key) {
@@ -2326,14 +2316,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-5";
+    } from "./utils.js?v=20261113-6";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-5";
-    import "./live.js?v=20261113-5";
-    import "./activities.js?v=20261113-5";
-    import "./hub.js?v=20261113-5";
-    import "./line.js?v=20261113-5";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-5";
+    import "./tournament-create.js?v=20261113-6";
+    import "./live.js?v=20261113-6";
+    import "./activities.js?v=20261113-6";
+    import "./hub.js?v=20261113-6";
+    import "./line.js?v=20261113-6";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-6";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

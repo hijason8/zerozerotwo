@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261113-5";
+import { STATE, t } from "./globals.js?v=20261113-6";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -283,8 +283,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Free Play Guide:"
   ],
   "t-free-notice-desc": [
-    "💡 賽局內可單場新增賽事，支援少數優先或隨機抽籤。",
-    "💡 Add games one at a time during play, with fewest-games-first or random picks."
+    "賽事內單場新增，支援少數優先或隨機抽籤",
+    "Add games one at a time, fewest-games-first or random"
   ],
   "t-partner-rotating-text": [
     "輪替隊友",

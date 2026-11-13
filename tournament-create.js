@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-5";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-6";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-5";
+} from "./scheduler.js?v=20261113-6";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261113-5";
+} from "./globals.js?v=20261113-6";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -208,8 +208,8 @@ const isTransientPlayer = (name) => {
       if (!descEl) return;
       const isZh = (STATE.lang === "zh-TW");
       descEl.innerText = isZh
-        ? "💡 賽局內可單場新增賽事，支援少數優先或隨機抽籤。"
-        : "💡 Add games one at a time during play, with fewest-games-first or random picks.";
+        ? "賽事內單場新增，支援少數優先或隨機抽籤"
+        : "Add games one at a time, fewest-games-first or random";
     }
     window.updateFreeNoticeText = updateFreeNoticeText;
 
@@ -469,16 +469,16 @@ const isTransientPlayer = (name) => {
       const showTimeBox = (show) => { if (timeBox) timeBox.classList.toggle("hidden", !show || mode !== "fair"); };
       if (badge) { badge.classList.add("hidden"); badge.parentElement.classList.add("hidden"); }
 
-      // 說明框（在賽事模式選擇下方）：只放排賽方式的一句說明，方案細節列在下方方案卡片
+      // 模式說明（在賽事模式選擇按鈕下方一行小字）
       if (hintText) {
         if (STATE.lang === "zh-TW") {
-          hintText.innerHTML = strategy === "full-cycle"
-            ? `💡 <strong>全循環排賽</strong>：強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。`
-            : `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。`;
+          hintText.innerText = strategy === "full-cycle"
+            ? "強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。"
+            : "指定總比賽時間，系統自動試算最佳場數與時間對應。";
         } else {
-          hintText.innerHTML = strategy === "full-cycle"
-            ? `💡 <strong>Full Round-Robin</strong>: One full round so everyone partners and faces everyone.`
-            : `💡 <strong>By Duration</strong>: Set the total time and the best game count is calculated.`;
+          hintText.innerText = strategy === "full-cycle"
+            ? "One full round so everyone partners and faces everyone."
+            : "Set the total time and the best game count is calculated.";
         }
       }
 
