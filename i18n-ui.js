@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261113-13";
+import { STATE, t } from "./globals.js?v=20261113-15";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -256,11 +256,11 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-lobby-btn-edit-duration": [
     "調整時間",
-    "Edit Duration"
+    "Edit Time"
   ],
   "t-lobby-btn-delete": [
     "取消球局",
-    "Delete"
+    "Cancel Game"
   ],
   "t-modal-duration-title": [
     "調整比賽時間",
