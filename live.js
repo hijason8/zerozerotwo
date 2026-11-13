@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-29";
+} from "./utils.js?v=20261113-30";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-29";
+} from "./scheduler.js?v=20261113-30";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-29";
+} from "./globals.js?v=20261113-30";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -133,24 +133,49 @@ function loadMyRecordsFromCache() {
   return STATE.myRecords;
 }
 
-function isFollowing(tId) {
+// 找出賽事資料（傳入賽事物件或賽事 ID 都可以）
+function resolveTournament(tOrId) {
+  if (tOrId && typeof tOrId === "object") return tOrId;
+  if (STATE.tournamentData && STATE.tournamentData.id === tOrId) return STATE.tournamentData;
+  const list = Array.isArray(STATE.allTournamentsCache) ? STATE.allTournamentsCache : [];
+  return list.find(t => t && t.id === tOrId) || null;
+}
+
+// 我加入的社團的賽事：預設就算關注（除非自己取消）
+function isMyClubTournament(t) {
+  const c = ((t && t.clubName) || "").trim();
+  return !!c && Array.isArray(STATE.myClubs) && STATE.myClubs.includes(c);
+}
+
+// 關注紀錄：值 > 0 = 關注；值 = 0 = 自己取消了（用於社團賽事）；沒有紀錄 = 依社團預設
+function isFollowing(tOrId) {
+  const t = resolveTournament(tOrId);
+  const tId = (tOrId && typeof tOrId === "object") ? tOrId.id : tOrId;
   if (!STATE.lineUserId || !tId) return false;
   const rec = loadMyRecordsFromCache();
-  return !!(rec && rec.following && rec.following[tId]);
+  const following = (rec && rec.following) || {};
+  if (Object.prototype.hasOwnProperty.call(following, tId)) return Number(following[tId]) > 0;
+  return isMyClubTournament(t);
 }
 window.isFollowing = isFollowing;
 
-function setFollowing(tId, on) {
+function setFollowing(tOrId, on) {
+  const t = resolveTournament(tOrId);
+  const tId = (tOrId && typeof tOrId === "object") ? tOrId.id : tOrId;
   if (!STATE.lineUserId || !tId) return;
   loadMyRecordsFromCache();
   if (!STATE.myRecords) STATE.myRecords = { following: {} };
   if (!STATE.myRecords.following) STATE.myRecords.following = {};
-  if (on) STATE.myRecords.following[tId] = Date.now();
-  else delete STATE.myRecords.following[tId];
+  // 取消關注：社團賽事記 0（否則會因為社團預設又被算回關注）；其他賽事直接刪掉紀錄
+  let value = null;
+  if (on) value = Date.now();
+  else if (isMyClubTournament(t)) value = 0;
+  if (value === null) delete STATE.myRecords.following[tId];
+  else STATE.myRecords.following[tId] = value;
   try { localStorage.setItem(`pb_my_records_${STATE.lineUserId}`, JSON.stringify(STATE.myRecords)); } catch (e) { }
   if (STATE.db) {
     const r = ref(STATE.db, `users/${STATE.lineUserId}/following/${tId}`);
-    (on ? set(r, STATE.myRecords.following[tId]) : remove(r)).catch(e => console.warn("[Follow] save failed:", e));
+    (value === null ? remove(r) : set(r, value)).catch(e => console.warn("[Follow] save failed:", e));
   }
 }
 window.setFollowing = setFollowing;
@@ -158,7 +183,7 @@ window.setFollowing = setFollowing;
 function updateFollowButton(tData) {
   const btn = document.getElementById("btn-live-follow");
   if (!btn) return;
-  const on = !!(tData && isFollowing(tData.id));
+  const on = !!(tData && isFollowing(tData));
   btn.classList.toggle("text-amber-500", on);
   btn.classList.toggle("text-stone-400", !on);
   const svg = btn.querySelector("svg");
@@ -176,8 +201,8 @@ function toggleFollowCurrentTournament() {
     else showToast(isZh ? "請先登入 LINE" : "Log in with LINE first", "warning");
     return;
   }
-  const next = !isFollowing(tData.id);
-  setFollowing(tData.id, next);
+  const next = !isFollowing(tData);
+  setFollowing(tData, next);
   updateFollowButton(tData);
   showToast(next
     ? (isZh ? "已加入關注，可在「我的關注」找到" : "Following. Find it in My Following.")
@@ -678,7 +703,7 @@ async function registerPlayerToTournament(playerName) {
     }
   }
   // 登入 LINE 的人按報名（不論幫自己或代打）：自動關注這場
-  if (STATE.lineUserId && !isFollowing(tData.id)) setFollowing(tData.id, true);
+  if (STATE.lineUserId && !isFollowing(tData)) setFollowing(tData, true);
   renderLiveUI(tData);
 }
 window.registerPlayerToTournament = registerPlayerToTournament;
