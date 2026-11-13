@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-28";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-29";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-28";
+} from "./globals.js?v=20261113-29";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -362,9 +362,6 @@ const isTransientPlayer = (name) => {
           lucide.createIcons();
         }
 
-        if (typeof updateClubIdentityBadge === "function") {
-          updateClubIdentityBadge(STATE.currentClub);
-        }
       } else {
         if (navSelect) navSelect.value = "";
         if (shareBtn) shareBtn.classList.add("hidden");
@@ -403,15 +400,10 @@ const isTransientPlayer = (name) => {
           }
         }
 
-        // 2. 徹底執行【準則三：解除綁定與零紀錄自動抹除】
-        const currentBound = localStorage.getItem(`pb_bound_name_${clubToRemove}`) || STATE.clubPlayerName;
-        if (typeof unbindClubIdentity === "function") {
-          await unbindClubIdentity(clubToRemove, currentBound, STATE.lineUserId);
-        } else {
-          localStorage.removeItem(`pb_bound_name_${clubToRemove}`);
-          if (STATE.currentClub === clubToRemove) {
-            STATE.clubPlayerName = null;
-          }
+        // 2. 球員綁定已取消：只清掉這台裝置的舊綁定暫存，不動社團名單與任何賽事資料
+        localStorage.removeItem(`pb_bound_name_${clubToRemove}`);
+        if (STATE.currentClub === clubToRemove) {
+          STATE.clubPlayerName = null;
         }
 
         // 3. 前端狀態同步
