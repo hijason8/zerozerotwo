@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-31";
+} from "./utils.js?v=20261113-32";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-31";
+} from "./scheduler.js?v=20261113-32";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-31";
+} from "./globals.js?v=20261113-32";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -78,7 +78,7 @@ async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
         const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
         delete local[tId];
         safeSetLocal("pb_tournaments", JSON.stringify(local));
-        showToast(STATE.lang === "zh-TW" ? "❌ 此賽事已不存在或已被刪除" : "Tournament not found or deleted", "error");
+        showToast(STATE.lang === "zh-TW" ? "此賽事已不存在或已被刪除" : "Tournament not found or deleted", "error");
         navigateTo("hub");
       }
     });
