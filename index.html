@@ -720,15 +720,11 @@
       <!-- Top Compact Title Banner -->
       <div
         class="glass-card rounded-2xl p-4 sm:p-5 border-l-4 border-l-emerald-500 shadow-sm relative overflow-hidden space-y-3 sm:space-y-3.5">
-        <!-- 關注（右上角星號）：關注的球局會出現在「我的關注」 -->
-        <button type="button" id="btn-live-follow" onclick="toggleFollowCurrentTournament()" aria-pressed="false" title="關注"
-          class="absolute top-3 right-3 w-9 h-9 rounded-xl card-inner border flex items-center justify-center text-stone-400 transition active:scale-95 cursor-pointer" style="z-index:10">
-          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        </button>
         <!-- 1. 資訊區 (Title, Tags, Meta Badges) -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="pr-12">
-            <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start gap-2">
+            <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
               <h2 id="live-title" class="text-lg sm:text-2xl font-display font-extrabold tracking-tight">賽事載入中...</h2>
               <span id="live-mode-badge"
                 class="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20">平均模式</span>
@@ -737,6 +733,12 @@
               <span id="live-id-badge"
                 class="px-2 py-0.5 rounded-md card-inner border font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">ID:
                 ---</span>
+            </div>
+            <!-- 關注：與標題同一行的右側星號，關注的球局會出現在「我的關注」 -->
+            <button type="button" id="btn-live-follow" onclick="toggleFollowCurrentTournament()" aria-pressed="false" title="關注"
+              class="w-8 h-8 shrink-0 rounded-xl card-inner border flex items-center justify-center text-stone-400 transition active:scale-95 cursor-pointer">
+              <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </button>
             </div>
             <!-- Compact Info Badges Row -->
             <div class="flex flex-wrap items-center gap-2 text-[11px] mt-2">
@@ -2176,7 +2178,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-20";
+    import { I18N } from "./i18n.js?v=20261113-21";
     window.I18N = I18N;
 
     function t(key) {
@@ -2198,14 +2200,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-20";
+    } from "./utils.js?v=20261113-21";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-20";
-    import "./live.js?v=20261113-20";
-    import "./activities.js?v=20261113-20";
-    import "./hub.js?v=20261113-20";
-    import "./line.js?v=20261113-20";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-20";
+    import "./tournament-create.js?v=20261113-21";
+    import "./live.js?v=20261113-21";
+    import "./activities.js?v=20261113-21";
+    import "./hub.js?v=20261113-21";
+    import "./line.js?v=20261113-21";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-21";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
