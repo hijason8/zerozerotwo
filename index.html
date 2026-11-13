@@ -553,6 +553,19 @@
             <input type="hidden" id="create-tournament-mode" value="fair" />
           </div>
 
+          <!-- 平均模式說明（放在賽事模式選擇下方） -->
+          <div id="wrap-fair-notice" class="p-3.5 rounded-xl card-inner border text-xs">
+            <p id="time-estimate-text" class="sub-text text-[11px] leading-relaxed">💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。</p>
+          </div>
+
+          <!-- Free Mode Initial Option & Notice Card (Shown when Free Mode selected) -->
+          <div id="wrap-free-notice"
+            class="hidden p-3.5 rounded-xl card-inner border text-xs">
+            <p class="sub-text text-[11px] leading-relaxed" id="t-free-notice-desc">💡
+              賽局內可單場新增賽事，支援少數優先或隨機抽籤。
+            </p>
+          </div>
+
           <!-- 5. Player Roster Section (Unified Compact Chips Container) -->
           <div id="wrap-create-players" class="space-y-2">
             <!-- Header Bar with Partner Type Switcher -->
@@ -677,28 +690,16 @@
           </div>
 
           <!-- Time Estimation Hint Box & Fair Schedule Options -->
-          <div id="time-estimate-box" class="p-3.5 rounded-xl card-inner border text-xs space-y-2.5">
-            <div class="font-semibold text-emerald-600 dark:text-emerald-400 text-xs" data-en="Fair Mode">平均模式</div>
+          <div id="time-estimate-box" class="hidden p-3.5 rounded-xl card-inner border text-xs space-y-2.5">
             <div class="hidden flex items-center justify-end gap-2 flex-wrap">
               <span id="fair-plan-selected-badge"
                 class="text-[10px] px-2 py-0.5 rounded-full card-inner font-mono text-amber-600 dark:text-amber-400 border border-amber-500/20 hidden"></span>
             </div>
 
-            <p id="time-estimate-text" class="sub-text text-[11px] leading-relaxed">💡
-              指定總比賽時間，系統自動試算最佳場數與時間對應；輸入名單後即時試算局數。</p>
-
             <!-- Fair Schedule Options Container (rendered dynamically) -->
-            <div id="fair-schedule-options" class="space-y-2 pt-1 hidden">
+            <div id="fair-schedule-options" class="space-y-2 hidden">
               <!-- Dynamically populated options cards -->
             </div>
-          </div>
-          <!-- Free Mode Initial Option & Notice Card (Shown when Free Mode selected) -->
-          <div id="wrap-free-notice"
-            class="hidden p-3.5 rounded-xl card-inner border text-xs space-y-2.5">
-            <div class="font-semibold text-emerald-600 dark:text-emerald-400 text-xs" data-en="Free Play">自由模式</div>
-            <p class="sub-text text-[11px] leading-relaxed" id="t-free-notice-desc">💡
-              賽局內可單場新增賽事，支援少數優先或隨機抽籤。
-            </p>
           </div>
           <input type="hidden" id="create-selected-total-games" value="" />
         </div>
@@ -2303,7 +2304,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-4";
+    import { I18N } from "./i18n.js?v=20261113-5";
     window.I18N = I18N;
 
     function t(key) {
@@ -2325,14 +2326,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-4";
+    } from "./utils.js?v=20261113-5";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-4";
-    import "./live.js?v=20261113-4";
-    import "./activities.js?v=20261113-4";
-    import "./hub.js?v=20261113-4";
-    import "./line.js?v=20261113-4";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-4";
+    import "./tournament-create.js?v=20261113-5";
+    import "./live.js?v=20261113-5";
+    import "./activities.js?v=20261113-5";
+    import "./hub.js?v=20261113-5";
+    import "./line.js?v=20261113-5";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-5";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-4";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-5";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-4";
+} from "./scheduler.js?v=20261113-5";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261113-4";
+} from "./globals.js?v=20261113-5";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -152,6 +152,8 @@ const isTransientPlayer = (name) => {
       const wrapDuration = document.getElementById("wrap-fair-duration");
       const wrapNotice = document.getElementById("wrap-free-notice");
       const timeBox = document.getElementById("time-estimate-box");
+      const wrapFairNotice = document.getElementById("wrap-fair-notice");
+      if (wrapFairNotice) wrapFairNotice.classList.toggle("hidden", mode !== "fair");
 
       const activeCls = "mode-btn-active py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
       const inactiveCls = "mode-btn-inactive py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
@@ -164,7 +166,6 @@ const isTransientPlayer = (name) => {
       if (mode === "fair") {
         if (wrapDuration) wrapDuration.classList.remove("hidden");
         if (wrapNotice) wrapNotice.classList.add("hidden");
-        if (timeBox) timeBox.classList.remove("hidden");
         if (wrapPartnerToggle) wrapPartnerToggle.classList.remove("hidden");
         calculateTimeEstimate();
       } else {
@@ -463,22 +464,30 @@ const isTransientPlayer = (name) => {
       const isSingles = (partnerType === "singles");
       const unitLabel = isTeamMode ? "隊" : "人";
       const minUnits = isSingles ? 2 : 4;
+      const timeBox = document.getElementById("time-estimate-box");
+      // 下方試算框只在平均模式、且有方案可選時顯示
+      const showTimeBox = (show) => { if (timeBox) timeBox.classList.toggle("hidden", !show || mode !== "fair"); };
+      if (badge) { badge.classList.add("hidden"); badge.parentElement.classList.add("hidden"); }
 
-      if (players.length < minUnits) {
+      // 說明框（在賽事模式選擇下方）：只放排賽方式的一句說明，方案細節列在下方方案卡片
+      if (hintText) {
         if (STATE.lang === "zh-TW") {
           hintText.innerHTML = strategy === "full-cycle"
-            ? `💡 <strong>全循環排賽</strong>：強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。<span class="opacity-80">請輸入至少 ${minUnits} 個參賽單位 (${unitLabel}) 開始試算。</span>`
-            : `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。<span class="opacity-80">請輸入至少 ${minUnits} 個參賽單位 (${unitLabel}) 開始試算。</span>`;
+            ? `💡 <strong>全循環排賽</strong>：強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。`
+            : `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。`;
         } else {
           hintText.innerHTML = strategy === "full-cycle"
-            ? `💡 <strong>Full Round-Robin</strong>: One full round so everyone partners and faces everyone. Enter at least ${minUnits} ${isTeamMode ? "teams" : "players"}.`
-            : `💡 <strong>By Duration</strong>: Set the total time and the best game count is calculated. Enter at least ${minUnits} ${isTeamMode ? "teams" : "players"}.`;
+            ? `💡 <strong>Full Round-Robin</strong>: One full round so everyone partners and faces everyone.`
+            : `💡 <strong>By Duration</strong>: Set the total time and the best game count is calculated.`;
         }
+      }
+
+      if (players.length < minUnits) {
         if (optionsContainer) {
           optionsContainer.innerHTML = "";
           optionsContainer.classList.add("hidden");
         }
-        if (badge) { badge.classList.add("hidden"); badge.parentElement.classList.add("hidden"); }
+        showTimeBox(false);
         return;
       }
 
@@ -499,19 +508,6 @@ const isTransientPlayer = (name) => {
         const estMins = Math.round(fullGames * 12);
 
         if (selectedGamesInput) selectedGamesInput.value = fullGames;
-
-        if (badge) {
-          badge.innerText = STATE.lang === "zh-TW"
-            ? `全循環：共 ${fullGames} 局 (每${unitLabel} ${gamesPerUnit} 場)`
-            : `Full Cycle: ${fullGames} games (${gamesPerUnit} g/u)`;
-          { badge.classList.remove("hidden"); badge.parentElement.classList.remove("hidden"); }
-        }
-
-        if (STATE.lang === "zh-TW") {
-          hintText.innerHTML = `💡 <strong>全循環排賽</strong>：強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。<br/>全循環共 <strong class="text-emerald-500">${fullGames} 局賽程</strong>，<strong class="text-emerald-600 dark:text-emerald-400">每${unitLabel}各打 ${gamesPerUnit} 場</strong> (休 ${restEach} 場)，預估總耗時約 <strong>${estMins} 分鐘</strong> (${(estMins / 60).toFixed(1)}h)。`;
-        } else {
-          hintText.innerHTML = `💡 <strong>Full Round-Robin</strong>: Force 1 full cycle so all participants pair & match up.<br/>Total <strong class="text-emerald-500">${fullGames} games</strong> — <strong class="text-emerald-600 dark:text-emerald-400">each unit plays ${gamesPerUnit} games</strong> (rest ${restEach}), est. <strong>${estMins} mins</strong>.`;
-        }
 
         if (optionsContainer) {
           optionsContainer.classList.remove("hidden");
@@ -536,6 +532,7 @@ const isTransientPlayer = (name) => {
             </div>
           `;
         }
+        showTimeBox(true);
         return;
       }
 
@@ -598,19 +595,6 @@ const isTransientPlayer = (name) => {
 
       const activePlan = plans.find(p => p.totalGames === selectedGames) || plans[0];
 
-      if (badge) {
-        badge.innerText = STATE.lang === "zh-TW"
-          ? `已選：${activePlan.totalGames} 局 (每單位 ${activePlan.gamesEach} 場)`
-          : `Selected: ${activePlan.totalGames} games (${activePlan.gamesEach} each)`;
-        { badge.classList.remove("hidden"); badge.parentElement.classList.remove("hidden"); }
-      }
-
-      if (STATE.lang === "zh-TW") {
-        hintText.innerHTML = `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。<br/>總時間 <strong>${totalMinutes} 分鐘</strong> (${durationHours}h) · 目前選定 <strong class="text-emerald-500">${activePlan.totalGames} 局賽程</strong>，<strong class="text-emerald-600 dark:text-emerald-400">每單位(人/隊)各打 ${activePlan.gamesEach} 場</strong> (休 ${activePlan.restEach} 場，單局約 ${activePlan.avgMins} 分鐘)。`;
-      } else {
-        hintText.innerHTML = `💡 <strong>By Duration</strong>: Set the total time and the best game count is calculated.<br/>Total <strong>${totalMinutes} mins</strong> (${durationHours}h) · Selected <strong class="text-emerald-500">${activePlan.totalGames} games</strong> — <strong class="text-emerald-600 dark:text-emerald-400">${activePlan.gamesEach} each</strong> (rest ${activePlan.restEach}, ~${activePlan.avgMins}m/game).`;
-      }
-
       if (optionsContainer) {
         optionsContainer.classList.remove("hidden");
         const gridColsClass = plans.length >= 3 ? 'sm:grid-cols-3' : plans.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1';
@@ -644,6 +628,7 @@ const isTransientPlayer = (name) => {
           </div>
         `;
       }
+      showTimeBox(true);
       lucide.createIcons();
     }
     window.calculateTimeEstimate = calculateTimeEstimate;
