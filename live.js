@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261112-18";
+} from "./utils.js?v=20261113-12";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-18";
+} from "./scheduler.js?v=20261113-12";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261112-18";
+} from "./globals.js?v=20261113-12";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -789,11 +789,11 @@ function renderLobbySchedulePlans(tData) {
     if (n >= 1) {
       practiceBtn.disabled = false;
       practiceBtn.classList.remove("opacity-50", "cursor-not-allowed");
-      practiceBtn.innerHTML = `<span>${isZh ? `自由模式/練球 (不排賽程，以目前 ${n} 人直接開打)` : `Free Play (${n} ${unitLabel})`}</span>`;
+      practiceBtn.innerHTML = `<span>${isZh ? `自由模式 (不排賽程，以目前 ${n} 人直接開打)` : `Free Play (${n} ${unitLabel})`}</span>`;
     } else {
       practiceBtn.disabled = true;
       practiceBtn.classList.add("opacity-50", "cursor-not-allowed");
-      practiceBtn.innerHTML = `<span>${isZh ? '自由模式/練球 (等待人員報名簽到)' : 'Free Play (waiting for players)'}</span>`;
+      practiceBtn.innerHTML = `<span>${isZh ? '自由模式 (等待人員報名簽到)' : 'Free Play (waiting for players)'}</span>`;
     }
   }
 

@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261112-18";
+import { STATE, t } from "./globals.js?v=20261113-12";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -211,8 +211,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Close"
   ],
   "t-label-notes-text": [
-    "活動備註 / 補充說明",
-    "Notes / Details"
+    "活動備註",
+    "Notes"
   ],
   "t-label-notes-opt": [
     "(選填)",
@@ -223,8 +223,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Event Notes / Details:"
   ],
   "t-label-entry-type": [
-    "3. 開局方式",
-    "3. Entry Format"
+    "4. 開局方式",
+    "4. Entry Format"
   ],
   "t-entry-reg-title": [
     "建立接龍",
@@ -235,24 +235,24 @@ export const I18N_CUSTOM_TEXTS = {
     "Direct Play"
   ],
   "t-reg-hint-title": [
-    "建立接龍說明",
-    "How Sign-up Works:"
+    "建立接龍說明：",
+    "Sign-up:"
   ],
   "t-reg-hint-desc": [
-    "建立報名房間後，將網址發至 LINE 群組供球友即時簽到。全員到齊後，可於現場決定以「平均模式」自動排賽或「自由模式/練球」開打！",
-    "Create a sign-up room and share the link to your LINE or chat group for players to RSVP (+1). Once everyone is present, choose Fair Rotation or Free Play to start!"
+    "等待報名，賽事模式待開賽時確認",
+    "Open for sign-up; pick the mode when you start"
   ],
   "t-label-mode": [
-    "4. 賽事模式選擇",
-    "4. Match Mode"
+    "5. 賽事模式選擇",
+    "5. Match Mode"
   ],
   "t-mode-fair-title": [
     "平均模式",
     "Fair Mode"
   ],
   "t-mode-free-title": [
-    "自由模式/練球",
-    "Free Play / Practice"
+    "自由模式",
+    "Free Play"
   ],
   "t-lobby-btn-edit-duration": [
     "調整時間",
@@ -283,8 +283,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Free Play Guide:"
   ],
   "t-free-notice-desc": [
-    "進入賽事後，使用管理模式隨時點擊「➕ 新增場次」與「補入選手」即時開局記分！",
-    "In live view, unlock Admin Mode to add matches and players on the fly!"
+    "賽事內單場新增，支援少數優先或隨機抽籤",
+    "Add games one at a time, fewest-games-first or random"
   ],
   "t-partner-rotating-text": [
     "輪替隊友",
@@ -303,8 +303,8 @@ export const I18N_CUSTOM_TEXTS = {
     "Add"
   ],
   "t-label-fair-duration": [
-    "6. 排賽目標與時間限制",
-    "6. Schedule"
+    "排賽目標與時間限制",
+    "Schedule"
   ],
   "t-strategy-time-title": [
     "按時間排賽",
@@ -326,10 +326,6 @@ export const I18N_CUSTOM_TEXTS = {
 export const I18N_PLACEHOLDERS = {
   "quick-code-modal-input": "modalSearchPlaceholder",
   "hub-quick-code-input": "quickCodePlaceholder",
-  "create-notes": [
-    "例：公館球場4號場、費用150元、請自備球拍...",
-    "e.g. Court 4, Fee $150, Bring your own paddle..."
-  ],
   "create-max-players": [
     "",
     ""
@@ -344,8 +340,8 @@ export const I18N_PLACEHOLDERS = {
     "Count"
   ],
   "quick-add-player-input": [
-    "姓名，支援空格批量輸入",
-    "Enter names (supports space/line batch input)..."
+    "支援批量輸入",
+    "Batch input OK"
   ],
   "create-name": "placeholderName",
   "create-players": "placeholderPlayers"
@@ -367,7 +363,6 @@ export const I18N_HTML = {
   "t-create-title": () => `<i data-lucide="plus-circle" class="w-5 h-5 text-orange-500"></i> ${t("createTitle")}`,
   "t-label-modal-club-name": () => `${t("labelModalClubName")} <span class="text-rose-500">*</span>`,
   "t-modal-club-name-label": () => `${t("labelModalClubName")} <span class="text-rose-500">*</span>`,
-  "t-time-calc-title": (isZh) => `<i data-lucide="clock" class="w-3.5 h-3.5"></i> <span>${isZh ? "時間與配局試算：" : "Estimate:"}</span>`,
   "t-schedule-title": () => `<i data-lucide="swords" class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500"></i> ${t("scheduleTitle")}`,
   "t-leaderboard-title": () => `<i data-lucide="crown" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-500"></i> ${t("leaderboardTitle")}`,
   "t-copy-btn": () => `<i data-lucide="copy" class="w-3.5 h-3.5"></i> ${t("copyBtn")}`
@@ -563,6 +558,7 @@ export function applyLanguageUI() {
   // 建立賽事頁的「誰看得到」說明文字跟著語言切換
   const privInput = document.getElementById("create-privacy");
   if (privInput && window.setCreatePrivacy) window.setCreatePrivacy(privInput.value === "private");
+  if (window.updateCreateNumbering) window.updateCreateNumbering();
   // 中英各一份的區塊（例如使用手冊）：data-lang-block="zh" / "en"
   document.querySelectorAll("[data-lang-block]").forEach(el => {
     el.classList.toggle("hidden", el.dataset.langBlock !== (isZh ? "zh" : "en"));

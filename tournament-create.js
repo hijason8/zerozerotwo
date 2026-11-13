@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261112-18";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-12";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261112-18";
+} from "./scheduler.js?v=20261113-12";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261112-18";
+} from "./globals.js?v=20261113-12";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -152,6 +152,8 @@ const isTransientPlayer = (name) => {
       const wrapDuration = document.getElementById("wrap-fair-duration");
       const wrapNotice = document.getElementById("wrap-free-notice");
       const timeBox = document.getElementById("time-estimate-box");
+      const wrapFairNotice = document.getElementById("wrap-fair-notice");
+      if (wrapFairNotice) wrapFairNotice.classList.toggle("hidden", mode !== "fair");
 
       const activeCls = "mode-btn-active py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
       const inactiveCls = "mode-btn-inactive py-3 px-4 rounded-2xl border-2 text-xs font-bold transition flex items-center justify-start hover-lift active:scale-95 shadow-sm";
@@ -164,7 +166,6 @@ const isTransientPlayer = (name) => {
       if (mode === "fair") {
         if (wrapDuration) wrapDuration.classList.remove("hidden");
         if (wrapNotice) wrapNotice.classList.add("hidden");
-        if (timeBox) timeBox.classList.remove("hidden");
         if (wrapPartnerToggle) wrapPartnerToggle.classList.remove("hidden");
         calculateTimeEstimate();
       } else {
@@ -203,23 +204,12 @@ const isTransientPlayer = (name) => {
     window.updatePartnerToggleTexts = updatePartnerToggleTexts;
 
     function updateFreeNoticeText() {
-      const partnerType = document.getElementById("create-partner-type")?.value || "rotating";
       const descEl = document.getElementById("t-free-notice-desc");
       if (!descEl) return;
       const isZh = (STATE.lang === "zh-TW");
-      if (partnerType === "singles") {
-        descEl.innerHTML = isZh
-          ? "<b>👤 自由單打模式</b>：名單為個人選手（至少 2 人）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」即可自由挑選選手進行 1v1 單打對決！"
-          : "<b>👤 Free Singles</b>: Enter players (min 2). Tap \"➕ Add Game\" to pick a 1v1 anytime.";
-      } else if (partnerType === "fixed") {
-        descEl.innerHTML = isZh
-          ? "<b>🛡️ 自由隊伍模式</b>：名單為固定隊伍（至少 2 隊）。不預設固定賽程，進入賽事後點擊「➕ 新增場次」由各隊自由約戰 1v1 對決！"
-          : "<b>🛡️ Free Teams</b>: Enter teams (min 2). Tap \"➕ Add Game\" to pick two teams anytime.";
-      } else {
-        descEl.innerHTML = isZh
-          ? "<b>👥 自由雙打 / 自由配對</b>：名單為個人選手（至少 2 人）。進入賽事後自由度極高，可隨時自選 2v2 雙打或 1v1 單打，支援手動點選、場次少者優先與隨機抽籤！"
-          : "<b>👥 Free Doubles</b>: Enter players (min 2). Pick 2v2 or 1v1 anytime: by hand, fewest games first, or random.";
-      }
+      descEl.innerText = isZh
+        ? "賽事內單場新增，支援少數優先或隨機抽籤"
+        : "Add games one at a time, fewest-games-first or random";
     }
     window.updateFreeNoticeText = updateFreeNoticeText;
 
@@ -254,7 +244,7 @@ const isTransientPlayer = (name) => {
       const badge = document.getElementById("fair-plan-selected-badge");
       if (badge) {
         badge.innerText = "";
-        badge.classList.add("hidden");
+        { badge.classList.add("hidden"); badge.parentElement.classList.add("hidden"); }
       }
     }
     window.resetSelectedPlan = resetSelectedPlan;
@@ -294,15 +284,15 @@ const isTransientPlayer = (name) => {
       if (labelPlayers) {
         if (isZh) {
           if (mode === "free") {
-            labelPlayers.innerText = isSingles ? "4. 自由單打選手名單" : (isRotating ? "4. 自由雙打選手名單" : "4. 自由隊伍名單");
+            labelPlayers.innerText = isSingles ? "自由單打選手名單" : (isRotating ? "自由雙打選手名單" : "自由隊伍名單");
           } else {
-            labelPlayers.innerText = isSingles ? "4. 個人單打選手名單" : (isRotating ? "4. 參賽選手名單" : "4. 參賽隊伍名單");
+            labelPlayers.innerText = isSingles ? "個人單打選手名單" : (isRotating ? "參賽選手名單" : "參賽隊伍名單");
           }
         } else {
-          labelPlayers.innerText = isSingles ? "4. Singles Player Roster" : (isRotating ? "4. Player Roster" : "4. Team Roster");
+          labelPlayers.innerText = isSingles ? "Singles Players" : (isRotating ? "Players" : "Teams");
         }
       }
-      if (inputAdd) inputAdd.placeholder = isZh ? "姓名，支援空格批量輸入" : "Enter names (supports space/line batch input)...";
+      if (inputAdd) inputAdd.placeholder = isZh ? "支援批量輸入" : "Batch input OK";
       if (headingRoster) headingRoster.innerText = isZh ? (isSingles ? "已登錄選手：" : (isRotating ? "已登錄選手：" : "已登錄隊伍：")) : (isSingles ? "Players:" : (isRotating ? "Players:" : "Teams:"));
       if (titleClub) titleClub.innerText = isZh ? (type === "fixed" ? "社團常用隊伍：" : "社團常用選手：") : (type === "fixed" ? "Club Teams:" : "Club Players:");
       if (autoGenLabel) autoGenLabel.innerText = isZh ? (type === "fixed" ? "增加臨打隊伍" : "增加臨打選手") : (type === "fixed" ? "Add Guest Teams" : "Add Guest Players");
@@ -355,7 +345,7 @@ const isTransientPlayer = (name) => {
           noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-stone-500/10 text-stone-600 dark:text-slate-300 border border-stone-300/30";
           noticeEl.innerHTML = `
             <i data-lucide="info" class="w-4 h-4 shrink-0 text-stone-400"></i>
-            <span>${isZh ? `自由模式名單登錄滿 <b>2</b> 個單位即可開賽，後續隨時可補人！` : `At least 2 units needed for Free Mode, more can be added anytime!`}</span>
+            <span>${isZh ? `自由模式名單登錄滿 <b>2</b> 個單位即可開賽，後續隨時可補人！` : `Start with <b>2</b> ${unit}; add more anytime.`}</span>
           `;
           noticeEl.classList.remove("hidden");
         } else {
@@ -474,22 +464,30 @@ const isTransientPlayer = (name) => {
       const isSingles = (partnerType === "singles");
       const unitLabel = isTeamMode ? "隊" : "人";
       const minUnits = isSingles ? 2 : 4;
+      const timeBox = document.getElementById("time-estimate-box");
+      // 下方試算框只在平均模式、且有方案可選時顯示
+      const showTimeBox = (show) => { if (timeBox) timeBox.classList.toggle("hidden", !show || mode !== "fair"); };
+      if (badge) { badge.classList.add("hidden"); badge.parentElement.classList.add("hidden"); }
+
+      // 模式說明（在賽事模式選擇按鈕下方一行小字）
+      if (hintText) {
+        if (STATE.lang === "zh-TW") {
+          hintText.innerText = strategy === "full-cycle"
+            ? "強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。"
+            : "指定總比賽時間，系統自動試算最佳場數與時間對應。";
+        } else {
+          hintText.innerText = strategy === "full-cycle"
+            ? "One full round so everyone partners and faces everyone."
+            : "Set the total time and the best game count is calculated.";
+        }
+      }
 
       if (players.length < minUnits) {
-        if (STATE.lang === "zh-TW") {
-          hintText.innerHTML = strategy === "full-cycle"
-            ? `💡 <strong>全循環排賽</strong>：強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。<span class="opacity-80">請輸入至少 ${minUnits} 個參賽單位 (${unitLabel}) 開始試算。</span>`
-            : `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。<span class="opacity-80">請輸入至少 ${minUnits} 個參賽單位 (${unitLabel}) 開始試算。</span>`;
-        } else {
-          hintText.innerHTML = strategy === "full-cycle"
-            ? `💡 <strong>Full Round-Robin</strong>: One full round so everyone partners and faces everyone. Enter at least ${minUnits} ${isTeamMode ? "teams" : "players"}.`
-            : `💡 <strong>By Duration</strong>: Set the total time and the best game count is calculated. Enter at least ${minUnits} ${isTeamMode ? "teams" : "players"}.`;
-        }
         if (optionsContainer) {
           optionsContainer.innerHTML = "";
           optionsContainer.classList.add("hidden");
         }
-        if (badge) badge.classList.add("hidden");
+        showTimeBox(false);
         return;
       }
 
@@ -510,19 +508,6 @@ const isTransientPlayer = (name) => {
         const estMins = Math.round(fullGames * 12);
 
         if (selectedGamesInput) selectedGamesInput.value = fullGames;
-
-        if (badge) {
-          badge.innerText = STATE.lang === "zh-TW"
-            ? `全循環：共 ${fullGames} 局 (每${unitLabel} ${gamesPerUnit} 場)`
-            : `Full Cycle: ${fullGames} games (${gamesPerUnit} g/u)`;
-          badge.classList.remove("hidden");
-        }
-
-        if (STATE.lang === "zh-TW") {
-          hintText.innerHTML = `💡 <strong>全循環排賽</strong>：強制排滿 1 輪完整全循環賽事，人人皆有搭配與對決。<br/>全循環共 <strong class="text-emerald-500">${fullGames} 局賽程</strong>，<strong class="text-emerald-600 dark:text-emerald-400">每${unitLabel}各打 ${gamesPerUnit} 場</strong> (休 ${restEach} 場)，預估總耗時約 <strong>${estMins} 分鐘</strong> (${(estMins / 60).toFixed(1)}h)。`;
-        } else {
-          hintText.innerHTML = `💡 <strong>Full Round-Robin</strong>: Force 1 full cycle so all participants pair & match up.<br/>Total <strong class="text-emerald-500">${fullGames} games</strong> — <strong class="text-emerald-600 dark:text-emerald-400">each unit plays ${gamesPerUnit} games</strong> (rest ${restEach}), est. <strong>${estMins} mins</strong>.`;
-        }
 
         if (optionsContainer) {
           optionsContainer.classList.remove("hidden");
@@ -547,6 +532,7 @@ const isTransientPlayer = (name) => {
             </div>
           `;
         }
+        showTimeBox(true);
         return;
       }
 
@@ -609,19 +595,6 @@ const isTransientPlayer = (name) => {
 
       const activePlan = plans.find(p => p.totalGames === selectedGames) || plans[0];
 
-      if (badge) {
-        badge.innerText = STATE.lang === "zh-TW"
-          ? `已選：${activePlan.totalGames} 局 (每單位 ${activePlan.gamesEach} 場)`
-          : `Selected: ${activePlan.totalGames} games (${activePlan.gamesEach} each)`;
-        badge.classList.remove("hidden");
-      }
-
-      if (STATE.lang === "zh-TW") {
-        hintText.innerHTML = `💡 <strong>按時間排賽</strong>：指定總比賽時間，系統自動試算最佳場數與時間對應。<br/>總時間 <strong>${totalMinutes} 分鐘</strong> (${durationHours}h) · 目前選定 <strong class="text-emerald-500">${activePlan.totalGames} 局賽程</strong>，<strong class="text-emerald-600 dark:text-emerald-400">每單位(人/隊)各打 ${activePlan.gamesEach} 場</strong> (休 ${activePlan.restEach} 場，單局約 ${activePlan.avgMins} 分鐘)。`;
-      } else {
-        hintText.innerHTML = `💡 <strong>By Duration</strong>: Set the total time and the best game count is calculated.<br/>Total <strong>${totalMinutes} mins</strong> (${durationHours}h) · Selected <strong class="text-emerald-500">${activePlan.totalGames} games</strong> — <strong class="text-emerald-600 dark:text-emerald-400">${activePlan.gamesEach} each</strong> (rest ${activePlan.restEach}, ~${activePlan.avgMins}m/game).`;
-      }
-
       if (optionsContainer) {
         optionsContainer.classList.remove("hidden");
         const gridColsClass = plans.length >= 3 ? 'sm:grid-cols-3' : plans.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1';
@@ -655,6 +628,7 @@ const isTransientPlayer = (name) => {
           </div>
         `;
       }
+      showTimeBox(true);
       lucide.createIcons();
     }
     window.calculateTimeEstimate = calculateTimeEstimate;
@@ -672,8 +646,21 @@ const isTransientPlayer = (name) => {
       const clubVal = (document.getElementById("create-club-select")?.value || "").trim();
       const wrapPrivacy = document.getElementById("wrap-create-privacy");
       if (wrapPrivacy) wrapPrivacy.classList.toggle("hidden", !!clubVal);
+      updateCreateNumbering();
       if (clubVal) setCreatePrivacy(false);
     }
+
+    // 「3. 誰看得到」只在臨打時出現；選了社團就隱藏，開局方式改成第 3 項
+    function updateCreateNumbering() {
+      const wrapPrivacy = document.getElementById("wrap-create-privacy");
+      const label = document.getElementById("t-label-entry-type");
+      const modeLabel = document.getElementById("t-label-mode");
+      const isZh = (STATE.lang === "zh-TW");
+      const n = (wrapPrivacy && wrapPrivacy.classList.contains("hidden")) ? 3 : 4;
+      if (label) label.innerText = isZh ? `${n}. 開局方式` : `${n}. Entry Format`;
+      if (modeLabel) modeLabel.innerText = isZh ? `${n + 1}. 賽事模式選擇` : `${n + 1}. Match Mode`;
+    }
+    window.updateCreateNumbering = updateCreateNumbering;
 
     function setCreatePrivacy(isPrivate) {
       const input = document.getElementById("create-privacy");
