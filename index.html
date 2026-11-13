@@ -722,12 +722,14 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
             <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-              <!-- 關注：賽事名稱前的星號，關注的球局會出現在「我的關注」 -->
-              <button type="button" id="btn-live-follow" onclick="toggleFollowCurrentTournament()" aria-pressed="false" title="關注"
-                class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-stone-400 transition active:scale-95 cursor-pointer" style="margin: -4px -6px -4px -6px;">
-                <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              </button>
-              <h2 id="live-title" class="text-lg sm:text-2xl font-display font-extrabold tracking-tight">賽事載入中...</h2>
+              <!-- 關注：星號與賽事名稱綁在一起，名稱再長也不會在星號後面斷行 -->
+              <div class="flex items-start min-w-0 max-w-full gap-2">
+                <button type="button" id="btn-live-follow" onclick="toggleFollowCurrentTournament()" aria-pressed="false" title="關注"
+                  class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-stone-400 transition active:scale-95 cursor-pointer" style="margin: -2px -6px -6px -6px;">
+                  <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
+                <h2 id="live-title" class="min-w-0 break-words text-lg sm:text-2xl font-display font-extrabold tracking-tight">賽事載入中...</h2>
+              </div>
               <span id="live-mode-badge"
                 class="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20">平均模式</span>
               <span id="live-club-badge"
@@ -2151,7 +2153,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-32";
+    import { I18N } from "./i18n.js?v=20261113-34";
     window.I18N = I18N;
 
     function t(key) {
@@ -2173,14 +2175,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-32";
+    } from "./utils.js?v=20261113-34";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-32";
-    import "./live.js?v=20261113-32";
-    import "./activities.js?v=20261113-32";
-    import "./hub.js?v=20261113-32";
-    import "./line.js?v=20261113-32";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-32";
+    import "./tournament-create.js?v=20261113-34";
+    import "./live.js?v=20261113-34";
+    import "./activities.js?v=20261113-34";
+    import "./hub.js?v=20261113-34";
+    import "./line.js?v=20261113-34";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-34";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2622,6 +2624,7 @@
         STATE.backTarget = null;
       }
 
+      const prevPage = STATE.currentPage;
       STATE.currentPage = pageName;
       const pages = ["hub", "create", "live", "history", "admin", "activities", "waiting"];
       pages.forEach(p => {
@@ -2631,6 +2634,8 @@
 
       const target = document.getElementById(`page-${pageName}`);
       if (target) target.classList.remove("hidden");
+      // 換頁時回到最上方（例如從列表第三張卡片點進賽事，畫面不會停在原本的捲動位置）
+      if (prevPage !== pageName) window.scrollTo(0, 0);
 
       // 控制共用大廳頂部工具列顯示狀態 (在賽事大廳、社團大廳與比賽中/等待報名時顯示)
       const sharedHeader = document.getElementById("lobby-shared-header");

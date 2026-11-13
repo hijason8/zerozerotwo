@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-32";
+} from "./utils.js?v=20261113-34";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-32";
+} from "./scheduler.js?v=20261113-34";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-32";
+} from "./globals.js?v=20261113-34";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -52,6 +52,8 @@ async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
   }
   addMyTournamentId(tId);
   navigateTo("live", false);
+  // 每次進入賽事都從最上方開始
+  window.scrollTo(0, 0);
   if (pushHistory) {
     window.history.pushState({}, "", `${window.location.pathname}?t=${tId}`);
   }
