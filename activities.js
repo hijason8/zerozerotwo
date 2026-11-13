@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-29";
-import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-29";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-30";
+import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261113-30";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261113-29";
+} from "./globals.js?v=20261113-30";
 
 let activitiesSearchKeyword = "";
 
@@ -34,7 +34,7 @@ export function onActivitiesSearchInput(keyword) {
 
 // 是否在「我的關注」裡（users/{LINE ID}/following）
 export function checkTournamentRegistrationStatus(tournament) {
-  const following = typeof window.isFollowing === "function" && tournament && window.isFollowing(tournament.id);
+  const following = typeof window.isFollowing === "function" && tournament && window.isFollowing(tournament);
   return { isRegistered: false, registeredName: null, isFollowing: !!following };
 }
 
@@ -130,7 +130,8 @@ export function displayActivitiesList(list) {
   const clubGames = isLoggedIn ? (list || []).filter(t => {
     if (!t) return false;
     const c = (t.clubName || "").trim();
-    if (!followFn(t.id) && (!c || !myClubsList.includes(c))) return false;
+    // 加入社團的賽事預設算關注；自己取消關注後就不再出現
+    if (!followFn(t)) return false;
     if (!activitiesSearchKeyword) return true;
     const kw = activitiesSearchKeyword;
     return (t.name || "").toLowerCase().includes(kw) || c.toLowerCase().includes(kw) || (t.venue || "").toLowerCase().includes(kw);
