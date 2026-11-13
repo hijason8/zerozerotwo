@@ -2153,7 +2153,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-33";
+    import { I18N } from "./i18n.js?v=20261113-34";
     window.I18N = I18N;
 
     function t(key) {
@@ -2175,14 +2175,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-33";
+    } from "./utils.js?v=20261113-34";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-33";
-    import "./live.js?v=20261113-33";
-    import "./activities.js?v=20261113-33";
-    import "./hub.js?v=20261113-33";
-    import "./line.js?v=20261113-33";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-33";
+    import "./tournament-create.js?v=20261113-34";
+    import "./live.js?v=20261113-34";
+    import "./activities.js?v=20261113-34";
+    import "./hub.js?v=20261113-34";
+    import "./line.js?v=20261113-34";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-34";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2624,6 +2624,7 @@
         STATE.backTarget = null;
       }
 
+      const prevPage = STATE.currentPage;
       STATE.currentPage = pageName;
       const pages = ["hub", "create", "live", "history", "admin", "activities", "waiting"];
       pages.forEach(p => {
@@ -2633,6 +2634,8 @@
 
       const target = document.getElementById(`page-${pageName}`);
       if (target) target.classList.remove("hidden");
+      // 換頁時回到最上方（例如從列表第三張卡片點進賽事，畫面不會停在原本的捲動位置）
+      if (prevPage !== pageName) window.scrollTo(0, 0);
 
       // 控制共用大廳頂部工具列顯示狀態 (在賽事大廳、社團大廳與比賽中/等待報名時顯示)
       const sharedHeader = document.getElementById("lobby-shared-header");
