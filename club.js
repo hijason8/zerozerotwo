@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-12";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261113-13";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-12";
+} from "./globals.js?v=20261113-13";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -510,7 +510,7 @@ const isTransientPlayer = (name) => {
       if (typeof applyLanguageUI === "function") applyLanguageUI();
       renderExploreClubsList("");
       modal.classList.remove("hidden");
-      if (searchInput) setTimeout(() => searchInput.focus(), 60);
+      // 不自動聚焦搜尋框：手機會直接跳出鍵盤遮住清單與「建立新社團」按鈕
       lucide.createIcons();
     }
     window.openExploreClubsModal = openExploreClubsModal;
