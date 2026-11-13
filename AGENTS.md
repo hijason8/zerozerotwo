@@ -61,30 +61,22 @@
 ---
 
 ## 四、 LINE 圖文選單 (Rich Menu) 規格與點位定義
-* **選單尺寸**：`2500 × 1686 px`（LINE 標準大型滿版 Rich Menu）
-* **設計原始碼**：[`richmenu_2500x1686.html`](file:///Users/jasonchu/Desktop/pickleball/richmenu_2500x1686.html)
-* **輸出成品圖檔**：[`zerozerotwo-richmenu-2500x1686.png`](file:///Users/jasonchu/Desktop/pickleball/zerozerotwo-richmenu-2500x1686.png)
+* **選單尺寸**：`2500 × 843 px`（LINE「小型」圖文選單，左大右小兩格）
+* **設計原始碼**：專案知識庫 `claude/richmenu_compact_2500x843.html`
+* **輸出成品圖檔**：`zerozerotwo-richmenu-compact-2500x843.png`
+* 2026/11 起取代舊版 `2500 × 1686` 三格選單（「我的活動總表」「搜尋接龍列表」「創建比賽」已移除）。
 
 ### 點位與動作定義 (LINE Official Account Manager)
-1. **上方官方橫幅 (Banner)**：
-   * 範圍座標：`x: 0, y: 0, 寬: 2500, 高: 843`
+1. **左【官網】**（ZeroZeroTwo 標誌＋ `zztwo.com`）：
+   * 範圍：左側大格（約 `x: 0, 寬: 1666`）
    * 動作：開啟 URL (`https://zztwo.com/`)
-2. **下方左 1【我的活動總表】**：
-   * 範圍座標：`x: 0, y: 843, 寬: 833, 高: 843`
-   * 動作：開啟 URL (`https://zztwo.com/?page=hub`)
-   * 文案：查詢報名球局，即時查閱賽況（標籤：個人專屬）
-3. **下方中 2【搜尋接龍列表】**：
-   * 範圍座標：`x: 833, y: 843, 寬: 834, 高: 843`
-   * 動作：開啟 URL (`https://zztwo.com/?page=hub`)
-   * 文案：探索群組公開接龍，一鍵報名完成（標籤：尋找比賽）
-4. **下方右 3【創建比賽】**：
-   * 範圍座標：`x: 1667, y: 843, 寬: 833, 高: 843`
+2. **右【建立賽事】**：
+   * 範圍：右側小格（約 `x: 1666, 寬: 834`）
    * 動作：開啟 URL (`https://zztwo.com/?page=create`)
-   * 文案：社團賽事開局，多元排程（標籤：主辦開團）
 
 ---
 
-## 五、 LINE Bot Webhook 訊息回覆活動清單 (已實作)
+## 五、 LINE Bot Webhook 訊息回覆活動清單 (已實作，圖文選單已不再觸發)
 * **核心理念**：輕量免跳轉，點擊圖文選單直接在 LINE 聊天室以文字/卡片回覆個人活動與接龍名冊。
 * **Webhook 端點**：
   * URL：`https://asia-southeast1-pickleball-hub-d0ab1.cloudfunctions.net/lineWebhook`
