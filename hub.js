@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-34";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261113-35";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261113-34";
+} from "./globals.js?v=20261113-35";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -238,7 +238,7 @@ export function renderTournamentCard(tData, opts = {}) {
           `;
         })()}
 
-        ${!isRegistering ? (
+        ${(!isRegistering && !isFinished) ? (
           (tData.isPracticeMode || (tData.tournamentMode === "free" && total === 0)) ? `
             <div class="flex items-center justify-between text-[11px] sub-text font-mono pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
               <span class="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold">
