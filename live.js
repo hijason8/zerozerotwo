@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261119-1";
+} from "./utils.js?v=20261119-2";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261119-1";
+} from "./scheduler.js?v=20261119-2";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261119-1";
+} from "./globals.js?v=20261119-2";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1395,7 +1395,18 @@ function renderRosterCodes(data) {
   lucide.createIcons({ root: panel });
 }
 
+// 對戰卡片上的名字：前面放代號（只有展開參賽名單時才顯示，見 styles.css）
+function nameWithCode(name) {
+  const safe = escapeHTML(name || "");
+  const players = (STATE.tournamentData && STATE.tournamentData.players) || [];
+  const i = name ? players.indexOf(name) : -1;
+  if (i < 0) return safe;
+  return `<span class="player-code font-bold text-emerald-600 dark:text-emerald-400">${playerCodeAt(i)}.</span>${safe}`;
+}
+
 function applyRosterCodesOpen(open) {
+  const matches = document.getElementById("matches-container");
+  if (matches) matches.classList.toggle("show-player-codes", !!open);
   const list = document.getElementById("roster-codes-list");
   const chevron = document.getElementById("roster-codes-chevron");
   if (list) list.classList.toggle("hidden", !open);
@@ -1460,8 +1471,8 @@ function renderMatchesList(matches, hasAdmin = false) {
               <!-- Blue Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-blue-500/15 to-blue-500/5 border border-blue-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${escapeHTML(m.blue[0] || '')}</div>
-                  ${m.blue[1] ? `<div class="truncate">${escapeHTML(m.blue[1])}</div>` : ''}
+                  <div class="truncate">${nameWithCode(m.blue[0])}</div>
+                  ${m.blue[1] ? `<div class="truncate">${nameWithCode(m.blue[1])}</div>` : ''}
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
@@ -1474,8 +1485,8 @@ function renderMatchesList(matches, hasAdmin = false) {
               <!-- Red Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-rose-500/15 to-rose-500/5 border border-rose-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${escapeHTML(m.red[0] || '')}</div>
-                  ${m.red[1] ? `<div class="truncate">${escapeHTML(m.red[1])}</div>` : ''}
+                  <div class="truncate">${nameWithCode(m.red[0])}</div>
+                  ${m.red[1] ? `<div class="truncate">${nameWithCode(m.red[1])}</div>` : ''}
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
@@ -1500,13 +1511,13 @@ function renderMatchesList(matches, hasAdmin = false) {
                 <div class="space-y-1">
                   <div class="flex items-center justify-between gap-1">
                     <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                      ${escapeHTML(m.blue[0] || '')}
+                      ${nameWithCode(m.blue[0])}
                     </div>
                     ${blueWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-blue-500 text-white shrink-0 shadow-sm">WIN</span>` : ''}
                   </div>
                   ${m.blue[1] ? `
                   <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                    ${escapeHTML(m.blue[1])}
+                    ${nameWithCode(m.blue[1])}
                   </div>` : ''}
                 </div>
                 <div class="pt-1 text-center font-mono text-3xl sm:text-4xl font-black scoreboard-num ${blueWon ? 'text-blue-600 dark:text-blue-400 drop-shadow-sm scale-105' : isScored ? 'sub-text opacity-70' : 'sub-text opacity-30'} transition-transform">
@@ -1519,13 +1530,13 @@ function renderMatchesList(matches, hasAdmin = false) {
                 <div class="space-y-1">
                   <div class="flex items-center justify-between gap-1">
                     <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                      ${escapeHTML(m.red[0] || '')}
+                      ${nameWithCode(m.red[0])}
                     </div>
                     ${redWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-rose-500 text-white shrink-0 shadow-sm">WIN</span>` : ''}
                   </div>
                   ${m.red[1] ? `
                   <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                    ${escapeHTML(m.red[1])}
+                    ${nameWithCode(m.red[1])}
                   </div>` : ''}
                 </div>
                 <div class="pt-1 text-center font-mono text-3xl sm:text-4xl font-black scoreboard-num ${redWon ? 'text-rose-600 dark:text-rose-400 drop-shadow-sm scale-105' : isScored ? 'sub-text opacity-70' : 'sub-text opacity-30'} transition-transform">
