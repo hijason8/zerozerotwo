@@ -957,6 +957,20 @@
               / 0 局完成</span>
           </div>
 
+          <!-- 參賽名單代號（A. 名字），方便抄到現場黑板；可展開／收合 -->
+          <div id="roster-codes-panel" class="hidden glass-card rounded-xl border">
+            <button type="button" onclick="toggleRosterCodes()"
+              class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="list-ordered" class="w-3.5 h-3.5 text-emerald-500"></i>
+                <span id="roster-codes-title">參賽名單</span>
+                <span id="roster-codes-count" class="sub-text font-medium"></span>
+              </span>
+              <i id="roster-codes-chevron" data-lucide="chevron-down" class="w-4 h-4 sub-text transition-transform"></i>
+            </button>
+            <ol id="roster-codes-list" class="hidden grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1 px-3 pb-3 text-xs"></ol>
+          </div>
+
           <div id="matches-container" class="space-y-3">
             <!-- Matches Cards rendered dynamically -->
           </div>
@@ -2153,7 +2167,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261113-35";
+    import { I18N } from "./i18n.js?v=20261119-1";
     window.I18N = I18N;
 
     function t(key) {
@@ -2175,14 +2189,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261113-35";
+    } from "./utils.js?v=20261119-1";
     import "./club.js?v=20261111-1";
-    import "./tournament-create.js?v=20261113-35";
-    import "./live.js?v=20261113-35";
-    import "./activities.js?v=20261113-35";
-    import "./hub.js?v=20261113-35";
-    import "./line.js?v=20261113-35";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261113-35";
+    import "./tournament-create.js?v=20261119-1";
+    import "./live.js?v=20261119-1";
+    import "./activities.js?v=20261119-1";
+    import "./hub.js?v=20261119-1";
+    import "./line.js?v=20261119-1";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261119-1";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;

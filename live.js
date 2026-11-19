@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-35";
+} from "./utils.js?v=20261119-1";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-35";
+} from "./scheduler.js?v=20261119-1";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-35";
+} from "./globals.js?v=20261119-1";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -610,6 +610,7 @@ function renderLiveUI(data) {
   if (headerActionsWrap) headerActionsWrap.classList.remove("hidden");
 
   // Render Matches Schedule
+  renderRosterCodes(data);
   renderMatchesList(data.matches || [], hasAdmin);
 
   // Calculate & Render Leaderboard
@@ -1351,6 +1352,63 @@ function stepMatchScore(matchId, side, delta) {
   input.value = val;
 }
 window.stepMatchScore = stepMatchScore;
+
+// ==================== 參賽名單代號（A. 名字） ====================
+// 開打後名單只會在後面新增（不會刪除或重排），所以用名單順序給字母，代號永遠不變。
+// 第 27 人起接 AA、AB…
+function playerCodeAt(i) {
+  const L = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return i < 26 ? L[i] : L[Math.floor(i / 26) - 1] + L[i % 26];
+}
+
+const ROSTER_CODES_OPEN_KEY = "zz_roster_codes_open";
+
+function renderRosterCodes(data) {
+  const panel = document.getElementById("roster-codes-panel");
+  const list = document.getElementById("roster-codes-list");
+  if (!panel || !list) return;
+  const players = (data && data.players) || [];
+  if (!players.length) { panel.classList.add("hidden"); return; }
+  panel.classList.remove("hidden");
+
+  const isZh = (STATE.lang === "zh-TW");
+  const title = document.getElementById("roster-codes-title");
+  if (title) title.textContent = isZh ? "參賽名單" : "Roster";
+  const count = document.getElementById("roster-codes-count");
+  if (count) count.textContent = `(${players.length})`;
+
+  list.textContent = "";
+  players.forEach((name, i) => {
+    const li = document.createElement("li");
+    li.className = "truncate";
+    const code = document.createElement("span");
+    code.className = "font-bold text-emerald-600 dark:text-emerald-400";
+    code.textContent = `${playerCodeAt(i)}.`;
+    li.appendChild(code);
+    li.appendChild(document.createTextNode(` ${name}`));
+    list.appendChild(li);
+  });
+
+  let open = false;
+  try { open = localStorage.getItem(ROSTER_CODES_OPEN_KEY) === "1"; } catch (e) {}
+  applyRosterCodesOpen(open);
+  lucide.createIcons({ root: panel });
+}
+
+function applyRosterCodesOpen(open) {
+  const list = document.getElementById("roster-codes-list");
+  const chevron = document.getElementById("roster-codes-chevron");
+  if (list) list.classList.toggle("hidden", !open);
+  if (chevron) chevron.style.transform = open ? "rotate(180deg)" : "";
+}
+
+function toggleRosterCodes() {
+  const list = document.getElementById("roster-codes-list");
+  const open = !!(list && list.classList.contains("hidden"));
+  applyRosterCodesOpen(open);
+  try { localStorage.setItem(ROSTER_CODES_OPEN_KEY, open ? "1" : "0"); } catch (e) {}
+}
+window.toggleRosterCodes = toggleRosterCodes;
 
 function renderMatchesList(matches, hasAdmin = false) {
   const container = document.getElementById("matches-container");
