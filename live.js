@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261113-35";
+} from "./utils.js?v=20261119-4";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261113-35";
+} from "./scheduler.js?v=20261119-4";
 
 import {
   STATE,
@@ -39,12 +39,14 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261113-35";
+} from "./globals.js?v=20261119-4";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
 async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
   STATE.currentTournamentId = tId;
+  // 每次進入賽事，參賽代碼一律從收合開始
+  rosterCodesOpen = false;
   // 剛進到賽事計分頁面，默認一律為閱覽模式，需要計分等操作才手動點選「開啟操作」
   STATE.isViewerMode = true;
   if (!keepAdmin) {
@@ -610,6 +612,7 @@ function renderLiveUI(data) {
   if (headerActionsWrap) headerActionsWrap.classList.remove("hidden");
 
   // Render Matches Schedule
+  renderRosterCodes(data);
   renderMatchesList(data.matches || [], hasAdmin);
 
   // Calculate & Render Leaderboard
@@ -1352,6 +1355,74 @@ function stepMatchScore(matchId, side, delta) {
 }
 window.stepMatchScore = stepMatchScore;
 
+// ==================== 參賽代碼（A. 名字） ====================
+// 開打後名單只會在後面新增（不會刪除或重排），所以用名單順序給字母，代號永遠不變。
+// 第 27 人起接 AA、AB…
+function playerCodeAt(i) {
+  const L = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return i < 26 ? L[i] : L[Math.floor(i / 26) - 1] + L[i % 26];
+}
+
+// 展開狀態只在這次瀏覽這場賽事時有效；每次進入賽事都從收合開始
+let rosterCodesOpen = false;
+
+function renderRosterCodes(data) {
+  const panel = document.getElementById("roster-codes-panel");
+  const list = document.getElementById("roster-codes-list");
+  if (!panel || !list) return;
+  const players = (data && data.players) || [];
+  if (!players.length) { panel.classList.add("hidden"); return; }
+  panel.classList.remove("hidden");
+
+  const isZh = (STATE.lang === "zh-TW");
+  const title = document.getElementById("roster-codes-title");
+  if (title) title.textContent = isZh ? "參賽代碼" : "Player Codes";
+  const count = document.getElementById("roster-codes-count");
+  if (count) count.textContent = `(${players.length})`;
+
+  list.textContent = "";
+  players.forEach((name, i) => {
+    const li = document.createElement("li");
+    li.className = "truncate";
+    const code = document.createElement("span");
+    code.className = "font-bold text-emerald-600 dark:text-emerald-400";
+    code.textContent = `${playerCodeAt(i)}.`;
+    li.appendChild(code);
+    li.appendChild(document.createTextNode(` ${name}`));
+    list.appendChild(li);
+  });
+
+  applyRosterCodesOpen(rosterCodesOpen);
+  lucide.createIcons({ root: panel });
+}
+
+// 對戰卡片：展開參賽代碼時，整隊改顯示代號（例如 B+A），收合時顯示原本名字（見 styles.css）
+function nameOrTeamCodes(team) {
+  const names = (team || []).filter(Boolean);
+  const players = (STATE.tournamentData && STATE.tournamentData.players) || [];
+  const codes = names.map(n => {
+    const i = players.indexOf(n);
+    return i < 0 ? escapeHTML(n) : playerCodeAt(i);
+  });
+  return `<span class="codes-hide">${escapeHTML(names[0] || "")}</span>` +
+    `<span class="codes-show text-emerald-600 dark:text-emerald-400">${codes.join("+")}</span>`;
+}
+
+function applyRosterCodesOpen(open) {
+  const matches = document.getElementById("matches-container");
+  if (matches) matches.classList.toggle("show-player-codes", !!open);
+  const list = document.getElementById("roster-codes-list");
+  const chevron = document.getElementById("roster-codes-chevron");
+  if (list) list.classList.toggle("hidden", !open);
+  if (chevron) chevron.style.transform = open ? "rotate(180deg)" : "";
+}
+
+function toggleRosterCodes() {
+  rosterCodesOpen = !rosterCodesOpen;
+  applyRosterCodesOpen(rosterCodesOpen);
+}
+window.toggleRosterCodes = toggleRosterCodes;
+
 function renderMatchesList(matches, hasAdmin = false) {
   const container = document.getElementById("matches-container");
   const validMatches = (matches || []).filter(m => !m.voided);
@@ -1402,8 +1473,8 @@ function renderMatchesList(matches, hasAdmin = false) {
               <!-- Blue Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-blue-500/15 to-blue-500/5 border border-blue-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${escapeHTML(m.blue[0] || '')}</div>
-                  ${m.blue[1] ? `<div class="truncate">${escapeHTML(m.blue[1])}</div>` : ''}
+                  <div class="truncate">${nameOrTeamCodes(m.blue)}</div>
+                  ${m.blue[1] ? `<div class="truncate codes-hide">${escapeHTML(m.blue[1])}</div>` : ''}
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
@@ -1416,8 +1487,8 @@ function renderMatchesList(matches, hasAdmin = false) {
               <!-- Red Side -->
               <div class="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-rose-500/15 to-rose-500/5 border border-rose-500/30 space-y-2 flex flex-col justify-between shadow-sm">
                 <div class="space-y-1 text-sm sm:text-base font-bold text-stone-900 dark:text-white tracking-wide">
-                  <div class="truncate">${escapeHTML(m.red[0] || '')}</div>
-                  ${m.red[1] ? `<div class="truncate">${escapeHTML(m.red[1])}</div>` : ''}
+                  <div class="truncate">${nameOrTeamCodes(m.red)}</div>
+                  ${m.red[1] ? `<div class="truncate codes-hide">${escapeHTML(m.red[1])}</div>` : ''}
                 </div>
                 <!-- Stepper Controls -->
                 <div class="flex items-center justify-center gap-1.5 pt-1.5">
@@ -1442,12 +1513,12 @@ function renderMatchesList(matches, hasAdmin = false) {
                 <div class="space-y-1">
                   <div class="flex items-center justify-between gap-1">
                     <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                      ${escapeHTML(m.blue[0] || '')}
+                      ${nameOrTeamCodes(m.blue)}
                     </div>
                     ${blueWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-blue-500 text-white shrink-0 shadow-sm">WIN</span>` : ''}
                   </div>
                   ${m.blue[1] ? `
-                  <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
+                  <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate codes-hide">
                     ${escapeHTML(m.blue[1])}
                   </div>` : ''}
                 </div>
@@ -1461,12 +1532,12 @@ function renderMatchesList(matches, hasAdmin = false) {
                 <div class="space-y-1">
                   <div class="flex items-center justify-between gap-1">
                     <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
-                      ${escapeHTML(m.red[0] || '')}
+                      ${nameOrTeamCodes(m.red)}
                     </div>
                     ${redWon ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full font-black bg-rose-500 text-white shrink-0 shadow-sm">WIN</span>` : ''}
                   </div>
                   ${m.red[1] ? `
-                  <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate">
+                  <div class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate codes-hide">
                     ${escapeHTML(m.red[1])}
                   </div>` : ''}
                 </div>
