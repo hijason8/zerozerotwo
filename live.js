@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261119-2";
+} from "./utils.js?v=20261119-3";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261119-2";
+} from "./scheduler.js?v=20261119-3";
 
 import {
   STATE,
@@ -39,12 +39,14 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261119-2";
+} from "./globals.js?v=20261119-3";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
 async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
   STATE.currentTournamentId = tId;
+  // 每次進入賽事，參賽代碼一律從收合開始
+  rosterCodesOpen = false;
   // 剛進到賽事計分頁面，默認一律為閱覽模式，需要計分等操作才手動點選「開啟操作」
   STATE.isViewerMode = true;
   if (!keepAdmin) {
@@ -1353,7 +1355,7 @@ function stepMatchScore(matchId, side, delta) {
 }
 window.stepMatchScore = stepMatchScore;
 
-// ==================== 參賽名單代號（A. 名字） ====================
+// ==================== 參賽代碼（A. 名字） ====================
 // 開打後名單只會在後面新增（不會刪除或重排），所以用名單順序給字母，代號永遠不變。
 // 第 27 人起接 AA、AB…
 function playerCodeAt(i) {
@@ -1361,7 +1363,8 @@ function playerCodeAt(i) {
   return i < 26 ? L[i] : L[Math.floor(i / 26) - 1] + L[i % 26];
 }
 
-const ROSTER_CODES_OPEN_KEY = "zz_roster_codes_open";
+// 展開狀態只在這次瀏覽這場賽事時有效；每次進入賽事都從收合開始
+let rosterCodesOpen = false;
 
 function renderRosterCodes(data) {
   const panel = document.getElementById("roster-codes-panel");
@@ -1373,7 +1376,7 @@ function renderRosterCodes(data) {
 
   const isZh = (STATE.lang === "zh-TW");
   const title = document.getElementById("roster-codes-title");
-  if (title) title.textContent = isZh ? "參賽名單" : "Roster";
+  if (title) title.textContent = isZh ? "參賽代碼" : "Player Codes";
   const count = document.getElementById("roster-codes-count");
   if (count) count.textContent = `(${players.length})`;
 
@@ -1389,13 +1392,11 @@ function renderRosterCodes(data) {
     list.appendChild(li);
   });
 
-  let open = false;
-  try { open = localStorage.getItem(ROSTER_CODES_OPEN_KEY) === "1"; } catch (e) {}
-  applyRosterCodesOpen(open);
+  applyRosterCodesOpen(rosterCodesOpen);
   lucide.createIcons({ root: panel });
 }
 
-// 對戰卡片上的名字：前面放代號（只有展開參賽名單時才顯示，見 styles.css）
+// 對戰卡片上的名字：前面放代號（只有展開參賽代碼時才顯示，見 styles.css）
 function nameWithCode(name) {
   const safe = escapeHTML(name || "");
   const players = (STATE.tournamentData && STATE.tournamentData.players) || [];
@@ -1414,10 +1415,8 @@ function applyRosterCodesOpen(open) {
 }
 
 function toggleRosterCodes() {
-  const list = document.getElementById("roster-codes-list");
-  const open = !!(list && list.classList.contains("hidden"));
-  applyRosterCodesOpen(open);
-  try { localStorage.setItem(ROSTER_CODES_OPEN_KEY, open ? "1" : "0"); } catch (e) {}
+  rosterCodesOpen = !rosterCodesOpen;
+  applyRosterCodesOpen(rosterCodesOpen);
 }
 window.toggleRosterCodes = toggleRosterCodes;
 

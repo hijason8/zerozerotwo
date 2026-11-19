@@ -255,6 +255,6 @@ textarea {
   touch-action: manipulation;
 }
 
-/* 參賽名單代號：展開「參賽名單」時，對戰卡片名字前才顯示 A. B. C. */
+/* 參賽代碼：展開「參賽代碼」時，對戰卡片名字前才顯示 A. B. C. */
 .player-code { display: none; margin-right: 0.25em; }
 #matches-container.show-player-codes .player-code { display: inline; }
