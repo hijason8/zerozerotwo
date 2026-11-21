@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261119-4";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261121-11";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261119-4";
+} from "./globals.js?v=20261121-11";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -136,7 +136,7 @@ const isTransientPlayer = (name) => {
         });
       }
 
-      // 6. 社團中繼資料庫 (clubs_metadata - 包含所有公開與私密社團)
+      // 6. 社團中繼資料庫 (clubs_metadata - 包含所有公開與隱藏社團)
       try {
         const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
         Object.keys(localMeta).forEach(k => {
@@ -185,12 +185,12 @@ const isTransientPlayer = (name) => {
         }
       });
 
-      // 隱私過濾：私密社團若不在使用者的 myClubs 且非當前正在造訪的社團，則排除
+      // 隱私過濾：隱藏社團若不在使用者的 myClubs 且非當前正在造訪的社團，則排除
       const currentActive = (STATE.currentClub || "").trim();
 
       const filteredClubs = Array.from(validClubsSet).filter(c => {
         if (!c) return false;
-        // 最高權限管理者可以看到全站所有社團（包含私密社團）
+        // 最高權限管理者可以看到全站所有社團（包含隱藏社團）
         if (STATE.isAdmin) return true;
         if (typeof isClubPrivate === "function" && isClubPrivate(c)) {
           return userMyClubsList.includes(c) || currentActive === c;
@@ -556,7 +556,7 @@ const isTransientPlayer = (name) => {
         .filter(c => c && c.trim())
         .map(c => c.trim());
 
-      // 篩選社團：非 Admin 且設定為私密者，僅自己已加入的社團可見；公開社團皆可探索
+      // 篩選社團：非 Admin 且設定為隱藏者，僅自己已加入的社團可見；公開社團皆可探索
       let clubs = uniqueClubs.filter(c => {
         if (!c) return false;
         if (STATE.isAdmin) return true;
@@ -602,12 +602,10 @@ const isTransientPlayer = (name) => {
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="text-xs sm:text-sm font-bold truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition">${escapeHTML(c)}</span>
                   ${isMyClub ? `<span class="text-[10px] px-1.5 py-0.2 rounded font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 shrink-0">${isZh ? '我的社團' : 'Joined'}</span>` : ''}
-                  ${isPriv ? `<span class="text-[10px] px-1 py-0.2 rounded font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">${isZh ? '私密' : 'Private'}</span>` : ''}
+                  ${isPriv ? `<span class="text-[10px] px-1 py-0.2 rounded font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">${isZh ? '隱藏社團' : 'Hidden club'}</span>` : ''}
                 </div>
                 <div class="flex items-center gap-2 text-[10px] sub-text mt-0.5">
                   <span>👥 ${memberCount} ${isZh ? '成員' : 'members'}</span>
-                  <span>•</span>
-                  <span>${hasPwd ? (isZh ? '🔒 需密碼' : '🔒 Password') : (isZh ? '公開' : 'Public')}</span>
                 </div>
               </div>
             </div>
@@ -3083,7 +3081,7 @@ const isTransientPlayer = (name) => {
                     <span class="text-xs sm:text-sm font-bold">${escapeHTML(displayName)}</span>
                     ${!isGeneral ? `
                       <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${isPrivate ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'}">
-                        ${isPrivate ? (STATE.lang === 'zh-TW' ? '🔒 私密' : '🔒 Private') : (STATE.lang === 'zh-TW' ? '🌐 公開' : '🌐 Public')}
+                        ${isPrivate ? (STATE.lang === 'zh-TW' ? '🔒 隱藏社團' : '🔒 Hidden club') : (STATE.lang === 'zh-TW' ? '🌐 公開' : '🌐 Public')}
                       </span>
                       <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${hasPwd ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-stone-500/10 sub-text border'}">
                         ${hasPwd ? t("adminHasPassword") : t("adminNoPassword")}
