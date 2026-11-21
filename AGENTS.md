@@ -120,7 +120,15 @@
 
 ---
 
-## 七、 樣式檔 (Tailwind) 維護規則
+## 七、 英文用詞統一
+* **一整場（賽事／球局）＝ Event**：Create Event、Event Link、End Event、Hidden Event、Event Archives。
+* **其中一局（一局／單場）＝ Game**：Add Game、Games Done、Void Game、Game 3。
+* 不再使用 Tournament、Match、Session、Activity、Practice 指稱上面兩者。
+* 臨打頁＝ **Drop-in Play**；我的關注＝ **Following**；隱藏社團＝ **Hidden club**；社團公開設定＝ **Visibility**。
+
+---
+
+## 八、 樣式檔 (Tailwind) 維護規則
 * 網站不再使用 Tailwind CDN（`cdn.tailwindcss.com` 會在每支手機上現場編譯，拖慢開啟速度），改為預先產生的 `tailwind.css`。
 * **新增或修改 HTML / JS 裡的 Tailwind class 後，必須執行 `./build-css.sh` 重新產生 `tailwind.css`，並一起 commit**，否則新 class 不會有樣式。
 * Class 名稱不可用字串拼接產生（例如 `bg-${color}-500`），必須寫出完整名稱，產生器才找得到。

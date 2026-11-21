@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261121-12";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261121-14";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261121-12";
+} from "./globals.js?v=20261121-14";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -117,7 +117,7 @@ export function handleQuickCodeModalSubmit(e) {
   const STATE = window.STATE || {};
   if (!val) {
     if (typeof window.showToast === "function") {
-      window.showToast(STATE.lang === "zh-TW" ? "請輸入賽事代碼" : "Please enter tournament code", "warning");
+      window.showToast(STATE.lang === "zh-TW" ? "請輸入賽事代碼" : "Please enter an event code", "warning");
     }
     return;
   }
@@ -133,7 +133,7 @@ export function handleQuickCodeSubmit(e) {
   const STATE = window.STATE || {};
   if (!val) {
     if (typeof window.showToast === "function") {
-      window.showToast(STATE.lang === "zh-TW" ? "請輸入賽事代碼" : "Please enter tournament code", "warning");
+      window.showToast(STATE.lang === "zh-TW" ? "請輸入賽事代碼" : "Please enter an event code", "warning");
     }
     return;
   }
@@ -243,7 +243,7 @@ export function renderTournamentCard(tData, opts = {}) {
             <div class="flex items-center justify-between text-[11px] sub-text font-mono pt-1.5 border-t border-stone-200/70 dark:border-slate-800/70">
               <span class="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold">
                 <i data-lucide="${isFinished ? 'check-circle' : 'activity'}" class="w-3 h-3"></i>
-                ${isFinished ? (STATE.lang === 'zh-TW' ? '練球已存檔' : 'Completed') : (STATE.lang === 'zh-TW' ? '自由暢打中' : 'In Practice')}
+                ${isFinished ? (STATE.lang === 'zh-TW' ? '練球已存檔' : 'Completed') : (STATE.lang === 'zh-TW' ? '自由暢打中' : 'In Progress')}
               </span>
               <span class="font-bold text-stone-700 dark:text-slate-300">${pCount} ${STATE.lang === 'zh-TW' ? '人出席' : 'attendees'}</span>
             </div>
@@ -373,7 +373,7 @@ export function displayHubTournamentsList(list) {
     emptyEl.classList.toggle("hidden", !allEmpty);
     emptyEl.innerHTML = allEmpty ? `
       <div class="glass-card rounded-2xl p-6 sm:p-8 text-center border">
-        <h4 class="text-sm sm:text-base font-bold font-display">${isZh ? '目前沒有臨打活動' : 'No drop-in games right now'}</h4>
+        <h4 class="text-sm sm:text-base font-bold font-display">${isZh ? '目前沒有臨打活動' : 'No drop-in events right now'}</h4>
       </div>
     ` : "";
   }
@@ -457,7 +457,7 @@ export async function deleteTournament(id, skipConfirm = false) {
   if (isFinished && !STATE.isAdmin) {
     if (typeof window.showToast === "function") {
       window.showToast(
-        STATE.lang === "zh-TW" ? "🔒 完賽賽事需進入管理員後台才能刪除" : "🔒 Admin required to delete completed tournaments",
+        STATE.lang === "zh-TW" ? "🔒 完賽賽事需進入管理員後台才能刪除" : "🔒 Only the admin can delete finished events",
         "error"
       );
     }
@@ -477,7 +477,7 @@ export async function deleteTournament(id, skipConfirm = false) {
   if (!skipConfirm) {
     const confirmMsg = STATE.lang === "zh-TW"
       ? `確定要刪除此賽事嗎，比賽紀錄不會歸檔紀錄？`
-      : `Delete this tournament? Its games won't be saved.`;
+      : `Delete this event? Its games won't be saved.`;
     if (!confirm(confirmMsg)) return;
   }
 

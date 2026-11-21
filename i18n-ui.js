@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261121-12";
+import { STATE, t } from "./globals.js?v=20261121-14";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -212,7 +212,7 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-oa-friend-banner-text": [
     "加入 ZZTWO 官方帳號好友，在 LINE 裡就能查活動、收賽況",
-    "Add ZZTWO on LINE to see games and get updates"
+    "Add ZZTWO on LINE to see events and get updates"
   ],
   "t-oa-friend-banner-btn": [
     "加入好友",
@@ -256,7 +256,7 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-label-mode": [
     "5. 賽事模式選擇",
-    "5. Match Mode"
+    "5. Mode"
   ],
   "t-mode-fair-title": [
     "平均模式",
@@ -272,7 +272,7 @@ export const I18N_CUSTOM_TEXTS = {
   ],
   "t-lobby-btn-delete": [
     "取消球局",
-    "Cancel Game"
+    "Cancel Event"
   ],
   "t-modal-duration-title": [
     "調整比賽時間",

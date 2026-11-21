@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261121-12";
+import { escapeHTML, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261121-14";
 
 // 產生不重複的賽事代碼：建立前先確認代碼沒人用過，避免覆蓋既有賽事
 async function generateUniqueTournamentId() {
@@ -35,7 +35,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261121-12";
+} from "./scheduler.js?v=20261121-14";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -52,7 +52,7 @@ import {
   addMyTournamentId,
   addCreatedTournamentId,
   openClubSpace
-} from "./globals.js?v=20261121-12";
+} from "./globals.js?v=20261121-14";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -400,7 +400,7 @@ const isTransientPlayer = (name) => {
           noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20";
           noticeEl.innerHTML = `
             <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0 text-rose-500"></i>
-            <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人單場輪替單打，板凳等候時間較長。若有多面場地建議分開建立賽事！` : `${count} players on 1 court for singles. Long waits. With more courts, create separate games.`}</span>
+            <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人單場輪替單打，板凳等候時間較長。若有多面場地建議分開建立賽事！` : `${count} players on 1 court for singles. Long waits. With more courts, create separate events.`}</span>
           `;
           noticeEl.classList.remove("hidden");
         }
@@ -434,7 +434,7 @@ const isTransientPlayer = (name) => {
         noticeEl.className = "text-xs rounded-xl p-2.5 flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20";
         noticeEl.innerHTML = `
           <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0 text-rose-500"></i>
-          <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），單場輪替易連休 3 局以上手感變冷。若有多面場地建議分開建立賽事！` : `${count} players (${count - 4} resting). Long waits. With more courts, create separate games.`}</span>
+          <span><b>${isZh ? "🟠 板凳人數過多" : "🟠 High Bench Warning"}</b>：${isZh ? `目前 ${count} 人（板凳 ${count - 4} 人），單場輪替易連休 3 局以上手感變冷。若有多面場地建議分開建立賽事！` : `${count} players (${count - 4} resting). Long waits. With more courts, create separate events.`}</span>
         `;
         noticeEl.classList.remove("hidden");
       }
@@ -658,7 +658,7 @@ const isTransientPlayer = (name) => {
       const isZh = (STATE.lang === "zh-TW");
       const n = (wrapPrivacy && wrapPrivacy.classList.contains("hidden")) ? 3 : 4;
       if (label) label.innerText = isZh ? `${n}. 開局方式` : `${n}. Entry Format`;
-      if (modeLabel) modeLabel.innerText = isZh ? `${n + 1}. 賽事模式選擇` : `${n + 1}. Match Mode`;
+      if (modeLabel) modeLabel.innerText = isZh ? `${n + 1}. 賽事模式選擇` : `${n + 1}. Mode`;
     }
     window.updateCreateNumbering = updateCreateNumbering;
 
@@ -673,8 +673,8 @@ const isTransientPlayer = (name) => {
       const hint = document.getElementById("create-privacy-hint");
       const isZh = (window.STATE?.lang || "zh-TW") === "zh-TW";
       if (hint) hint.innerText = isPrivate
-        ? (isZh ? "不會出現在「臨打活動」，只有拿到分享連結的人能進入" : "Hidden from Drop-in Games. Only people with the link can join.")
-        : (isZh ? "會出現在「臨打活動」，大家都看得到" : "Shown in Drop-in Games for everyone.");
+        ? (isZh ? "不會出現在「臨打活動」，只有拿到分享連結的人能進入" : "Hidden from Drop-in Play. Only people with the link can join.")
+        : (isZh ? "會出現在「臨打活動」，大家都看得到" : "Shown in Drop-in Play for everyone.");
     }
     window.setCreatePrivacy = setCreatePrivacy;
     window.onClubSelectChange = onClubSelectChange;
@@ -793,7 +793,7 @@ const isTransientPlayer = (name) => {
         showToast(
           STATE.lang === "zh-TW"
             ? `⚠️ 單場${isSingles ? "單打" : "輪替"}模式建議上限為 ${MAX_ROTATING_PLAYERS} 人！若人數更多建議分開建立賽事。`
-            : `⚠️ Max ${MAX_ROTATING_PLAYERS} players for single-court rotating/singles! Consider splitting into separate tournaments.`,
+            : `⚠️ Max ${MAX_ROTATING_PLAYERS} players for single-court rotating/singles! Consider splitting into separate events.`,
           "warning"
         );
       } else if (unique.length > MAX_ROSTER_LIMIT) {
@@ -1070,7 +1070,7 @@ const isTransientPlayer = (name) => {
           wrapClub.innerHTML = `
             <div class="flex items-center justify-between mb-1">
               <label class="block text-xs sm:text-sm font-semibold">${STATE.lang === "zh-TW" ? "2. 所屬社團" : "2. Club"}</label>
-              <span class="text-[10px] px-2 py-0.5 rounded-full card-inner border font-bold text-amber-600 dark:text-amber-400">${STATE.lang === "zh-TW" ? "社團專屬球局" : "Club game"}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full card-inner border font-bold text-amber-600 dark:text-amber-400">${STATE.lang === "zh-TW" ? "社團專屬球局" : "Club event"}</span>
             </div>
             <div class="p-3 rounded-xl card-inner border flex items-center justify-between">
               <div class="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
@@ -1180,7 +1180,7 @@ const isTransientPlayer = (name) => {
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.classList.add("opacity-60", "cursor-not-allowed");
-        submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>${STATE.lang === "zh-TW" ? (isReg ? "建立中..." : "正在排賽開打...") : (isReg ? "Confirming..." : "Starting tournament...")}</span>`;
+        submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>${STATE.lang === "zh-TW" ? (isReg ? "建立中..." : "正在排賽開打...") : (isReg ? "Confirming..." : "Starting event...")}</span>`;
         lucide.createIcons();
       }
 
@@ -1206,7 +1206,7 @@ const isTransientPlayer = (name) => {
         const nameInput = document.getElementById("create-name");
         const name = nameInput ? nameInput.value.trim() : "";
         if (!name) {
-          showToast(STATE.lang === "zh-TW" ? "請輸入賽事名稱！" : "Please enter tournament name!", "warning");
+          showToast(STATE.lang === "zh-TW" ? "請輸入賽事名稱！" : "Please enter an event name!", "warning");
           if (nameInput) nameInput.focus();
           return;
         }
@@ -1425,7 +1425,7 @@ const isTransientPlayer = (name) => {
 
       } catch (err) {
         console.error("[CreateTournament Error]:", err);
-        showToast(STATE.lang === "zh-TW" ? `❌ 建立賽事失敗: ${err.message || err}` : `❌ Failed to create tournament: ${err.message || err}`, "error");
+        showToast(STATE.lang === "zh-TW" ? `❌ 建立賽事失敗: ${err.message || err}` : `❌ Failed to create event: ${err.message || err}`, "error");
       } finally {
         const submitBtn = document.getElementById("btn-submit-create");
         if (submitBtn) {

@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261121-12";
+} from "./utils.js?v=20261121-14";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261121-12";
+} from "./scheduler.js?v=20261121-14";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261121-12";
+} from "./globals.js?v=20261121-14";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -85,7 +85,7 @@ async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
         const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
         delete local[tId];
         safeSetLocal("pb_tournaments", JSON.stringify(local));
-        showToast(STATE.lang === "zh-TW" ? "此賽事已不存在或已被刪除" : "Tournament not found or deleted", "error");
+        showToast(STATE.lang === "zh-TW" ? "此賽事已不存在或已被刪除" : "Event not found or deleted", "error");
         navigateTo("hub");
       }
     });
@@ -125,7 +125,7 @@ function handleEntryAutoFollow() {
   }
   if (!isFollowing(tData)) setFollowing(tData, true);
   updateFollowButton(tData);
-  showToast(STATE.lang === "zh-TW" ? "已加入關注，可在「我的關注」找到" : "Following. Find it in My Following.", "success");
+  showToast(STATE.lang === "zh-TW" ? "已加入關注，可在「我的關注」找到" : "Added to Following.", "success");
 }
 window.handleEntryAutoFollow = handleEntryAutoFollow;
 
@@ -235,7 +235,7 @@ function toggleFollowCurrentTournament() {
   setFollowing(tData, next);
   updateFollowButton(tData);
   showToast(next
-    ? (isZh ? "已加入關注，可在「我的關注」找到" : "Following. Find it in My Following.")
+    ? (isZh ? "已加入關注，可在「我的關注」找到" : "Added to Following.")
     : (isZh ? "已取消關注" : "Unfollowed"), "success");
 }
 window.toggleFollowCurrentTournament = toggleFollowCurrentTournament;
@@ -516,7 +516,7 @@ function renderLiveUI(data) {
   const btnCompleteReturn = document.getElementById("t-btn-complete-and-return");
   if (btnCompleteReturn) btnCompleteReturn.innerText = t("finishAndReturnBtn");
   const finishPracticeText = document.getElementById("t-btn-finish-practice");
-  if (finishPracticeText) finishPracticeText.innerText = isZh ? "結束練球" : "Finish Practice";
+  if (finishPracticeText) finishPracticeText.innerText = isZh ? "結束練球" : "End Event";
   const btnLiveDelete = document.getElementById("t-btn-live-delete");
   if (btnLiveDelete) btnLiveDelete.innerText = t("deleteTournamentBtn");
   const liveCopyReportText = document.getElementById("text-live-copy-report");
@@ -656,7 +656,7 @@ async function registerPlayerToTournament(playerName) {
   const tData = STATE.tournamentData;
   if (!tData || !tData.id) return;
   if (tData.status !== "registering") {
-    showToast(STATE.lang === "zh-TW" ? "該賽事已截止報名或已開賽！" : "Tournament registration closed!", "warning");
+    showToast(STATE.lang === "zh-TW" ? "該賽事已截止報名或已開賽！" : "Sign-up is closed!", "warning");
     return;
   }
 
@@ -743,7 +743,7 @@ async function unregisterPlayerFromTournament(playerName) {
   const tData = STATE.tournamentData;
   if (!tData || !tData.id) return;
   if (tData.status !== "registering") {
-    showToast(STATE.lang === "zh-TW" ? "賽事已開打，無法取消報名！" : "Tournament has already started!", "warning");
+    showToast(STATE.lang === "zh-TW" ? "賽事已開打，無法取消報名！" : "This event has already started!", "warning");
     return;
   }
 
@@ -998,7 +998,7 @@ function promptConfirmStartTournament(startMode = "schedule") {
   // 檢查開賽門檻
   if (startMode === "practice") {
     if (n < 1) {
-      showToast(isZh ? "至少需 1 位選手才能開始練球！" : "At least 1 player needed to start practice!", "warning");
+      showToast(isZh ? "至少需 1 位選手才能開始練球！" : "Add at least 1 player to start!", "warning");
       return;
     }
   } else {
@@ -1018,7 +1018,7 @@ function promptConfirmStartTournament(startMode = "schedule") {
   if (!modal) {
     const confirmMsg = startMode === "practice"
       ? (isZh ? `🏓 確定要以目前 ${n} 人開啟自由練球模式嗎？\n（開賽後將結束報名接龍）` : `Start free play with ${n} ${unitLabel}?\n(Sign-up will close)`)
-      : (isZh ? `🎯 確認全員到齊，正式排賽開打？\n（共 ${n} ${unitLabel}，開賽後將正式生成對戰賽程並結束報名）` : `Start tournament with ${n} ${unitLabel}?`);
+      : (isZh ? `🎯 確認全員到齊，正式排賽開打？\n（共 ${n} ${unitLabel}，開賽後將正式生成對戰賽程並結束報名）` : `Start the event with ${n} ${unitLabel}?`);
     if (confirm(confirmMsg)) {
       startTournamentFromLobby(startMode, true);
     }
@@ -1041,7 +1041,7 @@ function promptConfirmStartTournament(startMode = "schedule") {
   if (startMode === "practice") {
     if (iconBox) iconBox.className = "w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0";
     if (iconEl) iconEl.setAttribute("data-lucide", "activity");
-    if (titleEl) titleEl.innerText = isZh ? "確認開啟自由模式？" : "Confirm Free Practice Mode?";
+    if (titleEl) titleEl.innerText = isZh ? "確認開啟自由模式？" : "Start in Free Play?";
     if (subtitleEl) subtitleEl.innerText = isZh ? "不排對戰賽程，以現有名冊直接暢打" : "Start playing freely with current players";
     if (summaryCard) {
       summaryCard.innerHTML = `
@@ -1051,7 +1051,7 @@ function promptConfirmStartTournament(startMode = "schedule") {
             </div>
             <div class="flex items-center justify-between pt-1">
               <span class="sub-text">${isZh ? "比賽模式" : "Mode"}</span>
-              <span class="font-bold text-teal-600 dark:text-teal-400">${isZh ? "自由練球 / 隨機暢打" : "Free Practice"}</span>
+              <span class="font-bold text-teal-600 dark:text-teal-400">${isZh ? "自由練球 / 隨機暢打" : "Free Play"}</span>
             </div>
           `;
     }
@@ -1069,8 +1069,8 @@ function promptConfirmStartTournament(startMode = "schedule") {
 
     if (iconBox) iconBox.className = "w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0";
     if (iconEl) iconEl.setAttribute("data-lucide", "rocket");
-    if (titleEl) titleEl.innerText = isZh ? "確認全員到齊，排賽開打？" : "Ready to Start Tournament?";
-    if (subtitleEl) subtitleEl.innerText = isZh ? "即將正式生成賽程並鎖定報名" : "Matches will be generated and sign-up closed";
+    if (titleEl) titleEl.innerText = isZh ? "確認全員到齊，排賽開打？" : "Ready to Start?";
+    if (subtitleEl) subtitleEl.innerText = isZh ? "即將正式生成賽程並鎖定報名" : "Games will be scheduled and sign-up will close";
 
     const previewList = players.slice(0, 5).join("、") + (n > 5 ? ` 等共 ${n} 人` : "");
 
@@ -1099,7 +1099,7 @@ function promptConfirmStartTournament(startMode = "schedule") {
             <span>${isZh ? "開賽後將關閉接龍報名，請確認全員皆已到齊！" : "Sign-up will close. Confirm all players have arrived!"}</span>
           `;
     }
-    if (confirmBtnText) confirmBtnText.innerText = isZh ? "確認全員到齊，開賽！" : "Confirm & Start Tournament";
+    if (confirmBtnText) confirmBtnText.innerText = isZh ? "確認全員到齊，開賽！" : "Start Event";
   }
 
   modal.classList.remove("hidden");
@@ -1136,7 +1136,7 @@ async function startTournamentFromLobby(startMode = 'schedule', confirmed = fals
   // 1. 若點選「自由練球 / 暢打」
   if (startMode === 'practice') {
     if (players.length < 1) {
-      showToast(isZh ? "至少需 1 位選手才能開始練球！" : "At least 1 player needed to start practice!", "warning");
+      showToast(isZh ? "至少需 1 位選手才能開始練球！" : "Add at least 1 player to start!", "warning");
       return;
     }
 
@@ -1307,7 +1307,7 @@ async function cancelRegistrationTournament() {
   const tData = STATE.tournamentData;
   const tName = tData ? tData.name : tId;
   const isZh = (STATE.lang === "zh-TW");
-  if (!confirm(isZh ? `確定要取消並刪除報名球局嗎？` : `Cancel & delete tournament ?\n(This cannot be undone)`)) {
+  if (!confirm(isZh ? `確定要取消並刪除報名球局嗎？` : `Cancel and delete this event?\n(This cannot be undone)`)) {
     return;
   }
   await deleteTournament(tId, true);
@@ -1334,7 +1334,7 @@ async function completeTournamentAndReturn() {
   } else {
     confirmMsg = STATE.lang === "zh-TW"
       ? `確認完賽嗎？\n\n⚠️ 提醒：完賽後賽事將全面凍結，無法再修正分數！`
-      : `End the tournament?\n\n⚠️ Scores will be locked after this.`;
+      : `End the event?\n\n⚠️ Scores will be locked after this.`;
   }
 
   if (!confirm(confirmMsg)) return;
@@ -1462,7 +1462,7 @@ function renderMatchesList(matches, hasAdmin = false) {
       container.innerHTML = `
             <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-2 border">
               <p class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? '自由模式進行中' : 'Free Play in Progress'}</p>
-              <p class="sub-text text-xs">${isZh ? '點擊上方開啟操作，可彈性加賽與結束今日練球' : 'Enable controls above to add matches or finish practice.'}</p>
+              <p class="sub-text text-xs">${isZh ? '點擊上方開啟操作，可彈性加賽與結束今日練球' : 'Enable controls above to add games or end the event.'}</p>
             </div>
           `;
       lucide.createIcons();
@@ -1474,8 +1474,8 @@ function renderMatchesList(matches, hasAdmin = false) {
             <div class="w-12 h-12 rounded-2xl card-inner sub-text flex items-center justify-center mx-auto text-emerald-500 border shadow-sm">
               <i data-lucide="swords" class="w-6 h-6"></i>
             </div>
-            <p class="font-bold text-sm sm:text-base">${STATE.lang === 'zh-TW' ? '尚未有賽程' : 'No matches yet'}</p>
-            <p class="sub-text text-xs">${hasAdmin ? (STATE.lang === 'zh-TW' ? '點擊上方「➕ 新增場次」開始開局記分！' : 'Click "➕ Add Match" above to start games!') : (STATE.lang === 'zh-TW' ? '請等待管理員開局...' : 'Waiting for host to start games...')}</p>
+            <p class="font-bold text-sm sm:text-base">${STATE.lang === 'zh-TW' ? '尚未有賽程' : 'No games yet'}</p>
+            <p class="sub-text text-xs">${hasAdmin ? (STATE.lang === 'zh-TW' ? '點擊上方「➕ 新增場次」開始開局記分！' : 'Tap "➕ Add Game" above to start!') : (STATE.lang === 'zh-TW' ? '請等待管理員開局...' : 'Waiting for host to start games...')}</p>
           </div>
         `;
     lucide.createIcons();
@@ -1584,7 +1584,7 @@ function renderMatchesList(matches, hasAdmin = false) {
         footerHTML = `
               <div class="flex items-center justify-end gap-2 pt-1 border-t border-stone-200 dark:border-slate-800/60 text-[11px]">
                 <div class="flex items-center gap-1.5 shrink-0">
-                  <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 active:scale-95 text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Match">
+                  <button onclick="toggleVoidMatch(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 active:scale-95 text-rose-500 hover:bg-rose-500/10 border border-rose-500/20" title="Void Game">
                     ${t("voidMatchBtn")}
                   </button>
                   <button onclick="saveMatchScore(${Number(m.id)})" class="px-3.5 py-1.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 ${showEdit ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white dark:text-slate-950'}">
@@ -1645,15 +1645,15 @@ function renderMatchesList(matches, hasAdmin = false) {
             </svg>
           </div>
           <div>
-            <h4 class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? "所有場次比分已登錄完成！" : "All matches have been scored!"}</h4>
+            <h4 class="font-bold text-sm sm:text-base text-stone-900 dark:text-white">${isZh ? "所有場次比分已登錄完成！" : "All games have been scored!"}</h4>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2 w-full sm:w-auto shrink-0">
           <button type="button" onclick="openAddMatchModal()" class="px-4 py-2.5 rounded-xl border-2 border-amber-500/60 bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition cursor-pointer">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i> ${isZh ? "新增場次" : "Add Match"}
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> ${isZh ? "新增場次" : "Add Game"}
           </button>
           <button type="button" onclick="completeTournamentAndReturn()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer">
-            <i data-lucide="check-circle-2" class="w-4 h-4"></i> ${isZh ? "結束賽事" : "End Tournament"}
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i> ${isZh ? "結束賽事" : "End Event"}
           </button>
         </div>
       </div>
@@ -1706,7 +1706,7 @@ async function toggleVoidMatch(matchId) {
   }
 
   renderLiveUI(tData);
-  showToast(STATE.lang === "zh-TW" ? "已取消該場賽事" : "Match voided", "success");
+  showToast(STATE.lang === "zh-TW" ? "已取消該場賽事" : "Game voided", "success");
 }
 window.toggleVoidMatch = toggleVoidMatch;
 
@@ -2322,7 +2322,7 @@ async function saveMatchScore(matchId) {
   renderLiveUI(tObj);
   // 右下角綠色提示：第一次儲存／修改已存分數／恢復已取消的局
   const isZhToast = STATE.lang === "zh-TW";
-  if (wasVoided) showToast(isZhToast ? "已恢復賽事" : "Match restored", "success");
+  if (wasVoided) showToast(isZhToast ? "已恢復賽事" : "Game restored", "success");
   else if (wasSaved) showToast(isZhToast ? "修改完畢" : "Score updated", "success");
   else showToast(isZhToast ? "儲存完畢" : "Score saved", "success");
 
