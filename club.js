@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261121-12";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261121-13";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261121-12";
+} from "./globals.js?v=20261121-13";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -650,7 +650,7 @@ const isTransientPlayer = (name) => {
       }
       if (pwdInput) {
         pwdInput.value = "";
-        pwdInput.placeholder = isZh ? "設定密碼（選填，保護社團資訊修改權限）" : "Set password (optional, protects club info)";
+        pwdInput.placeholder = isZh ? "設定密碼（選填，保護社團資訊修改權限）" : "Set a password (optional)";
       }
       if (descInput) {
         descInput.value = "";
@@ -705,7 +705,7 @@ const isTransientPlayer = (name) => {
       }
 
       if (titleEl) titleEl.innerText = isZh ? "修改社團資訊" : "Edit Club Info";
-      if (descEl) descEl.innerText = isZh ? "更新社團名稱、簡介、公開設定與密碼" : "Update name, description, privacy and password";
+      if (descEl) descEl.innerText = isZh ? "更新社團名稱、簡介、公開設定與密碼" : "Update name, description, visibility and password";
       // 社團名稱可以直接修改（有密碼的社團，進來前已驗證過密碼）
       if (nameInput) {
         nameInput.value = targetClub;
@@ -866,7 +866,7 @@ const isTransientPlayer = (name) => {
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok || !data.ok) {
-            showToast(data.error || (isZh ? "儲存失敗" : "Save failed"), "error");
+            showToast(isZh ? (data.error || "儲存失敗") : (res.status === 403 ? "Incorrect club password" : "Save failed"), "error");
             return;
           }
           if (data.meta) metaObj = data.meta;
@@ -899,7 +899,11 @@ const isTransientPlayer = (name) => {
               return;
             }
             if (!res.ok || !data.ok) {
-              showToast(data.error || (isZh ? "改名失敗" : "Rename failed"), "error");
+              // 後端錯誤訊息是中文，英文介面依狀態碼顯示
+              showToast(isZh ? (data.error || "改名失敗")
+                : res.status === 409 ? "Another club already uses this name"
+                : res.status === 403 ? "Incorrect club password"
+                : "Rename failed", "error");
               return;
             }
           } catch (err) {

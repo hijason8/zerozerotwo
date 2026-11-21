@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261121-12";
+} from "./utils.js?v=20261121-13";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261121-12";
+} from "./scheduler.js?v=20261121-13";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261121-12";
+} from "./globals.js?v=20261121-13";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -125,7 +125,7 @@ function handleEntryAutoFollow() {
   }
   if (!isFollowing(tData)) setFollowing(tData, true);
   updateFollowButton(tData);
-  showToast(STATE.lang === "zh-TW" ? "已加入關注，可在「我的關注」找到" : "Following. Find it in My Following.", "success");
+  showToast(STATE.lang === "zh-TW" ? "已加入關注，可在「我的關注」找到" : "Added to Following.", "success");
 }
 window.handleEntryAutoFollow = handleEntryAutoFollow;
 
@@ -235,7 +235,7 @@ function toggleFollowCurrentTournament() {
   setFollowing(tData, next);
   updateFollowButton(tData);
   showToast(next
-    ? (isZh ? "已加入關注，可在「我的關注」找到" : "Following. Find it in My Following.")
+    ? (isZh ? "已加入關注，可在「我的關注」找到" : "Added to Following.")
     : (isZh ? "已取消關注" : "Unfollowed"), "success");
 }
 window.toggleFollowCurrentTournament = toggleFollowCurrentTournament;
