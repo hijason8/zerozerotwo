@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261119-4";
+} from "./utils.js?v=20261121-1";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261119-4";
+} from "./scheduler.js?v=20261121-1";
 
 import {
   STATE,
@@ -39,12 +39,14 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261119-4";
+} from "./globals.js?v=20261121-1";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
 async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
   STATE.currentTournamentId = tId;
+  // 已經離開「從連結打開的那場」，之後進的賽事都不算從連結進來
+  if (STATE.entryTournamentId && STATE.entryTournamentId !== tId) STATE.entryTournamentId = null;
   // 每次進入賽事，參賽代碼一律從收合開始
   rosterCodesOpen = false;
   // 剛進到賽事計分頁面，默認一律為閱覽模式，需要計分等操作才手動點選「開啟操作」
@@ -73,10 +75,11 @@ async function loadLiveTournament(tId, pushHistory = true, keepAdmin = false) {
         STATE.tournamentData = snapshot.val();
         saveToLocalTournaments(STATE.tournamentData);
         renderLiveUI(STATE.tournamentData);
-        // 每次打開賽事頁：還沒關注就提醒一次
+        // 每次打開賽事頁：從連結進來 → 自動關注；其他情況還沒關注就提醒一次
         if (!followHintShown) {
           followHintShown = true;
-          showFollowHint(tId);
+          if (STATE.entryTournamentId === tId) handleEntryAutoFollow();
+          else showFollowHint(tId);
         }
       } else {
         const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
@@ -100,6 +103,31 @@ function showFollowHint(tId) {
     }
   }, 800);
 }
+
+// 從賽事連結進來（網站一打開網址就帶著這場的編號）＝被邀請 → 已登入 LINE 就自動關注
+// 等 LINE 登入確認、關注紀錄從雲端載入後才判斷（STATE.loginChecked），避免蓋掉在別支手機取消的紀錄
+// 自己取消過的（紀錄 = 0）不再自動關注，改顯示一般提醒
+function handleEntryAutoFollow() {
+  const tId = STATE.entryTournamentId;
+  const tData = STATE.tournamentData;
+  if (!tId || !STATE.loginChecked || !tData || tData.id !== tId || STATE.currentTournamentId !== tId) return;
+  STATE.entryTournamentId = null;
+  if (!STATE.lineUserId) {
+    showFollowHint(tId);
+    return;
+  }
+  const rec = loadMyRecordsFromCache();
+  const following = (rec && rec.following) || {};
+  const unfollowedBefore = Object.prototype.hasOwnProperty.call(following, tId) && !(Number(following[tId]) > 0);
+  if (unfollowedBefore) {
+    showFollowHint(tId);
+    return;
+  }
+  if (!isFollowing(tData)) setFollowing(tData, true);
+  updateFollowButton(tData);
+  showToast(STATE.lang === "zh-TW" ? "已加入關注，可在「我的關注」找到" : "Following. Find it in My Following.", "success");
+}
+window.handleEntryAutoFollow = handleEntryAutoFollow;
 
 function loadFromLocalCache(tId) {
   const local = JSON.parse(localStorage.getItem("pb_tournaments") || "{}");
@@ -170,10 +198,8 @@ function setFollowing(tOrId, on) {
   loadMyRecordsFromCache();
   if (!STATE.myRecords) STATE.myRecords = { following: {} };
   if (!STATE.myRecords.following) STATE.myRecords.following = {};
-  // 取消關注：社團賽事記 0（否則會因為社團預設又被算回關注）；其他賽事直接刪掉紀錄
-  let value = null;
-  if (on) value = Date.now();
-  else if (isMyClubTournament(t)) value = 0;
+  // 取消關注一律記 0：社團賽事才不會因為社團預設又算回關注，從連結再進來也不會又被自動關注
+  const value = on ? Date.now() : 0;
   if (value === null) delete STATE.myRecords.following[tId];
   else STATE.myRecords.following[tId] = value;
   try { localStorage.setItem(`pb_my_records_${STATE.lineUserId}`, JSON.stringify(STATE.myRecords)); } catch (e) { }

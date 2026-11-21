@@ -28,6 +28,10 @@
         }
       }
     },
+    "club_renames": {
+      ".read": true,
+      ".write": false
+    },
     "club_passwords": {
       ".read": false,
       ".write": false
@@ -48,6 +52,9 @@
         },
         "description": {
           ".validate": "newData.isString() && newData.val().length <= 200"
+        },
+        "creator": {
+          ".validate": "newData.isString() && newData.val().length <= 20"
         },
         "createdAt": {
           ".validate": "newData.isNumber()"

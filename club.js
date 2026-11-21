@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261119-4";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261121-1";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261119-4";
+} from "./globals.js?v=20261121-1";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -658,6 +658,8 @@ const isTransientPlayer = (name) => {
         descInput.value = "";
         descInput.placeholder = isZh ? "上限200字" : "Max 200 characters";
       }
+      const creatorInput = document.getElementById("modal-create-club-creator");
+      if (creatorInput) creatorInput.value = "";
       if (submitTextEl) submitTextEl.innerText = isZh ? "確認建立" : "Create";
       const submitIconEl = document.getElementById("modal-create-club-submit-icon");
       if (submitIconEl) submitIconEl.setAttribute("data-lucide", "plus");
@@ -705,12 +707,15 @@ const isTransientPlayer = (name) => {
       }
 
       if (titleEl) titleEl.innerText = isZh ? "修改社團資訊" : "Edit Club Info";
-      if (descEl) descEl.innerText = isZh ? "更新社團簡介、公開隱私與防護密碼" : "Update description, privacy and password";
+      if (descEl) descEl.innerText = isZh ? "更新社團名稱、簡介、公開設定與密碼" : "Update name, description, privacy and password";
+      // 社團名稱可以直接修改（有密碼的社團，進來前已驗證過密碼）
       if (nameInput) {
         nameInput.value = targetClub;
-        nameInput.disabled = true;
-        nameInput.className = "w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm opacity-70 cursor-not-allowed bg-stone-100 dark:bg-stone-900";
+        nameInput.disabled = false;
+        nameInput.className = "w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none";
       }
+      const creatorInput = document.getElementById("modal-create-club-creator");
+      if (creatorInput) creatorInput.value = (meta && meta.creator) ? meta.creator : "";
       if (descInput) {
         descInput.value = (meta && meta.description) ? meta.description : "";
         descInput.placeholder = isZh ? "上限200字" : "Max 200 characters";
@@ -796,12 +801,35 @@ const isTransientPlayer = (name) => {
       const descInput = document.getElementById("modal-create-club-desc-input");
       const pwd = pwdInput ? pwdInput.value.trim() : "";
       const description = descInput ? descInput.value.trim() : "";
+      const creator = (document.getElementById("modal-create-club-creator")?.value || "").trim();
       const isPrivate = document.getElementById("modal-club-is-private")?.value === "true";
 
       // ==================== MODE: EDIT EXISTING CLUB ====================
       if (STATE.modalClubMode === "edit") {
         const clubName = STATE.currentClub;
         if (!clubName) return;
+        const newName = nameInput ? nameInput.value.trim() : clubName;
+        const isRename = !!newName && newName !== clubName;
+        if (!newName) {
+          showToast(isZh ? "請輸入社團名稱！" : "Please enter a club name!", "warning");
+          if (nameInput) nameInput.focus();
+          return;
+        }
+        if (isRename) {
+          if (newName.length > 12) {
+            showToast(isZh ? "社團名稱不可超過 12 個字！" : "Club name cannot exceed 12 characters!", "warning");
+            return;
+          }
+          if (newName.startsWith("__")) {
+            showToast(isZh ? "此名稱為系統保留字，請使用其他名稱！" : "This name is reserved, please choose another!", "error");
+            return;
+          }
+          const taken = getAllUniqueClubs().find(c => c !== clubName && c.toLowerCase() === newName.toLowerCase());
+          if (taken) {
+            showToast(isZh ? "這個名稱已經有其他社團使用" : "Another club already uses this name", "error");
+            return;
+          }
+        }
 
         const safeKey = encodeClubKey(clubName);
         const localMeta = JSON.parse(localStorage.getItem("pb_clubs_metadata") || "{}");
@@ -824,6 +852,7 @@ const isTransientPlayer = (name) => {
           isPrivate: isPrivate,
           hasPassword: hasPassword,
           description: description,
+          creator: creator,
           updatedAt: Date.now()
         };
 
@@ -835,7 +864,7 @@ const isTransientPlayer = (name) => {
           const res = await fetch(`${FUNCTIONS_BASE_URL}/updateClubMeta`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ clubName, credential: getClubCredential(clubName), description, isPrivate })
+            body: JSON.stringify({ clubName, credential: getClubCredential(clubName), description, isPrivate, creator })
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok || !data.ok) {
@@ -857,11 +886,46 @@ const isTransientPlayer = (name) => {
         localMeta[clubName] = metaObj;
         safeSetLocal("pb_clubs_metadata", JSON.stringify(localMeta));
 
+        // 3. 改名：由後端一次搬移賽事、成員、會員的社團清單、密碼、說明與短網址
+        let finalName = clubName;
+        if (isRename) {
+          try {
+            const res = await fetch(`${FUNCTIONS_BASE_URL}/renameClub`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ clubName, newClubName: newName, credential: getClubCredential(clubName) })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.status === 429) {
+              showToast(isZh ? "嘗試次數過多，請 15 分鐘後再試" : "Too many attempts, try again in 15 minutes", "error");
+              return;
+            }
+            if (!res.ok || !data.ok) {
+              showToast(data.error || (isZh ? "改名失敗" : "Rename failed"), "error");
+              return;
+            }
+          } catch (err) {
+            console.warn("[Club] renameClub error:", err);
+            showToast(isZh ? "改名失敗，請檢查網路" : "Rename failed, check your network", "error");
+            return;
+          }
+          applyLocalClubRename(clubName, newName);
+          finalName = newName;
+          if (!new URLSearchParams(window.location.search).has("liff.state")) {
+            window.history.replaceState({}, document.title, `${window.location.pathname}?club=${encodeURIComponent(newName)}`);
+          }
+          showToast(isZh ? `社團已改名為「${newName}」` : `Club renamed to "${newName}"`, "success");
+        }
+
         closeCreateClubModal();
 
-        // 3. 重新渲染說明頁與社團大廳
+        // 4. 重新渲染說明頁與社團大廳
+        if (isRename && typeof openClubSpace === "function") {
+          await openClubSpace(finalName);
+          switchClubTab("info");
+        }
         if (typeof renderClubInfoTab === "function") {
-          renderClubInfoTab(clubName);
+          renderClubInfoTab(finalName);
         }
         if (typeof renderHistoryCategorized === "function") {
           renderHistoryCategorized(STATE.allTournamentsCache || []);
@@ -910,6 +974,7 @@ const isTransientPlayer = (name) => {
         description: description,
         createdAt: Date.now()
       };
+      if (creator) metaObj.creator = creator;
       if (STATE.db) {
         try {
           await set(ref(STATE.db, `clubs_metadata/${safeKey}`), metaObj);
@@ -1750,6 +1815,12 @@ const isTransientPlayer = (name) => {
       } else {
         descEl.innerText = isZh ? "此社團目前尚未填寫簡介說明。" : "No description yet.";
         descEl.className = "text-xs sm:text-sm sub-text italic whitespace-pre-wrap leading-relaxed";
+      }
+      const creatorEl = document.getElementById("club-info-creator-text");
+      if (creatorEl) {
+        const creator = (meta && meta.creator && String(meta.creator).trim()) || "";
+        creatorEl.innerText = creator ? (isZh ? `創建人：${creator}` : `Creator: ${creator}`) : "";
+        creatorEl.classList.toggle("hidden", !creator);
       }
     }
     window.renderClubInfoTab = renderClubInfoTab;
@@ -3275,18 +3346,8 @@ const isTransientPlayer = (name) => {
       if (window.lucide) lucide.createIcons({ root: box });
     }
 
-    async function adminRenameClub(oldName) {
-      const promptMsg = STATE.lang === "zh-TW"
-        ? `✏️ 請輸入社團「${oldName}」的新名稱：`
-        : `✏️ Enter new name for club "${oldName}":`;
-      const newName = prompt(promptMsg, oldName);
-      if (newName === null) return;
-      const cleanNew = newName.trim();
-      if (!cleanNew || cleanNew === oldName) return;
-
-      // 0. 雲端搬移（賽事、成員、綁定、密碼、說明、短網址）由後端驗證 Master PIN 後一次完成
-      if (!(await callAdminClubAction({ action: "rename", clubName: oldName, newClubName: cleanNew }))) return;
-
+    // 改名後同步這支手機上的快取（雲端已由後端搬移）：賽事、成員、說明、我的社團、已驗證的密碼
+    function applyLocalClubRename(oldName, cleanNew) {
       // 1. 本地快取：賽事的社團名稱
       const allT = STATE.allTournamentsCache || [];
       for (const t of allT) {
@@ -3342,20 +3403,19 @@ const isTransientPlayer = (name) => {
       }
       if (Array.isArray(STATE.myClubs) && STATE.myClubs.includes(oldName)) {
         STATE.myClubs = STATE.myClubs.map(c => c === oldName ? cleanNew : c);
-      }
-      if (STATE.db && STATE.lineUserId && Array.isArray(STATE.myClubs) && STATE.myClubs.includes(cleanNew)) {
-        try {
-          const updates = {};
-          updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(oldName)}`] = null;
-          updates[`users/${STATE.lineUserId}/myClubs/${encodeURIComponent(cleanNew)}`] = true;
-          await update(ref(STATE.db), updates);
-        } catch (e) { }
+        if (STATE.lineUserId) {
+          try { localStorage.setItem(`pb_my_clubs_${STATE.lineUserId}`, JSON.stringify(STATE.myClubs)); } catch (e) { }
+        }
       }
 
       // 6. Update session authenticated clubs
       if (STATE.authenticatedClubs.has(oldName)) {
         STATE.authenticatedClubs.delete(oldName);
         STATE.authenticatedClubs.add(cleanNew);
+      }
+      if (_verifiedClubCreds.has(oldName)) {
+        _verifiedClubCreds.set(cleanNew, _verifiedClubCreds.get(oldName));
+        _verifiedClubCreds.delete(oldName);
       }
       if (STATE.currentClub === oldName) {
         STATE.currentClub = cleanNew;
@@ -3367,6 +3427,22 @@ const isTransientPlayer = (name) => {
       if (typeof populateCreateClubSelect === "function") {
         populateCreateClubSelect();
       }
+
+    }
+
+    async function adminRenameClub(oldName) {
+      const promptMsg = STATE.lang === "zh-TW"
+        ? `✏️ 請輸入社團「${oldName}」的新名稱：`
+        : `✏️ Enter new name for club "${oldName}":`;
+      const newName = prompt(promptMsg, oldName);
+      if (newName === null) return;
+      const cleanNew = newName.trim();
+      if (!cleanNew || cleanNew === oldName) return;
+
+      // 0. 雲端搬移（賽事、成員、綁定、密碼、說明、短網址）由後端驗證 Master PIN 後一次完成
+      if (!(await callAdminClubAction({ action: "rename", clubName: oldName, newClubName: cleanNew }))) return;
+
+      applyLocalClubRename(oldName, cleanNew);
 
       renderAdminPage();
       displayHubTournamentsList(STATE.allTournamentsCache);
