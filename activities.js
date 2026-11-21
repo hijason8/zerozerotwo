@@ -10,15 +10,15 @@ import {
   orderByChild,
   startAt
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261121-13";
-import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261121-13";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261121-14";
+import { renderTournamentCard, renderCardWithRegistration, getFinishedTime } from "./hub.js?v=20261121-14";
 
 import {
   STATE,
   t,
   navigateTo,
   enterTournament
-} from "./globals.js?v=20261121-13";
+} from "./globals.js?v=20261121-14";
 
 let activitiesSearchKeyword = "";
 
@@ -175,10 +175,10 @@ export function displayActivitiesList(list) {
     const hintEl = document.getElementById("t-activities-empty-hint");
     const loginBtn = document.getElementById("activities-login-btn");
     if (!isLoggedIn) {
-      if (titleEl) titleEl.innerText = isZh ? "登入 LINE 後，可加入社團、關注賽事" : "Log in with LINE to join clubs and follow games";
+      if (titleEl) titleEl.innerText = isZh ? "登入 LINE 後，可加入社團、關注賽事" : "Log in with LINE to join clubs and follow events";
     } else {
       if (titleEl) titleEl.innerText = isZh ? "目前沒有關注的球局" : "Nothing you follow right now";
-      if (hintEl) hintEl.innerText = isZh ? "點選 ☆ 號，關注賽事" : "Tap ☆ to follow a game";
+      if (hintEl) hintEl.innerText = isZh ? "點選 ☆ 號，關注賽事" : "Tap ☆ to follow an event";
     }
     if (loginBtn) loginBtn.classList.toggle("hidden", isLoggedIn);
     // 未登入：只留一行粗體標題，不顯示灰字說明
@@ -222,7 +222,7 @@ function renderDiscover(list, ctx) {
           </span>
           <span class="text-xs sm:text-sm font-bold truncate">${escapeHTML(c)}</span>
         </span>
-        <span class="text-[11px] sub-text shrink-0">${isZh ? `近 30 天 ${n} 場` : `${n} games / 30d`}</span>
+        <span class="text-[11px] sub-text shrink-0">${isZh ? `近 30 天 ${n} 場` : `${n} events / 30d`}</span>
       </button>
     `).join("");
   }

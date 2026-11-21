@@ -10,7 +10,7 @@ import {
   onValue,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261121-13";
+import { escapeHTML, escapeJsAttr, safeSetLocal, safeGetLocalJSON, sha256 } from "./utils.js?v=20261121-14";
 import {
   STATE,
   FUNCTIONS_BASE_URL,
@@ -26,7 +26,7 @@ import {
   openLineLoginPromptModal,
   addUserClubToFirebase,
   populateCreateClubSelect
-} from "./globals.js?v=20261121-13";
+} from "./globals.js?v=20261121-14";
 
 const isTransientPlayer = (name) => {
   if (typeof window !== "undefined" && typeof window.isTransientPlayer === "function") {
@@ -214,7 +214,7 @@ const isTransientPlayer = (name) => {
       }
       const uniqueClubs = Array.from(set).sort((a, b) => a.localeCompare(b, "zh-Hant"));
       const isZh = STATE.lang === "zh-TW";
-      const defaultLabel = isZh ? "臨打活動" : "Drop-in Games";
+      const defaultLabel = isZh ? "臨打活動" : "Drop-in Play";
       const activitiesLabel = isZh ? "我的關注" : "Following";
       const exploreOptionLabel = isZh ? "探索/建立新社團" : "Explore / Create Club";
 
@@ -642,7 +642,7 @@ const isTransientPlayer = (name) => {
       const isZh = (STATE.lang === "zh-TW");
 
       if (titleEl) titleEl.innerText = isZh ? "建立新社團" : "Create Club";
-      if (descEl) descEl.innerText = isZh ? "建立專屬社團大廳與歷次戰績存檔" : "Create club space & record matches";
+      if (descEl) descEl.innerText = isZh ? "建立專屬社團大廳與歷次戰績存檔" : "A club lobby with its own event archives";
       if (nameInput) {
         nameInput.value = "";
         nameInput.disabled = false;
@@ -2341,7 +2341,7 @@ const isTransientPlayer = (name) => {
               <i data-lucide="archive" class="w-6 h-6 text-emerald-500"></i>
             </div>
             <h3 class="text-base font-bold">${t("noCompletedTournaments")}</h3>
-            <p class="text-xs sub-text">${STATE.lang === "zh-TW" ? "完成所有比賽後，賽事將自動歸檔至此" : "Tournaments will appear here once all matches are completed"}</p>
+            <p class="text-xs sub-text">${STATE.lang === "zh-TW" ? "完成所有比賽後，賽事將自動歸檔至此" : "Events appear here once they finish"}</p>
           </div>
         `;
         lucide.createIcons();
@@ -2480,7 +2480,7 @@ const isTransientPlayer = (name) => {
                 <div class="px-3 py-2 card-inner border-b text-xs font-bold flex items-center justify-between">
                   <span class="flex items-center gap-1.5">
                     <i data-lucide="swords" class="w-3.5 h-3.5 text-emerald-500"></i>
-                    <span>${STATE.lang === 'zh-TW' ? '【全輪次對戰紀錄】' : '【Full Match Results】'}</span>
+                    <span>${STATE.lang === 'zh-TW' ? '【全輪次對戰紀錄】' : '【All Games】'}</span>
                   </span>
                   <span class="sub-text text-[11px] font-mono">${completedMatches} / ${totalMatches} ${STATE.lang === 'zh-TW' ? '完賽' : 'Done'}</span>
                 </div>
@@ -2657,7 +2657,7 @@ const isTransientPlayer = (name) => {
       const line = "-".repeat(34);
 
       // 標頭
-      report += isZh ? `【賽事戰報】${tData.name}\n` : `[MATCH REPORT] ${tData.name}\n`;
+      report += isZh ? `【賽事戰報】${tData.name}\n` : `[EVENT REPORT] ${tData.name}\n`;
       let info = isZh ? `日期：${dateStr}` : `Date: ${dateStr}`;
       if (tData.clubName && tData.clubName.trim()) info += isZh ? `｜社團：${tData.clubName.trim()}` : ` | Club: ${tData.clubName.trim()}`;
       if (!isRegistering) info += isZh ? `｜賽制：${modeStr}` : ` | Format: ${modeStr}`;
@@ -3136,7 +3136,7 @@ const isTransientPlayer = (name) => {
                     </button>` : `
                     <button onclick="navigateTo('hub')" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30 rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer">
                       <i data-lucide="compass" class="w-3 h-3"></i>
-                      <span>${STATE.lang === "zh-TW" ? "返回臨打活動" : "Go to Drop-in Games"}</span>
+                      <span>${STATE.lang === "zh-TW" ? "返回臨打活動" : "Go to Drop-in Play"}</span>
                     </button>
                     `}
                     <button onclick="adminToggleClubMembers('${safeClubId}')" class="px-2.5 py-1 card-inner border hover:border-blue-500 text-blue-600 dark:text-blue-400 font-bold rounded-lg text-[11px] flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer">
@@ -3217,10 +3217,10 @@ const isTransientPlayer = (name) => {
                   ${dateStr ? `<span class="text-[10px] sub-text">${dateStr}</span>` : ''}
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
-                  <button onclick="enterTournament('${escapeJsAttr(tData.id)}')" class="px-2 py-1 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 font-bold rounded-lg text-[11px] transition" title="${STATE.lang === 'zh-TW' ? '進入賽事查看與修改' : 'Open tournament'}">
+                  <button onclick="enterTournament('${escapeJsAttr(tData.id)}')" class="px-2 py-1 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 font-bold rounded-lg text-[11px] transition" title="${STATE.lang === 'zh-TW' ? '進入賽事查看與修改' : 'Open event'}">
                     ${STATE.lang === 'zh-TW' ? (isFinished ? '查看' : '進入') : 'Open'}
                   </button>
-                  <button onclick="adminRenameTournament('${escapeJsAttr(tData.id)}', '${escapeJsAttr(tData.name || '')}')" class="p-1.5 rounded-lg card-inner hover:bg-emerald-500/20 sub-text hover:text-emerald-500 border transition" title="${STATE.lang === 'zh-TW' ? '修改賽事名稱' : 'Rename Tournament'}">
+                  <button onclick="adminRenameTournament('${escapeJsAttr(tData.id)}', '${escapeJsAttr(tData.name || '')}')" class="p-1.5 rounded-lg card-inner hover:bg-emerald-500/20 sub-text hover:text-emerald-500 border transition" title="${STATE.lang === 'zh-TW' ? '修改賽事名稱' : 'Rename Event'}">
                     <i data-lucide="edit-3" class="w-3 h-3"></i>
                   </button>
                   ${!isFinished ? `<button onclick="adminForceComplete('${escapeJsAttr(tData.id)}')" class="px-2 py-1 border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-bold rounded-lg text-[11px] transition">${t("adminForceComplete")}</button>` : ''}
@@ -3479,7 +3479,7 @@ const isTransientPlayer = (name) => {
       if (!clubName || clubName === '__general__') return;
       const confirmMsg = STATE.lang === 'zh-TW'
         ? `確定要刪除社團「${clubName}」嗎？\n此操作會徹底移除該社團的賽事關聯、成員名單、密碼、中繼資料與常用記錄，且無法復原。`
-        : `Delete club "${clubName}"?\nThis will remove all tournaments, members, passwords, metadata, and shortcuts permanently.`;
+        : `Delete club "${clubName}"?\nThis permanently removes its events, members, password, description, and short link.`;
       if (!confirm(confirmMsg)) return;
 
       const safeKey = typeof encodeClubKey === "function" ? encodeClubKey(clubName) : encodeURIComponent(clubName);

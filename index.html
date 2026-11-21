@@ -142,7 +142,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./styles.css?v=20261121-13" />
+  <link rel="stylesheet" href="./styles.css?v=20261121-14" />
   <!-- Tailwind CSS：預先產生好的樣式檔（設定在 tailwind.config.js，改了 class 後執行 ./build-css.sh）
        放在 styles.css 之後，維持與原本 CDN 版相同的樣式優先順序 -->
   <link rel="stylesheet" href="./tailwind.css?v=20261111-1" />
@@ -862,7 +862,7 @@
               </button>
               <button type="button" onclick="cancelRegistrationTournament()" id="btn-lobby-delete-tournament"
                 class="px-3 py-1 rounded-xl card-inner border hover:border-rose-500/50 hover:bg-rose-500/10 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95 text-stone-700 dark:text-slate-300 hover:text-rose-500"
-                title="取消此球局" data-en-title="Cancel this game">
+                title="取消此球局" data-en-title="Cancel this event">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500"></i>
                 <span id="t-lobby-btn-delete">取消球局</span>
               </button>
@@ -938,7 +938,7 @@
           <button type="button" id="btn-lobby-start-practice" onclick="promptConfirmStartTournament('practice')"
             class="w-full card-inner border hover:border-emerald-500/50 hover:bg-emerald-500/5 font-bold py-3 rounded-2xl transition text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 text-stone-700 dark:text-slate-300 cursor-pointer">
             <i data-lucide="activity" class="w-4 h-4 text-teal-500"></i>
-            <span id="t-lobby-practice-btn-text" data-en="Free play (no schedule)">自由模式 (不排賽程，直接開始)</span>
+            <span id="t-lobby-practice-btn-text" data-en="Free Play (no schedule)">自由模式 (不排賽程，直接開始)</span>
           </button>
         </div>
       </div>
@@ -1193,7 +1193,7 @@
           <h2 id="t-admin-title" class="text-lg sm:text-2xl font-display font-bold flex items-center gap-2">
             <i data-lucide="shield-check" class="w-5 h-5 text-rose-500"></i> <span data-en="Admin">管理員控制台</span>
           </h2>
-          <p id="t-admin-desc" class="text-xs sub-text mt-0.5" data-en="Passwords · Tournaments · Members">社團密碼管理 · 賽事管理 · 成員管理</p>
+          <p id="t-admin-desc" class="text-xs sub-text mt-0.5" data-en="Passwords · Events · Members">社團密碼管理 · 賽事管理 · 成員管理</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="navigateTo('hub')"
@@ -1273,7 +1273,7 @@
 
       <div>
         <h3 class="text-base font-bold font-display text-stone-900 dark:text-white" data-en="Not logged in">未登入 LINE</h3>
-        <p class="text-sm font-bold text-stone-700 dark:text-slate-300 mt-1" data-en="Log in to join clubs and follow games">登入 LINE 後，可加入社團、關注賽事</p>
+        <p class="text-sm font-bold text-stone-700 dark:text-slate-300 mt-1" data-en="Log in to join clubs and follow events">登入 LINE 後，可加入社團、關注賽事</p>
       </div>
 
       <div class="space-y-2 pt-1">
@@ -1402,44 +1402,44 @@
           </div>
           <div class="space-y-2.5 pl-1">
             <div><span class="font-bold text-stone-900 dark:text-slate-100">No sign-up:</span> <span>Open a link in LINE and you're logged in.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Follow:</span> <span>Tap ☆ before the game name. Your clubs’ games and games you create or sign people up for are followed automatically; tap again to unfollow. Works on any device.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Follow:</span> <span>Tap ☆ before the event name. Your clubs’ events, events you create or sign people up for, and events you open from a link are followed automatically; tap again to unfollow. Works on any device.</span></div>
           </div>
         </section>
         <section class="space-y-3">
           <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
             <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
-            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">2. Finding Games</h4>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">2. Finding Events</h4>
           </div>
           <div class="space-y-2.5 pl-1">
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Drop-in Games:</span> <span>All public games.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Following:</span> <span>All games you follow, including your clubs’ games.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Drop-in Play:</span> <span>All public events.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Following:</span> <span>All events you follow, including your clubs’ events.</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Join a club:</span> <span>Tap “Join” on a club page to add it to the top-left menu.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Link:</span> <span>Tap “Link” to send the link in LINE. It opens that game directly.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Link:</span> <span>Tap “Link” to send the link in LINE. It opens that event directly.</span></div>
           </div>
         </section>
         <section class="space-y-3">
           <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
             <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
-            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">3. Create a Game</h4>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">3. Create an Event</h4>
           </div>
           <div class="space-y-2.5 pl-1">
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Open Sign-up:</span> <span>Post the link in your LINE group, then start at the court.</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Direct Play:</span> <span>Enter the players and get a schedule right away.</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Fair Mode:</span> <span>Set hours or games. Everyone plays about the same and partners rotate.</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Free Play:</span> <span>Add games one at a time, fewest-games-first or random.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Link only:</span> <span>Hidden from Drop-in Games. Only people with the link can join.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Link only:</span> <span>Hidden from Drop-in Play. Only people with the link can join.</span></div>
           </div>
         </section>
         <section class="space-y-3">
           <div class="flex items-center gap-2 border-b border-stone-200/80 dark:border-slate-800/80 pb-2">
             <span class="w-1 h-3.5 bg-emerald-500 rounded-full inline-block shrink-0"></span>
-            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">4. During the Game</h4>
+            <h4 class="text-sm sm:text-base font-bold text-stone-950 dark:text-white">4. During the Event</h4>
           </div>
           <div class="space-y-2.5 pl-1">
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Enable Controls:</span> <span>Games open view-only. Tap “Enable Controls” and anyone can score. No password.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Enable Controls:</span> <span>Events open view-only. Tap “Enable Controls” and anyone can score. No password.</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Scoring:</span> <span>Enter the score and save. Saved games can be edited or voided (voided games don't count).</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Add Game / Add Players:</span> <span>Add games or players anytime.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">End:</span> <span>Scores are locked after the game ends.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">End:</span> <span>Scores are locked after the event ends.</span></div>
           </div>
         </section>
         <section class="space-y-3">
@@ -1450,7 +1450,7 @@
           <div class="space-y-2.5 pl-1">
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Standings:</span> <span>Wins, then point diff, points for, and points against (fewer is better).</span></div>
             <div><span class="font-bold text-stone-900 dark:text-slate-100">Text Report:</span> <span>Tap “Text Report” anytime to copy for LINE: the schedule before play, live scores and standings during play, the full report at the end.</span></div>
-            <div><span class="font-bold text-stone-900 dark:text-slate-100">Club stats:</span> <span>Club games add up in the club's “Stats” tab.</span></div>
+            <div><span class="font-bold text-stone-900 dark:text-slate-100">Club stats:</span> <span>Club events add up in the club's “Stats” tab.</span></div>
           </div>
         </section>
       </div>
@@ -2175,7 +2175,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261121-13";
+    import { I18N } from "./i18n.js?v=20261121-14";
     window.I18N = I18N;
 
     function t(key) {
@@ -2197,14 +2197,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261121-13";
-    import "./club.js?v=20261121-13";
-    import "./tournament-create.js?v=20261121-13";
-    import "./live.js?v=20261121-13";
-    import "./activities.js?v=20261121-13";
-    import "./hub.js?v=20261121-13";
-    import "./line.js?v=20261121-13";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261121-13";
+    } from "./utils.js?v=20261121-14";
+    import "./club.js?v=20261121-14";
+    import "./tournament-create.js?v=20261121-14";
+    import "./live.js?v=20261121-14";
+    import "./activities.js?v=20261121-14";
+    import "./hub.js?v=20261121-14";
+    import "./line.js?v=20261121-14";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261121-14";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2711,7 +2711,7 @@
       } else if (pageName === "waiting") {
         document.title = (STATE.lang === "zh-TW" ? "等待報名 · ZeroZeroTwo" : "Waiting for Sign Up · ZeroZeroTwo");
       } else if (pageName === "create") {
-        document.title = (STATE.lang === "zh-TW" ? "建立賽事 · ZeroZeroTwo" : "Create Tournament · ZeroZeroTwo");
+        document.title = (STATE.lang === "zh-TW" ? "建立賽事 · ZeroZeroTwo" : "Create Event · ZeroZeroTwo");
       } else if (pageName === "history") {
         if (STATE.currentClub) {
           document.title = `${STATE.currentClub} · ZeroZeroTwo`;
@@ -2854,7 +2854,7 @@
     window.exitAdminMode = exitAdminMode;
 
     async function adminRenameTournament(tId, currentName) {
-      const newName = prompt(STATE.lang === "zh-TW" ? `✏️ 修改賽事名稱：` : `✏️ Rename tournament:`, currentName);
+      const newName = prompt(STATE.lang === "zh-TW" ? `✏️ 修改賽事名稱：` : `✏️ Rename event:`, currentName);
       if (newName === null) return;
       const clean = newName.trim();
       if (!clean || clean === currentName) return;
