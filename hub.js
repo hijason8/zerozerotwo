@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261121-1";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261121-12";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261121-1";
+} from "./globals.js?v=20261121-12";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -181,7 +181,7 @@ export function renderTournamentCard(tData, opts = {}) {
     </span>
   ` : '';
 
-  // 「臨打」只標在不屬於社團的賽事；社團賽事只顯示社團名稱（私密賽事仍顯示鎖頭）
+  // 「臨打」只標在不屬於社團的賽事；社團賽事只顯示社團名稱（隱藏社團的賽事仍顯示鎖頭）
   const isClubGame = !!(tData.clubName && tData.clubName.trim());
   const privacyBadge = tData.isPrivate === true ? `
     <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-stone-500/10 text-stone-600 dark:text-slate-400 border border-stone-500/20 flex items-center gap-0.5">

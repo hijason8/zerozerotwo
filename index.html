@@ -142,7 +142,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./styles.css?v=20261121-1" />
+  <link rel="stylesheet" href="./styles.css?v=20261121-12" />
   <!-- Tailwind CSS：預先產生好的樣式檔（設定在 tailwind.config.js，改了 class 後執行 ./build-css.sh）
        放在 styles.css 之後，維持與原本 CDN 版相同的樣式優先順序 -->
   <link rel="stylesheet" href="./tailwind.css?v=20261111-1" />
@@ -2035,7 +2035,7 @@
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none resize-none"></textarea>
         </div>
 
-        <!-- 社團隱私設定 (公開 vs 私密) -->
+        <!-- 社團隱私設定 (公開 vs 隱藏) -->
         <div>
           <label class="block text-xs font-semibold mb-1.5" id="t-label-modal-club-privacy">社團隱私設定</label>
           <input type="hidden" id="modal-club-is-private" value="false" />
@@ -2052,7 +2052,7 @@
               class="p-2.5 rounded-xl border border-stone-200 dark:border-slate-800 card-inner sub-text font-semibold text-xs flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 hover:border-stone-400 text-center">
               <div class="flex items-center justify-center gap-1.5 font-bold">
                 <i data-lucide="lock" class="w-3.5 h-3.5"></i>
-                <span id="t-modal-club-private-title">私密社團</span>
+                <span id="t-modal-club-private-title">隱藏社團</span>
               </div>
               <span id="t-modal-club-private-desc" class="text-[10px] sub-text font-normal text-center">僅限專屬網址進入</span>
             </button>
@@ -2175,7 +2175,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261121-1";
+    import { I18N } from "./i18n.js?v=20261121-12";
     window.I18N = I18N;
 
     function t(key) {
@@ -2197,14 +2197,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261121-1";
-    import "./club.js?v=20261121-1";
-    import "./tournament-create.js?v=20261121-1";
-    import "./live.js?v=20261121-1";
-    import "./activities.js?v=20261121-1";
-    import "./hub.js?v=20261121-1";
-    import "./line.js?v=20261121-1";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261121-1";
+    } from "./utils.js?v=20261121-12";
+    import "./club.js?v=20261121-12";
+    import "./tournament-create.js?v=20261121-12";
+    import "./live.js?v=20261121-12";
+    import "./activities.js?v=20261121-12";
+    import "./hub.js?v=20261121-12";
+    import "./line.js?v=20261121-12";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261121-12";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
