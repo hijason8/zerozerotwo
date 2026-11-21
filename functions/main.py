@@ -430,6 +430,7 @@ def adminTournamentAction(req: https_fn.Request) -> https_fn.Response:
 #    有密碼的社團：資料庫規則禁止前端直接改，必須提供社團密碼或 Master PIN。
 # ============================================================
 CLUB_DESC_MAX = 200
+CLUB_CREATOR_MAX = 20
 
 
 @https_fn.on_request(cors=CORS_CONFIG, invoker="public")
@@ -445,6 +446,7 @@ def updateClubMeta(req: https_fn.Request) -> https_fn.Response:
     credential = (body.get("credential") or "").strip()
     description = body.get("description", None)
     is_private = body.get("isPrivate", None)
+    creator = body.get("creator", None)
 
     if not club_name or len(club_name) > 40:
         return _resp({"ok": False, "error": "參數錯誤"}, 400)
@@ -452,6 +454,8 @@ def updateClubMeta(req: https_fn.Request) -> https_fn.Response:
         return _resp({"ok": False, "error": f"說明不可超過 {CLUB_DESC_MAX} 字"}, 400)
     if is_private is not None and not isinstance(is_private, bool):
         return _resp({"ok": False, "error": "參數錯誤"}, 400)
+    if creator is not None and (not isinstance(creator, str) or len(creator.strip()) > CLUB_CREATOR_MAX):
+        return _resp({"ok": False, "error": f"創建人不可超過 {CLUB_CREATOR_MAX} 字"}, 400)
 
     if _is_rate_limited(req, "club"):
         return _too_many_attempts()
@@ -472,6 +476,8 @@ def updateClubMeta(req: https_fn.Request) -> https_fn.Response:
             changes["description"] = description.strip()
         if is_private is not None:
             changes["isPrivate"] = is_private
+        if creator is not None:
+            changes["creator"] = creator.strip()
         if not existing:
             changes["createdAt"] = _now_ms()
         meta_ref.update(changes)
@@ -480,6 +486,106 @@ def updateClubMeta(req: https_fn.Request) -> https_fn.Response:
         logging.exception(f"[updateClubMeta] 發生例外: {err}")
         return _resp({"ok": False, "error": "Internal Server Error"}, 500)
 
+
+
+# ============================================================
+# 社團改名 / 刪除的共用搬移流程（管理員與社團自助改名共用）
+#    一次搬移或清除：賽事的社團名稱、成員名單、LINE 綁定、會員常用社團、密碼、說明、短網址。
+# ============================================================
+CLUB_NAME_MAX = 12
+
+
+def _rename_conflict(new_name: str) -> str:
+    """新名稱已被使用時回傳錯誤訊息，否則回傳空字串"""
+    new_key = _club_key(new_name)
+    if db.reference(f"/clubs_metadata/{new_key}").get() is not None:
+        return "這個名稱已經有其他社團使用"
+    if _get_club_hash(new_key, new_name):
+        return "這個名稱已經有其他社團使用"
+    if db.reference(f"/club_members/{new_key}").get():
+        return "這個名稱已經有其他社團使用"
+    if db.reference("/tournaments").order_by_child("clubName").equal_to(new_name).limit_to_first(1).get():
+        return "這個名稱已經有其他社團使用"
+    return ""
+
+
+def _migrate_club(club_name: str, action: str, new_name: str = "") -> Dict[str, Any]:
+    old_key = _club_key(club_name)
+    new_key = _club_key(new_name) if action == "rename" else ""
+    target_name = new_name if action == "rename" else ""
+    old_uri = _uri_component(club_name)
+    new_uri = _uri_component(new_name) if action == "rename" else ""
+
+    updates: Dict[str, Any] = {}
+
+    # 1. 賽事的社團名稱（含已完賽，後端不受資料庫規則限制）
+    tournaments = db.reference("/tournaments").order_by_child("clubName").equal_to(club_name).get() or {}
+    for tid in tournaments.keys():
+        updates[f"tournaments/{tid}/clubName"] = target_name
+
+    # 2. 成員名單
+    members = db.reference(f"/club_members/{old_key}").get()
+    updates[f"club_members/{old_key}"] = None
+    if action == "rename" and members:
+        updates[f"club_members/{new_key}"] = members
+
+    # 3. 舊的 LINE 綁定資料（已停用，只跟著搬）
+    mappings = db.reference(f"/club_mappings/{old_key}").get() or {}
+    updates[f"club_mappings/{old_key}"] = None
+    if action == "rename" and isinstance(mappings, dict) and mappings:
+        updates[f"club_mappings/{new_key}"] = mappings
+
+    # 4. 所有加入這個社團的會員（users/{LINE ID}/myClubs）與最後造訪的社團
+    joined = 0
+    users = db.reference("/users").get() or {}
+    if isinstance(users, dict):
+        for uid, u in users.items():
+            if not isinstance(u, dict):
+                continue
+            my_clubs = u.get("myClubs")
+            if isinstance(my_clubs, dict) and old_uri in my_clubs:
+                joined += 1
+                updates[f"users/{uid}/myClubs/{old_uri}"] = None
+                if action == "rename":
+                    updates[f"users/{uid}/myClubs/{new_uri}"] = True
+            if u.get("lastClub") == club_name:
+                updates[f"users/{uid}/lastClub"] = target_name or None
+
+    # 5. 密碼
+    stored_hash = _get_club_hash(old_key, club_name)
+    updates[f"club_passwords/{old_key}"] = None
+    legacy_key = _legacy_club_key(club_name)
+    if legacy_key != old_key:
+        updates[f"club_passwords/{legacy_key}"] = None
+    if action == "rename" and stored_hash:
+        updates[f"club_passwords/{new_key}"] = stored_hash
+
+    # 6. 社團說明與短網址
+    meta = db.reference(f"/clubs_metadata/{old_key}").get()
+    updates[f"clubs_metadata/{old_key}"] = None
+    code = meta.get("code") if isinstance(meta, dict) else None
+    if action == "rename":
+        base_meta = meta if isinstance(meta, dict) else {"createdAt": _now_ms()}
+        updates[f"clubs_metadata/{new_key}"] = {**base_meta, "hasPassword": bool(stored_hash), "updatedAt": _now_ms()}
+    if code and re.fullmatch(r"[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}", str(code)):
+        updates[f"club_codes/{code}"] = new_key if action == "rename" else None
+
+    # 7. 改名紀錄：舊的 ?club=舊名 連結還能找到新名字（連續改名時，更早的舊名也指向最新名字）
+    renames = db.reference("/club_renames").get() or {}
+    if isinstance(renames, dict):
+        for k, v in renames.items():
+            if v == club_name:
+                updates[f"club_renames/{k}"] = target_name or None
+    if action == "rename":
+        updates[f"club_renames/{old_key}"] = new_name
+        updates[f"club_renames/{new_key}"] = None
+
+    db.reference("/").update(updates)
+    return {
+        "tournaments": len(tournaments),
+        "members": joined,
+        "bindings": len(mappings) if isinstance(mappings, dict) else 0,
+    }
 
 # ============================================================
 # 9. HTTP REST API: 管理員社團改名 / 刪除（需 Master PIN）
@@ -513,63 +619,62 @@ def adminClubAction(req: https_fn.Request) -> https_fn.Response:
             _record_failure(req, "admin")
             return _resp({"ok": False, "error": "管理員 PIN 驗證失敗，請重新登入管理員"}, 403)
 
-        old_key = _club_key(club_name)
-        new_key = _club_key(new_name) if action == "rename" else ""
-        target_name = new_name if action == "rename" else ""
-
         if action == "rename":
-            if db.reference(f"/clubs_metadata/{new_key}").get() is not None:
-                return _resp({"ok": False, "error": "新名稱已被其他社團使用"}, 409)
-            if _get_club_hash(new_key, new_name):
-                return _resp({"ok": False, "error": "新名稱已有密碼"}, 409)
+            conflict = _rename_conflict(new_name)
+            if conflict:
+                return _resp({"ok": False, "error": conflict}, 409)
 
-        updates: Dict[str, Any] = {}
-
-        # 1. 賽事的社團名稱（含已完賽，後端不受資料庫規則限制）
-        tournaments = db.reference("/tournaments").order_by_child("clubName").equal_to(club_name).get() or {}
-        for tid in tournaments.keys():
-            updates[f"tournaments/{tid}/clubName"] = target_name
-
-        # 2. 成員名單
-        members = db.reference(f"/club_members/{old_key}").get()
-        updates[f"club_members/{old_key}"] = None
-        if action == "rename" and members:
-            updates[f"club_members/{new_key}"] = members
-
-        # 3. LINE 綁定與綁定者的常用社團
-        mappings = db.reference(f"/club_mappings/{old_key}").get() or {}
-        updates[f"club_mappings/{old_key}"] = None
-        if action == "rename" and isinstance(mappings, dict) and mappings:
-            updates[f"club_mappings/{new_key}"] = mappings
-        old_uri = _uri_component(club_name)
-        if isinstance(mappings, dict):
-            for uid in mappings.keys():
-                updates[f"users/{uid}/myClubs/{old_uri}"] = None
-                if action == "rename":
-                    updates[f"users/{uid}/myClubs/{_uri_component(new_name)}"] = True
-
-        # 4. 密碼
-        stored_hash = _get_club_hash(old_key, club_name)
-        updates[f"club_passwords/{old_key}"] = None
-        legacy_key = _legacy_club_key(club_name)
-        if legacy_key != old_key:
-            updates[f"club_passwords/{legacy_key}"] = None
-        if action == "rename" and stored_hash:
-            updates[f"club_passwords/{new_key}"] = stored_hash
-
-        # 5. 社團說明與短網址
-        meta = db.reference(f"/clubs_metadata/{old_key}").get()
-        updates[f"clubs_metadata/{old_key}"] = None
-        code = meta.get("code") if isinstance(meta, dict) else None
-        if action == "rename" and isinstance(meta, dict):
-            updates[f"clubs_metadata/{new_key}"] = {**meta, "hasPassword": bool(stored_hash), "updatedAt": _now_ms()}
-        if code and re.fullmatch(r"[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}", str(code)):
-            updates[f"club_codes/{code}"] = new_key if action == "rename" else None
-
-        db.reference("/").update(updates)
-        return _resp({"ok": True, "tournaments": len(tournaments), "bindings": len(mappings) if isinstance(mappings, dict) else 0})
+        result = _migrate_club(club_name, action, new_name)
+        return _resp({"ok": True, **result})
     except Exception as err:
         logging.exception(f"[adminClubAction] 發生例外: {err}")
+        return _resp({"ok": False, "error": "Internal Server Error"}, 500)
+
+
+# ============================================================
+# 9a. HTTP REST API: 社團自助改名（社團有密碼 → 需社團密碼或 Master PIN；沒密碼 → 直接改）
+# ============================================================
+@https_fn.on_request(cors=CORS_CONFIG, invoker="public")
+def renameClub(req: https_fn.Request) -> https_fn.Response:
+    def _resp(payload: dict, status: int = 200) -> https_fn.Response:
+        return https_fn.Response(json.dumps(payload, ensure_ascii=False), status=status, mimetype="application/json")
+
+    if req.method != "POST":
+        return _resp({"error": "Method Not Allowed"}, 405)
+
+    body = req.get_json(silent=True) or {}
+    club_name = (body.get("clubName") or "").strip()
+    new_name = (body.get("newClubName") or "").strip()
+    credential = (body.get("credential") or "").strip()
+
+    if not club_name or club_name == "__general__" or len(club_name) > 40:
+        return _resp({"ok": False, "error": "參數錯誤"}, 400)
+    if not new_name or len(new_name) > CLUB_NAME_MAX or new_name == club_name:
+        return _resp({"ok": False, "error": f"新名稱不可空白、相同或超過 {CLUB_NAME_MAX} 字"}, 400)
+    if new_name.startswith("__"):
+        return _resp({"ok": False, "error": "此名稱為系統保留字"}, 400)
+
+    if _is_rate_limited(req, "club"):
+        return _too_many_attempts()
+
+    try:
+        old_key = _club_key(club_name)
+        if db.reference(f"/clubs_metadata/{old_key}").get() is None and not db.reference(f"/club_members/{old_key}").get():
+            return _resp({"ok": False, "error": "找不到這個社團"}, 404)
+
+        stored_hash = _get_club_hash(old_key, club_name)
+        if not _is_club_authorized(stored_hash, credential):
+            _record_failure(req, "club")
+            return _resp({"ok": False, "error": "密碼錯誤"}, 403)
+
+        conflict = _rename_conflict(new_name)
+        if conflict:
+            return _resp({"ok": False, "error": conflict}, 409)
+
+        result = _migrate_club(club_name, "rename", new_name)
+        return _resp({"ok": True, "newClubName": new_name, **result})
+    except Exception as err:
+        logging.exception(f"[renameClub] 發生例外: {err}")
         return _resp({"ok": False, "error": "Internal Server Error"}, 500)
 
 

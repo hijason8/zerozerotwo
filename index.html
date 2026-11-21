@@ -142,7 +142,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./styles.css?v=20261121-11" />
+  <link rel="stylesheet" href="./styles.css?v=20261121-12" />
   <!-- Tailwind CSS：預先產生好的樣式檔（設定在 tailwind.config.js，改了 class 後執行 ./build-css.sh）
        放在 styles.css 之後，維持與原本 CDN 版相同的樣式優先順序 -->
   <link rel="stylesheet" href="./tailwind.css?v=20261111-1" />
@@ -1166,6 +1166,7 @@
               <p id="club-info-description-text" class="text-xs sm:text-sm sub-text whitespace-pre-wrap leading-relaxed">
                 目前暫無社團簡介。
               </p>
+              <p id="club-info-creator-text" class="hidden text-xs sub-text mt-2"></p>
             </div>
           </div>
 
@@ -2021,6 +2022,13 @@
         </div>
 
         <div>
+          <label id="t-label-modal-club-creator" class="block text-xs font-semibold mb-1">創建人 (選填)</label>
+          <input type="text" id="modal-create-club-creator" maxlength="20" placeholder="社團聯絡人或負責人"
+            autocomplete="off"
+            class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
+        </div>
+
+        <div>
           <label id="t-label-modal-club-desc" class="block text-xs font-semibold mb-1">社團簡介 (選填)</label>
           <textarea id="modal-create-club-desc-input" rows="3" maxlength="200"
             placeholder="上限200字"
@@ -2056,7 +2064,7 @@
           <input type="password" id="modal-create-club-pwd" placeholder="設定密碼（選填，保護社團資訊修改權限）" autocomplete="new-password"
             class="w-full input-bg border rounded-xl p-2.5 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none" />
           <p id="t-modal-club-pwd-hint" class="text-[11px] sub-text mt-1">
-            若設定密碼，未來修改此社團的簡介說明、公開隱私與設定時須輸入此密碼驗證，若留白則開放自由編輯；賽事計分則採現場互信制免輸密碼。</p>
+            設定密碼後，修改社團名稱、創建人、簡介與公開設定都需輸入密碼；賽事記分不需密碼。</p>
         </div>
 
         <div class="grid grid-cols-2 gap-2 pt-2">
@@ -2167,7 +2175,7 @@
       limitToLast,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { I18N } from "./i18n.js?v=20261121-11";
+    import { I18N } from "./i18n.js?v=20261121-12";
     window.I18N = I18N;
 
     function t(key) {
@@ -2189,14 +2197,14 @@
       safeGetLocalJSON,
       sha256,
       isTransientPlayer
-    } from "./utils.js?v=20261121-11";
-    import "./club.js?v=20261121-11";
-    import "./tournament-create.js?v=20261121-11";
-    import "./live.js?v=20261121-11";
-    import "./activities.js?v=20261121-11";
-    import "./hub.js?v=20261121-11";
-    import "./line.js?v=20261121-11";
-    import { applyLanguageUI } from "./i18n-ui.js?v=20261121-11";
+    } from "./utils.js?v=20261121-12";
+    import "./club.js?v=20261121-12";
+    import "./tournament-create.js?v=20261121-12";
+    import "./live.js?v=20261121-12";
+    import "./activities.js?v=20261121-12";
+    import "./hub.js?v=20261121-12";
+    import "./line.js?v=20261121-12";
+    import { applyLanguageUI } from "./i18n-ui.js?v=20261121-12";
 
     window.escapeHTML = escapeHTML;
     window.escapeHtml = escapeHTML;
@@ -2580,6 +2588,26 @@
       navigateTo("history", false);
     }
 
+    // 社團改名後，舊的 ?club=舊名 連結自動轉到新名字（/club_renames/{舊名} = 新名字）
+    async function followClubRename(name) {
+      if (!name || !STATE.db || typeof window.encodeClubKey !== "function") return;
+      try {
+        const snap = await get(ref(STATE.db, `club_renames/${window.encodeClubKey(name)}`));
+        if (!snap.exists() || STATE.currentClub !== name) return;
+        const newName = String(snap.val() || "").trim();
+        if (!newName || newName === name) return;
+        STATE.currentClub = newName;
+        localStorage.setItem("pb_last_club", newName);
+        if (!new URLSearchParams(window.location.search).has("liff.state")) {
+          window.history.replaceState({}, document.title, `${window.location.pathname}?club=${encodeURIComponent(newName)}`);
+        }
+        if (typeof window.openClubSpace === "function") window.openClubSpace(newName);
+        else navigateTo("history", false);
+      } catch (e) {
+        console.warn("[Routing] club rename lookup error:", e);
+      }
+    }
+
     function initRouting() {
       const tId = getQueryParam("t");
       const page = getQueryParam("page");
@@ -2598,6 +2626,7 @@
           localStorage.setItem("pb_last_club", decodedClub);
         }
         navigateTo("history", false);
+        followClubRename(decodedClub);
       } else if (page === "create") {
         navigateTo("create", false);
       } else if (page === "activities") {
@@ -2951,6 +2980,8 @@
       // 2. 先顯示：用上次登入的快取身分與資料，立即畫出頁面（不等 LINE 登入）
       //    畫頁面出錯也不能擋住 LINE 登入，所以用 try/catch 包起來
       primeCachedLineSession();
+      // 網站一打開網址就帶著賽事編號＝從賽事連結進來（之後在站內點進賽事不算）
+      STATE.entryTournamentId = getQueryParam("t") || null;
       try {
         initRouting();
       } catch (err) {
@@ -2961,6 +2992,8 @@
 
       // 3. 背景確認 LINE 登入與同步會員資料
       await initLiffAndUser();
+      STATE.loginChecked = true;
+      if (typeof window.handleEntryAutoFollow === "function") window.handleEntryAutoFollow();
 
       // 4. 登入確認後補上正確狀態：計分頁只重繪（不重設操作模式），其他頁重新路由
       try {

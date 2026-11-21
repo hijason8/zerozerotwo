@@ -4,7 +4,7 @@
  * 全面轉化為宣告式資料結構（Data-driven i18n mapping），徹底消除冗餘代碼。
  */
 
-import { STATE, t } from "./globals.js?v=20261121-11";
+import { STATE, t } from "./globals.js?v=20261121-12";
 
 const AUTO_GEN_HINT = {
   zh: { rotating: "產生「臨打」名額，成績不計入社團總戰績。",
@@ -53,6 +53,7 @@ export const I18N_TEXT_KEYS = {
   "t-modal-create-club-title": "createClubModalTitle",
   "t-modal-create-club-desc": "createClubModalDesc",
   "t-label-modal-club-desc": "labelModalClubDesc",
+  "t-label-modal-club-creator": "labelModalClubCreator",
   "t-label-modal-club-privacy": "labelModalClubPrivacy",
   "t-modal-club-public-title": "modalClubPublicTitle",
   "t-modal-club-public-desc": "modalClubPublicDesc",
@@ -342,6 +343,7 @@ export const I18N_PLACEHOLDERS = {
     ""
   ],
   "modal-create-club-name": "placeholderModalClubName",
+  "modal-create-club-creator": "placeholderModalClubCreator",
   "modal-create-club-desc-input": "placeholderModalClubDesc",
   "modal-create-club-pwd": "placeholderModalClubPwd",
   "modal-explore-clubs-search": "modalExploreClubsPlaceholder",
