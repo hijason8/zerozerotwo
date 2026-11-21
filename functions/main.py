@@ -113,6 +113,23 @@ def _legacy_club_key(club_name: str) -> str:
     return quote(club_name.strip(), safe="").replace(".", "%2E")
 
 
+def _p(key: str) -> str:
+    """把社團 key 放進資料庫路徑時用。
+    後端套件不會跳脫網址，路徑裡的 %E4%B8%89 會被資料庫解碼成「三」，寫到另一個節點；
+    把 % 換成 %25，資料庫解碼後才會是網頁那邊用的 %E4%B8%89 原樣 key。"""
+    return key.replace("%", "%25")
+
+
+def _delete_unescaped(prefix: str, key: str) -> None:
+    """清掉舊版後端沒跳脫時誤寫到的節點（例如 clubs_metadata/Gogo三重）。key 沒有 % 時兩者是同一個節點，不能刪。"""
+    if "%" not in key:
+        return
+    try:
+        db.reference(f"/{prefix}/{key}").delete()
+    except Exception as err:
+        logging.warning(f"[ClubKey] 清除未跳脫節點失敗 {prefix}/{key}: {err}")
+
+
 def _get_master_hash():
     master_hash = db.reference("/app_config/master_pin_hash").get()
     if not master_hash:
@@ -121,14 +138,32 @@ def _get_master_hash():
 
 
 def _get_club_hash(safe_key: str, club_name: str = ""):
-    stored = db.reference(f"/club_passwords/{safe_key}").get()
-    if not stored and club_name:
+    # 先找正確位置（%XX 原樣 key），再找舊版後端誤寫的解碼位置與更舊的編碼方式
+    keys = [safe_key]
+    if club_name:
         legacy_key = _legacy_club_key(club_name)
         if legacy_key != safe_key:
-            stored = db.reference(f"/club_passwords/{legacy_key}").get()
-    if not stored:
-        stored = db.reference(f"/clubs/{safe_key}/password_hash").get()
-    return stored
+            keys.append(legacy_key)
+    for k in keys:
+        stored = db.reference(f"/club_passwords/{_p(k)}").get()
+        if not stored and "%" in k:
+            try:
+                stored = db.reference(f"/club_passwords/{k}").get()
+            except Exception:
+                stored = None
+        if stored:
+            return stored
+    return db.reference(f"/clubs/{_p(safe_key)}/password_hash").get()
+
+
+def _clear_club_password(safe_key: str, club_name: str) -> None:
+    """刪除社團密碼（正確位置、舊版誤寫位置、舊編碼都清掉）"""
+    db.reference(f"/club_passwords/{_p(safe_key)}").delete()
+    _delete_unescaped("club_passwords", safe_key)
+    legacy_key = _legacy_club_key(club_name)
+    if legacy_key != safe_key:
+        db.reference(f"/club_passwords/{_p(legacy_key)}").delete()
+        _delete_unescaped("club_passwords", legacy_key)
 
 
 def _is_club_authorized(stored_hash, credential: str) -> bool:
@@ -147,7 +182,7 @@ def _is_club_authorized(stored_hash, credential: str) -> bool:
 def _set_meta_has_password(safe_key: str, has_password: bool) -> None:
     """同步 clubs_metadata 的 hasPassword 標記（資料庫規則禁止前端改有密碼社團的資料）"""
     try:
-        meta_ref = db.reference(f"/clubs_metadata/{safe_key}")
+        meta_ref = db.reference(f"/clubs_metadata/{_p(safe_key)}")
         if meta_ref.get() is not None:
             meta_ref.update({"hasPassword": has_password})
     except Exception as err:
@@ -351,29 +386,24 @@ def manageClubPassword(req: https_fn.Request) -> https_fn.Response:
                 _record_failure(req, "club")
                 return _resp({"ok": False, "error": "密碼錯誤"}, 403)
 
-        pwd_ref = db.reference(f"/club_passwords/{safe_key}")
-        legacy_key = _legacy_club_key(club_name)
         if action == "set":
-            pwd_ref.set(sha256(new_password))
-            if legacy_key != safe_key:
-                db.reference(f"/club_passwords/{legacy_key}").delete()
+            _clear_club_password(safe_key, club_name)
+            db.reference(f"/club_passwords/{_p(safe_key)}").set(sha256(new_password))
             _set_meta_has_password(safe_key, True)
             return _resp({"ok": True, "hasPassword": True})
 
         if action == "remove":
-            pwd_ref.delete()
-            if legacy_key != safe_key:
-                db.reference(f"/club_passwords/{legacy_key}").delete()
+            _clear_club_password(safe_key, club_name)
             _set_meta_has_password(safe_key, False)
             return _resp({"ok": True, "hasPassword": False})
 
         # rename：把密碼搬到新社團名稱底下
         if stored_hash:
             new_key = _club_key(new_club_name)
-            if db.reference(f"/club_passwords/{new_key}").get():
+            if _get_club_hash(new_key, new_club_name):
                 return _resp({"ok": False, "error": "新名稱已有密碼"}, 409)
-            db.reference(f"/club_passwords/{new_key}").set(stored_hash)
-            pwd_ref.delete()
+            db.reference(f"/club_passwords/{_p(new_key)}").set(stored_hash)
+            _clear_club_password(safe_key, club_name)
         return _resp({"ok": True, "hasPassword": bool(stored_hash)})
     except Exception as err:
         logging.exception(f"[manageClubPassword] 發生例外: {err}")
@@ -467,7 +497,7 @@ def updateClubMeta(req: https_fn.Request) -> https_fn.Response:
             _record_failure(req, "club")
             return _resp({"ok": False, "error": "密碼錯誤"}, 403)
 
-        meta_ref = db.reference(f"/clubs_metadata/{safe_key}")
+        meta_ref = db.reference(f"/clubs_metadata/{_p(safe_key)}")
         existing = meta_ref.get() or {}
         if not isinstance(existing, dict):
             existing = {}
@@ -481,6 +511,7 @@ def updateClubMeta(req: https_fn.Request) -> https_fn.Response:
         if not existing:
             changes["createdAt"] = _now_ms()
         meta_ref.update(changes)
+        _delete_unescaped("clubs_metadata", safe_key)
         return _resp({"ok": True, "meta": {**existing, **changes}})
     except Exception as err:
         logging.exception(f"[updateClubMeta] 發生例外: {err}")
@@ -498,11 +529,11 @@ CLUB_NAME_MAX = 12
 def _rename_conflict(new_name: str) -> str:
     """新名稱已被使用時回傳錯誤訊息，否則回傳空字串"""
     new_key = _club_key(new_name)
-    if db.reference(f"/clubs_metadata/{new_key}").get() is not None:
+    if db.reference(f"/clubs_metadata/{_p(new_key)}").get() is not None:
         return "這個名稱已經有其他社團使用"
     if _get_club_hash(new_key, new_name):
         return "這個名稱已經有其他社團使用"
-    if db.reference(f"/club_members/{new_key}").get():
+    if db.reference(f"/club_members/{_p(new_key)}").get():
         return "這個名稱已經有其他社團使用"
     if db.reference("/tournaments").order_by_child("clubName").equal_to(new_name).limit_to_first(1).get():
         return "這個名稱已經有其他社團使用"
@@ -524,13 +555,13 @@ def _migrate_club(club_name: str, action: str, new_name: str = "") -> Dict[str, 
         updates[f"tournaments/{tid}/clubName"] = target_name
 
     # 2. 成員名單
-    members = db.reference(f"/club_members/{old_key}").get()
+    members = db.reference(f"/club_members/{_p(old_key)}").get()
     updates[f"club_members/{old_key}"] = None
     if action == "rename" and members:
         updates[f"club_members/{new_key}"] = members
 
     # 3. 舊的 LINE 綁定資料（已停用，只跟著搬）
-    mappings = db.reference(f"/club_mappings/{old_key}").get() or {}
+    mappings = db.reference(f"/club_mappings/{_p(old_key)}").get() or {}
     updates[f"club_mappings/{old_key}"] = None
     if action == "rename" and isinstance(mappings, dict) and mappings:
         updates[f"club_mappings/{new_key}"] = mappings
@@ -561,7 +592,7 @@ def _migrate_club(club_name: str, action: str, new_name: str = "") -> Dict[str, 
         updates[f"club_passwords/{new_key}"] = stored_hash
 
     # 6. 社團說明與短網址
-    meta = db.reference(f"/clubs_metadata/{old_key}").get()
+    meta = db.reference(f"/clubs_metadata/{_p(old_key)}").get()
     updates[f"clubs_metadata/{old_key}"] = None
     code = meta.get("code") if isinstance(meta, dict) else None
     if action == "rename":
@@ -581,6 +612,12 @@ def _migrate_club(club_name: str, action: str, new_name: str = "") -> Dict[str, 
         updates[f"club_renames/{new_key}"] = None
 
     db.reference("/").update(updates)
+    # 清掉舊版後端誤寫的解碼位置（舊名、新名都清）
+    for k in [old_key, _legacy_club_key(club_name)] + ([new_key] if new_key else []):
+        for prefix in ("clubs_metadata", "club_members", "club_passwords"):
+            if prefix == "club_passwords" and k == new_key:
+                continue
+            _delete_unescaped(prefix, k)
     return {
         "tournaments": len(tournaments),
         "members": joined,
@@ -659,7 +696,7 @@ def renameClub(req: https_fn.Request) -> https_fn.Response:
 
     try:
         old_key = _club_key(club_name)
-        if db.reference(f"/clubs_metadata/{old_key}").get() is None and not db.reference(f"/club_members/{old_key}").get():
+        if db.reference(f"/clubs_metadata/{_p(old_key)}").get() is None and not db.reference(f"/club_members/{_p(old_key)}").get():
             return _resp({"ok": False, "error": "找不到這個社團"}, 404)
 
         stored_hash = _get_club_hash(old_key, club_name)
