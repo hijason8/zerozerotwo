@@ -13,7 +13,7 @@ import {
   startAt,
   equalTo
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261121-14";
+import { escapeHTML, escapeJsAttr, safeSetLocal } from "./utils.js?v=20261121-15";
 
 import {
   STATE,
@@ -25,7 +25,7 @@ import {
   getAllUniqueClubs,
   populateNavClubSelect,
   populateCreateClubSelect
-} from "./globals.js?v=20261121-14";
+} from "./globals.js?v=20261121-15";
 
 
 // 首頁／比賽中／等待報名只需要近期賽事：最近 30 天建立的（進行中、報名中），
@@ -467,17 +467,11 @@ export async function deleteTournament(id, skipConfirm = false) {
   const clubName = tObj ? (tObj.clubName || '').trim() : '';
   const tournamentName = tObj ? tObj.name : id;
 
-  if (clubName && !STATE.isAdmin && (!STATE.authenticatedClubs || !STATE.authenticatedClubs.has(clubName))) {
-    if (typeof window.verifyClubAccess === "function") {
-      const ok = await window.verifyClubAccess(clubName);
-      if (!ok) return;
-    }
-  }
-
+  // 社團密碼只管社團資訊（名稱、簡介、公開設定），比賽一律全開放，刪除只需確認
   if (!skipConfirm) {
     const confirmMsg = STATE.lang === "zh-TW"
-      ? `確定要刪除此賽事嗎，比賽紀錄不會歸檔紀錄？`
-      : `Delete this event? Its games won't be saved.`;
+      ? `確定要刪除「${tournamentName}」嗎？\n刪除後無法復原，比賽紀錄也不會保留。`
+      : `Delete "${tournamentName}"?\nThis cannot be undone and its games won't be saved.`;
     if (!confirm(confirmMsg)) return;
   }
 

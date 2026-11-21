@@ -18,7 +18,7 @@ import {
   sha256,
   parseTournamentDate,
   formatTournamentDate
-} from "./utils.js?v=20261121-14";
+} from "./utils.js?v=20261121-15";
 import {
   getFullRoundRobinGames,
   generateSinglesSchedule,
@@ -26,7 +26,7 @@ import {
   getValidTotalGames,
   getMaxTotalGames,
   generateRoundRobinSchedule
-} from "./scheduler.js?v=20261121-14";
+} from "./scheduler.js?v=20261121-15";
 
 import {
   STATE,
@@ -39,7 +39,7 @@ import {
   saveToLocalTournaments,
   addMyTournamentId,
   deleteTournament
-} from "./globals.js?v=20261121-14";
+} from "./globals.js?v=20261121-15";
 
 // PAGE D: LIVE TOURNAMENT CONTROLLER & REALTIME SYNC
 // ----------------------------------------------------
@@ -1307,7 +1307,7 @@ async function cancelRegistrationTournament() {
   const tData = STATE.tournamentData;
   const tName = tData ? tData.name : tId;
   const isZh = (STATE.lang === "zh-TW");
-  if (!confirm(isZh ? `確定要取消並刪除報名球局嗎？` : `Cancel and delete this event?\n(This cannot be undone)`)) {
+  if (!confirm(isZh ? `確定要取消並刪除「${tName}」嗎？\n報名名單會一起刪除，無法復原。` : `Cancel and delete "${tName}"?\nThe sign-up list will be deleted. This cannot be undone.`)) {
     return;
   }
   await deleteTournament(tId, true);
