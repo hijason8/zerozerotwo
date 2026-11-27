@@ -37,9 +37,3 @@ jobs:
             請處理以下 GitHub 任務並建立 Pull Request（不要直接推送到 main 分支）：
             標題：${{ github.event.issue.title }}
             內容：${{ github.event.comment.body || github.event.issue.body }}
-          settings: |
-            {
-              "model": {
-                "name": "gemini-2.5-flash"
-              }
-            }
