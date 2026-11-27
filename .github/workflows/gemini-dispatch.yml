@@ -22,8 +22,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Trust workspace directory
+        run: |
+          mkdir -p ~/.gemini
+          echo "{\"$GITHUB_WORKSPACE\": \"TRUST_FOLDER\"}" > ~/.gemini/trustedFolders.json
+
       - name: Run Gemini CLI
         uses: google-github-actions/run-gemini-cli@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           prompt: |
