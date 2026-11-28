@@ -155,6 +155,7 @@
 | 分享預覽圖（LINE／iMessage 連結卡片） | 1200×630 | `og-image.png`；換圖時把 `index.html` 裡 `og-image.png?v=` 的數字加一 |
 | LINE 圖文選單 | 2500×843（左大右小兩格） | 原始檔在專案知識庫 |
 | 品牌字 | 「ZeroZero」黑＋「Two」綠 | |
+| LINE 官方帳號大頭貼、封面圖 | 640×640、2500×843、1040×350 | `design/` 資料夾（含設計原始檔 `banner_*.html`） |
 
 ---
 
@@ -272,6 +273,9 @@
 | `functions/main.py` | 所有後端程式 |
 | `database.rules.json` | 資料庫安全規則 |
 | `sw.js` | 只用來**清除**舊版 Service Worker 與快取（網站目前不使用離線快取） |
+| `diag.html` | LINE 登入診斷頁（`zztwo.com/diag.html`），查登入問題時用 |
+| `design/` | 品牌素材與設計原始檔，網站不會用到 |
+| `hosting-redirect/`、`firebase.redirect.json` | 把舊的 Firebase 網址轉到 `zztwo.com` |
 
 ### 6.3 開發規則
 
