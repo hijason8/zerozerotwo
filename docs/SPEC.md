@@ -506,7 +506,16 @@ firebase deploy --only database
 
 - **登入：** LIFF（LINE Front-end Framework，讓網頁在 LINE 裡直接取得登入身分）。只用來識別「我是誰」，以記住加入的社團與關注。
 - **賽事連結：** `https://liff.line.me/2012043789-KvKpHLCt?t=賽事ID`，在 LINE 裡點開會自動登入。
-- **圖文選單：** 左「官網」`https://zztwo.com/`、右「建立賽事」`https://zztwo.com/?page=create`。
+- **圖文選單：** 2500×843（LINE「小型」選單），左大右小兩格。
+  - 左「官網」（約 x 0～1666）：開啟 `https://zztwo.com/`
+  - 右「建立賽事」（約 x 1666～2500）：開啟 `https://zztwo.com/?page=create`
+  - 成品圖 `zerozerotwo-richmenu-compact-2500x843.png`，原始檔在專案知識庫。
+- **LINE 官方帳號自動回覆（`lineWebhook`）：** 使用者在聊天室輸入關鍵字時回覆。
+  - 「我的活動總表」等：列出比賽中／報名中的賽事。**注意：** 目前依「加入的社團」與舊的球員綁定資料比對，還沒改成依「我的關注」。
+  - 「搜尋接龍列表」等：列出近期公開的報名中賽事。
+  - 「建立賽事」等：回覆建立賽事的連結；「說明」「help」：回覆功能說明。
+  - 圖文選單已不再送出這些關鍵字，只有使用者自己輸入才會觸發。
+  - 憑證放在環境變數或 `/app_config/line_bot/`；用 LINE 的被動回覆，不消耗每月推播額度。
 - **分享預覽：** 由 `index.html` 的 `og:` 設定決定。LINE 會暫存預覽好幾天，而且官方清除工具（Page Poker）已停用，所以換圖後舊連結要等暫存過期。
 
 ---
