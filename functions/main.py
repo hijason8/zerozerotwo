@@ -861,12 +861,12 @@ def _reply_line_message(reply_token: str, text: str, token: str) -> bool:
 
 
 def _get_user_info(user_id: str):
-    """取得使用者的 myClubs 與各社團的綁定身分"""
+    """取得使用者加入的社團（myClubs）與關注紀錄（following）"""
     user_my_clubs = set()
-    club_mappings = {}
+    following = {}
 
     if not user_id:
-        return user_my_clubs, club_mappings
+        return user_my_clubs, following
 
     try:
         user_data = db.reference(f"/users/{user_id}").get() or {}
@@ -874,57 +874,29 @@ def _get_user_info(user_id: str):
             my_c = user_data.get("myClubs") or {}
             if isinstance(my_c, dict):
                 user_my_clubs = {urllib.parse.unquote(k).strip() for k in my_c.keys()}
+            f = user_data.get("following") or {}
+            if isinstance(f, dict):
+                following = f
     except Exception as e:
-        print(f"[LINE Webhook] 讀取 user myClubs 失敗: {e}")
+        print(f"[LINE Webhook] 讀取會員資料失敗: {e}")
 
-    try:
-        raw_mappings = db.reference("/club_mappings").get() or {}
-        if isinstance(raw_mappings, dict):
-            club_mappings = raw_mappings
-    except Exception as e:
-        print(f"[LINE Webhook] 讀取 club_mappings 失敗: {e}")
-
-    return user_my_clubs, club_mappings
+    return user_my_clubs, following
 
 
-def _is_user_registered_in_tournament(t: dict, user_id: str, user_my_clubs: set, club_mappings: dict):
-    """
-    精準判斷該 LINE ID 是否為該球局已參加/已報名者：
-    1. 比對 players 陣列中是否有 lineUserId == user_id
-    2. 若為社團球局，僅在該使用者在該社團有明確綁定名字時比對 (嚴格社團層級隔離)
-    """
-    if not user_id or not isinstance(t, dict):
-        return False, ""
-
+def _is_following(t: dict, user_my_clubs: set, following: dict) -> bool:
+    """與網頁「我的關注」相同的判斷：
+    有關注紀錄 → 大於 0 才算關注（0 = 自己取消過）；
+    沒有紀錄 → 自己加入的社團的賽事預設算關注"""
+    if not isinstance(t, dict):
+        return False
+    t_id = str(t.get("id") or "")
+    if t_id and t_id in following:
+        try:
+            return float(following[t_id]) > 0
+        except (TypeError, ValueError):
+            return False
     c_name = (t.get("clubName") or "").strip()
-    safe_c = quote(c_name, safe="").replace(".", "%2E") if c_name else ""
-
-    bound_name_in_club = ""
-    if safe_c and safe_c in club_mappings and isinstance(club_mappings[safe_c], dict):
-        bound_name_in_club = str(club_mappings[safe_c].get(user_id, "")).strip()
-
-    players = t.get("players", [])
-    if not isinstance(players, list):
-        return False, ""
-
-    for p in players:
-        p_name = ""
-        p_uid = ""
-        if isinstance(p, str):
-            p_name = p.strip()
-        elif isinstance(p, dict):
-            p_name = str(p.get("name", "")).strip()
-            p_uid = str(p.get("lineUserId", "")).strip()
-
-        # 1. 直接比對 lineUserId
-        if p_uid and p_uid == user_id:
-            return True, p_name or bound_name_in_club or "我"
-
-        # 2. 社團隔離綁定姓名比對：必須是該賽事所屬社團的綁定身分相符
-        if c_name and bound_name_in_club and p_name == bound_name_in_club:
-            return True, p_name
-
-    return False, ""
+    return bool(c_name) and c_name in user_my_clubs
 
 
 RECENT_TOURNAMENT_DAYS = 30
@@ -943,13 +915,13 @@ def _recent_tournaments() -> dict:
 
 def _handle_my_activities(user_id: str) -> str:
     """
-    處理【比賽中/已報名】：
-    列出所有這個 LINE ID 帳下，已參加及已報名且未完賽或結束的活動。
+    處理【我的關注】：列出這個 LINE 帳號關注中、尚未結束的賽事（報名中／比賽中），
+    判斷方式與網頁「我的關注」相同。
     """
     if not user_id:
-        return "⚠️ 無法取得您的 LINE 帳號識別碼，請點擊下方開啟網頁查看：\nzztwo.com/?page=activities"
+        return f"⚠️ 無法取得您的 LINE 帳號，請開啟網頁查看「我的關注」：\n{LIFF_BASE_URL}"
 
-    user_my_clubs, club_mappings = _get_user_info(user_id)
+    user_my_clubs, following = _get_user_info(user_id)
 
     tournaments_dict = _recent_tournaments()
 
@@ -970,8 +942,7 @@ def _handle_my_activities(user_id: str) -> str:
         if status in ("completed", "finished", "archived"):
             continue
 
-        is_registered, my_reg_name = _is_user_registered_in_tournament(t, user_id, user_my_clubs, club_mappings)
-        if not is_registered:
+        if not _is_following(t, user_my_clubs, following):
             continue
 
         players = t.get("players", [])
@@ -986,21 +957,21 @@ def _handle_my_activities(user_id: str) -> str:
         active_or_reg.append({
             "id": t_id,
             "name": t_name,
-            "club": c_name or "公開臨打",
+            "club": c_name or "臨打",
             "p_count": p_count,
             "max_p": max_p,
             "status": status,
-            "reg_name": my_reg_name,
             "notes": first_note
         })
 
-    lines = ["【ZeroZeroTwo 比賽中與已報名】", ""]
+    lines = ["【ZeroZeroTwo 我的關注】", ""]
 
     if not active_or_reg:
-        lines.append("目前沒有進行中或已報名的活動。")
+        lines.append("目前沒有關注中的報名中或比賽中賽事。")
+        lines.append("在賽事頁點賽事名稱前的 ☆，就能加入關注。")
         lines.append("")
-        lines.append("查看等待報名活動：")
-        lines.append(f"{LIFF_BASE_URL}?page=waiting")
+        lines.append("開啟「我的關注」：")
+        lines.append(f"{LIFF_BASE_URL}")
         return "\n".join(lines)
 
     for idx, it in enumerate(active_or_reg[:5], 1):
@@ -1008,8 +979,6 @@ def _handle_my_activities(user_id: str) -> str:
         link = f"{LIFF_BASE_URL}?t={it['id']}"
         lines.append(f"{idx}. {it['name']} ({tag})")
         lines.append(f"-所屬：{it['club']}")
-        if it["reg_name"]:
-            lines.append(f"-出賽身分：{it['reg_name']}")
         if it["max_p"] and it["max_p"] < 100:
             lines.append(f"-人數：{it['p_count']}/{it['max_p']} 人")
         else:
@@ -1028,7 +997,7 @@ def _handle_open_registrations(user_id: str = "") -> str:
     列出所有沒有社團建立的接龍活動以及該 LINE ID 帳號下的社團，當前可接龍報名的活動。
     如果當前沒有活動可以參加，請寫「目前沒有臨打及已參與社團的接龍活動」。
     """
-    user_my_clubs, club_mappings = _get_user_info(user_id) if user_id else (set(), {})
+    user_my_clubs, following = _get_user_info(user_id) if user_id else (set(), {})
 
     tournaments_dict = _recent_tournaments()
 
@@ -1064,11 +1033,9 @@ def _handle_open_registrations(user_id: str = "") -> str:
             if not user_my_clubs or c_name not in user_my_clubs:
                 continue
 
-        # 且本人尚未報名
-        if user_id:
-            is_reg, _ = _is_user_registered_in_tournament(t, user_id, user_my_clubs, club_mappings)
-            if is_reg:
-                continue
+        # 已在「我的關注」裡的就不重複列出
+        if user_id and _is_following(t, user_my_clubs, following):
+            continue
 
         open_t.append(t)
 
@@ -1084,7 +1051,7 @@ def _handle_open_registrations(user_id: str = "") -> str:
     for idx, t in enumerate(open_t[:5], 1):
         t_id = t.get("id", "")
         t_name = t.get("name", "未命名球局")
-        c_name = (t.get("clubName") or "").strip() or "公開臨打"
+        c_name = (t.get("clubName") or "").strip() or "臨打"
         players = t.get("players", [])
         p_count = len(players) if isinstance(players, list) else 0
         max_p = t.get("maxPlayers") or 100
@@ -1158,7 +1125,7 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
             user_text = (msg.get("text") or "").strip()
 
             # 1. 比賽中/已報名 (活動總表)
-            if any(k in user_text for k in ["我的活動總表", "我的活動", "我的球局", "總表", "活動總表", "比賽中/已報名", "比賽中與已報名", "比賽中", "已報名"]):
+            if any(k in user_text for k in ["我的關注", "關注", "我的活動總表", "我的活動", "我的球局", "總表", "活動總表", "比賽中/已報名", "比賽中與已報名", "比賽中", "已報名"]):
                 reply_content = _handle_my_activities(user_id)
                 _reply_line_message(reply_token, reply_content, token)
 
@@ -1170,7 +1137,7 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
             # 3. 創建比賽
             elif any(k in user_text for k in ["創建比賽", "建立比賽", "建立賽事", "開局", "創建賽事"]):
                 reply_content = (
-                    "🏆【創建新賽事 / 暢打球局】\n\n"
+                    "🏆【建立賽事】\n\n"
                     "支援「平均模式自動排賽」與「自由模式暢打」：\n"
                     f"{LIFF_BASE_URL}?page=create"
                 )
@@ -1180,10 +1147,10 @@ def lineWebhook(req: https_fn.Request) -> https_fn.Response:
             elif user_text in ["說明", "功能", "選單", "menu", "help", "幫助"]:
                 reply_content = (
                     "🎾 ZeroZeroTwo 匹克球助手\n\n"
-                    "直接點擊下方圖文選單，或輸入關鍵字：\n"
-                    "1.「比賽中/已報名」：查詢您的報名與進行中球局\n"
-                    "2.「搜尋接龍列表」：查看近期開放接龍場次\n"
-                    "3.「創建比賽」：前往開局排賽\n\n"
+                    "輸入關鍵字：\n"
+                    "1.「我的關注」：查看你關注的報名中、比賽中賽事\n"
+                    "2.「搜尋接龍列表」：查看近期開放報名的賽事\n"
+                    "3.「建立賽事」：前往建立賽事\n\n"
                     f"{LIFF_BASE_URL}"
                 )
                 _reply_line_message(reply_token, reply_content, token)
